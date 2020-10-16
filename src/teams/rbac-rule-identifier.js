@@ -113,7 +113,7 @@ Polymer({
       },
       availableResourceItems: {
           type: Array,
-          value: function () { return []; },
+          value () { return []; },
           computed: '_computeAvailableResourceItems(rule.rtype, model.*)'
       },
       showDropDown: {
@@ -151,20 +151,20 @@ Polymer({
       'keyup': 'hotkeys'
   },
 
-  _computeTagString: function(rule, rtags) {
+  _computeTagString(rule, rtags) {
       return this._computeTagsArray(rtags).join(', ');
   },
 
-  _computeResourceCloud: function (resource) {
+  _computeResourceCloud (resource) {
       if (!resource || !resource.cloud || !this.model || !this.model.clouds || !this.model.clouds[resource.cloud])
           return '';
-      return this.model.clouds[resource.cloud].title + ' ::';
+      return `${this.model.clouds[resource.cloud].title  } ::`;
   },
 
-  _updateIdentifier: function(e) {
+  _updateIdentifier(e) {
       // case of changing identifier-type 
       if (e.detail.item.attributes.class.nodeValue.indexOf('identifier-type') > -1) {
-          var identifierType = e.detail.item.dataset.value.toLowerCase();
+          const identifierType = e.detail.item.dataset.value.toLowerCase();
           if (identifierType == 'tags') {
               this.set('showDropDown', false);
               this.set('showTags', true);
@@ -192,7 +192,7 @@ Polymer({
               } }))
           }
       } else if (e.detail.item.attributes.class.nodeValue.indexOf('rid') > -1) { // case of choοsing rid
-          var rid = e.detail.item.id;
+          const rid = e.detail.item.id;
           this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {
               'index': this.index,
               'rid': rid
@@ -201,59 +201,59 @@ Polymer({
       }
   },
 
-  _ruleHasTags: function(rule, tags) {
+  _ruleHasTags(rule, tags) {
       if (Object.keys(rule.rtags).length > 0)
           this.showTags = true;
-      return Object.keys(rule.rtags).length > 0 ? true : false;
+      return Object.keys(rule.rtags).length > 0;
   },
 
-  _ruleHasId: function(rule) {
-      return rule.rid.length > 0 ? true : false;
+  _ruleHasId(rule) {
+      return rule.rid.length > 0;
   },
 
-  _computeTagsArray: function(tags) {
+  _computeTagsArray(tags) {
       if (tags) {
-          var arrTags = Object.keys(tags);
-          for (var i = 0; i < arrTags.length; i++) {
-              var t = arrTags[i];
+          const arrTags = Object.keys(tags);
+          for (let i = 0; i < arrTags.length; i++) {
+              const t = arrTags[i];
               if (tags[t] != null) {
-                  arrTags[i] = arrTags[i] + '=' + tags[t];
+                  arrTags[i] = `${arrTags[i]  }=${  tags[t]}`;
               }
           }
           return arrTags;
-      } else {
+      } 
           return []
-      }
+      
   },
 
-  _computeLink: function(type, id) {
+  _computeLink(type, id) {
       if (type && id && type != "cloud") {
           return false;
-      } else if (type == "cloud" && id) {
+      } if (type == "cloud" && id) {
           return this.model.clouds[id].title;
-      } else if (type == "cloud" && !id) {
+      } if (type == "cloud" && !id) {
           return 'all clouds';
       }
   },
 
-  _computeResourceName: function(type, id) {
+  _computeResourceName(type, id) {
       if (type && id) {
-          var mod = this.model[type + 's'];
+          const mod = this.model[`${type  }s`];
           return mod[id].name;
       }
   },
 
-  _computeSelectedIdentifierType: function(rule, rtags, rid) {
+  _computeSelectedIdentifierType(rule, rtags, rid) {
       if (this.rule && this.rule.rid && this.rule.rid.length > 0) {
           return 1;
-      } else if (this.rule && this.rule.rtags) {
+      } if (this.rule && this.rule.rtags) {
           return Object.keys(this.rule.rtags).length > 0 ? 2 : 0;
       }
   },
 
-  _computeRecords: function() {
-      var allRecords = [];
-      Object.values(this.model['zones']).forEach(function(zone) {
+  _computeRecords() {
+      const allRecords = [];
+      Object.values(this.model.zones).forEach(function(zone) {
           zone.records.forEach(function(record) {
               allRecords.push(record);
           })
@@ -261,36 +261,36 @@ Polymer({
       return allRecords;
   },
 
-  _computeAvailableResourceItems: function(rtype, model) {
+  _computeAvailableResourceItems(rtype, model) {
       if (rtype) {
           if (rtype == 'location') {
-              var allLocations = []
+              let allLocations = []
               Object.values(this.model.clouds || {}).forEach(function(cloud) {
                  allLocations = allLocations.concat(Object.values(cloud.locations || {}));
               });
               return allLocations;
-          } else if (rtype == 'record') {
-              var records = this._computeRecords();
+          } if (rtype == 'record') {
+              const records = this._computeRecords();
               this.set('placeholder', records.length ? "" : "no zones found");
               return records;
-          } else if (rtype && Object.keys(this.model).indexOf(rtype + 's') > -1) {
-              this.set('placeholder', Object.keys(this.model[rtype + "s"]).length ? "" : "no " + rtype + "s found");
-              return Object.values(this.model[rtype + 's']);
+          } if (rtype && Object.keys(this.model).indexOf(`${rtype  }s`) > -1) {
+              this.set('placeholder', Object.keys(this.model[`${rtype  }s`]).length ? "" : `no ${  rtype  }s found`);
+              return Object.values(this.model[`${rtype  }s`]);
           }
       }
   },
 
-  _toggleShowEdit: function() {
+  _toggleShowEdit() {
       this.set('showEdit', !this.showEdit);
   },
 
-  _updateTags: function() {
-      var tagArr = this.$.inputField.value.split(',');
-      var newRtags = {};
+  _updateTags() {
+      const tagArr = this.$.inputField.value.split(',');
+      const newRtags = {};
       tagArr.forEach(function(t) {
-          var k = t.split("=")[0].replace(' ', '').trim();
+          const k = t.split("=")[0].replace(' ', '').trim();
           if (k != '') {
-              var v = t.split("=")[1] ? t.split("=")[1].trim() : null;
+              const v = t.split("=")[1] ? t.split("=")[1].trim() : null;
               newRtags[k] = v;
           }
       }, this);
@@ -302,9 +302,9 @@ Polymer({
 
   },
 
-  _deleteTag: function(e) {
-      var tag = e.detail.sourceEvent.path[1].textContent.split('=')[0].trim();
-      var index = e.detail.sourceEvent.path[0].id.split('-')[1];
+  _deleteTag(e) {
+      const tag = e.detail.sourceEvent.path[1].textContent.split('=')[0].trim();
+      const index = e.detail.sourceEvent.path[0].id.split('-')[1];
       this.dispatchEvent(new CustomEvent('delete-rtag', { bubbles: true, composed: true, detail: {
           'index': this.index,
           'tag': tag
@@ -312,7 +312,7 @@ Polymer({
 
   },
 
-  hotkeys: function(e) {
+  hotkeys(e) {
       // if 'enter'
       if (e.keyCode === 13) {
           this.$.inputField.blur();

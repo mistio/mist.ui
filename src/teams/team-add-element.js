@@ -117,14 +117,14 @@ Polymer({
       }
   },
 
-  _clearError: function() {
+  _clearError() {
       if (this.formError) {
           this.set('formError', false);
       }
   },
 
-  _computeFormReady: function(name, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, sendingData) {
+      let formReady = false;
       if (this.formError) {
           this.set('formError', false);
       }
@@ -139,21 +139,21 @@ Polymer({
       return formReady;
   },
 
-  _computeType: function(type, value) {
+  _computeType(type, value) {
       return type == value;
   },
 
-  _computeDanger: function(danger) {
+  _computeDanger(danger) {
       return danger;
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this._clearError();
       document.querySelector('vaadin-dialog-overlay').opened = false;
       this._formReset();
   },
 
-  _submitForm: function() {
+  _submitForm() {
       this.set('sendingData', true);
       this.set('formError', false);
       this.shadowRoot.querySelector("#teamAddAjaxRequest").headers["Content-Type"] = 'application/json';
@@ -166,33 +166,33 @@ Polymer({
       this.shadowRoot.querySelector("#teamAddAjaxRequest").generateRequest();
   },
 
-  _submitOnEnter: function(e) {
+  _submitOnEnter(e) {
       // check if 'enter' was pressed
       if (e.keyCode === 13) {
           this._submitForm();
       }
   },
 
-  _handleTeamAddAjaxResponse: function(e) {
+  _handleTeamAddAjaxResponse(e) {
       this.set('sendingData', false);
       document.querySelector('vaadin-dialog-overlay').opened = false;
 
       if (this.referral && this.referral == "onb") {
           this.dispatchEvent(new CustomEvent("new-team-added", { bubbles: true, composed: true, detail:  JSON.parse(e.detail.xhr.response).name }));
       }
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'New team ' + JSON.parse(e.detail.xhr.response).name + ' added succesfully.', duration: 3000 } }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `New team ${  JSON.parse(e.detail.xhr.response).name  } added succesfully.`, duration: 3000 } }));
       this._formReset();
       this.set('referral', null);
   },
 
-  _handleTeamAddAjaxError: function(e) {
+  _handleTeamAddAjaxError(e) {
       this.set('sendingData', false);
       this.set('formError', true);
       console.log(e)
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  _formReset: function() {
+  _formReset() {
       this.set('newTeam.name', '');
       this.set('newTeam.description', '');
       this.set('newTeam.visible', true);

@@ -10,6 +10,7 @@ import '../notifications/notifications-indicator.js';
 import './top-search.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
             <style include="shared-styles">
@@ -320,26 +321,26 @@ Polymer({
       '_pageChanged(title)'
   ],
 
-  _showDefaultLogoClass: function (org, avatar) {
+  _showDefaultLogoClass (org, avatar) {
       if (!org || !org.avatar || !org.avatar.length)
           return "show-default-logo";
       return "";
   },
 
-  _pageChanged: function (page) {
+  _pageChanged (page) {
       console.log('_pageChanged', page);
-      this.set('color', page + '-section-color');
+      this.set('color', `${page  }-section-color`);
   },
 
-  _titleText: function (title, filterDisplayName, mediaQuerySmall) {
+  _titleText (title, filterDisplayName, mediaQuerySmall) {
       return mediaQuerySmall && filterDisplayName && filterDisplayName.length ? filterDisplayName : title.replace("my", "").replace("-", " ");
   },
 
-  toggleSidebar: function () {
+  toggleSidebar () {
       this.dispatchEvent(new CustomEvent('mist-sidebar-toggle', { bubbles: true, composed: true}));
   },
 
-  _computeUserTeams: function (user, teams) {
+  _computeUserTeams (user, teams) {
       if (!user || !teams || !teams.length) {
           return [];
       }
@@ -350,19 +351,19 @@ Polymer({
       });
   },
 
-  _computeLogo: function (org) {
+  _computeLogo (org) {
       if (!this.model || !this.model.org || !this.model.org.avatar) {
           return false;
       }
-      return '/api/v1/avatars/' + org.avatar;
+      return `/api/v1/avatars/${  org.avatar}`;
   },
 
-  clearSearch: function (e) {
+  clearSearch (e) {
       this.dispatchEvent(new CustomEvent('clear-search-on-nav'));
   },
 
-  _computeHref: function(title){
+  _computeHref(title){
       console.log('_computeHref', title);
-      return title == "dashboard" ? "/" : "/"+title;
+      return title == "dashboard" ? "/" : `/${title}`;
   }
 });

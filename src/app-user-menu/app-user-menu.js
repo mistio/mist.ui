@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-menu-button/paper-menu-button.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/js-md5/src/md5.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -271,7 +272,7 @@ Polymer({
       },
       size: {
           type: Number,
-          value: function () {
+          value () {
               return window.devicePixelRatio > 1.5 ? 80 : 40;
           }
       },
@@ -311,39 +312,39 @@ Polymer({
       }
   },
 
-  _hasLogo: function(org) {
+  _hasLogo(org) {
       if (org && org.avatar && org.avatar.length) {
           return true;
       }
       return false;
   },
 
-  _computeLogo: function (org) {
+  _computeLogo (org) {
       if (org && org.avatar && org.avatar.length)
-          return '/api/v1/avatars/' + org.avatar;
+          return `/api/v1/avatars/${  org.avatar}`;
       return '';
   },
 
-  _computeGravatar: function (email, size, placeholder) {
-      var url = '';
+  _computeGravatar (email, size, placeholder) {
+      let url = '';
       if (email) {
-          var avatarString = email && md5(email);
-          url = '//www.gravatar.com/avatar/' + avatarString + '.jpg?s=' + size + '&d=' + placeholder;
+          const avatarString = email && md5(email);
+          url = `//www.gravatar.com/avatar/${  avatarString  }.jpg?s=${  size  }&d=${  placeholder}`;
       } else {
           url = placeholder;
       }
       return url;
   },
 
-  _computeGravatarName: function (first_name, last_name, email, username) {
-      return first_name && last_name ? first_name + ' ' + last_name : (email || username);
+  _computeGravatarName (first_name, last_name, email, username) {
+      return first_name && last_name ? `${first_name  } ${  last_name}` : (email || username);
   },
 
-  _computeUserName: function (user) {
-      var ret = '';
+  _computeUserName (user) {
+      let ret = '';
       if (user) {
           if (user.first_name)
-              ret += user.first_name + ' ';
+              ret += `${user.first_name  } `;
           if (user.last_name)
               ret += user.last_name;
           if (!ret.length)
@@ -352,7 +353,7 @@ Polymer({
       return ret;
   },
 
-  _computeOrganizationsList: function (user, org) {
+  _computeOrganizationsList (user, org) {
       if (!user || !user.orgs || !org)
           return [];
 
@@ -369,28 +370,28 @@ Polymer({
       })
   },
 
-  _computeOrganizationName: function (name) {
+  _computeOrganizationName (name) {
       return name && name.length ? name : '[ untitled org ]';
   },
 
-  _computeOrganizationNameStyle: function (name) {
+  _computeOrganizationNameStyle (name) {
       return !name && 'opacity: .5' || '';
   },
 
-  _isCurrentOrg: function (organization) {
+  _isCurrentOrg (organization) {
       return organization && this.org && organization.id == this.org.id;
   },
 
-  _addOrg: function (e) {
+  _addOrg (e) {
       this.dispatchEvent(new CustomEvent('add-org', {bubbles: true, composed: true, detail: null}));
   },
 
-  _goToOrg: function (e) {
-      var orgId = e.currentTarget.getAttribute('id');
-      window.location.href = orgId ? '/switch_context/' + orgId : '/switch_context';
+  _goToOrg (e) {
+      const orgId = e.currentTarget.getAttribute('id');
+      window.location.href = orgId ? `/switch_context/${  orgId}` : '/switch_context';
   },
 
-  _logout: function (e) {
+  _logout (e) {
       window.location.href = '/logout';
   }
 });

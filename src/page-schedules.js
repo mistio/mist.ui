@@ -10,6 +10,7 @@ import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -70,47 +71,47 @@ Polymer({
         }
     },
 
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
 
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         return path && path != '/+add';
     },
 
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
 
-    _getSchedule: function(id) {
+    _getSchedule(id) {
         if (this.model.schedules)
             return this.model.schedules[id];
     },
 
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.schedules.add
         } }));
 
     },
 
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers: function(schedules) {
-        var _this = this;
+    _getRenderers(schedules) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'task_type': {
@@ -120,20 +121,20 @@ Polymer({
                 'body': function(item, row) {
                     if (item.action)
                         return item && item.action.toUpperCase();
-                    else if (item.script_id) {
-                        var scriptName = _this.model.scripts[item.script_id] ? _this.model.scripts[item.script_id].name : "missing script";
-                        return "RUN "+ scriptName;
+                    if (item.script_id) {
+                        const scriptName = _this.model.scripts[item.script_id] ? _this.model.scripts[item.script_id].name : "missing script";
+                        return `RUN ${ scriptName}`;
                     }
                 }
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;
@@ -159,30 +160,29 @@ Polymer({
                 'body': function(item, row) {
                     if (item.startsWith("Interval")) {
                         return item.replace("Interval ", "")
-                    } else if (item.startsWith("OneOff")) {
-                        var isValid = moment().isValid(item.replace("OneOff date to run ", ""));
-                        var time;
+                    } if (item.startsWith("OneOff")) {
+                        const isValid = moment().isValid(item.replace("OneOff date to run ", ""));
+                        let time;
                         if (isValid)
                             time = moment.utc(item.replace("OneOff date to run ", "")).fromNow();
-                        return time ? time : item;
-                    } else if (item.startsWith("Crontab")) {
+                        return time || item;
+                    } if (item.startsWith("Crontab")) {
                         return item.replace("Crontab ", "").replace("(m/h/d/dM/MY)", "");
-                    } else
-                        return item;
+                    } return item;
                 }
             },
             'selectors': {
                 'body': function(item, row) {
-                    var selectors = item;
-                    var display = '';
+                    const selectors = item;
+                    let display = '';
 
-                    for (var i = 0; i < selectors.length; i++) {
-                        var missingLength = 0;
+                    for (let i = 0; i < selectors.length; i++) {
+                        let missingLength = 0;
                         if (i == selectors.length - 1 && i > 0)
                             display += "and ";
                         if (selectors[i].type == "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
                             display += "on ";
-                            for (var j = 0; j < selectors[i].ids.length; j++) {
+                            for (let j = 0; j < selectors[i].ids.length; j++) {
                                 if (_this.model.machines[selectors[i].ids[j]]) {
                                     if (j == selectors[i].ids.length - 1 && j > 0 && !missingLength)
                                         display += "and ";
@@ -197,7 +197,7 @@ Polymer({
                             if (missingLength) {
                                 if (missingLength < selectors[i].ids.length)
                                     display += " and "
-                                display += missingLength + " missing machine"
+                                display += `${missingLength  } missing machine`
                                 if (missingLength > 1)
                                     display += "s "
                                 else
@@ -205,19 +205,19 @@ Polymer({
                             }
                         } else if (selectors[i].type == "tags") {
                             display += "on tags ";
-                            for (var p in selectors[i].include) {
-                                display += "<span class='tag'>" + p;
+                            for (const p in selectors[i].include) {
+                                display += `<span class='tag'>${  p}`;
                                 if (selectors[i].include[p] != undefined && selectors[i].include[p] != "")
-                                    display += "=" + selectors[i].include[p];
+                                    display += `=${  selectors[i].include[p]}`;
                                 display += "</span>";
                             }
                         }
                         if (selectors[i].type == "age")
-                            display += "older than " + selectors[i].minutes + "min ";
+                            display += `older than ${  selectors[i].minutes  }min `;
                         else if (selectors[i].type == "field" && selectors[i].field == "cost__monthly")
-                            display += "cost more than $" + selectors[i].value + "/month ";
+                            display += `cost more than $${  selectors[i].value  }/month `;
                         else if (selectors[i].type == "field")
-                            display += selectors[i].field + " " + selectors[i].value + " ";
+                            display += `${selectors[i].field  } ${  selectors[i].value  } `;
                     }
 
                     return display;

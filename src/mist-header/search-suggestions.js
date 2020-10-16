@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -285,20 +286,20 @@ Polymer({
       'tap': 'closeIfClickedElsewhere'
   },
 
-  attached: function() {
+  attached() {
       this.style.width = "100%";
   },
 
-  widthChanged: function(w) {
-      this.style.width = w + 'px';
+  widthChanged(w) {
+      this.style.width = `${w  }px`;
   },
 
-  queryChanged: function(query) {
+  queryChanged(query) {
       if (this.query && this.query.length > 2) {
-          var results = {},
-              result;
+          const results = {};
+              let result;
           if (this.model) {
-              for (var prop in this.model) {
+              for (const prop in this.model) {
                   if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
                       result = this.filterItems(this.model[prop]);
                   } else if (['machines', 'networks', 'volumes'].indexOf(prop) > -1) {
@@ -306,7 +307,7 @@ Polymer({
                   } else {
                       continue;
                   }
-                  results[prop + 'FullLength'] = result.length;
+                  results[`${prop  }FullLength`] = result.length;
                   results[prop] = result.splice(0, 3);
               }
           }
@@ -318,14 +319,14 @@ Polymer({
       }
   },
 
-  resultsChanged: function(results) {
+  resultsChanged(results) {
       if (!this.query || this.query == undefined || this.query.length <= 2) {
           this.set('visible', false);
           this.set('resultsExist', false);
       } else {
-          var rlen = 0;
+          let rlen = 0;
           if (this.results) {
-              for (var prop in this.results) {
+              for (const prop in this.results) {
                   if (this.results[prop].length > 0) {
                       rlen += this.results[prop].length;
                   }
@@ -337,27 +338,27 @@ Polymer({
       }
   },
 
-  filterItems: function(items) {
+  filterItems(items) {
       if (items && items.filter && this.query && this.query.length > 0)
           return items.filter(this.filterItem.bind(this));
       return false;
   },
 
-  filterItem: function(item, index) {
-      var q = this.query || '',
-          filterOwner = q.indexOf('owner:') > -1,
-          ownerRegex = /owner:(\S*)\s?/,
-          owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
-          queryTerms, str;
+  filterItem(item, index) {
+      let q = this.query || '';
+          const filterOwner = q.indexOf('owner:') > -1;
+          const ownerRegex = /owner:(\S*)\s?/;
+          const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+          let queryTerms; let str;
 
       if (filterOwner && owner && owner.length) {
-          q = q.replace('owner:', '').replace(owner + '', '');
+          q = q.replace('owner:', '').replace(`${owner  }`, '');
 
           if (owner == "$me") {
               if (!item || !item.owned_by || item.owned_by != this.model.user.id)
                   return false;
           } else {
-              var ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+              const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
                   return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
               });
               if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
@@ -368,12 +369,12 @@ Polymer({
       queryTerms = q.split(' ');
       str = JSON.stringify(item);
       if (this.model && this.model.clouds && item && item.cloud && this.model.clouds[item.cloud]) {
-          str += this.model.clouds[item.cloud].provider + '' + this.model.clouds[item.cloud].title;
+          str += `${this.model.clouds[item.cloud].provider  }${  this.model.clouds[item.cloud].title}`;
       }
 
       if (q && q.trim().length > 0) {
           // Check if all terms exist in stringified item
-          for (var i = 0; i < queryTerms.length; i++) {
+          for (let i = 0; i < queryTerms.length; i++) {
               if (queryTerms[i] && queryTerms[i].length &&
                   str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0) {
                   return false;
@@ -383,26 +384,26 @@ Polymer({
       return true;
   },
 
-  goToResultsList: function(e) {
+  goToResultsList(e) {
       this.set('visible', false);
-      var that = this;
+      const that = this;
       this.async(function() {
           that.fire('search', that.query);
       }, 500);
   },
 
-  viewingListsChanged: function(hide) {
+  viewingListsChanged(hide) {
       if (this.hide) {
           this.set('visible', false);
       }
   },
 
-  closeSuggestions: function(e) {
+  closeSuggestions(e) {
       this.set('visible', false);
       this.dispatchEvent(new CustomEvent('clear-search', {composed: true, bubbles: true}));
   },
 
-  _displayViewResultsText: function(num) {
-      return num == 1 ? 'view 1 result' : 'view all ' + num + ' results' ;
+  _displayViewResultsText(num) {
+      return num == 1 ? 'view 1 result' : `view all ${  num  } results` ;
   }
 });

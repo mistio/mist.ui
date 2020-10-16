@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/iron-icons/communication-icons.js';
 import '../../node_modules/@polymer/iron-icons/image-icons.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style>

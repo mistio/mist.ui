@@ -301,50 +301,50 @@ Polymer({
       'updateSelectedMember': '_updateMember'
   },
 
-  _computeMember: function(params, members) {
+  _computeMember(params, members) {
       return this.model.membersArray.find(function(member) {
           return params && member.id == params.member;
       }, this);
   },
 
-  _computeTeams: function(member, teams) {
+  _computeTeams(member, teams) {
       if (this.member) {
-          var memberTeams = this.model.teamsArray.filter(function(t, index) {
+          const memberTeams = this.model.teamsArray.filter(function(t, index) {
               return t.members.indexOf(this.member.id) > -1;
           }, this);
           return memberTeams;
       }
   },
 
-  _computeResourceFilter: function(member) {
+  _computeResourceFilter(member) {
       if (!member) {
           return '';
       }
-      return 'user_id:' + member.id;
+      return `user_id:${  member.id}`;
   },
 
-  _addMemberToTeam: function(e) {
+  _addMemberToTeam(e) {
       // page.show('/add-member-to-a-team/' + this.member.id);
   },
 
-  _updateMember: function(e) {
-      var team = e.detail.team;
+  _updateMember(e) {
+      const {team} = e.detail;
       this.set('member.name', team.name);
       this.set('member.description', team.description);
   },
 
-  _deleteMember: function(e) {
+  _deleteMember(e) {
       this._showDialog({
-          title: 'Delete ' + this.member.name + ' ?',
+          title: `Delete ${  this.member.name  } ?`,
           body: "Deleting a member will also remove the member from all the teams they participate in",
           danger: true,
           reason: "delete_member"
       });
   },
 
-  _deleteMemberResponse: function(e) {
-      var reason = e.detail.reason,
-          response = e.detail.response;
+  _deleteMemberResponse(e) {
+      const {reason} = e.detail;
+          const {response} = e.detail;
 
       if (response == 'confirm' && reason == "delete_member") {
           this.memberTeams.forEach(function(t) {
@@ -356,7 +356,7 @@ Polymer({
       }
   },
 
-  deleteMemberRequest: function(team) {
+  deleteMemberRequest(team) {
       console.log("TEAMS", team)
       this.$.deleteMember.body = {};
       this.$.deleteMember.headers["Content-Type"] = 'application/json';
@@ -364,10 +364,10 @@ Polymer({
       this.$.deleteMember.generateRequest();
   },
 
-  _deleteMemberResponseAjax: function(e) {
+  _deleteMemberResponseAjax(e) {
       // if user was in one single team return there, else in teams
       if (this.memberTeams && this.memberTeams.length == 1) {
-          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.memberTeams[0].id } }));
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/teams/${  this.memberTeams[0].id}` } }));
 
       } else {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams' } }));
@@ -375,17 +375,17 @@ Polymer({
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element'),
-          i;
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+          let i;
       for (i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _addMemberInTeams: function() {
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/members/' + this.member.id + '/add-in-teams' } }));
+  _addMemberInTeams() {
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/members/${  this.member.id  }/add-in-teams` } }));
 
   }
 });

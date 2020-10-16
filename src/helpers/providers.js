@@ -1,4 +1,4 @@
-var PROVIDERS = []
+const PROVIDERS = []
 // 1. amazon 2. azure 3. google 4. alibaba 5. IBM 6. DigitalOcean 7. Packet 8. Linode 9. Rackspace 10. vultr 
 
 // AWS
@@ -15,7 +15,7 @@ PROVIDERS.push({
         show: true,
         required: true,
         // SUPPORTED_PROVIDERS[3].regions.map(function(i){return {val:i.id, title: i.location}})
-        //ec2_ap_northeast should be ap-northeast
+        // ec2_ap_northeast should be ap-northeast
         options: [
             {'val': 'ap-northeast-1', 'title': 'Tokyo'},
             {'val': 'ap-northeast-2', 'title': 'Seoul'},

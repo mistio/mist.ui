@@ -2,6 +2,7 @@ import './app-form.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -94,7 +95,7 @@ Polymer({
       '_subfieldsChanged(field.subfields.*)'
   ],
 
-  _enabledChanged: function(enabled) {
+  _enabledChanged(enabled) {
       this.set('field.enabled', this.enabled);
       if (!this.enabled) {
           this._resetValue();
@@ -103,35 +104,35 @@ Polymer({
       }
   },
 
-  _resetValue: function() {
+  _resetValue() {
       // console.log('reset field value');
       this.set('field.value', {});
   },
 
-  _computeDisabled: function(disabled) {
-      return this.field.toggleDisabled ? true : false;
+  _computeDisabled(disabled) {
+      return !!this.field.toggleDisabled;
   },
 
-  _fieldChanged: function(field) {
+  _fieldChanged(field) {
       this.set('enabled', this.field.defaultToggleValue);
       this.set('optional', this.field.optional);
       this._fieldsChangedNotifyEvent();
   },
 
-  _subfieldsChanged: function(subfields) {
+  _subfieldsChanged(subfields) {
       // console.log('sub fields changed', subfields);
       if (this.field && this.enabled) {
-          var fieldValue = {};
+          let fieldValue = {};
           if (!this.field.flatten) {
-              for (var i=0; i<this.field.subfields.length; i++) {
+              for (let i=0; i<this.field.subfields.length; i++) {
                   fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
                   if (this.field.subfields[i].type == 'list') {
-                      var list = this.field.subfields[i]
-                      var subformPayload = [];
+                      const list = this.field.subfields[i]
+                      const subformPayload = [];
                       if (list && list.items.length) {
-                          for (var k = 0; k < list.items.length; k++) {
-                              var o = {};
-                              for (var j = 0; j < list.items[k].length; j++) {
+                          for (let k = 0; k < list.items.length; k++) {
+                              const o = {};
+                              for (let j = 0; j < list.items[k].length; j++) {
                                   o[list.items[k][j].name] = list.items[k][j].value;
                               }
                               subformPayload.push(o);
@@ -155,15 +156,15 @@ Polymer({
       this._fieldsChangedNotifyEvent();
   },
 
-  _fieldsChangedNotifyEvent: function(){
+  _fieldsChangedNotifyEvent(){
       this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true, detail: {fieldname: this.field.name, file: 'sub-fieldgroup.html'}}));
   },
 
-  _calcDisplayButtons: function(){
+  _calcDisplayButtons(){
       return false;
   },
 
-  _showForm: function(optional, enabled) {
+  _showForm(optional, enabled) {
       return optional ? enabled : true;
   }
 });

@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../node_modules/@polymer/iron-flex-layout/iron-flex-layout-classes.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -170,44 +171,44 @@ Polymer({
       }
   },
 
-  _expand: function(e){
+  _expand(e){
       e.stopImmediatePropagation();
       this.$.paygDetails.classList.toggle('open');
       this.$.paygIcon.classList.toggle('open');
   },
 
-  _togglePrepaid: function(e){
+  _togglePrepaid(e){
       this.$.viewMethod.classList.toggle('slideleft');
       this.$.viewPrepaid.classList.toggle('slideright');
 
       this.dispatchEvent(new CustomEvent('refit'));
   },
 
-  _selectPayg: function(e){
+  _selectPayg(e){
       this.set('selected', 'payg');
   },
 
-  _computePrepaidIsSelected: function(selected){
+  _computePrepaidIsSelected(selected){
       return ['Small','Medium','Large'].indexOf(selected) > -1 ? 'selected' : '';
   },
 
-  _selectSmall: function(e){
+  _selectSmall(e){
       this.set('selected', 'Small');
   },
 
-  _selectMedium: function(e){
+  _selectMedium(e){
       this.set('selected', 'Medium');
   },
 
-  _selectLarge: function(e){
+  _selectLarge(e){
       this.set('selected', 'Large');
   },
 
-  _computeIsSelected: function(name, selected){
+  _computeIsSelected(name, selected){
       return name === selected ? 'selected' : '';
   },
 
-  _computePrice: function(selected) {
+  _computePrice(selected) {
       switch (selected){
           case "Small":
               return '$200/mo';

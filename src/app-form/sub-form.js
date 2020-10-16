@@ -2,6 +2,7 @@ import './app-form.js';
 import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -66,7 +67,7 @@ Polymer({
       },
       options: {
           type: Array,
-          value: function () {
+          value () {
               return []
           }
       },
@@ -75,7 +76,7 @@ Polymer({
       },
       items: {
           type: Array,
-          value: function () {
+          value () {
               return []
           },
           notify: true
@@ -124,20 +125,20 @@ Polymer({
       'tap': '_setActiveItem'
   },
 
-  hideAddButton: function(min, max, itemslength) {
+  hideAddButton(min, max, itemslength) {
       return min != undefined && max != undefined && min == max == itemslength;
   },
 
-  _minChanged: function (min) {
-      for (var i = 1; i <= this.min; i++) {
+  _minChanged (min) {
+      for (let i = 1; i <= this.min; i++) {
           if (!this.items[i-1])
               this.addItem();
       }
   },
 
-  _setActiveItem: function (e) {
-      //set changing item
-      var parent = e.path.find(function(p){
+  _setActiveItem (e) {
+      // set changing item
+      const parent = e.path.find(function(p){
           return p.tagName == 'APP-FORM';
       });
       if (parent && parent.id)
@@ -146,43 +147,43 @@ Polymer({
           this.set('activeItem', null);
   },
 
-  _itemsChanged: function () {
+  _itemsChanged () {
       this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true, file: 'sub-form.html : _itemsChanged()'}));
   },
 
-  _optionsChanged: function (options) {
-      var index = options.path.split('.')[1];
+  _optionsChanged (options) {
+      const index = options.path.split('.')[1];
       if (this.activeItem && index) {
           // update specific item value
           if (options.path.endsWith('value')){
-              this.set('items.'+this.activeItem+'.'+index.replace('#','')+'.value', options.value);
+              this.set(`items.${this.activeItem}.${index.replace('#','')}.value`, options.value);
           }
           // update all items options
           else if (options.path.endsWith('options')) {
-              for (var i=0; i<this.items.length; i++){
-                  this.set('items.'+i+'.'+index.replace('#','')+'.options', options.value);
+              for (let i=0; i<this.items.length; i++){
+                  this.set(`items.${i}.${index.replace('#','')}.options`, options.value);
               }
           }
       }
   },
 
-  _calcDisplayButtons: function () {
+  _calcDisplayButtons () {
       return false;
   },
 
-  _showChanged: function(show) {
+  _showChanged(show) {
       if (!show) {
           this.clear();
       }
   },
 
-  clear:  function() {
+  clear() {
       this.set('items', []);
   },
 
-  addItem: function () {
+  addItem () {
       function copy(o) { // deep copy an array of objects
-          var output, v, key;
+          let output; let v; let key;
           output = Array.isArray(o) ? [] : {};
           if (o) {
               for (key in o) {
@@ -195,14 +196,14 @@ Polymer({
 
       if (this.options) {
           if (!this.max || this.items.length < this.max) {
-              var opts = copy(this.options); // deep copy options
+              const opts = copy(this.options); // deep copy options
               opts.forEach(function (o) {
                   o.value = o.defaultValue;
               })
               this.push('items', opts);
           } else {
               this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-                  msg: 'Only up to ' + this.max + ' ' + this.itemName + 's are allowed.',
+                  msg: `Only up to ${  this.max  } ${  this.itemName  }s are allowed.`,
                   duration: 3000
               } }));
 
@@ -212,7 +213,7 @@ Polymer({
       }
   },
 
-  deleteItem: function (e) {
+  deleteItem (e) {
       // console.log('deleteItem', e.model.__data__.index);
       if (!this.min || this.items.length > this.min) {
           this.splice('items', e.model.__data.index, 1);
@@ -222,17 +223,17 @@ Polymer({
           }.bind(this), 200)
       } else {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-              msg: 'Minimun ' + this.max + ' ' + this.itemName + 's are required.',
+              msg: `Minimun ${  this.max  } ${  this.itemName  }s are required.`,
               duration: 3000
           } }));
       }
   },
 
-  indexPlusOne: function (i) {
+  indexPlusOne (i) {
       return i + 1;
   },
 
-  _computeShowDelete: function (index) {
+  _computeShowDelete (index) {
       return this.min ? index < this.min : true;
   }
 });

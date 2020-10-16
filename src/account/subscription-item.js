@@ -1,6 +1,7 @@
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -81,12 +82,12 @@ Polymer({
       }
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeZebraClasses: function(index, count) {
-      var classes = [];
+  _computeZebraClasses(index, count) {
+      const classes = [];
       classes.push(
           (index + 1) % 2 == 0 ? 'even' : 'odd',
           index + 1 == count ? 'last' : null
@@ -94,26 +95,26 @@ Polymer({
       return classes.join(' ');
   },
 
-  _computeTitleText: function(title, subscription) {
-      var ret = title;
+  _computeTitleText(title, subscription) {
+      let ret = title;
       if (subscription.promo_code)
           ret += ' (promo)';
       return ret;
   },
 
-  _computeDateText: function(time) {
-      var date = new Date(time * 1000);
+  _computeDateText(time) {
+      const date = new Date(time * 1000);
       return moment(time *1000).fromNow();
 
   },
 
-  _computeAbsoluteDDateText: function(time) {
-      var date = new Date(time * 1000);
-      return moment().format("MMMM") +' '+ date.getDate() +' '+ date.getFullYear();
+  _computeAbsoluteDDateText(time) {
+      const date = new Date(time * 1000);
+      return `${moment().format("MMMM") } ${ date.getDate() } ${ date.getFullYear()}`;
 
   },
 
-  _computeIsExpiringClass: function(action) {
+  _computeIsExpiringClass(action) {
       return action == 'started' ? null : 'plan-end';
   }
 });

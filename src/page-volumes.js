@@ -5,11 +5,12 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './volumes/volume-create.js';
 import './volumes/volume-page.js';
 import './volumes/volume-actions.js';
-//import './helpers/mist-lists-behavior.js';
+// import './helpers/mist-lists-behavior.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -65,57 +66,57 @@ Polymer({
         }
     },
 
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
 
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         return path && path != '/+add';
     },
 
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
 
-    _getVolume: function(id) {
+    _getVolume(id) {
         // console.log('_getVolume',this.model.volumes);
         if (this.model.volumes) {
             return this.model.volumes[id];
         }
     },
 
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.volumes.add
         } }));
 
     },
 
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled != true)
             ret.splice(ret.indexOf('owned_by'), 1);
         return ret;
     },
 
-    _getRenderers: function(volumes, clouds) {
-        var _this = this;
+    _getRenderers(volumes, clouds) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + (item || row.external_id) + '</strong>';
+                    return `<strong class="name">${  item || row.external_id  }</strong>`;
                 }
             },
             'icon': {
                 'body': function(item, row) {
                     if (!_this.model.clouds[row.cloud])
                         return '';
-                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                        .replace(" ", "") + '.png';
+                    return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "")  }.png`;
                 }
             },
             'provider': {
@@ -139,7 +140,7 @@ Polymer({
             },
             'size': {
                 'body': function(item, row) {
-                    return '<span style="display:block;text-align:right; padding-right:50px;">' + item + ' GΒ</span>';
+                    return `<span style="display:block;text-align:right; padding-right:50px;">${  item  } GΒ</span>`;
                 }
             },
             'attached_to': {
@@ -168,12 +169,12 @@ Polymer({
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;

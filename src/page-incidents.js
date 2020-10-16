@@ -5,6 +5,7 @@ import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -45,41 +46,41 @@ Polymer({
     observers: [
         'incidentsChanged(model.incidents.*)'
     ],
-    incidentsChanged: function (incidents) {
+    incidentsChanged (incidents) {
         if (incidents.path == 'model.incidents' && this.shadowRoot.querySelector('mist-list')) {
             this.shadowRoot.querySelector('mist-list').fire('resize');
         }
     },
-    _isListActive: function (path) {
+    _isListActive (path) {
         return !path;
     },
-    _getFrozenLogColumn: function () {
+    _getFrozenLogColumn () {
         return ['started_at'];
     },
 
-    _getVisibleColumns: function () {
+    _getVisibleColumns () {
         return ['resource_id', 'cloud_id', 'incident_id', 'error'];
     },
     // TODO compute columns for all resources' incidents
-    _getRenderers: function () {
-        var _this = this;
+    _getRenderers () {
+        const _this = this;
         return {
             'started_at': {
                 'title': function (item) {
                     return item ? item.replace(/_/g, " ") : 'started at';
                 },
                 'body': function (item, row) {
-                    var active = '';
+                    let active = '';
                     if (!row.finished_at) {
                         active = '<strong class="error"> - Active now </strong>'
                     }
-                    return '<span title="' + dayjs(item * 1000).format() + '">' + dayjs(item *
-                        1000).fromNow() + '</span>' + active;
+                    return `<span title="${  dayjs(item * 1000).format()  }">${  dayjs(item *
+                        1000).fromNow()  }</span>${  active}`;
                 },
                 'cmp': function (item1, item2, row1, row2) {
                     if (item1 > item2) {
                         return 1;
-                    } else if (item1 < item2) {
+                    } if (item1 < item2) {
                         return -1;
                     }
                     return 0;
@@ -90,19 +91,19 @@ Polymer({
                     return 'resource';
                 },
                 'body': function (item, row) {
-                    var resource = _this._getResource(row, _this.model);
+                    const resource = _this._getResource(row, _this.model);
                     console.log('RESOURCE ===', resource)
                     // Resource may be missing. If not display link
                     if (resource) {
                         if (resource.id)
-                            return '<a href="/'+ resource.type +'s/' + resource.id +
-                                '" class="regular" style="color: #2196F3;">' + resource.name + '</a>';
+                            return `<a href="/${ resource.type }s/${  resource.id 
+                                }" class="regular" style="color: #2196F3;">${  resource.name  }</a>`;
                         if (resource.type == "organization")
                             return 'Organization';
                         if (!resource.id && resource.type != "organization")
                             return resource.name;
                     }
-                    return row[resource.type+'_id']
+                    return row[`${resource.type}_id`]
                 }
             },
             'cloud_id': {
@@ -116,13 +117,13 @@ Polymer({
             },
             'error': {
                 'body': function (item, row) {
-                    var classname = item ? 'error' : '';
-                    return '<span class="' + classname + '">' + item + '</span>';
+                    const classname = item ? 'error' : '';
+                    return `<span class="${  classname  }">${  item  }</span>`;
                 }
             }
         }
     },
-    resizeList: function (e) {
+    resizeList (e) {
         if (e.path.indexOf(this.shadowRoot.querySelector('mist-list')))
             this.shadowRoot.querySelector('mist-list').fire('resize');
     }

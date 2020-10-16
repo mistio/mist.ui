@@ -7,20 +7,20 @@ import moment from '../../node_modules/moment/src/moment.js'
  */
 export const mistLogsBehavior = {
     properties: {},
-    _getVisibleColumns: function() {
+    _getVisibleColumns() {
         return ['type', 'action', 'user_id']
     },
 
-    _getFrozenLogColumn: function() {
+    _getFrozenLogColumn() {
         return ['time']
     },
-    _getRenderers: function() {
-        var _this = this;
+    _getRenderers() {
+        const _this = this;
         return {
             'time': {
                 'body': function(item, row) {
-                    var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item *
-                        1000).fromNow() + '</span>';
+                    let ret = `<span title="${  moment(item * 1000).format()  }">${  moment(item *
+                        1000).fromNow()  }</span>`;
                     if (row.error)
                         ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
                     return ret;
@@ -34,9 +34,9 @@ export const mistLogsBehavior = {
                     if (_this.model && _this.model.members && item in _this.model.members &&
                         _this.model.members[item] && _this.model.members[item].name &&
                         _this.model.members[item].name != undefined) {
-                        var displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
-                        var ret = '<a href="/members/' + item + '">' + displayUser +
-                            '</a>';
+                        const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
+                        const ret = `<a href="/members/${  item  }">${  displayUser 
+                            }</a>`;
                         return ret;
                     }
                     return item || '';

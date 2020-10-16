@@ -1,6 +1,7 @@
 import '../theme-color/theme-color.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -146,22 +147,21 @@ Polymer({
       }
   },
 
-  _computeStateColor: function (count, color){
+  _computeStateColor (count, color){
       return (count ? color : "#eeeeee" );
   },
 
-  attached: function() {
-      var tiles = this.parentNode.querySelectorAll('section-tile');
-      var index = Array.prototype.indexOf.call(tiles, this);
+  attached() {
+      const tiles = this.parentNode.querySelectorAll('section-tile');
+      const index = Array.prototype.indexOf.call(tiles, this);
       setTimeout(function() {
           this.classList.add('active');
       }.bind(this), (index + 1) * 500);
   },
 
-  _computeHasIcon: function (icon) {
+  _computeHasIcon (icon) {
       if (icon)
           return true;
-      else
-          return false;
+      return false;
   }
 });

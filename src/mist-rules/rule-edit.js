@@ -13,6 +13,7 @@ import { CSRFToken } from '../helpers/utils.js'
 import { validateRuleBehavior } from './validate-rule-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style>
@@ -486,7 +487,7 @@ Polymer({
       },
       ruleTypes: {
           type: Array,
-          value: function () {return ['arbitrary', 'every', 'specific', 'tagged'];}
+          value () {return ['arbitrary', 'every', 'specific', 'tagged'];}
       },
       ruleType: {
           type: String
@@ -519,7 +520,7 @@ Polymer({
       },
       resourceTypes: {
           type: Array,
-          value: function () {
+          value () {
               return [
                   'cloud',
                   '',
@@ -531,8 +532,8 @@ Polymer({
                   'key',
                   'script',
                   'schedule',
-                  //'team',
-                  //'member'
+                  // 'team',
+                  // 'member'
               ];
           }
       },
@@ -569,7 +570,7 @@ Polymer({
       },
       resourcesActions: {
           type: Array,
-          value: function() {
+          value() {
               return {
                   machine: ['alert', 'webhook', 'reboot', 'destroy', 'run', 'no_data']
               };
@@ -577,7 +578,7 @@ Polymer({
       },
       actions: {
           type: Array,
-          value: function() {
+          value() {
               return ['alert', 'webhook', 'reboot', 'destroy', 'run', 'no_data'];
           }
       },
@@ -623,13 +624,13 @@ Polymer({
       "_resourceTypeChanged(resourceType)"
   ],
 
-  ready: function() {
+  ready() {
       if (!this.rule) {
           this._resetRule();
       }
   },
 
-  _configUpdates: function(features) {
+  _configUpdates(features) {
       if (this.features.orchestration) {
           this.splice("resourceTypes", 9, 0, 'template');
           this.splice("resourceTypes", 10, 0, 'stack');
@@ -639,14 +640,14 @@ Polymer({
       }
   },
 
-  _displayItemName: function(item, type) {
+  _displayItemName(item, type) {
       return item.title || item.name || this._displayItemNameByType(item, type) || item.external_id || item.id;
   },
 
-  _displayItemNameByType: function(item, type) {
+  _displayItemNameByType(item, type) {
       if (type == 'zone') {
-          return item.zone_id+"." == item.domain ? item.zone_id : item.domain +" "+ item.zone_id;
-      } else if (type == 'record') {
+          return `${item.zone_id}.` == item.domain ? item.zone_id : `${item.domain } ${ item.zone_id}`;
+      } if (type == 'record') {
           // TODO find a comprehensive way to display records across providers
           console.log('_displayItemNameByType', type, item);
       } else if (type == 'subnet') {
@@ -657,11 +658,11 @@ Polymer({
       }
   },
 
-  _computeShowCheckEvery: function(ruleType,resourceType,resourceId,tags,resource) {
+  _computeShowCheckEvery(ruleType,resourceType,resourceId,tags,resource) {
       return this.showCheckEvery || this.resource || (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
   },
 
-  _targetIsValid: function(ruleType,resourceType,resourceId,tags){
+  _targetIsValid(ruleType,resourceType,resourceId,tags){
       return (this.ruleType || this.resourceType) &&
           // is Arbitrary 
           (this._isArbitrary(this.ruleType) || this._isOrg(this.resourceType) ||
@@ -673,27 +674,27 @@ Polymer({
           (this.ruleType == "specific" && this.resourceId));
   },
 
-  _computeShowDropDownResources: function(ruleType,resourceType) {
+  _computeShowDropDownResources(ruleType,resourceType) {
       return this._isSpecific(ruleType) && this.resourceType && !this._isOrg(this.resourceType);
   },
 
-  _showTags: function(ruleType,resourceType) {
+  _showTags(ruleType,resourceType) {
       return this._isTagged(ruleType) && this.resourceType;
   },
 
-  _computeEditingExistingRule: function(rule) {
+  _computeEditingExistingRule(rule) {
       return this.rule && this.rule.id;
   },
 
-  _computeIsNoData: function(rule) {
+  _computeIsNoData(rule) {
       return rule.title == 'NoData';
   },
 
-  _computeHideApplyOn: function(resource, isNoData) {
-      return resource || isNoData ? true : false;
+  _computeHideApplyOn(resource, isNoData) {
+      return !!(resource || isNoData);
   },
 
-  _resourceTypeChanged: function(resourceType) {
+  _resourceTypeChanged(resourceType) {
       // only machines provide metrics for the time being.
       // TODO: update when other resource metrics are available
       if (this.resourceType && this.resourceType != "machine"){
@@ -701,7 +702,7 @@ Polymer({
       }
   },
 
-  _canUseMetrics: function(resourceType, ruleType, resourceId, resource, modelMonitoring) {
+  _canUseMetrics(resourceType, ruleType, resourceId, resource, modelMonitoring) {
       // Must be a machine
       if (this.resourceType != "machine") {
           return false;
@@ -709,50 +710,50 @@ Polymer({
       // Must either be a machine group, or a single monitored machine
       if (this.ruleType != "specific") {
           return true;
-      } else {
+      } 
           return (this.resourceId && this._resourceIsMonitored(this.resourceId, this.model.monitoring))
               || (this.resource && this._resourceIsMonitored(this.resource.id, this.model.monitoring))
-      }
+      
   },
 
-  _resourceIsMonitored: function(resourceId, modelMonitoring) {
+  _resourceIsMonitored(resourceId, modelMonitoring) {
       // Compute based on model.monitoring.monitored_machines
       return this.model && this.model.monitoring && 
           this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[resourceId];
   },
 
-  _disableRuleTypeChanges: function(resourceType) {
+  _disableRuleTypeChanges(resourceType) {
       if (!resourceType) return true;
       return this._isOrg(resourceType);
   },
 
-  _disableOrg: function(type) {
+  _disableOrg(type) {
       if (!this.editingExistingRule) return false;
       return !this._isOrg(this.resourceType);
   },
 
-  _disableResource: function(type) {
+  _disableResource(type) {
       if (!this.editingExistingRule) return false;
       return this._isOrg(this.resourceType);
   },
 
-  _isOrg: function(resourceType) {
+  _isOrg(resourceType) {
       return resourceType == 'organization';
   },
 
-  _isArbitrary: function(type) {
+  _isArbitrary(type) {
       return type == 'arbitrary';
   },
 
-  _isSpecific: function(type) {
+  _isSpecific(type) {
       return type == 'specific';
   },
 
-  _isTagged: function(type) {
+  _isTagged(type) {
       return type == 'tagged';
   },
 
-  _initialiseEdit: function(rule, resource) {
+  _initialiseEdit(rule, resource) {
       // console.log("======", rule, this.ruleType);
       if (!resource) {
           if (!rule) 
@@ -764,7 +765,7 @@ Polymer({
               if ( !rule.selectors || !rule.selectors.length) {
                   this.set('ruleType', "every");
               } else if (rule.selectors.length) {
-                  var selector = rule.selectors[0];
+                  const selector = rule.selectors[0];
                   if (selector.type == "tags") {
                       this.set('ruleType', "tagged");
                       this.set('tags', this._removeBrackets(JSON.stringify(selector.include)))
@@ -778,9 +779,9 @@ Polymer({
       }
   },
 
-  _computeResourcesAndActions: function(model,resourceType) {
-      var resources = [], 
-          key = resourceType+'s';
+  _computeResourcesAndActions(model,resourceType) {
+      var resources = []; 
+          const key = `${resourceType}s`;
       if (resourceType){
           this.set('rule.resource_type',resourceType);
           if (!this.ruleType) {
@@ -805,11 +806,11 @@ Polymer({
           } else {
               // Subnets and records can NOT be found under model.subnets model.records
               // We must track them in each model.network and model.zone and join
-              var parentKey = (key == 'subnets' ? 'networks' : 'zones'),
-                  parentResources = [], resources = [];
+              const parentKey = (key == 'subnets' ? 'networks' : 'zones');
+                  let parentResources = []; var resources = [];
               if (this.model[parentKey]) {
                   parentResources = Object.values(this.model[parentKey]);
-                  for (var i = 0; i < parentResources.length; i++) {
+                  for (let i = 0; i < parentResources.length; i++) {
                       if (parentResources[i][key]) {
                           resources = resources.concat(Object.values(parentResources[i][key]));
                       }
@@ -826,11 +827,11 @@ Polymer({
           this.$.actionsRepeat.render();
   },
 
-  _removeBrackets: function(string) {
+  _removeBrackets(string) {
       return string && string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
   },
 
-  _currentRuleUpdated: function(event) {
+  _currentRuleUpdated(event) {
       this.set('rule', {
           id: this.currentRule.id,
           title: this.currentRule.title,
@@ -844,7 +845,7 @@ Polymer({
           window: {
               period: this.currentRule.window.period || 'minutes',
               start: this.currentRule.window.start || 1
-              //stop: this.currentRule.stop
+              // stop: this.currentRule.stop
           },
           frequency: {
               period: this.currentRule.frequency.period || 'minutes',
@@ -857,9 +858,9 @@ Polymer({
       });
   },
 
-  _transformActions: function(actions) {
-      var result = [];
-      for (var i = 0; i < actions.length; i++) {
+  _transformActions(actions) {
+      const result = [];
+      for (let i = 0; i < actions.length; i++) {
           if (actions[i].type == 'notification') {
               result.push({
                   type: 'alert',
@@ -900,18 +901,18 @@ Polymer({
       return result;
   },
 
-  _computeId: function(title) {
-      return title ? 'edit ' + title : 'new rule';
+  _computeId(title) {
+      return title ? `edit ${  title}` : 'new rule';
   },
 
-  _computeUnits: function(metric, metrics) {
-      var ref;
+  _computeUnits(metric, metrics) {
+      let ref;
       if (this.availableMetrics && this.availableMetrics[metric])
           ref = this.availableMetrics[metric].unit;
       return ref || '';
   },
 
-  _resetRule: function(event) {
+  _resetRule(event) {
       this.set('rule', {});
       this.set('rule', {
           actions: [{
@@ -932,7 +933,7 @@ Polymer({
       this.set('formError', false);
   },
 
-  _close: function(event) {
+  _close(event) {
       // TODO: reset threshold input values
       // console.log('close length', this.rule.queries.length);
       // if (this.rule.queries.length) {
@@ -946,30 +947,30 @@ Polymer({
       this.set('active', false);
   },
 
-  _isCommandSelected: function(selectedAction) {
+  _isCommandSelected(selectedAction) {
       return selectedAction == 'run';
   },
 
-  _isAlertSelected: function(selectedAction) {
+  _isAlertSelected(selectedAction) {
       return selectedAction == 'alert';
   },
 
-  _isWebhookSelected: function(selectedAction) {
+  _isWebhookSelected(selectedAction) {
       return selectedAction == 'webhook';
   },
 
-  _validateConditionDebounce: function() {
+  _validateConditionDebounce() {
       this.debounce('_validateCondition', function () {
           this._validateCondition();
       }, 200);
   },
 
-  _validateTarget: function (e) {
+  _validateTarget (e) {
       // console.log('_validateTarget', e, e.model, this.rule.queries && this.rule.queries[0].target, this.rule.queries);
-      var allTargetsDefined = true;
+      let allTargetsDefined = true;
       if (this.rule.queries) {
-          for (var i = 0; i < this.rule.queries.length; i++) {
-              var target = this.rule.queries[i].target;
+          for (let i = 0; i < this.rule.queries.length; i++) {
+              const {target} = this.rule.queries[i];
               if (target == undefined) {
                   allTargetsDefined = false;
                   break;
@@ -983,11 +984,11 @@ Polymer({
       }
   },
 
-  _validateCondition: function (e) {
+  _validateCondition (e) {
       // console.log('validateCondition', this.rule.queries && this.rule.queries[0].threshold, this.rule.queries);
-      var allThresholdsDefined = true;
+      let allThresholdsDefined = true;
       if (this.rule.queries) {
-          for (var i = 0; i < this.rule.queries.length; i++) {
+          for (let i = 0; i < this.rule.queries.length; i++) {
               if (this.rule.queries[i].threshold == undefined) {
                   allThresholdsDefined = false;
                   break;
@@ -999,7 +1000,7 @@ Polymer({
       this._validateRule();
   },
 
-  _focusOnType: function(e) {
+  _focusOnType(e) {
       if (this.rule && this.resourceType)
           if (this.active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.type')) {
               this.shadowRoot.querySelector('paper-dropdown-menu.type').open();
@@ -1008,7 +1009,7 @@ Polymer({
           }
   },
 
-  _focusOnMetricName: function(active) {
+  _focusOnMetricName(active) {
       if (this.rule && this.resource && this.rule.data_type != 'logs')
           if (active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.target')) {
               this.shadowRoot.querySelector('paper-dropdown-menu.target').open();
@@ -1017,9 +1018,9 @@ Polymer({
           }
   },
 
-  _focusOnIdOrTags: function(ruleType) {
+  _focusOnIdOrTags(ruleType) {
       if (!this.hidden) {
-          var selector;
+          let selector;
           if (ruleType == 'specific') {
               selector = '#resources-rule-type-id';
           }
@@ -1037,9 +1038,9 @@ Polymer({
       }
   },
 
-  _focusOnTarget: function(e) {
+  _focusOnTarget(e) {
       if (!this.hidden && e.detail.value) {
-          var selector = '#' + e.currentTarget.id.replace("data-type-", "target-" + e.detail.value + "s-");
+          const selector = `#${  e.currentTarget.id.replace("data-type-", `target-${  e.detail.value  }s-`)}`;
           // TODO: paper-input#target-logs-0 does not focus
           if (this.shadowRoot.querySelector(selector)) {
               console.log('_focusOnTarget', selector, this.shadowRoot.querySelector(selector));
@@ -1053,9 +1054,9 @@ Polymer({
       }
   },
 
-  _focusOnAggregation: function(e) {
+  _focusOnAggregation(e) {
       if (!this.hidden) {
-          var selector = '#' + e.currentTarget.id.replace('target','aggregation').replace('threshold','aggregation');
+          const selector = `#${  e.currentTarget.id.replace('target','aggregation').replace('threshold','aggregation')}`;
           console.log('_focusOnAggregation',selector, this.shadowRoot.querySelector(selector));
           if (this.shadowRoot.querySelector(selector)) {
               this.shadowRoot.querySelector(selector).focus();
@@ -1069,9 +1070,9 @@ Polymer({
       // this._validateCondition();
   },
 
-  _focusOnOperator: function(e) {
+  _focusOnOperator(e) {
       if (!this.hidden && e.detail.value && e.currentTarget.id && e.currentTarget.id.split('target-metrics-').length > 0) {
-          var selector = '#' + e.currentTarget.id.replace("target-metrics-", "operator-");
+          const selector = `#${  e.currentTarget.id.replace("target-metrics-", "operator-")}`;
           if (this.shadowRoot.querySelector(selector)) {
               console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
               this.shadowRoot.querySelector(selector).focus();
@@ -1084,27 +1085,27 @@ Polymer({
       }
   },
 
-  _focusOnThreshold: function(e) {
+  _focusOnThreshold(e) {
       if (!this.hidden && e.detail.value) {
           console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
-          var selector = '#' + e.currentTarget.id.replace("operator-", "threshold-");
+          var selector = `#${  e.currentTarget.id.replace("operator-", "threshold-")}`;
           if (selector && this.shadowRoot.querySelector(selector)) {
               this.shadowRoot.querySelector(selector).focus();
           }
       }
   },
 
-  saveRule: function() {
+  saveRule() {
       // Prepare payload
-      var payload = {
+      const payload = {
           queries: [],
           actions: []
       };
       if (this.resource) {
-          var type = this.rule.resource_type || this.resourceType || '';
+          let type = this.rule.resource_type || this.resourceType || '';
           if (!type) {
-              var that = this;
-              var resources = ['clouds','machines','volumes','networks',
+              const that = this;
+              const resources = ['clouds','machines','volumes','networks',
                   'zones','keys','images','scripts','templates',
                   'schedules','teams','members'];
               type = resources.find(function(res){
@@ -1115,8 +1116,7 @@ Polymer({
               type: 'resources',
               ids: [this.resource.id]
           }];
-      } else {
-          if (this.ruleType == 'specific') {
+      } else if (this.ruleType == 'specific') {
               payload.selectors = [{
                   type:'resources',
                   ids: [this.resourceId]
@@ -1128,8 +1128,7 @@ Polymer({
               }];
           } else if (this.ruleType == 'every') {
               payload.selectors = [];
-          } 
-      }
+          }
       if (this.resourceType != "organization" && !this.rule.id){
           payload.resource_type = this.resourceType;
       }
@@ -1156,7 +1155,7 @@ Polymer({
               if (this.rule.actions[i].emails && this.rule.actions[i].emails.length && !this.rule.actions[i].emailsInvalid) {
                   if (this.rule.actions[i].emails instanceof Array) {
                       emails = this.rule.actions[i].emails;
-                  } else if (typeof this.rule.actions[i].emails == "string") {
+                  } else if (typeof this.rule.actions[i].emails === "string") {
                       emails = this.rule.actions[i].emails.split(',');
                   }
               }
@@ -1216,15 +1215,15 @@ Polymer({
       }
   },
 
-  _computeTagsFromString: function(str) {
-      var tags = {};
+  _computeTagsFromString(str) {
+      const tags = {};
       if (str && str.length) {
-          var chuncks = str.split(',');
+          const chuncks = str.split(',');
           if (chuncks.length) {
-              for (var i = 0; i < chuncks.length; i++) {
-                  var parts = chuncks[i].split('='),
-                      key = parts[0].trim(),
-                      value = parts[1] ? parts[1].trim() : null;
+              for (let i = 0; i < chuncks.length; i++) {
+                  const parts = chuncks[i].split('=');
+                      const key = parts[0].trim();
+                      const value = parts[1] ? parts[1].trim() : null;
                   tags[key] = value;
               }
           }
@@ -1232,33 +1231,33 @@ Polymer({
       return tags;
   },
 
-  _handleFormError: function(e) {
+  _handleFormError(e) {
       // console.log(e.detail.request.xhr.responseText);
       this.set('formMessage', e.detail.request.xhr.responseText)
       this.set('formError', true);
   },
 
-  _hideAction: function(action, isNoData) {
+  _hideAction(action, isNoData) {
       return action == "no_data" && !this.isNoData;
   },
 
-  _actionName: function(action) {
+  _actionName(action) {
       return action == "no_data" ? 'no data alert' : action;
   },
 
-  isDataTypeLogs: function(dt) {
+  isDataTypeLogs(dt) {
       if (!dt)
           return false;
       return dt == 'logs';
   },
 
-  isCountAggregation: function(t) {
+  isCountAggregation(t) {
       if (!t)
           return false;
       return t == 'count';
   },
 
-  _setActionDefaults: function(e) {
+  _setActionDefaults(e) {
       if (e.detail.value == 'alert') {
           e.model.__data.ruleAction.level = 'warning';
       } else if (e.detail.value == 'webhook'){

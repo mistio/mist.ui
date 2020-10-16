@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style>
@@ -28,7 +29,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function (cloud) {
+          value (cloud) {
               return [];
           },
           computed: '_computeFields(cloud.provider)'
@@ -43,24 +44,24 @@ Polymer({
       'update-keys': 'updateKeys'
   },
 
-  _computeFields: function(selectedProvider) {
+  _computeFields(selectedProvider) {
       if (!this.providers) return [];
 
-      var provider = this.providers.find(function (p) {
+      const provider = this.providers.find(function (p) {
           return p.val == selectedProvider
       });
       if (!provider) return [];
-      var options = provider.options.find(function(o) {
+      const options = provider.options.find(function(o) {
           return o.name == 'hosts' || o.name == 'machines'
       });
       if (!options) return [];
       return options.options;
   },
 
-  _fieldIndexByName: function (name, fields) {
-      var index;
+  _fieldIndexByName (name, fields) {
+      let index;
       if (this.fields) {
-          var passField = this.fields.find(function (f, ind) {
+          const passField = this.fields.find(function (f, ind) {
               index = ind;
               return f.name == name;
           });
@@ -68,14 +69,14 @@ Polymer({
       return index;
   },
 
-  _keysChanged: function (keys, fields) {
+  _keysChanged (keys, fields) {
       // Set list of keys in providerFields when model keys change
-      var index = this.fields.findIndex(function (field) {
+      const index = this.fields.findIndex(function (field) {
           return field.type == "ssh_key";
       }, this);
 
-      this.set('fields.' + index + '.options', this.keys);
-      this.set('fields.' + index + '.value', '');
+      this.set(`fields.${  index  }.options`, this.keys);
+      this.set(`fields.${  index  }.value`, '');
 
       // Check for nested subforms and update ssh_key fields
       this.fields.forEach(function (field) {
@@ -89,9 +90,9 @@ Polymer({
       }, this);
   },
 
-  fieldsOfType: function (data, type) {
-      var typeIndexes = [];
-      var fieldsOfType = data.filter(function (f, ind) {
+  fieldsOfType (data, type) {
+      const typeIndexes = [];
+      const fieldsOfType = data.filter(function (f, ind) {
           if (f.type == type)
               typeIndexes.push(ind);
           return f.type == type;
@@ -99,13 +100,13 @@ Polymer({
       return typeIndexes;
   },
 
-  updateKeys: function (e) {
-      var keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
+  updateKeys (e) {
+      const keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
       console.log('updateKeys', keyFieldsIndexes);
       this.async(function () {
-          for (var i = 0; i < keyFieldsIndexes.length; i++) {
-              this.set('fields.' + keyFieldsIndexes[i] + '.options', this.keys);
-              this.set('fields.' + keyFieldsIndexes[i] + '.value', e.detail.key);
+          for (let i = 0; i < keyFieldsIndexes.length; i++) {
+              this.set(`fields.${  keyFieldsIndexes[i]  }.options`, this.keys);
+              this.set(`fields.${  keyFieldsIndexes[i]  }.value`, e.detail.key);
           }
           if (this.fieldsOfType(this.fields, 'list')) {
               this.updateKeysInLists(e, this.fieldsOfType(this.fields, 'list'));
@@ -113,27 +114,27 @@ Polymer({
       }.bind(this), 1000);
   },
 
-  updateKeysInLists: function (e, lists) {
-      for (var j = 0; j < lists.length; j++) {
+  updateKeysInLists (e, lists) {
+      for (let j = 0; j < lists.length; j++) {
           var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options, 'ssh_key');
           console.log('updateKeys', this.fields[lists[i]].options);
 
           this.async(function () {
-              for (var i = 0; i < keyFieldsIndexes.length; i++) {
-                  this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
-                      '.options', this.keys);
-                  this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
-                      '.value', e.detail.key);
+              for (let i = 0; i < keyFieldsIndexes.length; i++) {
+                  this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
+                      }.options`, this.keys);
+                  this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
+                      }.value`, e.detail.key);
               }
           }.bind(this), 500);
       }
   },
 
-  _addMachineResponse: function () {
+  _addMachineResponse () {
       console.warn('_addMachineResponse');
   },
 
-  _addMachineRequest: function () {
+  _addMachineRequest () {
       console.warn('_addMachineRequest');
   }
 });

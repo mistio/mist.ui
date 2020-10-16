@@ -128,11 +128,11 @@ Polymer({
       'change' : 'updateSelectedTeams'
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeMember: function(params, membersArray) {
+  _computeMember(params, membersArray) {
       if (params && membersArray) {
           if (this.model && this.model.membersArray) {
               var member = this.model.membersArray.find(function(m){
@@ -142,20 +142,20 @@ Polymer({
           if (member){
               return member;
           }
-          else {
+          
               return {
                   name: "member not found"
               };
-          }
+          
       }
   },
 
-  updateSelectedTeams: function(e){
+  updateSelectedTeams(e){
       if (this.formError){
           this.set('formError', false);
       }
-      var clickedTeam = e.target.attributes.id.value;
-      var index = this.selectedTeams.indexOf(clickedTeam);
+      const clickedTeam = e.target.attributes.id.value;
+      const index = this.selectedTeams.indexOf(clickedTeam);
       if (index > -1 ){
           this.selectedTeams.splice(index,1);
       }
@@ -166,7 +166,7 @@ Polymer({
       else { this.set('formReady', false); }
   },
 
-  _addMemberRequest: function() {
+  _addMemberRequest() {
       this.set('sendingData', true);
 
       this.$.formAjax.body = {
@@ -184,33 +184,33 @@ Polymer({
 
   },
 
-  _handleResponse: function(e) {
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/members/'+this.member.id} }));
+  _handleResponse(e) {
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/members/${this.member.id}`} }));
 
       this.set('sendingData', false);
   },
 
-  _handleError: function(e){
+  _handleError(e){
       this.set('formError', true);
       console.log('member add in teams error');
   },
 
-  _memberIsInTeam: function(team, member){
+  _memberIsInTeam(team, member){
       if (this.member) {
-          var index = this.model.teams[team].members.indexOf(this.member.id);
+          const index = this.model.teams[team].members.indexOf(this.member.id);
           // console.log(index, team);
           if (index > -1) {
               return true;
           }
-          else {
+          
               return false;
-          }
+          
       }
       return false;
   },
 
-  goToMember: function(){
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/members/'+this.member.id} }));
+  goToMember(){
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/members/${this.member.id}`} }));
 
   }
 });

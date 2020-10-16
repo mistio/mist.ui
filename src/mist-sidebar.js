@@ -7,6 +7,7 @@ import './theme-color/theme-color.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -376,83 +377,83 @@ Polymer({
       }
   },
 
-  style: function(color) {
-      return "color: " + color + ";"
+  style(color) {
+      return `color: ${  color  };`
   },
 
   listeners: {
       'iron-overlay-closed': 'closeSidebar',
   },
 
-  attached: function() {
+  attached() {
       this.updateResize();
   },
 
-  updateResize: function(e) {
+  updateResize(e) {
       console.log('updateResize');
-      var that = this;
+      const that = this;
       if (this.smallscreen)
           this.closeSidebar();
       else
           this.openSidebar();
   },
 
-  closeSidebar: function() {
+  closeSidebar() {
       // console.log('close sidebar');
       if (this.smallscreen)
-          this.close(); //control brackdrop
+          this.close(); // control brackdrop
       this.set('isclosed', true);
   },
 
-  openSidebar: function() {
+  openSidebar() {
       // console.log('open sidebar')
       if (this.smallscreen)
-          this.open(); //control brackdrop
+          this.open(); // control brackdrop
       this.set('isclosed', false);
   },
 
-  toggleSidebar: function() {
+  toggleSidebar() {
       console.log('toggle sidebar', this.isclosed, this.smallscreen);
       if (this.smallscreen)
-          this.toggle(); //control brackdrop
+          this.toggle(); // control brackdrop
       this.set('isclosed', !this.isclosed);
   },
 
-  _itemCount: function(item) {
-      return this.get('this.model.' + item + 'Array.length');
+  _itemCount(item) {
+      return this.get(`this.model.${  item  }Array.length`);
   },
 
-  _sectionLink: function(name) {
-      return '/' + name;
+  _sectionLink(name) {
+      return `/${  name}`;
   },
 
-  _isEqual: function(a, b) {
+  _isEqual(a, b) {
       return a === b;
   },
 
-  _computeHasStacks: function(stacksArray) {
+  _computeHasStacks(stacksArray) {
       return stacksArray ? stacksArray.length > 0 : false;
   },
 
-  _isHidden: function(item) {
+  _isHidden(item) {
       if (item.hideZero && item.count == 0)
           return true;
       return false;
   },
 
-  clearSearch: function(e) {
+  clearSearch(e) {
       this.dispatchEvent(new CustomEvent('preserve-filters'), {composed: true, bubbles: true});
   },
 
-  _computeSectionsArray: function(sections) {
+  _computeSectionsArray(sections) {
       if (this.model && this.model.sections) {
           return Object.keys(this.model.sections).map(y => this.model.sections[y]);
-      } else {
+      } 
           return [];
-      }
+      
   },
 
-  _getSectionCount: function(name, sections) {
+  _getSectionCount(name, sections) {
       return this.model.sections[name].count;
   }
 });

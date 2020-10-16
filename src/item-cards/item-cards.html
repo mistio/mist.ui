@@ -20,6 +20,7 @@
 import '../item-card/item-card.js';
 import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../../../../@polymer/polymer/lib/legacy/polymer.dom.js';
+
 Polymer({
     is: 'item-cards',
 
@@ -39,16 +40,16 @@ Polymer({
         '_render(items, sections, isAttached)'
     ],
 
-    _findAncestor: function(node, fn) {
+    _findAncestor(node, fn) {
         while (node && fn.call(this, node)) {
             node = node.parentNode;
         }
         return node;
     },
 
-    _tap: function(e) {
-        var sourceEvent = e.detail.sourceEvent;
-        var A = this._findAncestor(e.target, function(node) {
+    _tap(e) {
+        const {sourceEvent} = e.detail;
+        const A = this._findAncestor(e.target, function(node) {
             return node != this && node.tagName !== 'A';
         });
 
@@ -65,21 +66,21 @@ Polymer({
         }
     },
 
-    _getColor: function(item) {
+    _getColor(item) {
         return this.section.color;
     },
 
-    _getSectionSymbol: function(item) {
+    _getSectionSymbol(item) {
         return this.section.symbol;
     },
 
-    _render: function(items, sections) {
+    _render(items, sections) {
         if (items) {
             this.$.cards.innerHTML = '';
 
-            var head = 0;
-            var batchSize = 3;
-            var flush = function() {
+            let head = 0;
+            let batchSize = 3;
+            const flush = function() {
                 if (head + batchSize >= items.length) {
                     batchSize = items.length - head;
                 }
@@ -87,9 +88,9 @@ Polymer({
                 if (batchSize <= 0) {
                     return false;
                 }
-                var el;
-                var firstHead = head;
-                var lastHead = firstHead + batchSize;
+                let el;
+                const firstHead = head;
+                const lastHead = firstHead + batchSize;
 
                 for (; head < lastHead; head++) {
                     el = document.createElement('item-card');

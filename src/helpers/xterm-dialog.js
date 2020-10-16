@@ -2,9 +2,10 @@ import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import '../../node_modules/xterm/';
-import '../../node_modules/xterm-addon-fit/';
+import "../../node_modules/xterm";
+import "../../node_modules/xterm-addon-fit";
 import '../../node_modules/xterm-addon-attach';
+
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<style>
@@ -244,29 +245,29 @@ Polymer({
     listeners: {
         'iron-overlay-closed': '_modalClosed'
     },
-    ready: function() {
+    ready() {
         console.debug('xterm loaded');
     },
-    attached: function() {
+    attached() {
         console.debug('xterm attached');
         this.socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
         
         this.term = new Terminal({
             cursorBlink: true
         });
-        var terminalContainer = this.shadowRoot.querySelector('#terminal-container');
+        const terminalContainer = this.shadowRoot.querySelector('#terminal-container');
         this.term.open(terminalContainer);
         this.fitAddon = new FitAddon.FitAddon();
         this.term.loadAddon(this.fitAddon);      
 
-        var newCols, newRows;
+        let newCols; let newRows;
         [newCols, newRows] = this.resizeTerminal();
 
-        var ips = [].concat(this.target.public_ips).concat(this.target.private_ips);
+        const ips = [].concat(this.target.public_ips).concat(this.target.private_ips);
         if (ips[0])
-            this.term.write('Connecting to ' + ips[0] + '...\r\n');
+            this.term.write(`Connecting to ${  ips[0]  }...\r\n`);
 
-        var socket = this.socket;
+        const {socket} = this;
         this.attachAddon = new AttachAddon.AttachAddon(socket);
         this.term.loadAddon(this.attachAddon);
         this.term.onData((data, ev) => {
@@ -274,7 +275,7 @@ Polymer({
         });
         socket.send('sub', 'shell');
 
-        var payload = {
+        const payload = {
             cols: newCols,
             rows: newRows,
             cloud_id: '',
@@ -283,28 +284,28 @@ Polymer({
         };
 
         if (this.target.job_id) {
-            payload['job_id'] = this.target.job_id;
-            payload['provider'] = 'docker';
-            payload['host'] = '';
+            payload.job_id = this.target.job_id;
+            payload.provider = 'docker';
+            payload.host = '';
         } else {
-            payload['cloud_id'] = this.target.cloud;
-            payload['machine_id'] = this.target.id;
+            payload.cloud_id = this.target.cloud;
+            payload.machine_id = this.target.id;
             this.set("style.position", "fixed");
         }
 
         if (this.target.provider === 'docker' && this.target.key_associations==false) {
-            payload['provider'] = 'docker';
-            payload['host'] = '';
+            payload.provider = 'docker';
+            payload.host = '';
         } else if (this.target.provider === 'kubevirt') {
-            payload['provider'] = 'kubevirt';
-            payload['host'] = 'kubevirt'; // otherwise an error is thrown in the api
+            payload.provider = 'kubevirt';
+            payload.host = 'kubevirt'; // otherwise an error is thrown in the api
         } else if (this.target.provider === 'lxd'){
-            payload['provider'] = 'lxd';
-            payload['host'] = ips[0];
+            payload.provider = 'lxd';
+            payload.host = ips[0];
         } else {
-            payload['cloud_id'] = this.target.cloud;
-            payload['machine_id'] = this.target.id;
-            payload['host'] = ips[0]; // TODO: Remove this
+            payload.cloud_id = this.target.cloud;
+            payload.machine_id = this.target.id;
+            payload.host = ips[0]; // TODO: Remove this
         }
 
         socket.send('msg', 'shell', 'shell_open', [payload]);
@@ -312,15 +313,15 @@ Polymer({
         socket.set('term', this.term);
 
         // Add event handler for window resize
-        var that = this;
+        const that = this;
         this.resizeHandler = function() {
             that.resizeTerminal();
         };
         window.addEventListener("resize", this.resizeHandler,{passive: true});
     },
 
-    resizeTerminal: function(newRows, newCols) {
-        var prevCols = this.term.cols, prevRows = this.term.rows;
+    resizeTerminal(newRows, newCols) {
+        const prevCols = this.term.cols; const prevRows = this.term.rows;
         if (newRows && newCols)
             this.term.resize(newCols, newRows);
         else {
@@ -340,19 +341,19 @@ Polymer({
         }
         return [newCols, newRows];
     },
-    detached: function() {
+    detached() {
         debugger;
         console.debug('xterm detached');
-        var socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
+        const socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
         socket.send('uns', 'shell');
         window.removeEventListener("resize", this.resizeHandler);
     },
-    _closeDialog: function(e) {
+    _closeDialog(e) {
         debugger;
-        //this.$.dialogModal.close();
+        // this.$.dialogModal.close();
         this.remove();
     },
-    _modalClosed: function(e) {
+    _modalClosed(e) {
         if (e.srcElement.id == 'dialogModal') {
             console.log(this.$.dialogModal.closingReason);
             this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {

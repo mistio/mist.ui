@@ -4,7 +4,7 @@ import '../node_modules/@polymer/paper-material/paper-material.js';
 import '../node_modules/@polymer/paper-button/paper-button.js';
 import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
+// import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
@@ -12,6 +12,7 @@ import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { YAML } from '../node_modules/yaml/browser/dist/index.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -317,8 +318,8 @@ Polymer({
 
   properties: {
       resource: {
-          type: Object, //currently machines only, later other resources too
-          value: function() {
+          type: Object, // currently machines only, later other resources too
+          value() {
               return {
                   id: false
               }
@@ -475,17 +476,17 @@ Polymer({
       'delete-panel': '_disassociateMetric'
   },
 
-  _forwardEvent: function (e) {
+  _forwardEvent (e) {
       e.stopPropagation();
       this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard(e);
   },
 
-  _computeDashboardUri: function (resource) {
+  _computeDashboardUri (resource) {
       if (resource)
-          return '/api/v1/machines/' + resource.id + '/dashboard';
+          return `/api/v1/machines/${  resource.id  }/dashboard`;
   },
 
-  _computeIsMonitored: function (resource, id, monitoring) {
+  _computeIsMonitored (resource, id, monitoring) {
       // console.log('compute Is Monitored', resource, id, monitoring);
       if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[this.resource.id]) {
@@ -495,43 +496,42 @@ Polymer({
       }
   },
 
-  _computeSingleResource: function ()  {
-      return this.resource && this.resource.id ? true : false;
+  _computeSingleResource ()  {
+      return !!(this.resource && this.resource.id);
   },
 
-  _computeIsRunning: function (resource, resourceChangePath, state) {
-      return this.resource && this.resource.state && (this.resource.state == "running" || this.resource
-          .state == "unknown") ? true : false;
+  _computeIsRunning (resource, resourceChangePath, state) {
+      return !!(this.resource && this.resource.state && (this.resource.state == "running" || this.resource
+          .state == "unknown"));
   },
 
-  _computeWaitingData: function (resource, monitoring) {
+  _computeWaitingData (resource, monitoring) {
       if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status
       ) {
           return false;
-      } else if (this.monitoring.monitored_machines[resource.id].installation_status.state ==
+      } if (this.monitoring.monitored_machines[resource.id].installation_status.state ==
           'succeeded' && (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at >
               0 || !this.monitoring.monitored_machines[resource.id].installation_status.finished_at >
               0)) {
           return true;
-      } else
-          return false;
+      } return false;
   },
 
-  monitoringState: function (resource, monitoring) {
+  monitoringState (resource, monitoring) {
       if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
               resource.id]) {
           return "";
-      } else {
+      } 
           if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed") {
               this.set("failed", true);
           }
           return this.monitoring.monitored_machines[resource.id].installation_status.state;
-      }
+      
   },
 
-  toggleMonitoring: function (e, action) {
-      var payload = {};
+  toggleMonitoring (e, action) {
+      const payload = {};
       console.log('toggleMonitoring', action)
       if (action != 'disable') {
           payload.action = this.isMonitored ? "disable" : "enable";
@@ -551,22 +551,22 @@ Polymer({
       this.set("failed", false);
   },
 
-  _monitoringDisableConfirmation: function (e) {
+  _monitoringDisableConfirmation (e) {
       console.log('mist-monitoring', e)
       if (e.detail.reason == "monitoring.disable" && e.detail.response == "confirm") {
           this.toggleMonitoring(e, 'disable');
       }
   },
 
-  _monitoringRequest: function (e) {
+  _monitoringRequest (e) {
       this.set("failed", false);
   },
 
-  _monitoringResponse: function (e) {
-      //in case of enabling we get the script response
-      var script = YAML.parse(e.detail.xhr.response);
+  _monitoringResponse (e) {
+      // in case of enabling we get the script response
+      let script = YAML.parse(e.detail.xhr.response);
       if (this.resource.os_type)
-          script = script[this.resource.os_type + "_command"];
+          script = script[`${this.resource.os_type  }_command`];
       else
           script = script.command;
 
@@ -575,23 +575,23 @@ Polymer({
       else
           this.set("showScript", false);
 
-      //in case of enabling we get the script response
-      var response = YAML.parse(e.detail.xhr.response);
-      if (response["job_id"]) {
-          this.set('jobId', response["job_id"]);
+      // in case of enabling we get the script response
+      const response = YAML.parse(e.detail.xhr.response);
+      if (response.job_id) {
+          this.set('jobId', response.job_id);
       }
   },
 
-  handleGetJobLog: function (e) {
+  handleGetJobLog (e) {
       // console.log('handleGetJobLog', e);
       this.set('logItems', e.detail.response.logs)
   },
 
-  handleGetJobLogError: function (e) {
+  handleGetJobLogError (e) {
 
   },
 
-  _jobIdChanged: function (jobid) {
+  _jobIdChanged (jobid) {
       if (!jobid) {
           this.resetPolling();
       } else {
@@ -599,14 +599,14 @@ Polymer({
       }
   },
 
-  startPolling: function (jobid) {
+  startPolling (jobid) {
       this.intervalID = setInterval(function() {
           this.$.getJobLog.generateRequest();
       }.bind(this), 1000);
       console.log('startpolling');
   },
 
-  stopPolling: function (logItems) {
+  stopPolling (logItems) {
       if (this.logItems && this.logItems.length > 0) {
           if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished') ||
               this.logItems[this.logItems.length - 1].action.endsWith('deployment_finished')) {
@@ -615,16 +615,16 @@ Polymer({
       }
   },
 
-  computeShowLogs: function (jobId, isMonitored, isActivated) {
+  computeShowLogs (jobId, isMonitored, isActivated) {
       // console.log("computeShowLogs", this.resource.id)
       return (this.isMonitored && !this.isActivated) || this.jobId;
   },
 
-  removeUnderscore: function (action) {
+  removeUnderscore (action) {
       return action.replace(/_/g, " ");
   },
 
-  resetPolling: function (error) {
+  resetPolling (error) {
       if (!error) {
           this.set('logItems', []);
       }
@@ -633,32 +633,32 @@ Polymer({
       this.set('intervalID', false);
   },
 
-  _monitoringError: function (e) {
+  _monitoringError (e) {
       console.log("_monitoringError", e.detail.request.xhr.responseText);
       this.shadowRoot.querySelector('#errormsg').textContent = e.detail.request.xhr.responseText;
       this.set("monitoringError", true);
   },
 
-  _reset: function (resource) {
+  _reset (resource) {
       this.set("monitoringError", false);
       this.set("showScript", false);
       this.set("failed", false);
   },
 
-  _computeScript: function (resource, monitoring) {
+  _computeScript (resource, monitoring) {
       if (!this.monitoring || !this.monitoring.monitored_machines || !resource || !this.monitoring.monitored_machines[
               resource.id]) {
           return "";
-      } else if (this.monitoring.monitored_machines[resource.id].commands) {
+      } if (this.monitoring.monitored_machines[resource.id].commands) {
           return this.monitoring.monitored_machines[resource.id].commands[this.resource.os_type] ||
-              this.monitoring.monitored_machines[resource.id].commands["unix"];
-      } else {
+              this.monitoring.monitored_machines[resource.id].commands.unix;
+      } 
           return "";
-      }
+      
   },
 
-  _computeIncidentCondition: function (item) {
-      var condition = item.logs.length && item.logs[0].condition || '';
+  _computeIncidentCondition (item) {
+      let condition = item.logs.length && item.logs[0].condition || '';
       // transform log condition
       if (condition.length && item.logs[0].rule_data_type == 'logs') {
           condition = condition.replace('COUNT(','Log ')
@@ -681,36 +681,36 @@ Polymer({
 
   },
 
-  _computeResourceMonitoringInfo: function (resource, monitoring) {
+  _computeResourceMonitoringInfo (resource, monitoring) {
       if (!resource || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[resource.id]) {
           return false;
-      } else {
+      } 
           return this.monitoring.monitored_machines[resource.id];
-      }
+      
   },
 
-  _computeHasKeys: function (keys) {
+  _computeHasKeys (keys) {
       if (this.resource && this.resource.keys) {
           return this.resource.keys.length > 0;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _computeIsManual: function (isMonitored, resource, monitoring) {
+  _computeIsManual (isMonitored, resource, monitoring) {
       if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || (
               this.resource && (
                   !this.monitoring.monitored_machines[this.resource.id] ||
                   !this.monitoring.monitored_machines[this.resource.id].installation_status.manual))) {
           return false;
-      } else {
+      } 
           return true;
-      }
+      
   },
 
-  _showDisableDialog: function () {
-      var msg;
+  _showDisableDialog () {
+      let msg;
       if (this.resource.key_associations && this.resource.key_associations.length)
           msg = "The monitoring agent will be uninstalled automatically";
       else
@@ -724,23 +724,23 @@ Polymer({
       });
   },
 
-  _showDialog: function (info) {
-      var dialog = this.$.monitorindialog;
+  _showDialog (info) {
+      const dialog = this.$.monitorindialog;
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _disassociateMetric: function (e) {
-      var targets = e.detail.panel.panel.targets;
+  _disassociateMetric (e) {
+      const {targets} = e.detail.panel.panel;
 
       targets.forEach(function (target) {
           if (target.target.startsWith("mist.python")) {
-              this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id +
-                  "/plugins/" + target.target;
+              this.$.disassociateMetric.url = `/api/v1/machines/${  this.resource.id 
+                  }/plugins/${  target.target}`;
               this.$.disassociateMetric.headers["Csrf-Token"] = CSRFToken.value;
               this.$.disassociateMetric.params = {
                   plugin_type: "python"
@@ -748,26 +748,26 @@ Polymer({
               this.$.disassociateMetric.generateRequest();
           };
 
-          var payload = {
+          const payload = {
               metric_id: target.target
           };
-          this.$.disassociateMetric.url = "/api/v1/machines/" + this.resource.id + "/metrics";
+          this.$.disassociateMetric.url = `/api/v1/machines/${  this.resource.id  }/metrics`;
           this.$.disassociateMetric.headers["Csrf-Token"] = CSRFToken.value;
           this.$.disassociateMetric.params = payload;
           this.$.disassociateMetric.generateRequest();
       }, this);
   },
 
-  _handleAssociateResponse: function (target) {
+  _handleAssociateResponse (target) {
       this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard();
   },
 
-  clearJobID: function (resource) {
+  clearJobID (resource) {
       // clear job when navigating away
       this.set('jobId', false);
   },
 
-  getStats: function (isMonitored, isManual, waitingData, isActivated) {
+  getStats (isMonitored, isManual, waitingData, isActivated) {
       if (this.isMonitored && !this.isActivated && this.monitoring.monitored_machines[this.resource.id].installation_status != "succeeded") {
           if (!this.intervalMonitoringID)
               this.monitoringPolling();
@@ -776,8 +776,8 @@ Polymer({
       }
   },
 
-  monitoringPolling: function () {
-      var that = this;
+  monitoringPolling () {
+      const that = this;
       console.log('_getStats', that.shadowRoot.querySelector('#getStats'), window);
       this.intervalMonitoringID = window.setInterval(function() {
           that.shadowRoot.querySelector('#getStats').generateRequest();
@@ -785,63 +785,63 @@ Polymer({
       }, 5000);
   },
 
-  _handleStatsResponse: function (e) {
+  _handleStatsResponse (e) {
       this.stopGetStats();
   },
 
-  _handleStatsError: function (e) {
+  _handleStatsError (e) {
       this.stopGetStats();
   },
 
-  stopGetStats: function () {
+  stopGetStats () {
       window.clearInterval(this.get('intervalMonitoringID'));
       this.set('intervalMonitoringID', false);
   },
 
-  _computeShowHomeDashboard: function (monitoring, hidden) {
+  _computeShowHomeDashboard (monitoring, hidden) {
       if (hidden || !monitoring.machines || !monitoring.machines.length || !this.homeDashboard)
           return false;
       return true;
   },
 
-  _isIncidentFinished: function (finished_at) {
+  _isIncidentFinished (finished_at) {
       return finished_at > 0;
   },
 
-  _computeOpenIncidents: function () {
+  _computeOpenIncidents () {
       return this.incidents.filter(function(item) { return item.finished_at == 0; });
   },
 
-  _computeToggleButtonStyle: function (expanded) {
+  _computeToggleButtonStyle (expanded) {
       return !expanded && "transform: rotate(270deg);" || "";
   },
 
-  _exportPdf: function () {
-      var generatePdf = function (pdf) {
-          var pdf = new jsPDF(), offset = 10,
-              timerange_button = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton'),
-              timerange_html = timerange_button.outerHTML;
-          var resource = this.resource ? '<strong>' + this.resource.name + '</strong> &nbsp;&nbsp;' : '';
+  _exportPdf () {
+      const generatePdf = function (pdf) {
+          var pdf = new jsPDF(); let offset = 10;
+              const timerange_button = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton');
+              const timerange_html = timerange_button.outerHTML;
+          const resource = this.resource ? `<strong>${  this.resource.name  }</strong> &nbsp;&nbsp;` : '';
           pdf.fromHTML(resource + timerange_html, 10, offset);
           offset += 10;
 
-          var incidents = this.shadowRoot.querySelectorAll('.incident');
+          const incidents = this.shadowRoot.querySelectorAll('.incident');
           for (var i=0; i < incidents.length; i++) {
               pdf.fromHTML(incidents[i].outerHTML, 10, offset);
               offset += 10;
           }
           offset += 10;
-          var panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
+          const panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
           for (var i=0; i<panels.length; i++) {
               if (i && i%2 == 0) {
                   pdf.addPage();
                   offset = 10
               }
-              var canvas = panels[i].shadowRoot.querySelector('canvas');
+              const canvas = panels[i].shadowRoot.querySelector('canvas');
               pdf.fromHTML(panels[i].shadowRoot.querySelector('div.title').outerHTML, 10, offset+(i%2)*120);
               pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, offset + 10 + (i%2)*120);
           }
-          pdf.save(this.resource.name + '-' + timerange_button.textContent.replace(' ', '') + '.pdf');
+          pdf.save(`${this.resource.name  }-${  timerange_button.textContent.replace(' ', '')  }.pdf`);
       }.bind(this);
       try {
           new jsPDF();

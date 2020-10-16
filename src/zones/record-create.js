@@ -94,7 +94,7 @@ Polymer({
       },
       record: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   name: '',
                   type: '',
@@ -105,7 +105,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       fieldsA: {
           type:Array,
@@ -398,39 +398,39 @@ Polymer({
       'change': 'updateFields'
   },
 
-  updateFields: function(e){
+  updateFields(e){
       this.set('formError', false);
       this.updatePayload();            
   },
 
-  updatePayload: function(){
+  updatePayload(){
       if (this.fields.length && this.zone){
           // update payload
-          var payload = {};
+          const payload = {};
           
-          payload['type'] = this.selectedRecordType;
+          payload.type = this.selectedRecordType;
 
-          var name = this.fields.findIndex(function(field) {
+          const name = this.fields.findIndex(function(field) {
               return field.name == "name";
           }, this);
-          payload['name'] = this.fields[name].value + this.fields[name].suffix + '.';
+          payload.name = `${this.fields[name].value + this.fields[name].suffix  }.`;
 
-          var rdata = this.fields.findIndex(function(field) {
+          const rdata = this.fields.findIndex(function(field) {
               return field.name == "rdata";
           }, this);
-          payload['data'] = this.fields[rdata].value;
+          payload.data = this.fields[rdata].value;
 
-          var ttl = this.fields.findIndex(function(field) {
+          const ttl = this.fields.findIndex(function(field) {
               return field.name == "ttl";
           }, this);
-          payload['ttl'] = this.fields[ttl].value;
+          payload.ttl = this.fields[ttl].value;
 
           this.set('record', payload);
-          console.warn('Update Payload:' + payload)
+          console.warn(`Update Payload:${  payload}`)
       }
   },
 
-  _zoneChanged: function(zone_id) {
+  _zoneChanged(zone_id) {
       if (this.zone_id != zone_id) {
           this.zone_id = zone_id;
           this.selectedRecordType = false;
@@ -439,48 +439,48 @@ Polymer({
       }
   },
 
-  _typeChanged: function(selectedRecordType, fields) {
+  _typeChanged(selectedRecordType, fields) {
       if (this.selectedRecordType == "A") {
-          this.fieldsA[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsA);
       } else if (this.selectedRecordType == "AAAA") {
-          this.fieldsAAAA[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsAAAA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsAAAA);
       } else if (this.selectedRecordType == "CNAME") {
-          this.fieldsCNAME[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsCNAME[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsCNAME);
       } else if (this.selectedRecordType == "MX") {
-          this.fieldsMX[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsMX[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsMX);
       } else if (this.selectedRecordType == "NS") {
-          this.fieldsNS[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsNS[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsNS);
       } else if (this.selectedRecordType == "SOA") {
-          this.fieldsSOA[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsSOA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsSOA);
       } else if (this.selectedRecordType == "TXT") {
-          this.fieldsTXT[0].suffix = '.' + this.zone.domain.slice(0, -1);
+          this.fieldsTXT[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsTXT);
       }
       this.updateFields();
   },
 
-  _handleCreateRecordResponse: function(e){
-      var response = YAML.parse(e.detail.xhr.response);
+  _handleCreateRecordResponse(e){
+      const response = YAML.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Record was created successfully.',duration:3000} }));
 
-      var url = document.location.pathname;
+      const url = document.location.pathname;
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: url.substring(0, url.indexOf("/+create"))} }));
 
   },
 
-  _handleError: function(e) {
+  _handleError(e) {
       console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },
 
-  _goBack: function() {
+  _goBack() {
       history.back();
   }
 });

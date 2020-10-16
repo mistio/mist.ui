@@ -7,6 +7,7 @@ import moment from '../../node_modules/moment/src/moment.js'
 import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const SCHEDULEACTIONS = {
     'reboot': {
         'name': 'reboot',
@@ -144,15 +145,15 @@ Polymer({
       'add-input': 'addInput'
   },
 
-  ready: function(){
+  ready(){
       if (!this.docs && this.fields) {
-          for (var i=0; i < this.fields.length; i++) {
+          for (let i=0; i < this.fields.length; i++) {
               this.fields[i].helpHref = '';
           }
       }
   },
 
-  _computeFields: function(currency) {
+  _computeFields(currency) {
       if (currency) {
           return [{
               name: "name",
@@ -313,11 +314,11 @@ Polymer({
               defaultValue: "",
               show: true,
               required: false,
-              suffix: this.currency.sign+'/month',
+              suffix: `${this.currency.sign}/month`,
               pattern: "[0-9]*",
               errorMessage: "Please enter numbers only!",
               excludeFromPayload: true,
-              helptext: "Apply an extra filter of costing more than a certain ammount of "+this.currency.sign+" per month",
+              helptext: `Apply an extra filter of costing more than a certain ammount of ${this.currency.sign} per month`,
               class: "bind-top background",
           }, {
               name: "selectors",
@@ -388,7 +389,7 @@ Polymer({
                   fieldName: "schedule_type",
                   fieldValues: ["interval"]
               },
-              options: [{ //days, hours, minutes, seconds, microseconds
+              options: [{ // days, hours, minutes, seconds, microseconds
                   title: "days",
                   val: "days"
               }, {
@@ -495,18 +496,18 @@ Polymer({
                   fieldValues: ["interval", "crontab"]
               }
           }]
-      } else {
+      } 
           return [];
-      }
+      
   },
 
-  _computeActions: function (machines) {
-      var ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; //'suspend', 'resume',
+  _computeActions (machines) {
+      const ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; // 'suspend', 'resume',
 
-      var actions = [];
-      for (var i = 0; i < ret.length; i++) {
-          var act = SCHEDULEACTIONS[ret[i]];
-          var transformRet = {
+      const actions = [];
+      for (let i = 0; i < ret.length; i++) {
+          const act = SCHEDULEACTIONS[ret[i]];
+          const transformRet = {
               title: act.name.toUpperCase(),
               val: act.name,
               icon: act.icon
@@ -517,9 +518,9 @@ Polymer({
       return actions;
   },
 
-  _updateFields: function (fields, model) {
+  _updateFields (fields, model) {
       if (this.model && this.fields) {
-          var _this = this;
+          const _this = this;
           this.fields.forEach(function (f, index) {
               if (f.name == "script_id") {
                   f.options = this.model.scriptsArray || [];
@@ -527,12 +528,12 @@ Polymer({
 
               if (f.name == "machines_uuids") {
                   f.options = this.model && this.model.machines && Object.keys(this.model.machines).map(function(m) {
-                          var machine = _this.model.machines[m];
+                          const machine = _this.model.machines[m];
                           if (machine && _this.model.clouds[machine.cloud]) {
                               return {
                                   id: m,
                                   name: machine.name,
-                                  img: 'assets/providers/provider-' + _this.model.clouds[machine.cloud].provider.replace('_', '') + '.png'
+                                  img: `assets/providers/provider-${  _this.model.clouds[machine.cloud].provider.replace('_', '')  }.png`
                               }
                           }
                       }) || [];
@@ -546,13 +547,13 @@ Polymer({
       }
   },
 
-  _updateCheckboxes: function () {
-      //check if any checkboxes are selected
-      var checkedMachines = this.get('fields.' + this._fieldIndexByName("machines_uuids") +
-          '.value');
-      //if there are selected checkboxes, keep selection on update
+  _updateCheckboxes () {
+      // check if any checkboxes are selected
+      const checkedMachines = this.get(`fields.${  this._fieldIndexByName("machines_uuids") 
+          }.value`);
+      // if there are selected checkboxes, keep selection on update
       if (checkedMachines && checkedMachines.length) {
-          var checkboxes = this.$.scheduleAddForm.shadowRoot.querySelectorAll('paper-checkbox[name="machines_uuids"]');
+          const checkboxes = this.$.scheduleAddForm.shadowRoot.querySelectorAll('paper-checkbox[name="machines_uuids"]');
           [].forEach.call(checkboxes, function (el, index) {
               if (checkedMachines.indexOf(el.id) > -1)
                   el.checked = true;
@@ -562,29 +563,29 @@ Polymer({
       }
   },
 
-  _fieldsChanged: function (changeRecord) {
+  _fieldsChanged (changeRecord) {
       // console.log('changeRecord', changeRecord);
       if (changeRecord.path.endsWith('.value') && changeRecord.path.split('.value').length < 3) {
 
           // selecting action
           if (this.get(changeRecord.path.replace('.value', '')).name == "action") {
-              var actionInd = this._fieldIndexByName("action"),
-                  scriptInd = this._fieldIndexByName("script_id");
+              const actionInd = this._fieldIndexByName("action");
+                  const scriptInd = this._fieldIndexByName("script_id");
               if (changeRecord.value == "run script") {
-                  this.set('fields.' + actionInd + '.excludeFromPayload', true);
-                  this.set('fields.' + scriptInd + '.excludeFromPayload', false);
+                  this.set(`fields.${  actionInd  }.excludeFromPayload`, true);
+                  this.set(`fields.${  scriptInd  }.excludeFromPayload`, false);
               }
               if (changeRecord.value != "run script") {
-                  this.set('fields.' + actionInd + '.excludeFromPayload', false);
-                  this.set('fields.' + scriptInd + '.excludeFromPayload', true);
+                  this.set(`fields.${  actionInd  }.excludeFromPayload`, false);
+                  this.set(`fields.${  scriptInd  }.excludeFromPayload`, true);
               }
           }
 
           // selecting uuids or tags
           if (this.get(changeRecord.path.replace('.value', '')).name == "ids_or_tags") {
-              var condsInd = this._fieldIndexByName("selectors"),
-                  uuidsInd = this._fieldIndexByName("machines_uuids"),
-                  tagstInd = this._fieldIndexByName("machines_tags");
+              var condsInd = this._fieldIndexByName("selectors");
+                  const uuidsInd = this._fieldIndexByName("machines_uuids");
+                  const tagstInd = this._fieldIndexByName("machines_tags");
 
               if (changeRecord.value == "ids") {
                   this._removeObjectFromSelectors('tags');
@@ -592,8 +593,8 @@ Polymer({
                   this._removeObjectFromSelectors('machines');
 
                   // clear checkbox selection
-                  this.set('fields.' + uuidsInd + '.value', []);
-                  var checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
+                  this.set(`fields.${  uuidsInd  }.value`, []);
+                  const checkboxes = this.$.scheduleAddForm.querySelectorAll('paper-checkbox');
                   [].forEach.call(checkboxes, function (el, index) {
                       el.checked = false;
                   });
@@ -609,7 +610,7 @@ Polymer({
 
           // changing tags
           if (this.get(changeRecord.path.replace('.value', '')).name.startsWith("machines_tags")) {
-              var textToArray = changeRecord.value.split(',');
+              const textToArray = changeRecord.value.split(',');
               this._updateObjectInSelectors('tags', 'include', this._constructTagsValue(textToArray));
               this._removeObjectFromSelectors('machines');
           }
@@ -617,15 +618,15 @@ Polymer({
           // changing age selectors
           if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
                   "machines_selectors_age_more_")) {
-              var condsInd = this._fieldIndexByName("selectors"),
-                  perInd = this._fieldIndexByName("machines_selectors_age_more_unit"),
-                  numInd = this._fieldIndexByName("machines_selectors_age_more_value"),
-                  key = this.get('fields.' + perInd + '.value'),
-                  num = parseInt(this.get('fields.' + numInd + '.value')),
-                  value;
+              var condsInd = this._fieldIndexByName("selectors");
+                  const perInd = this._fieldIndexByName("machines_selectors_age_more_unit");
+                  const numInd = this._fieldIndexByName("machines_selectors_age_more_value");
+                  const key = this.get(`fields.${  perInd  }.value`);
+                  const num = parseInt(this.get(`fields.${  numInd  }.value`));
+                  let value;
 
               if (!changeRecord.value.length || !key.length || !parseInt(num)) {
-                  //clear selectors
+                  // clear selectors
                   this._removeObjectFromSelectors('age');
               } else {
                   this._updateAgeSelector(condsInd, key, num);
@@ -635,11 +636,11 @@ Polymer({
           // changing cost selectors
           if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
                   "machines_selectors_cost")) {
-              var condsInd = this._fieldIndexByName("selectors"),
-                  costInd = this._fieldIndexByName("machines_selectors_cost");
+              var condsInd = this._fieldIndexByName("selectors");
+                  const costInd = this._fieldIndexByName("machines_selectors_cost");
 
               if (!changeRecord.value.length || !parseInt(changeRecord.value)) {
-                  //clear cost selector
+                  // clear cost selector
                   this._removeObjectFromSelectors('cost__monthly')
               } else {
                   this._updateObjectInSelectors('cost__monthly', 'value', parseInt(changeRecord.value),
@@ -649,88 +650,88 @@ Polymer({
 
           // initial values in shedule entry
           if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_type") {
-              var entryInd = this._fieldIndexByName("schedule_entry"),
-                  expInd = this._fieldIndexByName("expires"),
-                  entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab"),
-                  maxcountInd = this._fieldIndexByName("max_run_count"),
-                  runImmediatelyInd = this._fieldIndexByName("run_immediately"),
-                  entry;
+              var entryInd = this._fieldIndexByName("schedule_entry");
+                  const expInd = this._fieldIndexByName("expires");
+                  const entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab");
+                  var maxcountInd = this._fieldIndexByName("max_run_count");
+                  const runImmediatelyInd = this._fieldIndexByName("run_immediately");
+                  let entry;
 
               if (changeRecord.value == "interval") {
                   entry = this._processInterval();
-                  this.set('fields.' + expInd + '.disabled', false);
-                  this.set('fields.' + maxcountInd + '.disabled', false);
-                  this.set('fields.' + maxcountInd + '.value', "");
+                  this.set(`fields.${  expInd  }.disabled`, false);
+                  this.set(`fields.${  maxcountInd  }.disabled`, false);
+                  this.set(`fields.${  maxcountInd  }.value`, "");
               } else if (changeRecord.value == "crontab") {
-                  entry = this._processCrontab(this.get('fields.' + entryCronTabInd + '.value'));
-                  this.set('fields.' + expInd + '.disabled', false);
-                  this.set('fields.' + maxcountInd + '.disabled', false);
-                  this.set('fields.' + maxcountInd + '.value', "");
+                  entry = this._processCrontab(this.get(`fields.${  entryCronTabInd  }.value`));
+                  this.set(`fields.${  expInd  }.disabled`, false);
+                  this.set(`fields.${  maxcountInd  }.disabled`, false);
+                  this.set(`fields.${  maxcountInd  }.value`, "");
               } else if (changeRecord.value == "one_off") {
-                  entry = this.get('fields.' + entryInd + '.value');
-                  this.set('fields.' + expInd + '.disabled', true);
-                  this.set('fields.' + maxcountInd + '.value', 1);
-                  this.set('fields.' + maxcountInd + '.disabled', true);
-                  this.set('fields.' + runImmediatelyInd + '.value', false);
+                  entry = this.get(`fields.${  entryInd  }.value`);
+                  this.set(`fields.${  expInd  }.disabled`, true);
+                  this.set(`fields.${  maxcountInd  }.value`, 1);
+                  this.set(`fields.${  maxcountInd  }.disabled`, true);
+                  this.set(`fields.${  runImmediatelyInd  }.value`, false);
                   entry = moment.unix(entry/1000).utc().format("MM/DD/YYYY HH:MM");
               }
-              this.set('fields.' + entryInd + '.value', entry);
+              this.set(`fields.${  entryInd  }.value`, entry);
           }
 
           // date in shedule entry
           if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_one_off") {
               var entryInd = this._fieldIndexByName("schedule_entry");
-              this.set('fields.' + entryInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
+              this.set(`fields.${  entryInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
           }
 
           // crontab in schedule entry
           if (this.get(changeRecord.path.replace('.value', '')).name == "schedule_entry_crontab") {
               var entryInd = this._fieldIndexByName("schedule_entry");
-              this.set('fields.' + entryInd + '.value', this._processCrontab(changeRecord.value));
+              this.set(`fields.${  entryInd  }.value`, this._processCrontab(changeRecord.value));
           }
 
           // interval changes in schedule entry
           if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
                   "schedule_entry_interval_")) {
               var entryInd = this._fieldIndexByName("schedule_entry");
-              this.set('fields.' + entryInd + '.value', this._processInterval());
+              this.set(`fields.${  entryInd  }.value`, this._processInterval());
           }
 
           if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
               var expiresInd = this._fieldIndexByName("expires");
               var excludeFromPayload = changeRecord.value == "" && true || false;
-              this.set('fields.' + expiresInd + '.excludeFromPayload', excludeFromPayload);
+              this.set(`fields.${  expiresInd  }.excludeFromPayload`, excludeFromPayload);
               if (!excludeFromPayload) {
-                  this.set('fields.' + expiresInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
+                  this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
               }
           }
 
           if (this.get(changeRecord.path.replace('.value', '')).name == "start_after") {
-              var startAfterInd = this._fieldIndexByName("start_after");
+              const startAfterInd = this._fieldIndexByName("start_after");
               var excludeFromPayload = changeRecord.value == "" && true || false;
-              this.set('fields.' + startAfterInd + '.excludeFromPayload', excludeFromPayload);
+              this.set(`fields.${  startAfterInd  }.excludeFromPayload`, excludeFromPayload);
               if (!excludeFromPayload) {
-                  this.set('fields.' + expiresInd + '.value', moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
+                  this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
               }
           }
 
           if (this.get(changeRecord.path.replace('.value', '')).name == "max_run_count") {
               var maxcountInd = this._fieldIndexByName("max_run_count");
-              if (typeof (this.get('fields.' + maxcountInd + '.value')) != 'number') {
+              if (typeof (this.get(`fields.${  maxcountInd  }.value`)) !== 'number') {
                   if (parseInt(changeRecord.value) == NaN) {
-                      this.set('fields.' + maxcountInd + '.excludeFromPayload', true);
-                      this.set('fields.' + maxcountInd + '.value', "");
+                      this.set(`fields.${  maxcountInd  }.excludeFromPayload`, true);
+                      this.set(`fields.${  maxcountInd  }.value`, "");
                   } else {
-                      this.set('fields.' + maxcountInd + '.excludeFromPayload', false);
-                      this.set('fields.' + maxcountInd + '.value', parseInt(changeRecord.value));
+                      this.set(`fields.${  maxcountInd  }.excludeFromPayload`, false);
+                      this.set(`fields.${  maxcountInd  }.value`, parseInt(changeRecord.value));
                   }
               }
           }
       }
   },
 
-  _updateAgeSelector: function (index, key, value) {
-      var minutes;
+  _updateAgeSelector (index, key, value) {
+      let minutes;
       if (key == 'minutes')
           minutes = value;
       else if (key == 'hours')
@@ -743,26 +744,26 @@ Polymer({
       // this.set('fields.'+ index +'.value', [{'type': 'age', 'field': 'age', 'minutes': minutes}]);
   },
 
-  _updateObjectInSelectors: function (field, attr, value, operator) {
+  _updateObjectInSelectors (field, attr, value, operator) {
       // console.log('_updateObjectInSelectors', field, attr, value, operator);
-      var selectors = this.get('fields.' + this._fieldIndexByName("selectors") + '.value'),
-          selectorsField = selectors.find(function (con) {
+      const selectors = this.get(`fields.${  this._fieldIndexByName("selectors")  }.value`);
+          const selectorsField = selectors.find(function (con) {
               return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                   con.type == field;
-          }),
-          index = selectors.indexOf(selectorsField);
+          });
+          const index = selectors.indexOf(selectorsField);
       // console.log('index', index);
       if (index > -1) {
-          this.set('fields.' + this._fieldIndexByName("selectors") + '.value.' + index + '.' +
-              attr, value);
+          this.set(`fields.${  this._fieldIndexByName("selectors")  }.value.${  index  }.${ 
+              attr}`, value);
       } else {
           this._addObjectInSelectors(field, value, operator);
       }
 
   },
 
-  _addObjectInSelectors: function (field, value, operator) {
-      var newSelector;
+  _addObjectInSelectors (field, value, operator) {
+      let newSelector;
       if (field == 'age') {
           newSelector = {
               type: 'age',
@@ -781,49 +782,49 @@ Polymer({
       } else {
           newSelector = {
               type: 'field',
-              field: field,
-              value: value
+              field,
+              value
           };
           if (operator)
-              newSelector['operator'] = operator;
+              newSelector.operator = operator;
       }
-      this.push('fields.' + this._fieldIndexByName("selectors") + '.value', newSelector);
+      this.push(`fields.${  this._fieldIndexByName("selectors")  }.value`, newSelector);
   },
 
-  _removeObjectFromSelectors: function (field) {
-      var selectors = this.get('fields.' + this._fieldIndexByName("selectors") + '.value'),
-          field = selectors.find(function (con) {
+  _removeObjectFromSelectors (field) {
+      const selectors = this.get(`fields.${  this._fieldIndexByName("selectors")  }.value`);
+          var field = selectors.find(function (con) {
               return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field :
                   con.type == field;
-          }),
-          index = selectors.indexOf(field);
+          });
+          const index = selectors.indexOf(field);
 
       if (index > -1)
-          this.splice('fields.' + this._fieldIndexByName("selectors") + '.value', index, 1);
+          this.splice(`fields.${  this._fieldIndexByName("selectors")  }.value`, index, 1);
   },
 
-  _processInterval: function () {
-      var everyInd = this._fieldIndexByName("schedule_entry_interval_every");
-      var periodInd = this._fieldIndexByName("schedule_entry_interval_period");
+  _processInterval () {
+      const everyInd = this._fieldIndexByName("schedule_entry_interval_every");
+      const periodInd = this._fieldIndexByName("schedule_entry_interval_period");
 
-      var interval = {
-          'every': this.get('fields.' + everyInd + '.value'),
-          'period': this.get('fields.' + periodInd + '.value')
+      const interval = {
+          'every': this.get(`fields.${  everyInd  }.value`),
+          'period': this.get(`fields.${  periodInd  }.value`)
       };
 
       return interval;
   },
 
-  _processCrontab: function (entry) {
-      var chunchs = entry.split(" ");
+  _processCrontab (entry) {
+      const chunchs = entry.split(" ");
       // "minute" : "30", "hour" : "2", "day_of_week" : "*", "day_of_month" : "*", "month_of_year" : "*"
       // fill in missing
-      for (var i = 0; i < 5; i++) {
+      for (let i = 0; i < 5; i++) {
           if (!chunchs[i])
               chunchs[i] = "*"
       }
-      var diff = moment().utcOffset() / 60;
-      var construct = {
+      const diff = moment().utcOffset() / 60;
+      const construct = {
           'minute': chunchs[0],
           'hour': chunchs[1],
           'day_of_month': chunchs[2],
@@ -836,12 +837,12 @@ Polymer({
       return construct;
   },
 
-  _constructTagsValue: function (tagStringsArray) {
-      var arr = {};
+  _constructTagsValue (tagStringsArray) {
+      const arr = {};
       tagStringsArray.forEach(function (string) {
-          var chunks = string.split("=");
+          const chunks = string.split("=");
           if (chunks.length > 0 && chunks[0].trim().length > 0) {
-              var key = chunks[0].trim();
+              const key = chunks[0].trim();
               arr[key] = "";
               if (chunks.length > 1)
                   arr[key] = chunks[1].trim();
@@ -850,46 +851,46 @@ Polymer({
       return arr;
   },
 
-  _handleAddScheduleResponse: function (e) {
-      var response = YAML.parse(e.detail.xhr.response);
+  _handleAddScheduleResponse (e) {
+      const response = YAML.parse(e.detail.xhr.response);
       this.async(function () {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-              url: '/schedules/' + response.id
+              url: `/schedules/${  response.id}`
           } }));
 
       }, 500)
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
       // console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },
 
-  _fieldIndexByName: function (name) {
+  _fieldIndexByName (name) {
       return this.fields.findIndex(function (f) {
           return f.name == name;
       });
   },
 
-  _goBack: function () {
+  _goBack () {
       history.back();
   },
 
-  updateScripts: function (e) {
+  updateScripts (e) {
       // console.log('updateScripts', e)
-      var scriptInd = this._fieldIndexByName("script_id");
+      const scriptInd = this._fieldIndexByName("script_id");
       this.async(function () {
-          this.set('fields.' + scriptInd + '.options', this.model.scriptsArray);
-          this.set('fields.' + scriptInd + '.value', e.detail.script);
+          this.set(`fields.${  scriptInd  }.options`, this.model.scriptsArray);
+          this.set(`fields.${  scriptInd  }.value`, e.detail.script);
       }.bind(this), 1000);
   },
 
-  addInput: function (e) {
+  addInput (e) {
       if (e.detail.fieldname == 'script_id') {
-          //set attribute origin
-          var origin = window.location.pathname;
-          var qParams = {
+          // set attribute origin
+          const origin = window.location.pathname;
+          const qParams = {
               'origin': origin
           }
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {

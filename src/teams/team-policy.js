@@ -9,6 +9,7 @@ import './rbac-rule-item.js';
 import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">
@@ -274,7 +275,7 @@ Polymer({
       },
       rules: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       defaultOperator: {
           type: String,
@@ -333,71 +334,71 @@ Polymer({
       'update-constraints': '_updateConstraints'
   },
 
-  attached: function() {
+  attached() {
     //   let el = document.getElementById("rules");
     //   let sortable = Sortable.create(el);
   },
 
-    _computeCommonPermissions: function(model) {
-        var commonPermissions = this.model.permissions['cloud'];
-        let that = this;
+    _computeCommonPermissions(model) {
+        let commonPermissions = this.model.permissions.cloud;
+        const that = this;
         Object.keys(this.model.permissions).forEach(function(t) {
-            var s = new Set(commonPermissions);
+            const s = new Set(commonPermissions);
             commonPermissions = intersection(s, that.model.permissions[t]);
         });
         return Array.from(commonPermissions);
     },
 
-  _draggingChanged: function(newDragging, oldDragging) {
+  _draggingChanged(newDragging, oldDragging) {
       if (newDragging === true) {
-          var el = this.$.ruleHead;
+          const el = this.$.ruleHead;
           this.$.ruleHead.remove();
           this.ruleHasChanges();
       }
   },
 
-  _onSortStart: function(event) {
+  _onSortStart(event) {
       console.log('policy start', event);
   },
 
-  _onSortFinish: function(event) {
+  _onSortFinish(event) {
       console.log('policy finish', event);
-      var newOrder = [];
-      var elements = this.shadowRoot.querySelector('sortable-list').querySelectorAll('rbac-rule-item');
+      const newOrder = [];
+      const elements = this.shadowRoot.querySelector('sortable-list').querySelectorAll('rbac-rule-item');
           elements.forEach(function(el){
               newOrder.push(parseInt(el.shadowRoot.querySelector('.index').textContent.trim().replace('.','')));
           });
       this._applyReordering(newOrder);
   },
 
-  _applyReordering: function(newOrder) {
-      var orderedRules = [],
-          rules = this.rules.splice(0);
-      for (var i=0; i < newOrder.length; i++) {
+  _applyReordering(newOrder) {
+      const orderedRules = [];
+          const rules = this.rules.splice(0);
+      for (let i=0; i < newOrder.length; i++) {
           orderedRules.push(rules[newOrder[i]]);
       }
       this.set('rules', orderedRules);
       this._submitForm();
   },
 
-  _teamChanged: function(team, rules, teams) {
+  _teamChanged(team, rules, teams) {
       // copy default operator to a new string
       if (this.team && this.team.policy) {
-          var initialOp = this.team.policy.operator;
-          var newString = initialOp.slice(0);
+          const initialOp = this.team.policy.operator;
+          const newString = initialOp.slice(0);
           this.set("defaultOperator", newString);
 
           // copy the rules array to a new array by
           // clean copy of items
-          var newArr = [];
+          const newArr = [];
           this.team.policy.rules.forEach(function(rule, i) {
-              var cleanCopy = {};
-              for (var p in rule) {
+              const cleanCopy = {};
+              for (const p in rule) {
                   cleanCopy[p] = this._cleanCopy(rule[p], p);
               }
               newArr[i] = cleanCopy;
           }.bind(this));
-          var cleanCopyRules = newArr.slice(0);
+          const cleanCopyRules = newArr.slice(0);
           this.set("rules", cleanCopyRules);
 
           this.set('sendingData', true);
@@ -410,22 +411,22 @@ Polymer({
       }
   },
 
-  _cleanCopy: function(value, property) {
-      var newValue;
+  _cleanCopy(value, property) {
+      let newValue;
       if (value == null)
           return null;
-      if (typeof value == "string") {
+      if (typeof value === "string") {
           newValue = "";
           newValue = value.slice(0);
-      } else if (typeof value == "object") {
+      } else if (typeof value === "object") {
           if (Array.isArray(value)) {
               newValue = [];
-              for (var i = 0; i < value.length; i++) {
+              for (let i = 0; i < value.length; i++) {
                   newValue[i] = this._cleanCopy(value[i], property);
               }
           } else {
               newValue = {};
-              for (var q in value) {
+              for (const q in value) {
                   newValue[q] = this._cleanCopy(value[q], q);
               }
           }
@@ -447,20 +448,20 @@ Polymer({
       }
   },
 
-  _computeToggle: function(operator) {
-      return operator == 'ALLOW' ? true : false;
+  _computeToggle(operator) {
+      return operator == 'ALLOW';
   },
 
-  _computeDisabled: function(name) {
-      return name == 'Owners' ? true : false;
+  _computeDisabled(name) {
+      return name == 'Owners';
   },
 
-  _deleteRtag: function(e) {
-      var ind = e.detail.index,
-          tag = e.detail.tag;
-      //clean copy rules
-      var rtags = {};
-      for (var p in this.rules[ind].rtags) {
+  _deleteRtag(e) {
+      const ind = e.detail.index;
+          const {tag} = e.detail;
+      // clean copy rules
+      const rtags = {};
+      for (const p in this.rules[ind].rtags) {
           if (this.rules[ind].rtags[p] && this.rules[ind].rtags[p] != null)
               var copy = this.rules[ind].rtags[p].slice(0);
           else {
@@ -469,29 +470,29 @@ Polymer({
           rtags[p] = copy;
       }
       delete rtags[tag];
-      this.set('rules.' + ind + '.rtags', rtags);
+      this.set(`rules.${  ind  }.rtags`, rtags);
       this.ruleHasChanges();
   },
 
-  _updateRtags: function(e) {
-      var ind = e.detail.index,
-          rtags = e.detail.rtags;
-      this.set('rules.' + ind + '.rid', '');
-      this.set('rules.' + ind + '.rtags', rtags);
+  _updateRtags(e) {
+      const ind = e.detail.index;
+          const {rtags} = e.detail;
+      this.set(`rules.${  ind  }.rid`, '');
+      this.set(`rules.${  ind  }.rtags`, rtags);
       this.ruleHasChanges();
   },
 
-  _updateRid: function(e) {
-      var ind = e.detail.index,
-          rid = e.detail.rid;
-      this.set('rules.' + ind + '.rid', rid);
+  _updateRid(e) {
+      const ind = e.detail.index;
+          const {rid} = e.detail;
+      this.set(`rules.${  ind  }.rid`, rid);
       if (rid)
-          this.set('rules.' + ind + '.rtags', {});
+          this.set(`rules.${  ind  }.rtags`, {});
       this.ruleHasChanges();
   },
 
-  _addRule: function(e) {
-      var emptyRuleObj = {
+  _addRule(e) {
+      const emptyRuleObj = {
           action: '',
           operator: 'DENY',
           rid: '',
@@ -503,37 +504,37 @@ Polymer({
       this.ruleHasChanges();
   },
 
-  _deleteRule: function(e) {
-      var index = e.detail.index,
-          rule = e.detail.rule;
+  _deleteRule(e) {
+      const {index} = e.detail;
+          const {rule} = e.detail;
       this.splice('rules', index, 1);
       this.ruleHasChanges();
   },
 
-  _changeDefaultOperator: function(e) {
-      var newOp = this.defaultOperator == "DENY" ? 'ALLOW' : "DENY";
+  _changeDefaultOperator(e) {
+      const newOp = this.defaultOperator == "DENY" ? 'ALLOW' : "DENY";
       this.set('defaultOperator', newOp);
       this.ruleHasChanges();
   },
 
-  _resetForm: function() {
-      var newArr = [];
+  _resetForm() {
+      const newArr = [];
       this.team.policy.rules.forEach(function(rule, i) {
-          var cleanCopy = {};
-          for (var p in rule) {
+          const cleanCopy = {};
+          for (const p in rule) {
               cleanCopy[p] = this._cleanCopy(rule[p]);
           }
           newArr[i] = cleanCopy;
       }.bind(this));
-      var cleanCopyRules = newArr.slice(0);
+      const cleanCopyRules = newArr.slice(0);
       this.set("rules", cleanCopyRules);
 
-      for (var i = 0; i < newArr.length; i++) {
-          this.set('rules.' + i + '.operator', newArr[i].operator);
+      for (let i = 0; i < newArr.length; i++) {
+          this.set(`rules.${  i  }.operator`, newArr[i].operator);
       }
 
-      var initialOp = this.team.policy.operator;
-      var newString = initialOp.slice(0);
+      const initialOp = this.team.policy.operator;
+      const newString = initialOp.slice(0);
       this.set("defaultOperator", newString);
 
       this.set('sendingData', true);
@@ -547,8 +548,8 @@ Polymer({
       this._rulesChanged();
   },
 
-  _submitForm: function() {
-      var policy = {};
+  _submitForm() {
+      const policy = {};
       policy.rules = this.rules;
       
       console.log('_submitForm', this.rules);
@@ -563,7 +564,7 @@ Polymer({
 
   },
 
-  _handleResponse: function(e) {
+  _handleResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Team policy updated successfully.',
           duration: 3000
@@ -572,46 +573,46 @@ Polymer({
       this.set('formReady', false);
   },
 
-  _handleError: function(e, d) {
+  _handleError(e, d) {
       this.set('formError', true);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  _computeSelectedType: function(index, type) {
-      //index of type in resources list
-      var typeIndex = this.resources.indexOf(type.toUpperCase());
+  _computeSelectedType(index, type) {
+      // index of type in resources list
+      const typeIndex = this.resources.indexOf(type.toUpperCase());
       return typeIndex > -1 ? typeIndex : 0;
   },
 
-  ruleHasChanges: function() {
+  ruleHasChanges() {
       if (this.formError) {
           this.set('formError', false);
       }
   },
 
-  _updateRtype: function(e) {
-      this.set('rules.' + e.detail.index + '.rtype', e.detail.type);
+  _updateRtype(e) {
+      this.set(`rules.${  e.detail.index  }.rtype`, e.detail.type);
   },
 
-  _updateRaction: function(e) {
-      this.set('rules.' + e.detail.index + '.action', e.detail.action);
+  _updateRaction(e) {
+      this.set(`rules.${  e.detail.index  }.action`, e.detail.action);
   },
 
-  _updateOperator: function(e) {
-      this.set('rules.' + e.detail.index + '.operator', e.detail.operator);
+  _updateOperator(e) {
+      this.set(`rules.${  e.detail.index  }.operator`, e.detail.operator);
   },
 
-  _updateConstraints: function(e) {
-      this.set('rules.' + e.detail.index + '.constraints', e.detail.constraints);
+  _updateConstraints(e) {
+      this.set(`rules.${  e.detail.index  }.constraints`, e.detail.constraints);
       this.ruleHasChanges();
       this._rulesChanged();
   },
 
-  _sendingDataChanged: function(sendingData) {
+  _sendingDataChanged(sendingData) {
       // keep element height fixed while repeater updates
       if (sendingData) {
-          var height = this.$.ruleslist.offsetHeight;
-          this.$.ruleslist.style.height = height + 'px';
+          const height = this.$.ruleslist.offsetHeight;
+          this.$.ruleslist.style.height = `${height  }px`;
       } else {
           this.$.ruleslist.style.height = 'auto';
       }

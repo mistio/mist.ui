@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 export var VOLUME_CREATE_FIELDS = [];
 
 // cloud:
@@ -499,7 +500,7 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
-    var minimumSize = (p.provider == 'packet' && 10) ||
+    const minimumSize = (p.provider == 'packet' && 10) ||
                       (p.provider == 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
@@ -508,7 +509,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         min: minimumSize,
         value: minimumSize,
         defaultValue: minimumSize,
-        helptext: 'A minimum of '+minimumSize+' GB is required.',
+        helptext: `A minimum of ${minimumSize} GB is required.`,
         suffix: ' GB',
         show: true,
         required: true,
@@ -634,17 +635,17 @@ Polymer({
       providers: Array,
       form: {
           type: Object,
-          value: function () {
+          value () {
               return {}
           }
       },
       fields: {
           type: Array,
-          value: function () { return [] }
+          value () { return [] }
       },
       volumesFields: {
           type: Array,
-          value: function () {
+          value () {
               return VOLUME_CREATE_FIELDS;
           }
       },
@@ -675,29 +676,29 @@ Polymer({
       '_fieldValuesChanged(fields.*)'
   ],
 
-  _cloudsChanged: function (clouds) {
-      var volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged (clouds) {
+      const volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
           return VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1;
       });
       this.set('providers', volumeClouds);
-      this.set('hasCloudsWithVolumes', volumeClouds && volumeClouds.length > 0 ? true : false);
+      this.set('hasCloudsWithVolumes', !!(volumeClouds && volumeClouds.length > 0));
   },
 
-  _computeProviderLogo: function (className) {
-      var identifier = className.replace('_', '');
-      return 'assets/providers/provider-' + identifier + '.png';
+  _computeProviderLogo (className) {
+      const identifier = className.replace('_', '');
+      return `assets/providers/provider-${  identifier  }.png`;
   },
 
-  _isOnline: function (cloud, state, clouds) {
+  _isOnline (cloud, state, clouds) {
       return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
   },
 
-  _cloudChanged: function (selectedCloud) {
+  _cloudChanged (selectedCloud) {
       // clear to reset
       this.set('fields', []);
-      var volumeFields = [];
+      let volumeFields = [];
       if (this.selectedCloud) {
-          var provider = this.model.clouds[selectedCloud].provider;
+          const {provider} = this.model.clouds[selectedCloud];
           volumeFields = this.volumesFields.find(function (c) {
               return c.provider == provider;
           });
@@ -712,10 +713,10 @@ Polymer({
       this._updateFields(selectedCloud);
   },
 
-  _updateFields: function(selectedCloud) {
+  _updateFields(selectedCloud) {
       if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
               .selectedCloud]) {
-          var cloudId = this.selectedCloud;
+          const cloudId = this.selectedCloud;
           // if is azure arm, change required values
           if (this.model.clouds[cloudId].provider == "azure_arm") {
               this._updateResourceGroups(cloudId);
@@ -730,7 +731,7 @@ Polymer({
 
           this.fields.forEach(function (f, index) {
               if (f.name.endsWith("location")) {
-                  var locations = this.model.clouds[cloudId].locationsArray.slice();
+                  let locations = this.model.clouds[cloudId].locationsArray.slice();
                   if (locations.length == 1 && locations[0].name == '') {
                       // If there's a single location preselect it and hide the field
                       f.value = locations[0].id;
@@ -756,12 +757,12 @@ Polymer({
       }
   },
 
-  _locationChanged: function (locationId, what) {
+  _locationChanged (locationId, what) {
       if (!locationId || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
-      var provider = this.model.clouds[this.selectedCloud].provider,
-          location = this.model.clouds[this.selectedCloud].locations[locationId];
+      const {provider} = this.model.clouds[this.selectedCloud];
+          const location = this.model.clouds[this.selectedCloud].locations[locationId];
       if (provider == 'aliyun_ecs') {
-          var diskCategoryOptions = this.volumesFields.find(function (cloud) {
+          const diskCategoryOptions = this.volumesFields.find(function (cloud) {
               return cloud.provider == provider;
           }).fields[3].options.filter(function(option) {
               return location.extra.available_disk_categories.indexOf(option.val) > -1;
@@ -770,9 +771,9 @@ Polymer({
       }
   },
 
-  _diskCategoryChanged: function(diskCategory) {
+  _diskCategoryChanged(diskCategory) {
       if (!diskCategory || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
-      var provider = this.model.clouds[this.selectedCloud].provider, minSize = 1;
+      const {provider} = this.model.clouds[this.selectedCloud]; let minSize = 1;
       if (provider == 'aliyun_ecs') {
           if (diskCategory != 'cloud') {
               minSize = 20;
@@ -783,131 +784,131 @@ Polymer({
           if (Number(this.fields[2].value) < minSize) {
               this.set('fields.2.value', minSize);
           }
-          this.set('fields.2.helptext', 'A minimum of '+ minSize + ' GB is required.')
+          this.set('fields.2.helptext', `A minimum of ${ minSize  } GB is required.`)
       }
   },
 
-  _fieldValuesChanged: function(changeRecord) {
-      var fieldName = this.get(changeRecord.path.replace('.value', '')).name;
+  _fieldValuesChanged(changeRecord) {
+      const fieldName = this.get(changeRecord.path.replace('.value', '')).name;
       if (['create_resource_group','ex_resource_group','new_resource_group']
           .indexOf(fieldName) > -1) {
           this._updateResourceGroupValue(this.selectedCloud);
       }
   },
 
-  _updateResourceGroupValue: function(cloudId) {
-      var createFieldIndex = this._fieldIndexByName('create_resource_group');
-      var existingFieldIndex = this._fieldIndexByName('ex_resource_group');
-      var newFieldIndex = this._fieldIndexByName('new_resource_group');
-      var resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
+  _updateResourceGroupValue(cloudId) {
+      const createFieldIndex = this._fieldIndexByName('create_resource_group');
+      const existingFieldIndex = this._fieldIndexByName('ex_resource_group');
+      const newFieldIndex = this._fieldIndexByName('new_resource_group');
+      const resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
 
-      if (this.get('fields.'+ createFieldIndex +'.value') == true ) {
-          this.set('fields.'+ resourceGroupFieldIndex +'.value', this.get('fields.'+ newFieldIndex +'.value'))
+      if (this.get(`fields.${ createFieldIndex }.value`) == true ) {
+          this.set(`fields.${ resourceGroupFieldIndex }.value`, this.get(`fields.${ newFieldIndex }.value`))
       } else {
-          this.set('fields.'+ resourceGroupFieldIndex +'.value', this.get('fields.'+ existingFieldIndex +'.value'))
+          this.set(`fields.${ resourceGroupFieldIndex }.value`, this.get(`fields.${ existingFieldIndex }.value`))
       }
   },
 
-  _updateResourceGroups: function(cloudId) {
-      var fieldIndex = this._fieldIndexByName('ex_resource_group');
-      if (fieldIndex && this.get('fields.' + fieldIndex + '.options') && !this.get('fields.' + fieldIndex + '.options').length) {
+  _updateResourceGroups(cloudId) {
+      const fieldIndex = this._fieldIndexByName('ex_resource_group');
+      if (fieldIndex && this.get(`fields.${  fieldIndex  }.options`) && !this.get(`fields.${  fieldIndex  }.options`).length) {
           this._getResourceGroups(cloudId, fieldIndex);
       }
   },
 
-  _getResourceGroups: function(cloudId, index) {
+  _getResourceGroups(cloudId, index) {
       this.set("resourceGroupsFieldIndex",index);
       this.$.getResourceGroups.headers["Content-Type"] = 'application/json';
       this.$.getResourceGroups.headers["Csrf-Token"] = CSRF_TOKEN;                
-      this.$.getResourceGroups.url = '/api/v1/clouds/'+ cloudId +'/resource-groups';
+      this.$.getResourceGroups.url = `/api/v1/clouds/${ cloudId }/resource-groups`;
       this.$.getResourceGroups.generateRequest();
   },
 
-  _handleGetResourceGroupsRequest: function(e) {
-      this.set('fields.' + this.resourceGroupsFieldIndex + '.loader', true);
+  _handleGetResourceGroupsRequest(e) {
+      this.set(`fields.${  this.resourceGroupsFieldIndex  }.loader`, true);
   },
 
-  _handleGetResourceGroupsResponse: function(e) {
-      this.set('fields.' + this.resourceGroupsFieldIndex + '.options', e.detail.response || []);
+  _handleGetResourceGroupsResponse(e) {
+      this.set(`fields.${  this.resourceGroupsFieldIndex  }.options`, e.detail.response || []);
       this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'volume-create.html'}}));
-      this.set('fields.' + this.resourceGroupsFieldIndex + '.loader', false);
+      this.set(`fields.${  this.resourceGroupsFieldIndex  }.loader`, false);
   },
 
-  _handleGetResourceGroupsError: function(e) {
+  _handleGetResourceGroupsError(e) {
       console.error('Got resource groups error', e);
   },
 
-  _updateStorageClasses: function(cloudId) {
-      var fieldIndex = this._fieldIndexByName('storage_class_name');
-      if (fieldIndex && this.get('fields.' + fieldIndex + '.options') && !this.get('fields.' + fieldIndex + '.options').length){
+  _updateStorageClasses(cloudId) {
+      const fieldIndex = this._fieldIndexByName('storage_class_name');
+      if (fieldIndex && this.get(`fields.${  fieldIndex  }.options`) && !this.get(`fields.${  fieldIndex  }.options`).length){
           this._getStorageClasses(cloudId, fieldIndex)
       }
   },
 
-  _getStorageClasses: function(cloudId, index) {
+  _getStorageClasses(cloudId, index) {
       this.set("storageClassesFieldIndex", index)
       this.$.getStorageClasses.headers["Content-Type"] = 'application/json';
       this.$.getStorageClasses.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.getStorageClasses.url = '/api/v1/clouds/' + cloudId + '/storage-classes';
+      this.$.getStorageClasses.url = `/api/v1/clouds/${  cloudId  }/storage-classes`;
       this.$.getStorageClasses.generateRequest();
   },
 
-  _handleGetStorageClassesRequest: function(e) {
-      this.set('fields.' + this.storageClassesFieldIndex + '.loader', true);
+  _handleGetStorageClassesRequest(e) {
+      this.set(`fields.${  this.storageClassesFieldIndex  }.loader`, true);
   },
 
-  _handleGetStorageClassesResponse: function(e){
-      var options = []
+  _handleGetStorageClassesResponse(e){
+      const options = []
       e.detail.response.forEach(function(item, ind){
           options.push({title: item, val: item});
       });
-      this.set('fields.' + this.storageClassesFieldIndex + '.options', options|| []);
+      this.set(`fields.${  this.storageClassesFieldIndex  }.options`, options|| []);
       this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'volume-create.html'}}));
-      this.set('fields.' + this.storageClassesFieldIndex + '.loader', false);
+      this.set(`fields.${  this.storageClassesFieldIndex  }.loader`, false);
   },
 
-  _handleGetStorageClassesError: function(e){
+  _handleGetStorageClassesError(e){
       console.error("Got storage classes error ", e);
   },
 
-  _updateLXDStoragePools: function(cloudId) {
-      var fieldIndex = this._fieldIndexByName('pool_id');
-      if (fieldIndex && this.get('fields.' + fieldIndex + '.options') && !this.get('fields.' + fieldIndex + '.options').length) {
+  _updateLXDStoragePools(cloudId) {
+      const fieldIndex = this._fieldIndexByName('pool_id');
+      if (fieldIndex && this.get(`fields.${  fieldIndex  }.options`) && !this.get(`fields.${  fieldIndex  }.options`).length) {
           this._getLXDStoragePools(cloudId, fieldIndex);
       }
   },
 
-  _getLXDStoragePools: function(cloudId, index) {
+  _getLXDStoragePools(cloudId, index) {
       this.set("lxdStoragePoolsFieldIndex",index);
       this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
       this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.getLXDStoragePools.url = '/api/v1/clouds/'+ cloudId +'/storage-pools';
+      this.$.getLXDStoragePools.url = `/api/v1/clouds/${ cloudId }/storage-pools`;
       this.$.getLXDStoragePools.generateRequest();
   },
 
-  _handleGetLXDStoragePoolsRequest: function(e) {
-      this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.loader', true);
+  _handleGetLXDStoragePoolsRequest(e) {
+      this.set(`fields.${  this.lxdStoragePoolsFieldIndex  }.loader`, true);
   },
 
-  _handleGetLXDStoragePoolsResponse: function(e) {
-      this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.options', e.detail.response || []);
+  _handleGetLXDStoragePoolsResponse(e) {
+      this.set(`fields.${  this.lxdStoragePoolsFieldIndex  }.options`, e.detail.response || []);
       this.shadowRoot.querySelector('app-form').dispatchEvent(new CustomEvent('fields-changed', {detail: {file: 'volume-create.html'}}));
-      this.set('fields.' + this.lxdStoragePoolsFieldIndex + '.loader', false);
+      this.set(`fields.${  this.lxdStoragePoolsFieldIndex  }.loader`, false);
   },
 
-  _handleGetLXDStoragePoolsError: function(e) {
+  _handleGetLXDStoragePoolsError(e) {
       console.error('Got LXD storage pools error error', e);
   },
 
-  _fieldIndexByName: function (name) {
-      var field = this.fields.findIndex(function (f) {
+  _fieldIndexByName (name) {
+      const field = this.fields.findIndex(function (f) {
           return f.name == name;
       });
       return field;
   },
 
-  _handleCreateVolumeResponse: function (e) {
-      var response = JSON.parse(e.detail.xhr.response);
+  _handleCreateVolumeResponse (e) {
+      const response = JSON.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true, composed: true,
           detail: {
@@ -915,13 +916,13 @@ Polymer({
           }}));
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
       console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },
 
-  _goBack: function () {
+  _goBack () {
       history.back();
   }
 });

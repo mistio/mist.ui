@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
     <style include="shared-styles dialogs forms">
@@ -119,10 +120,10 @@ Polymer({
     'change': 'toggleSelection'
   },
 
-  attached: function() {
+  attached() {
   },
 
-  _openDialog: function() {
+  _openDialog() {
     this.$.providerSearch.open();
   },
 
@@ -130,23 +131,23 @@ Polymer({
     this.set('formReady', queryTerm && queryTerm.length && this.clouds.length && !this.loading);
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
     this.$.providerSearch.close();
-    var newImages = JSON.parse(e.detail.xhr.response);
+    const newImages = JSON.parse(e.detail.xhr.response);
     console.log('handleResponse',e, newImages.length);
     if (newImages.length) {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: newImages.length+' new images in '+this.get('clouds.'+this.activeSearchIndex+'.title')+'. Updating..', duration: 3000} }));
-      this.dispatchEvent(new CustomEvent('add-new-images', { bubbles: true, composed: true, detail: {images: newImages, cloud: this.get('clouds.'+this.activeSearchIndex)} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `${newImages.length} new images in ${this.get(`clouds.${this.activeSearchIndex}.title`)}. Updating..`, duration: 3000} }));
+      this.dispatchEvent(new CustomEvent('add-new-images', { bubbles: true, composed: true, detail: {images: newImages, cloud: this.get(`clouds.${this.activeSearchIndex}`)} }));
 
     }
     else {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'No new images found in '+this.get('clouds.'+this.activeSearchIndex+'.title'), duration: 3000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `No new images found in ${this.get(`clouds.${this.activeSearchIndex}.title`)}`, duration: 3000} }));
     }
     this.set('activeSearchIndex', this.activeSearchIndex+1);
     this.nextSearch(this.activeSearchIndex);
   },
 
-  handleError: function(e) {
+  handleError(e) {
     this.set('formError', true);
     console.log('handleError',e)
     this.$.errormsg.textContent = e.detail.request.xhr.responseText;
@@ -155,18 +156,18 @@ Polymer({
     this.nextSearch(this.activeSearchIndex);
   },
 
-  queryTermChanged: function(queryTerm){
+  queryTermChanged(queryTerm){
     this.set('formError', false);
   },
 
-  toggleSelection: function(e){
+  toggleSelection(e){
     if (e.target.tagName == "PAPER-CHECKBOX")
       this._updateSelectedClouds();
   },
 
-  _updateSelectedClouds: function() {
-    var checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
-    var arr = [];
+  _updateSelectedClouds() {
+    const checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
+    const arr = [];
     checkboxes.forEach(function(c){
         if (c.checked)
             arr.push(c.dataValue);
@@ -174,21 +175,21 @@ Polymer({
     this.set('selectedClouds', arr);
   },
 
-  _submitForm: function(e){
-    var payload = {
+  _submitForm(e){
+    const payload = {
         'search_term': this.queryTerm
     }
     this.$.request.body = payload;
     this.nextSearch(0);
   },
 
-  nextSearch: function(index){
+  nextSearch(index){
     console.log('nextSearch', this.clouds.length, index)
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
     this.$.request.method = "POST";
     if (this.clouds && this.clouds.length && index < this.clouds.length) {
-      this.$.request.url = "/api/v1/clouds/"+ this.get('clouds.'+index+'.id') +"/images";
+      this.$.request.url = `/api/v1/clouds/${ this.get(`clouds.${index}.id`) }/images`;
       this.$.request.generateRequest();
     }
     else {
@@ -196,7 +197,7 @@ Polymer({
     }
   },
 
-  hotkeys: function(e) {
+  hotkeys(e) {
     // ENTER
     if (e.keyCode === 13 && this.queryTerm.length) {
       this._submitForm(e)

@@ -1,6 +1,7 @@
 import '../node_modules/@polymer/iron-icon/iron-icon.js';
 import '../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../node_modules/@polymer/iron-iconset-svg/iron-iconset-svg.js';
+
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">

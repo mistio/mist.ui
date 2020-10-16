@@ -5,6 +5,7 @@ import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizabl
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/echarts/dist/echarts.common.min.js';
+
 GRAPH_OPTIONS = {
     title: {
         text: 'Cores'
@@ -200,7 +201,7 @@ Polymer({
       },
       coresGraphOptions: {
           type: Object,
-          value: function() {
+          value() {
               return GRAPH_OPTIONS;
           }
       },
@@ -214,7 +215,7 @@ Polymer({
       },
       datapointsGraphOptions: {
           type: Object,
-          value: function() {
+          value() {
               return GRAPH_OPTIONS_2;
           }
       },
@@ -227,7 +228,7 @@ Polymer({
       },
       checksGraphOptions: {
           type: Object,
-          value: function() {
+          value() {
               return GRAPH_OPTIONS_3;
           }
       },
@@ -249,10 +250,10 @@ Polymer({
       'iron-resize': 'updateChartWidth'
   },
 
-  attached: function() {},
+  attached() {},
 
-  initCharts: function() {
-      var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
+  initCharts() {
+      const colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
       echarts.registerTheme('balance', {
           color: colorPalette,
           backgroundColor: 'transparent',
@@ -273,8 +274,8 @@ Polymer({
       console.log('initialized charts');
   },
 
-  updateChartWidth: function() {
-      var parentWidth = this.parentNode.offsetWidth;
+  updateChartWidth() {
+      const parentWidth = this.parentNode.offsetWidth;
       // console.log('updateChartWidth', parentWidth);
       if (parentWidth) {
           this.set('graphWidth', parentWidth - 50);
@@ -282,7 +283,7 @@ Polymer({
       }
   },
 
-  resizeGraph: function() {
+  resizeGraph() {
       console.log('resizeGraph');
       if (this.coresGraph)
           this.coresGraph.resize();
@@ -292,25 +293,25 @@ Polymer({
           this.checksGraph.resize();
   },
 
-  _handleResponse: function(e) {
+  _handleResponse(e) {
       this.initCharts();
       this.set('responseData', {
           data: e.detail.response
       });
   },
 
-  _handleError: function(e) {
+  _handleError(e) {
       console.error('Can not get metering data. ',e)
   },
 
-  _computeData: function(responseData, graph) {
-      var timeToCores = this.responseData.data.map(function(d) {
+  _computeData(responseData, graph) {
+      const timeToCores = this.responseData.data.map(function(d) {
           return [d.date, d.usage.cores]
       });
-      var timeToDatapoints = this.responseData.data.map(function(d) {
+      const timeToDatapoints = this.responseData.data.map(function(d) {
           return [d.date, d.usage.datapoints]
       });
-      var timeToChecks = this.responseData.data.map(function(d) {
+      const timeToChecks = this.responseData.data.map(function(d) {
           return [d.date, d.usage.checks]
       });
 
@@ -325,9 +326,9 @@ Polymer({
 
       if (graph == 'cores')
           return timeToCores;
-      else if (graph == 'datapoints')
+      if (graph == 'datapoints')
           return timeToDatapoints;
-      else if (graph == 'checks')
+      if (graph == 'checks')
           return timeToChecks;
   }
 });

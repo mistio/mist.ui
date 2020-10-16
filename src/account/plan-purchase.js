@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../helpers/card-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -176,7 +177,7 @@ Polymer({
       },
       payload: {
           type: Object,
-          value: function(){
+          value(){
               return {
                   number: "",
                   exp_month: "",
@@ -240,42 +241,42 @@ Polymer({
       'card-response': '_gotCardResponse'
   },
 
-  attached: function(){
+  attached(){
       this.set('target', this.$.form);
   },
 
-  updateHasCard: function(card){
+  updateHasCard(card){
       if (card) {
           this.set('hasCard', true)
       }
   },
 
-  open: function(e){
+  open(e){
       this.shadowRoot.querySelector("#form").open();
   },
 
-  close: function(e){
+  close(e){
       this.shadowRoot.querySelector("#form").close();
   },
 
-  _hasPlan: function () {
-      return this.plan && this.plan.title ? true : false;
+  _hasPlan () {
+      return !!(this.plan && this.plan.title);
   },
 
-  _computeHideCardFields: function (price, hasCard, addCard) {
+  _computeHideCardFields (price, hasCard, addCard) {
       return (price == 0 || hasCard) && !addCard;
   },
 
-  _computeFormReady: function(hasCard, cardValid, hideCardFields){
+  _computeFormReady(hasCard, cardValid, hideCardFields){
       return cardValid || hideCardFields;
   },
 
-  _submit: function(e){
+  _submit(e){
       if (this.cardValid) {
           this.shadowRoot.querySelector('card-form#inPlanPurchase').verify();
       }
       if ((this.org && this.org.card) || (this.plan && this.plan.price == 0)) {
-          var payload = { plan: this.plan.title };
+          const payload = { plan: this.plan.title };
           this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
           this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
           this.$.purchasePlanRequest.body = payload;
@@ -283,21 +284,21 @@ Polymer({
       }
   },
 
-  _onEnter: function(e) {
+  _onEnter(e) {
       if (this.formReady)
           this._submit()
   },
 
-  validateForm: function(error){
+  validateForm(error){
       this.set('formError', false);
   },
 
-  _gotCardResponse: function(e){
+  _gotCardResponse(e){
       console.log('_gotCardResponse', e.detail)
       if (this.cardValid) {
-          var card = this.shadowRoot.querySelector('card-form#inPlanPurchase');
+          const card = this.shadowRoot.querySelector('card-form#inPlanPurchase');
           if (e.detail.token) {
-              var payload = { token: e.detail.token };
+              const payload = { token: e.detail.token };
               if (this.plan) 
                   payload.plan = this.plan.title
               console.log('_gotCardResponse', this.$.purchasePlanRequest.url);
@@ -315,7 +316,7 @@ Polymer({
           this.$.form.refit();
   },
 
-  purchaseResponse: function(e){
+  purchaseResponse(e){
       this._reset();
       if (this.addCard) {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Card added.', duration: 3000} }));
@@ -325,7 +326,7 @@ Polymer({
 
   },
 
-  _reset: function(){
+  _reset(){
       this.set('formError', false);
       this.shadowRoot.querySelector('card-form#inPlanPurchase').reset();
       this.shadowRoot.querySelector("#form").close();
@@ -333,23 +334,23 @@ Polymer({
 
   },
 
-  purchaseError: function(e){
+  purchaseError(e){
       console.log('purchaseError',e);
       this.set('formError', true);
       this.$.errormsg.textContent = e.detail.error;
   },
 
-  displayInt: function(int){
+  displayInt(int){
       if (int && int.toString()) {
           return int.toString().split('').reverse().join('')
               .replace('000000000','B').replace('000000','M').replace('000','k')
               .split('').reverse().join('');
-      } else {
+      } 
           return int;
-      }
+      
   },
 
-  _computeButtonText: function(plan, org){
+  _computeButtonText(plan, org){
       // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
       //     return 'Downgrade';
       // }
@@ -364,7 +365,7 @@ Polymer({
       return "Enable";
   },
 
-  _goBack: function(e) {
+  _goBack(e) {
       e.stopImmediatePropagation();
       if (history) {
           history.back();

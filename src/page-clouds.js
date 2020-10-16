@@ -12,6 +12,7 @@ import {ownerFilterBehavior} from './helpers/owner-filter-behavior.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -87,31 +88,31 @@ Polymer({
         }
     },
 
-    _getFrozenLogColumn: function() {
+    _getFrozenLogColumn() {
         return ['title'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.length - 1, 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers: function(keys) {
-        var _this = this;
+    _getRenderers(keys) {
+        const _this = this;
         return {
             'title': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
                 'body': function(item, row) {
                     if (!row.provider)
                         return '';
-                    return './assets/providers/provider-' + row.provider.replace("_", "")
-                        .replace(" ", "") + '.png';
+                    return `./assets/providers/provider-${  row.provider.replace("_", "")
+                        .replace(" ", "")  }.png`;
                 }
             },
             'machines': {
@@ -147,12 +148,12 @@ Polymer({
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;
@@ -161,29 +162,29 @@ Polymer({
         }
     },
 
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
 
-    _isListActive: function(path) {
+    _isListActive(path) {
         if (path && this.querySelector('cloud-page'))
             this.querySelector('cloud-page').updateState();
         return !path;
     },
 
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('cloud-page')) {
             this.shadowRoot.querySelector('cloud-page').updateState();
         }
         return path && path != '/+add';
     },
 
-    _getCloud: function(id) {
+    _getCloud(id) {
         if (this.model.clouds && id)
             return this.model.clouds[id];
     },
 
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: this.model.sections.clouds.add } }));
     }
 });

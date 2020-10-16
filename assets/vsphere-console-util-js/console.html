@@ -16,7 +16,7 @@
 	<!-- end CSS-->
 	<script type="text/javascript">
 		if (!window.console) {
-			console = {log: function() {} };
+			console = {log() {} };
 		}
 	</script>
 </head>
@@ -72,11 +72,11 @@
 	$(function() {
 
 		function layout() {
-			var w = $(window).width();
-			var h = $(window).height();
+			const w = $(window).width();
+			const h = $(window).height();
 			if(!wmks.isFullScreen()) {
 				container.css({
-					top: bar.outerHeight() + "px"
+					top: `${bar.outerHeight()  }px`
 				});
 				container.width(w).height(h - bar.outerHeight());
 				wmks.updateScreen();
@@ -96,7 +96,7 @@
 		}
 
 		function getKeyboardLayout() {
-			var locale = "en-US".
+			const locale = "en-US".
 			replace("-", "_");
 			switch (locale) {
 				case "de": case "de_DE":
@@ -127,10 +127,10 @@
 		}
 
 		var bar = $("#bar");
-		var cad = $("#cad");
+		const cad = $("#cad");
 		var container = $("#container");
-		var fullscreen = $("#fullscreen");
-		var keyboard = $("#keyboard");
+		const fullscreen = $("#fullscreen");
+		const keyboard = $("#keyboard");
 		var spinner = $("#spinner");
 
 		var wmks = WMKS.createWMKS("container", {
@@ -154,7 +154,7 @@
 			}
 		});
 		wmks.register(WMKS.CONST.Events.ERROR, function(evt, data) {
-			console.log("Error: " + data.errorType);
+			console.log(`Error: ${  data.errorType}`);
 		});
 		wmks.register(WMKS.CONST.Events.REMOTE_SCREEN_SIZE_CHANGE, function(evt, data) {
 			layout();
@@ -173,21 +173,21 @@
 		}
 
 		keyboard.on("click", function (evt) {
-			var fixANSIEquivalentKeys = keyboard.data("toggle") === "true";
-			var label = keyboard.html();
+			const fixANSIEquivalentKeys = keyboard.data("toggle") === "true";
+			const label = keyboard.html();
 			wmks.setOption("fixANSIEquivalentKeys", !fixANSIEquivalentKeys);
 			keyboard.html(keyboard.data("alt"));
 			keyboard.data("toggle", !fixANSIEquivalentKeys);
 			keyboard.data("alt", label);
 		});
 
-		//listen for window events
+		// listen for window events
 		$(window).on("resize", layout);
 
 		// if params are provided, no need to show chrome
 		if (location.search) {
-            var loc = document.location;
-            var params = new URLSearchParams(loc.search);
+            const loc = document.location;
+            const params = new URLSearchParams(loc.search);
 			wmks.connect(params.get('url'));
 			layout();
 			spinner.show();

@@ -85,25 +85,25 @@ Polymer({
       'terminating-session-error': 'showError'
   },
 
-  getSessionsResponse: function(e) {
+  getSessionsResponse(e) {
       this.set('sessions', []);
       this.set('sessions', e.detail.response);
       this.set("hasError", true);
   },
 
-  getSessionsError: function(e) {
+  getSessionsError(e) {
       this.set("hasError", true);
       this.$.error.textContent = e.detail.error;
   },
 
-  getSessionsAgain: function(e) {
-      var that = this;
+  getSessionsAgain(e) {
+      const that = this;
       this.async(function() {
           that.$.getSessionsAjax.generateRequest();
       }, 100)
   },
 
-  showError: function(e) {
+  showError(e) {
       // this.set("hasError", true);
       // console.log('showError',e)
       // var error = e.detail.request.xhr.responseText;

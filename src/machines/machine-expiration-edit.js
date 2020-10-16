@@ -7,10 +7,11 @@ import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-//import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+// import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -63,7 +64,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function () {
+          value () {
               return [
               {
                   name: 'expiration',
@@ -149,25 +150,25 @@ Polymer({
       '_expirationDateChanged(fields.0.subfields.1.value)'
   ],
 
-  attached: function() {
+  attached() {
   },
 
-  ready: function() {
+  ready() {
   },
 
-  _checkPermissions: function(org, machine) {
+  _checkPermissions(org, machine) {
       if (!org || !machine)
           return;
-      var perm = this.check_perm('edit','machine', machine, org, this.model.user);
+      const perm = this.check_perm('edit','machine', machine, org, this.model.user);
       this.set('permissions', perm);
       console.log('permissions', 'edit','machine', machine, perm);
   },
 
-  _expirationRequest: function(e) {
+  _expirationRequest(e) {
       this.dispatchEvent(new CustomEvent('pending-expiration-request', { bubbles: true, composed: true, detail: 'edit' }));
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       if (this.permissions == false) {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"You are not authorized to edit the expiration date.",duration:3000} }));
       } else {
@@ -180,48 +181,48 @@ Polymer({
       }
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.dialogModal.opened = false;
   },
 
-  _applyPermissions: function(machine,permissions) {
+  _applyPermissions(machine,permissions) {
       if (!this.machine || !permissions) 
           return;
       // Get current machine expiration values
       this._initialiseValues(this.machine);
 
-      var currentExpiration = this.machine.expiration,
-          permissionsExpiration = this.permissions.expiration;
+      const currentExpiration = this.machine.expiration;
+          const permissionsExpiration = this.permissions.expiration;
 
-      var expirationPath = 'fields.0.subfields.1.', //expiration date
-          actionPath = 'fields.0.subfields.0.',
-          notifyPath = 'fields.0.subfields.2.';
+      const expirationPath = 'fields.0.subfields.1.'; // expiration date
+          const actionPath = 'fields.0.subfields.0.';
+          const notifyPath = 'fields.0.subfields.2.';
 
       if (currentExpiration) {
-          var date = currentExpiration.date,
-              fromNow = this._dateToDurationFromNow(date);
-          var notify = currentExpiration.notify || 0,
-              before = this._secondsToDuration(notify);
+          const {date} = currentExpiration;
+              var fromNow = this._dateToDurationFromNow(date);
+          var notify = currentExpiration.notify || 0;
+              const before = this._secondsToDuration(notify);
       }
       // Apply either current values or permission forced values
       // Current values overweigh permission defaults but not max, and permission defaults overweight field defaults 
       if (currentExpiration || permissionsExpiration) {
           // EXPIRATION
-          this.set(expirationPath + 'defaultValue', currentExpiration ? fromNow : permissionsExpiration.default);
-          this.set(expirationPath + 'max', permissionsExpiration.max);
-          this.notifyPath(expirationPath + 'defaultValue');
-          this.notifyPath(expirationPath + 'max');
+          this.set(`${expirationPath  }defaultValue`, currentExpiration ? fromNow : permissionsExpiration.default);
+          this.set(`${expirationPath  }max`, permissionsExpiration.max);
+          this.notifyPath(`${expirationPath  }defaultValue`);
+          this.notifyPath(`${expirationPath  }max`);
           
           // ACTIONS
-          var action = this.get(actionPath + 'defaultValue'),
-              options = this.get(actionPath + 'options') || [],
-              available;
+          let action = this.get(`${actionPath  }defaultValue`);
+              const options = this.get(`${actionPath  }options`) || [];
+              let available;
           // override if permissions dictate
           if (permissionsExpiration.actions) {
               action = permissionsExpiration.actions.default ? permissionsExpiration.actions.default : action;
               if (permissionsExpiration.actions.available) {
                   // construct dropdown of actions, allow the selection of only available by permissions
-                  var permAvailable = this._toOptionsFormat(permissionsExpiration.actions.available);
+                  const permAvailable = this._toOptionsFormat(permissionsExpiration.actions.available);
                   available = options.filter(function(a) {
                           return permissionsExpiration.actions.available.indexOf(a.val) == -1;
                       });
@@ -232,12 +233,12 @@ Polymer({
               }
           }
           // override if current value exist
-          this.set(actionPath + 'value', currentExpiration && currentExpiration.action ? currentExpiration.action : action);
-          this.set(actionPath + 'options', available || options);
+          this.set(`${actionPath  }value`, currentExpiration && currentExpiration.action ? currentExpiration.action : action);
+          this.set(`${actionPath  }options`, available || options);
 
           // NOTIFY
-          var defCheck = this.get(notifyPath + 'defaultCheck'),
-              notValue = this.get(notifyPath + 'defaultValue');
+          let defCheck = this.get(`${notifyPath  }defaultCheck`);
+              let notValue = this.get(`${notifyPath  }defaultValue`);
 
           // override if permissions dictate
           if (permissionsExpiration.notify) {
@@ -247,17 +248,17 @@ Polymer({
                   notValue = permissionsExpiration.notify.default;
           }
           // override if current value exist
-          this.set(notifyPath + 'defaultCheck', currentExpiration ? notify : defCheck);
-          this.set(notifyPath + 'defaultValue', currentExpiration ? notify : notValue);
+          this.set(`${notifyPath  }defaultCheck`, currentExpiration ? notify : defCheck);
+          this.set(`${notifyPath  }defaultValue`, currentExpiration ? notify : notValue);
 
           if (permissionsExpiration.notify.require) {
-              this.set(notifyPath + 'optional', false);
+              this.set(`${notifyPath  }optional`, false);
           }
 
           if (!notify) {
-              this.set(notifyPath + 'disabled', true);
+              this.set(`${notifyPath  }disabled`, true);
           } else if (notify) {
-              this.set(notifyPath + 'defaultValue', notify);
+              this.set(`${notifyPath  }defaultValue`, notify);
           }
 
           // set max
@@ -266,7 +267,7 @@ Polymer({
       }
   },
 
-  _toOptionsFormat: function(arr) {
+  _toOptionsFormat(arr) {
       if (!arr)
           return [];
       return arr.map(function(x){
@@ -274,11 +275,11 @@ Polymer({
       })
   },
 
-  _initialiseValues: function(machine) {
+  _initialiseValues(machine) {
       if (!this.machine) return;
-      var date = (this.machine && this.machine.expiration) ? this.machine.expiration.date : '',
-          fromNow = this._dateToDurationFromNow(date);
-      var notify = (this.machine && this.machine.expiration) ? this.machine.expiration.notify : 0;
+      const date = (this.machine && this.machine.expiration) ? this.machine.expiration.date : '';
+          const fromNow = this._dateToDurationFromNow(date);
+      const notify = (this.machine && this.machine.expiration) ? this.machine.expiration.notify : 0;
 
       this.set('fields.0.subfields.0.value',  this.machine.expiration ? this.machine.expiration.action : this.fields[0].subfields[0].defaultValue);
       this.notifyPath('fields.0.subfields.0.value');
@@ -287,27 +288,27 @@ Polymer({
           this.set('fields.0.subfields.1.defaultValue', fromNow);
           this.notifyPath('fields.0.subfields.1.defaultValue');
       }
-      this.set('fields.0.subfields.2.defaultCheck', notify ? true : false);
+      this.set('fields.0.subfields.2.defaultCheck', !!notify);
       if (notify) {
           this.set('fields.0.subfields.2.defaultValue', notify);
           this.notifyPath('fields.0.subfields.2.defaultValue');
       }
   },
 
-  _expirationDateChanged: function(date) {
+  _expirationDateChanged(date) {
       // update notify max
-      var notifyPath = 'fields.0.subfields.2.',
-          expirationPath = 'fields.0.subfields.1.';
-      this.set(notifyPath + 'max', this.get(expirationPath + 'value'));
-      console.log("_expirationDateChanged", this.get(expirationPath + 'value'));
-      this.notifyPath(notifyPath + 'max');
+      const notifyPath = 'fields.0.subfields.2.';
+          const expirationPath = 'fields.0.subfields.1.';
+      this.set(`${notifyPath  }max`, this.get(`${expirationPath  }value`));
+      console.log("_expirationDateChanged", this.get(`${expirationPath  }value`));
+      this.notifyPath(`${notifyPath  }max`);
   },
 
-  _dateToDurationFromNow: function(date) {
+  _dateToDurationFromNow(date) {
       if (moment(date).isValid()){
-          var span, unit;
-          var fromNow = moment.utc(date).fromNow(true);
-          var chunks = fromNow.split(' ');
+          let span; let unit;
+          const fromNow = moment.utc(date).fromNow(true);
+          const chunks = fromNow.split(' ');
           span = chunks[0];
           unit = chunks[1];
           if (['a','an'].indexOf(span)>-1) {
@@ -323,9 +324,9 @@ Polymer({
       return  false;
   },
 
-  _secondsToDuration: function(seconds) {
+  _secondsToDuration(seconds) {
       if (seconds) {
-          var span, unit;
+          let span; let unit;
           if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
               if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);
               if (seconds % (3600*24*29) == 0) span = seconds / (3600*24*29);

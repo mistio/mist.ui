@@ -11,6 +11,7 @@ import './network-actions.js';
 import './subnet-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels single-page">
@@ -233,7 +234,7 @@ Polymer({
       },
       subnets: {
           type: Array,
-          value: function () { return []; },
+          value () { return []; },
           computed: '_computeSubnets(network, network.subnets, network.subnets.*)'
       },
       hasSubnets: {
@@ -269,74 +270,74 @@ Polymer({
       '_change(network)'
   ],
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _change: function (item) {
+  _change (item) {
       if (item)
           this.set('itemArray', [this.network]);
   },
 
-  _computeMachines: function(network, machines) {
+  _computeMachines(network, machines) {
       if (!network || !machines)
           return [];
       return Object.values(this.model.machines).filter(function(m){ return m.network == network.id });
   },
 
-  _computeHasSubnets: function (network) {
+  _computeHasSubnets (network) {
       return network && network.subnets && network.subnets.length;
   },
 
-  _computeNetworkCloud: function (network, clouds) {
+  _computeNetworkCloud (network, clouds) {
       if (network)
           return this.model.clouds[this.network.cloud].title
   },
 
-  _computeNetworkTags: function (network, networkTags) {
+  _computeNetworkTags (network, networkTags) {
       if (this.network) {
           return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _editNetwork: function (e) {
+  _editNetwork (e) {
       console.log(e);
   },
 
-  _deleteNetwork: function (e) {
+  _deleteNetwork (e) {
       this._showDialog({
           title: 'Delete Network?',
-          body: "Deleting networks cannot be undone. You are about to delete network: '" +
-              this.network.name + "'.",
+          body: `Deleting networks cannot be undone. You are about to delete network: '${ 
+              this.network.name  }'.`,
           danger: true,
           reason: "network.delete"
       });
   },
 
-  _handleNetworDeletekAjaxResponse: function (e) {
+  _handleNetworDeletekAjaxResponse (e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/networks'
       } }));
 
   },
 
-  _showDialog: function (info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog (info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _computeIsloading: function (network) {
-      return !this.network ? true : false;
+  _computeIsloading (network) {
+      return !this.network;
   },
 
-  _computeSubnets: function(network, subnets) {
+  _computeSubnets(network, subnets) {
       return Object.values(this.network && this.network.subnets || []);
   },
 
-  _networkDeleted: function(e) {
+  _networkDeleted(e) {
       console.log(e);
       if (!this.hidden && e.detail.responseURL.endsWith(this.network.id))
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/networks'} }));

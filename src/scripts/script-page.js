@@ -14,6 +14,7 @@ import './script-actions.js';
 import moment from '../../node_modules/moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles single-page tags-and-labels">
@@ -263,61 +264,61 @@ Polymer({
       '_changed(script)'
   ],
 
-  _getHeaderStyle: function(section) {
-      return 'background-color: ' + section.color + '; color: #fff;';
+  _getHeaderStyle(section) {
+      return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _computeIsInline: function(location) {
+  _computeIsInline(location) {
       if (location)
-          return location.source_code ? true : false;
+          return !!location.source_code;
   },
 
-  _runScript: function(e) {
+  _runScript(e) {
       e.stopImmediatePropagation();
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts/' + this.script.id + '/+run'} }));
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${  this.script.id  }/+run`} }));
   },
 
-  _handleScriptDeleteAjaxResponse: function(e) {
+  _handleScriptDeleteAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts'} }));
   },
 
-  _encode: function(script) {
+  _encode(script) {
       return encodeURIComponent(script);
   },
 
-  _computeLink: function(location) {
+  _computeLink(location) {
       if (location)
           return location.repo || location.url;
   },
 
-  _computeIsloading: function(script) {
-      return !this.script ? true : false;
+  _computeIsloading(script) {
+      return !this.script;
   },
 
-  _computeScriptTags: function (script, scriptTags) {
+  _computeScriptTags (script, scriptTags) {
       if (this.script) {
           return Object.entries(this.script.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _getVisibleColumns: function () {
+  _getVisibleColumns () {
       return ['type', 'action', 'machine_id', 'user_id']
   },
 
-  _getFrozenLogColumn: function () {
+  _getFrozenLogColumn () {
       return ['time']
   },
 
-  _getRenderers: function () {
-      var _this = this;
+  _getRenderers () {
+      const _this = this;
       return {
           'time': {
               'body': function(item, row) {
-                  var ret = '<span title="' + moment(item*1000).format() + '">' + moment(item*1000).fromNow() + '</span>';
+                  let ret = `<span title="${  moment(item*1000).format()  }">${  moment(item*1000).fromNow()  }</span>`;
                   if (row.error)
                       ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
                   return ret;
@@ -329,8 +330,8 @@ Polymer({
                   if (_this.model && _this.model.members && item in _this.model.members &&
                       _this.model.members[item] && _this.model.members[item].name &&
                       _this.model.members[item].name != undefined){
-                      var displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
-                      var ret = '<a href="/members/' + item + '">' + displayUser + '</a>';
+                      const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
+                      const ret = `<a href="/members/${  item  }">${  displayUser  }</a>`;
                       return ret;
                   }
                   return item || '';
@@ -341,7 +342,7 @@ Polymer({
               'body': function(item, row) {
                   if (_this.model && _this.model.machines &&
                       item in _this.model.machines) {
-                      var ret = '<a href="/machines/' + _this.model.machines[item].uuid + '">' + _this.model.machines[item].name + '</a>';
+                      const ret = `<a href="/machines/${  _this.model.machines[item].uuid  }">${  _this.model.machines[item].name  }</a>`;
                       return ret;
                   }
                   return item || '';
@@ -350,7 +351,7 @@ Polymer({
       };
   },
 
-  _changed: function(item) {
+  _changed(item) {
       if (this.script)
           this.set('itemArray', [this.script]);
   }

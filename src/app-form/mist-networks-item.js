@@ -9,7 +9,8 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-let NETWORK_MANUAL_CONFIG_FIELDS = [{
+
+const NETWORK_MANUAL_CONFIG_FIELDS = [{
     name: 'ip',
     label: 'IP *',
     type: 'text',
@@ -127,7 +128,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function() {
+          value() {
               return NETWORK_MANUAL_CONFIG_FIELDS;
           }
       },
@@ -149,9 +150,9 @@ Polymer({
       '_networkFieldValueChanged(network.fieldValue, network.fieldValue.*, valid)'
   ],
 
-  ready: function() {},
+  ready() {},
 
-  _updateValue: function(type,checked,network,form,formValid) {
+  _updateValue(type,checked,network,form,formValid) {
       if (this.network && this.fields) {
           if (this.checked) {
               // set net id
@@ -159,7 +160,7 @@ Polymer({
                   this.set('fields.1.value', this.network.id);
               }
 	        		// make sure required fields have values, fixes initial formValid issue 
-	        		var requiredFieldsHaveValues = this.fields.filter(function(f){
+	        		const requiredFieldsHaveValues = this.fields.filter(function(f){
                                                           return f.required;
                                                       }).every(function(el){
                                                           return this.form && this.form[el.name] && this.form[el.name].length;
@@ -175,11 +176,11 @@ Polymer({
       this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
   },
 
-  _networkFieldValueChanged: function(e) {
+  _networkFieldValueChanged(e) {
       this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
   },
 
-  _calcDisplayButtons: function() {
+  _calcDisplayButtons() {
       return false;
   }
 });

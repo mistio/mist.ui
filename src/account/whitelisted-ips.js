@@ -148,9 +148,9 @@ Polymer({
       'confirmation': '_proceedToSaveWhitelist',
   },
 
-  _saveWhitelist: function(e){
+  _saveWhitelist(e){
       if (this.showAddCurrent && this.whiteIps.length && !this.ipIsWhitelisted('0.0.0.0/0')) {
-          var message = {
+          const message = {
               title: 'Save IPs',
               body: "Heads up! Your current IP is not included in the whitelist. If you ommit your current IP or the 0.0.0.0/0 wildcard, you will be logged out after saving.",
               reason: "proceed.saveips",
@@ -164,22 +164,22 @@ Polymer({
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.$.saveIps;
+  _showDialog(info) {
+      const dialog = this.$.saveIps;
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _proceedToSaveWhitelist: function(e){
+  _proceedToSaveWhitelist(e){
       if (!e || (e.detail.response == 'confirm' && e.detail.reason == "proceed.saveips")){
-          var payloadIPs = this.whiteIps.filter(function(ip){
+          const payloadIPs = this.whiteIps.filter(function(ip){
                   return ip.cidr && ip.cidr.length;
               });
-          var payload = {
+          const payload = {
               ips: payloadIPs
           };
           this.$.ipsRequest.headers["Content-Type"] = 'application/json';
@@ -189,24 +189,24 @@ Polymer({
       }
   },
 
-  addCurrentIP: function(e){
+  addCurrentIP(e){
       e.stopImmediatePropagation();
       this.push('whiteIps', {cidr: this.user.current_ip, description: "Current IP"});
   },
 
-  _showAddCurrent: function(ips, currentIp){
+  _showAddCurrent(ips, currentIp){
       if (this.whiteIps && this.whiteIps.length)
-          var isInArray = this.whiteIps.find(function(p){ return p.cidr == currentIp+'/32' || p.cidr == currentIp});
-      this.set('showAddCurrent', isInArray ? false : true);
+          var isInArray = this.whiteIps.find(function(p){ return p.cidr == `${currentIp}/32` || p.cidr == currentIp});
+      this.set('showAddCurrent', !isInArray);
   },
 
-  _userUpdated: function(user) {
+  _userUpdated(user) {
       this.whiteIps = user.ips ? user.ips.slice(0) : [];
       this.firstName = user.first_name;
       this.lastName = user.last_name;
   },
 
-  _updateFormReady: function(user, whitelist){
+  _updateFormReady(user, whitelist){
       // console.log('_updateFormReady', whitelist);
       // listen to array length changes
       if (whitelist && this.isAttached) {
@@ -214,33 +214,33 @@ Polymer({
       }
   },
 
-  _formInput: function(){
+  _formInput(){
       // listen to input changes
       if (this.ipError)
           this.set('ipError', false);
       this.set('ipsFormReady', true);
   },
 
-  _whitelistedIpsChanged: function(userIPs) {
+  _whitelistedIpsChanged(userIPs) {
       if (this.user && this.user.current_ip && this.user.ips.length && !this.ipIsWhitelisted(this.user.current_ip)) {
           window.location.href = '/logout';
       }
   },
 
-  ipIsWhitelisted: function(currentIp) {
+  ipIsWhitelisted(currentIp) {
       // allow access, if wildcard ip 0.0.0.0/0 is included
       return this.user.ips && this.user.ips.find(function(ip){
-          return ip.cidr == currentIp+'/32' || ip.cidr == '0.0.0.0/0';
+          return ip.cidr == `${currentIp}/32` || ip.cidr == '0.0.0.0/0';
       });
   },
 
-  _handleIpResponse: function() {
+  _handleIpResponse() {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"IPs saved succesfully!",duration:3000} }));
 
       this.set('ipsFormReady', false);
   },
 
-  _handleIpError: function(e) {
+  _handleIpError(e) {
       this.set('ipError', true);
       this.set('ipsFormReady', false);
       // console.log('_handleIpError', e.detail.request.xhr.responseText);

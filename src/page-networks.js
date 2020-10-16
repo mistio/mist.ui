@@ -5,10 +5,11 @@ import './networks/network-create.js';
 import './networks/network-page.js';
 import './networks/network-actions.js';
 import { rbacBehavior } from './rbac-behavior.js';
-//import './helpers/mist-lists-behavior.js';
+// import './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -67,55 +68,55 @@ Polymer({
 
     listeners: {},
 
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
 
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('network-page')) {
             this.shadowRoot.querySelector('network-page').updateState();
         }
         return path && path != '/+add';
     },
 
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
 
-    _getNetwork: function(id) {
+    _getNetwork(id) {
         if (this.model.networks)
             return this.model.networks[id];
     },
 
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true , detail:{url: this.model.sections.networks.add}}));
     },
 
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers: function(networks, clouds) {
-        var _this = this;
+    _getRenderers(networks, clouds) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
                 'body': function(item, row) {
                     if (!_this.model.clouds[row.cloud])
                         return '';
-                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                        .replace(" ", "") + '.png';
+                    return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "")  }.png`;
                 }
             },
             'provider': {
@@ -128,7 +129,7 @@ Polymer({
             'machines': {
                 'title': 'machines',
                 'body': function(item, row) {
-                    var machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
+                    const machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
                     if (machines)
                         return machines.length;
                     return '';
@@ -153,25 +154,24 @@ Polymer({
             },
             'state': {
                 'body': function(item, row) {
-                    var provider = _this.model.clouds[row.cloud].provider;
+                    const {provider} = _this.model.clouds[row.cloud];
                     if (provider == 'ec2')
                         return row.extra && row.extra.state != undefined ? row.extra.state : '';
-                    else if (provider == 'openstack')
-                        return row.admin_state_up != undefined ? 'admin state up:' + row.admin_state_up :
+                    if (provider == 'openstack')
+                        return row.admin_state_up != undefined ? `admin state up:${  row.admin_state_up}` :
                             '';
-                    else
-                        return '';
+                    return '';
                 }
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     let key;
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;

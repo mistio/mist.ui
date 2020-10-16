@@ -11,6 +11,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import dayjs from '../../node_modules/dayjs/esm/index.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -202,7 +203,7 @@ Polymer({
   properties: {
       notifications: {
           type: Array,
-          value: function () {
+          value () {
               return []
           }
       },
@@ -234,69 +235,69 @@ Polymer({
       '_openedChanged(opened)'
   ],
 
-  attached: function () {
+  attached () {
       if (!this.timestamp_interval) {
-          var th1s = this;
+          const th1s = this;
           this.timestamp_interval = setInterval(function () {
               th1s.set('timestamp_counter', th1s.timestamp_counter + 1);
           }, 10000);
       }
   },
 
-  detached: function () {
+  detached () {
       if (this.timestamp_interval) {
           unsetInterval(this.timestamp_interval);
       }
   },
 
-  _computeTitle: function (notifications) {
-      var type = this.getItemsType(notifications);
+  _computeTitle (notifications) {
+      const type = this.getItemsType(notifications);
       if (type == 1) {
           return "Notifications";
-      } else if (type == 2) {
+      } if (type == 2) {
           return "Recommendations";
       }
       return "Notifications & Recommendations";
   },
 
-  _computeIndicatorIcon: function (notificationsLength) {
-      var type = this.getItemsType(this.notifications);
+  _computeIndicatorIcon (notificationsLength) {
+      const type = this.getItemsType(this.notifications);
       if (type == 1) {
           return "social:notifications";
-      } else if (type == 2) {
+      } if (type == 2) {
           return "image:wb-incandescent";
       }
       // Todo: return dual icon
       return "social:notifications";
   },
 
-  _computeIndicatorType: function (notificationsLength) {
-      var type = this.getItemsType(this.notifications);
+  _computeIndicatorType (notificationsLength) {
+      const type = this.getItemsType(this.notifications);
       if (type == 2) {
           return "recommendations";
-      } else {
+      } 
           return "notifications";
-      }
+      
   },
 
-  isNotification: function (notification) {
+  isNotification (notification) {
       return notification.source == "InAppNotification";
   },
 
-  isMachineNotification: function (notification) {
+  isMachineNotification (notification) {
       return typeof notification.machine !== 'undefined' && this.isNotification(notification);
   },
 
-  isMachineRecommendation: function (notification) {
+  isMachineRecommendation (notification) {
       return typeof notification.machine !== 'undefined' && !this.isNotification(notification);
   },
 
-  _computeNotificationIcon: function (notification) {
+  _computeNotificationIcon (notification) {
       if (notification.source == "InAppRecommendation" &&
           notification.model_id == "autoscale_v1") {
           if (notification.model_output.direction == "up") {
               return "icons:arrow-upward";
-          } else if (notification.model_output.direction == "down") {
+          } if (notification.model_output.direction == "down") {
               return "icons:arrow-downward";
           }
       } else if (notification.source == "InAppRecommendation") {
@@ -306,39 +307,39 @@ Polymer({
       }
   },
 
-  _computeNotificationType: function (notification) {
+  _computeNotificationType (notification) {
       if (notification.model_id && notification.model_id.length > 0) {
           return "recommendation-specific";
-      } else if (notification.source == "InAppRecommendation") {
+      } if (notification.source == "InAppRecommendation") {
           return "recommendation";
-      } else {
+      } 
           return "notification";
-      }
+      
   },
 
-  _computeRelativeTime: function (notification, timestamp_counter) {
-      var date = new Date(notification.created_date.$date);
+  _computeRelativeTime (notification, timestamp_counter) {
+      const date = new Date(notification.created_date.$date);
       return dayjs(date).fromNow();
   },
 
-  computeBadgeCaption: function (notifications) {
+  computeBadgeCaption (notifications) {
       return notifications.length;
   },
 
-  _computeIndicatorHidden: function (notificationsLength) {
+  _computeIndicatorHidden (notificationsLength) {
       if (notificationsLength == 0) {
           this.set('opened', false);
       }
       return notificationsLength == 0;
   },
 
-  getItemsType: function (notifications) {
+  getItemsType (notifications) {
       // 0= none, 1=notifications, 2=recommendations, 3=both
-      var ntf = false;
-      var rec = false;
+      let ntf = false;
+      let rec = false;
       if (notifications) {
           for (let i = 0; i < notifications.length; ++i) {
-              var item = notifications[i];
+              const item = notifications[i];
               if (item.source == "InAppRecommendation") {
                   rec = true;
               } else if (item.source == "InAppNotification") {
@@ -352,14 +353,14 @@ Polymer({
       return false;
   },
 
-  _handleItemTap: function (event) {
-      var path;
+  _handleItemTap (event) {
+      let path;
       if (event.model.item.machine) {
-          path = '/' + event.model.item.machine._ref.$ref + '/' + event.model.item.machine._ref.$id;
+          path = `/${  event.model.item.machine._ref.$ref  }/${  event.model.item.machine._ref.$id}`;
       } else if (event.model.item.cloud) {
-          path = '/' + event.model.item.cloud._ref.$ref + '/' + event.model.item.cloud._ref.$id;
+          path = `/${  event.model.item.cloud._ref.$ref  }/${  event.model.item.cloud._ref.$id}`;
       } else if (event.model.item.tag) {
-          path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
+          path = `/${  event.model.item.tag._ref.$ref  }/${  event.model.item.tag._ref.$id}`;
       } else {
           event.model._children[1].querySelector('paper-menu-button').open();
           return;
@@ -380,30 +381,30 @@ Polymer({
       event.stopPropagation();
   },
 
-  _openedChanged: function (opened) {
+  _openedChanged (opened) {
       // deactivate spinner in any change
       this.set('activeSpinner', false);
   },
 
-  _handleRightButtonTap: function (event) {
+  _handleRightButtonTap (event) {
       event.stopPropagation();
   },
 
-  _dismissNotification: function (event) {
-      var dismissURL = "/api/v1/notifications/" + event.model.item._id;
+  _dismissNotification (event) {
+      const dismissURL = `/api/v1/notifications/${  event.model.item._id}`;
       this.$.requestDismiss.url = dismissURL;
       this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.requestDismiss.generateRequest();
       event.target.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.close()
   },
 
-  handleDismissResponse: function (event) {
+  handleDismissResponse (event) {
       console.log("Notifications: Received dismiss response");
   },
 
-  _disableNotificationsForMachine: function (event) {
-      var dismissURL = "/api/v1/notification-overrides";
-      var payload = {
+  _disableNotificationsForMachine (event) {
+      const dismissURL = "/api/v1/notification-overrides";
+      const payload = {
           notification_id: event.model.item._id
       };
       this.$.requestDisableSimilar.url = dismissURL;
@@ -414,7 +415,7 @@ Polymer({
       event.stopPropagation();
   },
 
-  handleDisableNotificationsForMachineResponse: function (event) {
+  handleDisableNotificationsForMachineResponse (event) {
       console.log("Notifications: Received disable response");
   }
 });

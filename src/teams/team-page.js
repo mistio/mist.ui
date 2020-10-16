@@ -15,6 +15,7 @@ import './team-policy.js';
 
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles lists single-page">
@@ -437,24 +438,24 @@ Polymer({
       'invite': '_addMember'
   },
 
-  ready: function() {
-      var wh = window.innerHeight;
-      this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+  ready() {
+      const wh = window.innerHeight;
+      this.vpHeight = `height:${  wh  }px; overflow: auto;`;
   },
 
-  _displayUser: function(id, members) {
+  _displayUser(id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _change: function(item) {
+  _change(item) {
       if (item)
           this.set('itemArray', [this.team]);
   },
 
-  _getFormattedTimestamp: function(team) {
+  _getFormattedTimestamp(team) {
       if (this.team) {
           console.log('team.created_at', team.created_at);
-          var timestamp = parseInt(team.created_at);
+          const timestamp = parseInt(team.created_at);
           return Date(timestamp).toLocaleString('en-US', {
               timeZoneName: 'short'
           });
@@ -462,32 +463,32 @@ Polymer({
       } 
   },
 
-  _hasOnlyYou: function(team) {
+  _hasOnlyYou(team) {
       if (team && team.members && team.members.length == 1 && (team.members[0].email == this.model
           .user.email || team.members[0].username == this.model.user.username)) {
           return true;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _hasOtherMembers: function(team) {
+  _hasOtherMembers(team) {
       if (team && team.members && !this._hasOnlyYou && team.members.length > 0) {
           return true;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _hasMembers: function(team) {
+  _hasMembers(team) {
       console.log('_hasMembers',team);
-      return team && team.members && team.members.length > 0 ? true : false;
+      return !!(team && team.members && team.members.length > 0);
   },
 
-  _computeMembers: function(team, teamMembers, members) {
-      var teamMembers = [],
-          pendingMembers = [],
-          confirmedMembers = [];
+  _computeMembers(team, teamMembers, members) {
+      var teamMembers = [];
+          const pendingMembers = [];
+          const confirmedMembers = [];
 
       if (team && team.members && teamMembers && members) {
           // TODO: teamMembers calculate
@@ -518,30 +519,30 @@ Polymer({
       return teamMembers;
   },
 
-  _addMember: function(e) {
+  _addMember(e) {
       e.stopImmediatePropagation();
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true,
           composed: true,
           detail: {
-              url: '/teams/' + this.team.id + '/+add'
+              url: `/teams/${  this.team.id  }/+add`
           }
       }))
   },
 
-  _deleteTeam: function(e) {
+  _deleteTeam(e) {
       this._showDialog({
           title: 'Delete Team?',
-          body: "Deleting teams cannot be undone. You are about to delete team: " +
-              this.team.name,
+          body: `Deleting teams cannot be undone. You are about to delete team: ${ 
+              this.team.name}`,
           danger: true,
           reason: "team.delete"
       });
   },
 
-  _deleteResponse: function(e) {
-      var reason = e.detail.reason,
-          response = e.detail.response;
+  _deleteResponse(e) {
+      const {reason} = e.detail;
+          const {response} = e.detail;
 
       if (response == 'confirm' && reason == "team.delete") {
           this.$.teamDeleteAjaxRequest.body = {};
@@ -557,7 +558,7 @@ Polymer({
       }
   },
 
-  _handleTeamDeleteAjaxResponse: function(e) {
+  _handleTeamDeleteAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true,
           composed: true,
@@ -567,7 +568,7 @@ Polymer({
       }))
   },
 
-  _handleDeleteAjaxError: function(e) {
+  _handleDeleteAjaxError(e) {
       this.dispatchEvent(new CustomEvent('toast', {
           bubbles: true,
           composed: true,
@@ -578,20 +579,20 @@ Polymer({
       }));
   },
 
-  _deleteMemberFromTeam: function(e) {
-      var membId = e.target.attributes.memberid.value,
-          membname = e.target.attributes.membername.value;
+  _deleteMemberFromTeam(e) {
+      const membId = e.target.attributes.memberid.value;
+          const membname = e.target.attributes.membername.value;
       this.set('memberToDelete', membId);
       this._showDialog({
           title: 'Delete member from team?',
-          body: 'Member ' + membname + " will no longer view or edit " + this.team.name +
-              "'s resources. You can always reinvite people in team.",
+          body: `Member ${  membname  } will no longer view or edit ${  this.team.name 
+              }'s resources. You can always reinvite people in team.`,
           danger: true,
           reason: "member.delete"
       });
   },
 
-  _deleteMemberResponse: function() {
+  _deleteMemberResponse() {
       this.set('memberToDelete', null);
       this.dispatchEvent(new CustomEvent('toast', {
           bubbles: true,
@@ -603,9 +604,9 @@ Polymer({
       }));
   },
 
-  _resendMemberInvitation: function(e) {
+  _resendMemberInvitation(e) {
       console.log(e, e.model);
-      var email = e.model.item.email; // || e.target.parentNode['dataEmail'];
+      const {email} = e.model.item; // || e.target.parentNode['dataEmail'];
       this.$._resendInvitation.body = {
           'emails': email
       };
@@ -614,7 +615,7 @@ Polymer({
       this.$._resendInvitation.generateRequest();
   },
 
-  _handleResendResponse: function(e) {
+  _handleResendResponse(e) {
       console.log(e);
       this.dispatchEvent(new CustomEvent('toast', {
           bubbles: true,
@@ -626,7 +627,7 @@ Polymer({
       }))
   },
 
-  _handleResendError: function(e) {
+  _handleResendError(e) {
       console.log(e);
       this.dispatchEvent(new CustomEvent('toast', {
           bubbles: true,
@@ -638,29 +639,29 @@ Polymer({
       }))
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _computeIsloading: function(team) {
-      return !this.team ? true : false;
+  _computeIsloading(team) {
+      return !this.team;
   },
 
-  _computeIsOwners: function(team) {
+  _computeIsOwners(team) {
       if (this.team)
           return this.team.name == "Owners";
   },
 
-  _showMessage: function(rbac, billing) {
+  _showMessage(rbac, billing) {
       if (this.team)
           return !rbac && !billing;
   },
 
-  isEqual: function(a,b) {
+  isEqual(a,b) {
       return a == b;
   }
 });

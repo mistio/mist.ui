@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -138,7 +139,7 @@ Polymer({
       },
       volumes: {
           type: Array,
-          value: function () { return [] },
+          value () { return [] },
           computed: '_computeVolumes(machine, model.volumes.*)'
       },
       loading: {
@@ -151,12 +152,12 @@ Polymer({
       }
   },
 
-  computedSelectedMachineId: function(selected) {
+  computedSelectedMachineId(selected) {
       this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _computeVolumes: function(machine, volumes) {
-      var that = this;
+  _computeVolumes(machine, volumes) {
+      const that = this;
       var volumeIds = [];
       if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) {
           var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v) {
@@ -166,46 +167,46 @@ Polymer({
       return volumeIds;
   },
 
-  _isOfSameLocation: function(volumeId) {
+  _isOfSameLocation(volumeId) {
       if (this.machine) {
-          var volumeLocation = this.model.clouds[this.machine.cloud].volumes[volumeId].location;
+          const volumeLocation = this.model.clouds[this.machine.cloud].volumes[volumeId].location;
           return !volumeLocation || volumeLocation == this.machine.location;
       }
       return false;
   },
 
-  _isAlreadyAttached: function(volumeId, machine) {
+  _isAlreadyAttached(volumeId, machine) {
       if (this.machine) {
           return this.model.clouds[this.machine.cloud].volumes[volumeId] && this.model.clouds[this.machine.cloud].volumes[volumeId].attached_to.map(i => i.id).indexOf(this.machine.id) > -1;
       }
       return false;
   },
 
-  _computeVolumeName: function(volumeId) {
+  _computeVolumeName(volumeId) {
       return this.model.clouds[this.machine.cloud].volumes[volumeId].name;
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.clearError();
       this.set('selectedMachineId', false);
       this.$.attachDialogModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.attachDialogModal.close();
       this.clearError();
   },
 
-  _computeHideDeviceInput: function(clouds, machine) {
+  _computeHideDeviceInput(clouds, machine) {
       if (this.machine && this.machine.cloud) {
           return this.model.clouds && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].provider != "ec2";
       }
       return false;
   },
 
-  attachVolume: function(e) {
-      var request = this.$.attachVolumeRequest;
-      request.url = "/api/v1/clouds/" + this.machine.cloud + "/volumes/" + this.selectedVolumeId;
+  attachVolume(e) {
+      const request = this.$.attachVolumeRequest;
+      request.url = `/api/v1/clouds/${  this.machine.cloud  }/volumes/${  this.selectedVolumeId}`;
       request.body = { action: 'attach', machine: this.machine.id };
       if (!this.hideDeviceInput) {
           request.body.device = this.device;
@@ -215,14 +216,14 @@ Polymer({
       request.generateRequest();
   },
 
-  _attachVolumeRequest: function() {
+  _attachVolumeRequest() {
       this.clearError();
-      var logMessage = 'Sending request to attach volume on machine.';
+      const logMessage = 'Sending request to attach volume on machine.';
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _attachVolumeResponse: function(e) {
+  _attachVolumeResponse(e) {
       console.log(e, e.detail);
       this._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -231,16 +232,16 @@ Polymer({
 
   },
 
-  _attachVolumeError: function(e) {
+  _attachVolumeError(e) {
       console.log(e, e.detail);
-      var message = e.detail.request.xhr.response || e.detail.error.message;
+      const message = e.detail.request.xhr.response || e.detail.error.message;
       this.$.errormsg.textContent = message;
       this.set('formError', true);
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
 
   },
 
-  clearError: function() {
+  clearError() {
       this.set('formError', false);
       this.$.errormsg.textContent = '';
       this.$.attachDialogModal.refit();

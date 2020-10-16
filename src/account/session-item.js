@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../element-for-in/element-for-in.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -114,12 +115,12 @@ Polymer({
       }
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeZebraClasses: function(index, count) {
-      var classes = [];
+  _computeZebraClasses(index, count) {
+      const classes = [];
       classes.push(
           (index + 1) % 2 == 0 ? 'even' : 'odd',
           index + 1 == count ? 'last' : null
@@ -127,16 +128,16 @@ Polymer({
       return classes.join(' ');
   },
 
-  _computeDateFromNow: function(time) {
+  _computeDateFromNow(time) {
       return moment.utc(time).fromNow();
   },
 
-  _computeAbsoluteDateText: function(time) {
+  _computeAbsoluteDateText(time) {
       return moment.utc(time).format("MMMM D YYYY");
 
   },
 
-  toggleInfo: function(e){
+  toggleInfo(e){
       if (this.$.moreinfo.hasAttribute("opened")) {
           this.$.moreinfo.removeAttribute("opened")
       }
@@ -145,8 +146,8 @@ Polymer({
       }
   },
 
-  terminateSession: function(){
-      var payload = {
+  terminateSession(){
+      const payload = {
           id: this.session.id
       }
       this.$.terminateSessionAjax.headers["Content-Type"] = 'application/json';
@@ -155,11 +156,11 @@ Polymer({
       this.$.terminateSessionAjax.generateRequest();
   },
 
-  terminatedSessionResponse: function(e){
+  terminatedSessionResponse(e){
       this.dispatchEvent(new CustomEvent('session-terminated', { bubbles: true, composed: true }));
   },
 
-  terminateSessionError: function(e){
+  terminateSessionError(e){
       this.dispatchEvent(new CustomEvent('terminating-session-error', { bubbles: true, composed: true, detail: {'event': e} }));
 
   }

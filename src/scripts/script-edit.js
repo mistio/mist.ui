@@ -97,7 +97,7 @@ Polymer({
       'input': 'hideErrors'
   },
 
-  _computeNewScript: function(script) {
+  _computeNewScript(script) {
       if (script){
           return {
               name: script.name,
@@ -106,8 +106,8 @@ Polymer({
       }
   },
 
-  _computeFormReady: function(name, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, sendingData) {
+      let formReady = false;
 
       if (name) {
           formReady = true;
@@ -120,19 +120,19 @@ Polymer({
       return formReady;
   },
 
-  _openEditScriptModal: function(e) {
+  _openEditScriptModal(e) {
       this.$.editScriptModal.opened = true;
   },
 
-  _closeEditScriptModal: function(e) {
+  _closeEditScriptModal(e) {
       this.$.editScriptModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.scriptEditAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.scriptEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.scriptEditAjaxRequest.body = {
@@ -142,22 +142,22 @@ Polymer({
       this.$.scriptEditAjaxRequest.generateRequest();
   },
 
-  _formReset: function() {
+  _formReset() {
       //   this.set('script.id', '');
   },
 
-  _handleScriptEditAjaxResponse: function(e) {
+  _handleScriptEditAjaxResponse(e) {
       this._closeEditScriptModal();
   },
 
-  _handleScriptEditAjaxError: function(e,d) {
+  _handleScriptEditAjaxError(e,d) {
       this.set('formError', true);
       // console.log('FAIL', e)
       // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  hideErrors: function(e) {
+  hideErrors(e) {
       this.set('formError', false);
   }
 });

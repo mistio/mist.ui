@@ -152,7 +152,7 @@ Polymer({
       },
       payload: {
           type: Object,
-          value: function () { return {} }
+          value () { return {} }
       },
       tagsString: {
           type: Array
@@ -191,9 +191,9 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  _computeNewSchedule: function(schedule) {
+  _computeNewSchedule(schedule) {
       if (this.schedule){
-          var newSchedule = {
+          const newSchedule = {
               selectors: this.schedule.selectors
           };
           this.set('newSchedule', newSchedule);
@@ -202,20 +202,20 @@ Polymer({
       }
   },
 
-  _computeMachinesIds: function(selectors) {
+  _computeMachinesIds(selectors) {
       console.log('schedule cond', selectors)
-      var ids = [];
+      let ids = [];
       if (!selectors || !selectors.length || !this._findSelector('machines')){
           return ids;
       }
-      else {
-          var cond = selectors.find(function(c){return c.type == "machines"});
+      
+          const cond = selectors.find(function(c){return c.type == "machines"});
           ids = cond.ids || [];
-      }
+      
       return ids;
   },
 
-  _findSelector: function(field) {
+  _findSelector(field) {
       if (this.schedule.selectors && this.schedule.selectors.length){
           var field = this.schedule.selectors.find(function(con){
               return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
@@ -227,7 +227,7 @@ Polymer({
       return false;
   },
 
-  _computeIsUuidsOrTags: function(schedule, machinesIds) {
+  _computeIsUuidsOrTags(schedule, machinesIds) {
       if (this.schedule && this.machinesIds && this.machinesIds.length) {
           this.set('isUuidsOrTags', 'uuids')
       } else if (this.schedule && this.schedule.tags) {
@@ -236,9 +236,9 @@ Polymer({
       console.log('schedule isUuidsOrTags',this.isUuidsOrTags)
   },
 
-  _updateAgeParts: function(age){
-      var machineAge = age && parseInt(age) ? parseInt(age) : '',
-          duration;
+  _updateAgeParts(age){
+      let machineAge = age && parseInt(age) ? parseInt(age) : '';
+          let duration;
 
       if (age) {
           duration = 'minutes';
@@ -255,15 +255,15 @@ Polymer({
       this.set('machinesAgeUnit', duration);
   },
 
-  _updateCostDisplay: function(cost){
+  _updateCostDisplay(cost){
       this.set('costDisplay', !cost || parseFloat(cost) == NaN ? '' : cost);
   },
 
-  _computeMachinesArray: function(machines) {
+  _computeMachinesArray(machines) {
       return Object.values(this.model.machines);
   },
 
-  _isUuidsOrTagsChanged: function(isUuidsOrTags) {
+  _isUuidsOrTagsChanged(isUuidsOrTags) {
       if (isUuidsOrTags == "uuids"){
           this.set('isUuids', true);
           this.set('isTags', false);
@@ -275,20 +275,20 @@ Polymer({
       console.log('isUuidsOrTags')
   },
 
-  _openEditScheduleModal: function(e) {
+  _openEditScheduleModal(e) {
       this.$.editScheduleModal.opened = true;
   },
 
-  _closeEditScheduleModal: function(e) {
+  _closeEditScheduleModal(e) {
       this.$.editScheduleModal.opened = false;
   },
 
-  _modalClosed: function(e){
+  _modalClosed(e){
       if (e.target == this.$.editScheduleModal)
           this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       // console.log("payload", this.payload);
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
@@ -296,103 +296,102 @@ Polymer({
       this.$.editSchedule.generateRequest();
   },
 
-  _formReset: function() {
-      var checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox');
+  _formReset() {
+      const checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox');
       Array.prototype.forEach.call(checkboxes, function(c){
           c.checked = this._computeIfChecked(this.machinesIds, c.dataValue);
       }.bind(this));
       this._computeNewSchedule();
   },
 
-  _handleResponse: function(e) {
+  _handleResponse(e) {
       this._closeEditScheduleModal();
   },
 
-  _handleError: function(e) {
-      var message = e.detail.error;
+  _handleError(e) {
+      let message = e.detail.error;
       if (e.detail.request.statusText)
-          message += " "+e.detail.request.statusText;
+          message += ` ${e.detail.request.statusText}`;
 
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
   },
 
-  _updatePayload: function(newSchedule) {
+  _updatePayload(newSchedule) {
       console.log('newSchedule', newSchedule);
-      var pl = {},
-          plLength,
-          valid = false;
+      const pl = {};
+          let plLength;
+          let valid = false;
 
-      pl["selectors"] = [];
+      pl.selectors = [];
 
       console.log('newSchedule uuids', this.isUuids, 'tags', this.isTags);
       
       if (this.isUuids){
-          var ids = this._constructCheckboxValue();
-          pl["selectors"].push({type: 'machines', ids: ids});
+          const ids = this._constructCheckboxValue();
+          pl.selectors.push({type: 'machines', ids});
           valid = ids.length; 
       }
       else if (this.isTags) {
-          var tags = this._constructTagsValue(this.textToArray(this.tagsString));
-          pl["selectors"].push({type: 'tags', include: tags});
+          const tags = this._constructTagsValue(this.textToArray(this.tagsString));
+          pl.selectors.push({type: 'tags', include: tags});
           valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
       }
 
       if (parseInt(this.machinesAgeDisplayNumber) && this.machinesAgeUnit) {
-          var minutes = parseInt(this.machinesAgeDisplayNumber);
+          let minutes = parseInt(this.machinesAgeDisplayNumber);
           if (this.machinesAgeUnit == 'hours'){
               minutes = this.machinesAgeDisplayNumber * 60;
           }
           else if (this.machinesAgeUnit == 'days'){
               minutes = this.machinesAgeDisplayNumber * 60 * 24;
           }
-          pl["selectors"].push({type: 'age', minutes: minutes});
+          pl.selectors.push({type: 'age', minutes});
       }
       if (this.costDisplay && this.costDisplay.length && parseFloat(this.costDisplay) != NaN) {
-          pl["selectors"].push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
+          pl.selectors.push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
       }
       this.set('payload', pl);
       this.set('formReady', valid);
   },
 
-  _computeIfChecked: function(machinesIds, machineId) {
+  _computeIfChecked(machinesIds, machineId) {
       if (this.schedule && this.machinesIds)
           return this.machinesIds.indexOf(machineId) > -1;
-      else
-          return false;
+      return false;
   },
 
-  textToArray: function(str) {
+  textToArray(str) {
       if (str) {
-          var arr = [];
+          let arr = [];
               arr = str.split(',');
-          for (var i = 0; i < arr.length; i++) {
+          for (let i = 0; i < arr.length; i++) {
               arr[i] = arr[i].trim();
           }
           return arr;
       }
   },
 
-  _constructCheckboxValue: function() {
-      var dialog = document.querySelector('vaadin-dialog-overlay'),
-          content = dialog && dialog.shadowRoot.querySelector('#content'),
-          checked = content && content.shadowRoot.querySelectorAll("paper-checkbox[checked]"),
-          arr = [];
+  _constructCheckboxValue() {
+      const dialog = document.querySelector('vaadin-dialog-overlay');
+          const content = dialog && dialog.shadowRoot.querySelector('#content');
+          const checked = content && content.shadowRoot.querySelectorAll("paper-checkbox[checked]");
+          const arr = [];
       console.log('checked', checked);
       if (checked) {
-          for (var i = 0; i < checked.length; i++){
+          for (let i = 0; i < checked.length; i++){
               arr.push(checked[i].dataset.value);
           }
       }
       return arr;
   },
 
-  _constructTagsValue: function(tagStringsArray) {
-      var arr = {};
+  _constructTagsValue(tagStringsArray) {
+      const arr = {};
       if (tagStringsArray){
           tagStringsArray.forEach(function(string){
-              var chunks = string.split("=");
+              const chunks = string.split("=");
               if (chunks.length > 0 && chunks[0].trim().length > 0) {
-                  var key = chunks[0].trim();
+                  const key = chunks[0].trim();
                   arr[key] = "";
                   if (chunks.length > 1)
                       arr[key] = chunks[1].trim();
@@ -402,14 +401,14 @@ Polymer({
       return arr;
   },
 
-  _updateTagsString: function(selectors){
+  _updateTagsString(selectors){
       if (this.selectors && this.schedule && this.selectors.length) {
-          var tags = this.selectors.find(function(c){return c.type=="tags"}) ? this.selectors.find(function(c){return c.type=="tags"}).include : {};
-          var arrTags = Object.keys(tags); 
-          for (var i=0; i < arrTags.length; i++) {
-              var t = arrTags[i];
+          const tags = this.selectors.find(function(c){return c.type=="tags"}) ? this.selectors.find(function(c){return c.type=="tags"}).include : {};
+          const arrTags = Object.keys(tags); 
+          for (let i=0; i < arrTags.length; i++) {
+              const t = arrTags[i];
               if (tags[t] != null && tags[t].trim() != '') {
-                  arrTags[i] = arrTags[i]+'='+tags[t];
+                  arrTags[i] = `${arrTags[i]}=${tags[t]}`;
               }
           }
           this.set('tagsString', arrTags.toString());

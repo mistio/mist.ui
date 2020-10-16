@@ -11,6 +11,7 @@ import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -75,7 +76,7 @@ Polymer({
         },
         selectedItems: {
             type: Array,
-            value: function() { return [] }
+            value() { return [] }
         },
         rbac: {
             type: Boolean,
@@ -88,37 +89,37 @@ Polymer({
     },
 
     listeners: {},
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         if (path && path != '/+add' && this.$.teamPage)
             this.$.teamPage.updateState();
         return path && !path.endsWith('+add');
     },
-    _isAddMembersPageActive: function(path) {
+    _isAddMembersPageActive(path) {
         return path != '/+add' && path.endsWith('+add');
     },
-    _isAddMemberPageActive: function(path) {
+    _isAddMemberPageActive(path) {
         return path == '/+add';
     },
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
-    _isMemberOfFilter: function() {
-        var _this = this;
+    _isMemberOfFilter() {
+        const _this = this;
         return {
             'apply': function(item, query) {
-                var q = query.slice(0) || '',
-                    filterOwner = query.indexOf('owner:') > -1,
-                    ownerRegex = /owner:(\S*)\s?/;
+                let q = query.slice(0) || '';
+                    const filterOwner = query.indexOf('owner:') > -1;
+                    const ownerRegex = /owner:(\S*)\s?/;
 
                 if (filterOwner && q) {
                     if (ownerRegex.exec(q).length) {
-                        var owner = ownerRegex.exec(q)[1];
+                        const owner = ownerRegex.exec(q)[1];
                         if (owner) {
                             if (owner == "$me") {
                                 if (!item.members.length || item.members.indexOf(_this.model.user.id) == -1)
                                     return false;
                             } else {
-                                var ownerObj = _this.model.membersArray.find(function(m) {
+                                const ownerObj = _this.model.membersArray.find(function(m) {
                                     return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
                                 });
                                 if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) == -1))
@@ -133,43 +134,43 @@ Polymer({
             }
         }
     },
-    _hasNoSelectedItems: function() {
+    _hasNoSelectedItems() {
         return !(this.selectedItems && this.selectedItems.length);
     },
-    _getTeam: function(id) {
+    _getTeam(id) {
         if (this.model.teams && id)
             return this.model.teams[id];
     },
 
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
+    _getVisibleColumns() {
         return ['description', 'members'];
     },
 
-    _getRenderers: function(teams, members) {
-        var _this = this;
+    _getRenderers(teams, members) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
                     if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
-                        var ret = "[" + _this.model.org.parent_org_name + "] <strong>" + item + "</strong>";
+                        const ret = `[${  _this.model.org.parent_org_name  }] <strong>${  item  }</strong>`;
                         return ret;
                     }
-                    return "<strong class='name'>" + item + "</strong>";
+                    return `<strong class='name'>${  item  }</strong>`;
                 }
             },
             'members': {
                 'body': function(item, row) {
                     if (_this.model && _this.model.members && item && item.length && item.length > 0) {
-                        var names = item.map(function(i) {
+                        const names = item.map(function(i) {
                             if (_this.model.members[i])
                                 var displayName = _this.model.members[i].name || _this.model.members[i].email || _this.model.members[i].username;
-                            return " " + displayName;
+                            return ` ${  displayName}`;
                         })
-                        var ret = names;
+                        const ret = names;
                         return ret;
                     }
                     return item;
@@ -178,19 +179,19 @@ Polymer({
         };
     },
 
-    _addTeam: function(e) {
-        var dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
+    _addTeam(e) {
+        const dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
         dialog.openDialog();
     },
 
-    selectAction: function(e) {
+    selectAction(e) {
         e.stopImmediatePropagation();
         if (this.shadowRoot.querySelector('#teamsList')) {
             this.shadowRoot.querySelector('#teamsList').shadowRoot.querySelector('#actions').selectAction(e);
         }
     },
 
-    _showAddTeam: function(path, user) {
+    _showAddTeam(path, user) {
         return this.model && this._isListActive(path) && this.check_perm('add','key', null, this.model.org, this.model.user);
     }
 

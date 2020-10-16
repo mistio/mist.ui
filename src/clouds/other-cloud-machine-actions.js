@@ -9,6 +9,7 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const OTHER_CLOUD_MACHINE_ACTIONS = {
   'remove': {
     'name': 'remove',
@@ -39,11 +40,11 @@ Polymer({
   properties: {
     items: { 
       type: Array,
-      value: function () { return [] },
+      value () { return [] },
     },
     actions: { 
       type: Array,
-      value: function () { return [] },
+      value () { return [] },
       notify: true
     },
     type: {
@@ -57,76 +58,76 @@ Polymer({
     'select-action': 'selectAction',
   },
 
-  attached: function() {
+  attached() {
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
-  computeItemActions: function(machine) {
+  computeItemActions(machine) {
     // single record actions
-    var arr = [];
+    const arr = [];
     if (machine) {
       arr.push('remove');
     }
     return arr;
   },
 
-  computeActionListDetails: function (actions) {
-    var ret = [];
-    for (var i=0; i<actions.length; i++) {
+  computeActionListDetails (actions) {
+    const ret = [];
+    for (let i=0; i<actions.length; i++) {
         ret.push(OTHER_CLOUD_MACHINE_ACTIONS[actions[i]]);
     }
     return ret;
   },
 
-  _remove: function() {
-    //set up iron ajax
+  _remove() {
+    // set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     payload = {'action': 'remove'};
     this.$.request.body = payload;
 
-    for (var i = 0; i < this.items.length; i++) {
-      this.$.request.url = "/api/v1/machines/"+this.items[i].id
+    for (let i = 0; i < this.items.length; i++) {
+      this.$.request.url = `/api/v1/machines/${this.items[i].id}`
       this.$.request.generateRequest();
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Removing ' + this.items[i].name , duration: 1000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Removing ${  this.items[i].name}` , duration: 1000} }));
     }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element#other-confirm');
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element#other-confirm');
       if (info) {
-        for (var i in info) {
+        for (const i in info) {
             dialog[i] = info[i];
         }
       }
       dialog._openDialog();
   },
 
-  confirmAction: function(e){
+  confirmAction(e){
     if (e.detail.confirmed)
       this.performAction(this.action, this.items);
   },
 
-  selectAction: function(e){
+  selectAction(e){
     if (this.items.length) {
-      var action = e.detail.action;
+      const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (action.confirm && action.name != 'tag') {
-        var property = ['machine'].indexOf(this.type) == -1 ? "name" : "domain",
-            plural = this.items.length == 1 ? '' : 's',
-            count = this.items.length > 1 ? this.items.length+' ' : '';
-        //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        const property = ['machine'].indexOf(this.type) == -1 ? "name" : "domain";
+            const plural = this.items.length == 1 ? '' : 's';
+            const count = this.items.length > 1 ? `${this.items.length} ` : '';
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
-            title: this.action.name + ' ' + count + this.type + plural+'?',
-            body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
+            title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
+            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}.`,
             list: this._makeList(this.items, property),
             action: action.name,
             danger: true,
-            reason: this.type + "." + this.action.name
+            reason: `${this.type  }.${  this.action.name}`
         });
       } else {
         this.performAction(this.action, this.items);
@@ -134,25 +135,25 @@ Polymer({
     }
   },
 
-  performAction: function(action, items) {
+  performAction(action, items) {
     // console.log('perform action ',action)
     if (action && action.name == 'remove') {
       this._remove();
     }
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
     if (this.$.request && this.$.request.body && this.$.request.body.action)
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action+' successfull', duration: 3000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Action: ${this.$.request.body.action} successfull`, duration: 3000} }));
   },
 
-  handleError: function(e) {
+  handleError(e) {
     // console.log(e.detail.request.xhr.statusText);
-    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
+    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `Error: ${  e.detail.request.xhr.status } ${ e.detail.request.xhr.statusText}`, duration: 5000} }));
 
   },
 
-  _makeList: function(items, property){
+  _makeList(items, property){
     if (items && items.length)
       return items.map(function(item){
         return item[property];

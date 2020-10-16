@@ -85,9 +85,9 @@ Polymer({
   listeners: {
   },
 
-  _computeNewSchedule: function(schedule) {
+  _computeNewSchedule(schedule) {
       if (this.schedule){
-          var newSchedule = {
+          const newSchedule = {
               name: this.schedule.name,
               description: this.schedule.description,
               task_enabled: this.schedule.task_enabled
@@ -96,46 +96,46 @@ Polymer({
       }
   },
 
-  _openEditScheduleModal: function(e) {
+  _openEditScheduleModal(e) {
       this.$.editScheduleModal.opened = true;
   },
 
-  _closeEditScheduleModal: function(e) {
+  _closeEditScheduleModal(e) {
       this.$.editScheduleModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
       this.$.editSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editSchedule.generateRequest();
   },
 
-  _formReset: function() {
+  _formReset() {
       this._computeNewSchedule();
   },
 
-  _handleScheduleEditResponse: function(e) {
+  _handleScheduleEditResponse(e) {
       this._closeEditScheduleModal();
   },
 
-  _handleScheduleEditError: function(e) {
-      var message = e.detail.error;
+  _handleScheduleEditError(e) {
+      let message = e.detail.error;
       if (e.detail.request.statusText)
-          message += " "+e.detail.request.statusText;
+          message += ` ${e.detail.request.statusText}`;
 
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
 
   },
 
-  _newScheduleChanged: function(e) {
-      var pl = {};
-      var plLength = 0;
-      for (var p in this.newSchedule) {
+  _newScheduleChanged(e) {
+      const pl = {};
+      let plLength = 0;
+      for (const p in this.newSchedule) {
           if (this.schedule[p] != this.newSchedule[p]) {
               plLength++;
               pl[p] = this.newSchedule[p];
@@ -146,7 +146,7 @@ Polymer({
       this._updateformReady(plLength, this.sendingData);
   },
 
-  _updateformReady: function(plLength, sendingData) {
+  _updateformReady(plLength, sendingData) {
       if (this.sendingData) {
           this.set('formReady', false);
       }

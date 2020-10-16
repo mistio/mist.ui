@@ -7,7 +7,8 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-var defaultTemplatesJS = [
+
+const defaultTemplatesJS = [
     {
         name: 'Kubernetes blueprint',
         description: 'This template contains a cloud agnostic blueprint to deploy Kubernetes cluster through Mist.io',
@@ -107,7 +108,7 @@ Polymer({
       },
       template: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   name: '',
                   description: '',
@@ -124,7 +125,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function () {
+          value () {
               return [{
                   name: "name",
                   label: "Template Name *",
@@ -267,22 +268,22 @@ Polymer({
       'reset-form' : 'clearDropDown'
   },
 
-  ready: function(){
+  ready(){
       this.defaultTemplates = defaultTemplatesJS;
       this._resetForm();
   },
 
-  _getHeaderStyle: function(section) {
-      return 'background-color: ' + section.color + '; color: #fff;';
+  _getHeaderStyle(section) {
+      return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _addTemplateAjaxRequest: function() {
+  _addTemplateAjaxRequest() {
       this.set('sendingData', true);
   },
 
-  _addTemplateAjaxResponse: function(e) {
-      var response = YAML.parse(e.detail.xhr.response);
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/templates/' + response.id} }));
+  _addTemplateAjaxResponse(e) {
+      const response = YAML.parse(e.detail.xhr.response);
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/templates/${  response.id}`} }));
 
       this.debounce('resetForm', function() {
           this._resetForm();
@@ -291,7 +292,7 @@ Polymer({
       this.set('sendingData', false);
   },
 
-  _resetForm: function(e) {
+  _resetForm(e) {
       // Reset template
       this.set('selected', -1);
       this.set('template.name', '');
@@ -302,7 +303,7 @@ Polymer({
       // Reset Form Fields
       this.fields.forEach(function(el, index) {
           if (el.showIf) {
-              this.set('fields.' + index + '.show', false);
+              this.set(`fields.${  index  }.show`, false);
           }
 
           // Reset Form Fields Validation
@@ -311,28 +312,28 @@ Polymer({
       this.typedName = "";
   },
 
-  _resetField: function(el, index) {
-      this.set('fields.' + index + '.value', el.defaultValue);
+  _resetField(el, index) {
+      this.set(`fields.${  index  }.value`, el.defaultValue);
 
-      var input = this.shadowRoot.querySelector('#' + el.name);
+      const input = this.shadowRoot.querySelector(`#${  el.name}`);
       if (input) {
           input.invalid = false;
       }
   },
 
-  useCatalogueTemplate: function(selected){
+  useCatalogueTemplate(selected){
       this.fields.forEach(function(f, index){
-          var key = f.name;
+          const key = f.name;
           if (selected > -1 && this.defaultTemplates[selected][key])
-              this.set('fields.'+index+'.value', this.defaultTemplates[selected][key]);
+              this.set(`fields.${index}.value`, this.defaultTemplates[selected][key]);
       }, this);
   },
 
-  clearDropDown: function(){
+  clearDropDown(){
       this.set('selected', -1)
   },
 
-  showWarning: function(fields) {
+  showWarning(fields) {
       // console.log("fields", fields);
       if (fields.path == "fields.#8.value") {
           if (fields.value){

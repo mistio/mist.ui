@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">
@@ -84,7 +85,7 @@ Polymer({
       },
       tunnel: {
           type: Object,
-          value: function () {
+          value () {
               return {
                   name: '',
                   description: '',
@@ -173,15 +174,15 @@ Polymer({
       }
   },
 
-  _addTunnelAjaxRequest: function () {},
+  _addTunnelAjaxRequest () {},
 
-  _addTunnelAjaxResponse: function (e) {
-      var response = YAML.parse(e.detail.xhr.response);
+  _addTunnelAjaxResponse (e) {
+      const response = YAML.parse(e.detail.xhr.response);
       if (response.id) {
           this.dispatchEvent(new CustomEvent('go-to', {
               bubbles: true, composed: true,
               detail: {
-                  url: '/tunnels/' + response.id
+                  url: `/tunnels/${  response.id}`
               }
           }));
       } else {

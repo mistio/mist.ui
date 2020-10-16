@@ -10,6 +10,7 @@ import '../helpers/file-upload.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">
@@ -145,7 +146,7 @@ Polymer({
   properties: {
       key: {
           type: Object,
-          value: function () {
+          value () {
               return {
                   name: '',
                   publicKey: '',
@@ -194,7 +195,7 @@ Polymer({
       '_filedsChanged(key.*, sendingData)'
   ],
 
-  ready: function () {
+  ready () {
       if (this.shadowRoot.querySelector('custom-validator')) {
           this.shadowRoot.querySelector('custom-validator').validate = this.isUniqueValidator.bind(
               this);
@@ -204,60 +205,60 @@ Polymer({
       }
   },
 
-  _filedsChanged: function (key, sendingData) {
+  _filedsChanged (key, sendingData) {
       this.set('formError', false);
       this.async(function () {
-          var inputs = this.shadowRoot.querySelectorAll("paper-input, paper-textarea"),
-              valid = [].every.call(inputs, function (el) {
-                  return (el.required && !el.value) || el.invalid ? false : true;
+          const inputs = this.shadowRoot.querySelectorAll("paper-input, paper-textarea");
+              const valid = [].every.call(inputs, function (el) {
+                  return !((el.required && !el.value) || el.invalid);
               });
 
           this.set('formReady', valid && !sendingData);
       });
   },
 
-  _computeShowProgress: function (sendingData) {
+  _computeShowProgress (sendingData) {
       return sendingData;
   },
 
-  isUniqueValidator: function (value) {
-      var isUnique = this.model.keysArray.every(function (key) {
+  isUniqueValidator (value) {
+      const isUnique = this.model.keysArray.every(function (key) {
           return key.name != value;
       });
       return isUnique;
   },
 
-  _openAddKeyModal: function (e) {
+  _openAddKeyModal (e) {
       this.$.addKeyModal.open();
   },
 
-  _closeAddKeyModal: function (e) {
+  _closeAddKeyModal (e) {
       this.$.addKeyModal.close();
   },
 
-  _uploadKey: function (e) {
+  _uploadKey (e) {
       this.$.keyUpload.click();
   },
 
-  _uploadFile: function (e) {
+  _uploadFile (e) {
       this.shadowRoot.querySelector('file-upload').upload({
-          e: e,
+          e,
           type: 'ssh_key'
       });
   },
 
-  _fileUploadedResponse: function (e) {
-      var file = e.detail.file;
+  _fileUploadedResponse (e) {
+      const {file} = e.detail;
       if (file.type == 'ssh_key') {
           this.set('key.privateKey', file.value);
       }
   },
 
-  _modalClosed: function () {
+  _modalClosed () {
       this._formReset();
   },
 
-  _submitForm: function () {
+  _submitForm () {
       this.$.keyAddAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.keyAddAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyAddAjaxRequest.body = {
@@ -269,20 +270,20 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _handleKeyAddAjaxResponse: function (e) {
+  _handleKeyAddAjaxResponse (e) {
       this.set('sendingData', false);
-      var keyID = JSON.parse(e.detail.xhr.response).id;
+      const keyID = JSON.parse(e.detail.xhr.response).id;
       if (!this.origin) {
           this.dispatchEvent(new CustomEvent('go-to', {
               bubbles: true,
               composed: true,
               detail: {
-                  url: '/keys/' + keyID
+                  url: `/keys/${  keyID}`
               }
           }));
 
       } else {
-          //if origin machines/machine_id reopen associate key dialog
+          // if origin machines/machine_id reopen associate key dialog
           if (this.origin.startsWith('/machines/') && this.origin != '/machines/+create') {
               this.dispatchEvent(new CustomEvent('open-and-select', {
                   bubbles: true,
@@ -317,7 +318,7 @@ Polymer({
       }, 500);
   },
 
-  _handleKeyAddAjaxError: function (e) {
+  _handleKeyAddAjaxError (e) {
       console.log('_handleKeyAddAjaxError', e);
       this.set('sendingData', false);
       this.set('formError', true);
@@ -325,22 +326,22 @@ Polymer({
       // this.$.errormsg.textContent = e.detail.response;
   },
 
-  _formReset: function () {
+  _formReset () {
       this.set('key.name', '');
       this.set('key.publicKey', '');
       this.set('key.privateKey', '');
       this.set('showPublicKey', false);
 
-      //reset form validation
+      // reset form validation
       ['name', 'publicKey', 'privateKey'].forEach(function (el) {
-          var input = this.shadowRoot.querySelector('#' + el);
+          const input = this.shadowRoot.querySelector(`#${  el}`);
           if (input) {
               input.invalid = false;
           }
       }, this)
   },
 
-  _generateKey: function (e) {
+  _generateKey (e) {
       this.$.keyGenerateAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.keyGenerateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyGenerateAjaxRequest.body = {};
@@ -349,20 +350,20 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _generateKeyAjaxRequest: function () {
+  _generateKeyAjaxRequest () {
       this.set('sendingData', true);
   },
 
-  _handleKeyGenerateAjaxResponse: function (e) {
+  _handleKeyGenerateAjaxResponse (e) {
       this.set('sendingData', false);
-      var response = e.detail.response;
+      const {response} = e.detail;
       this.set('key.publicKey', response.public);
       this.set('key.privateKey', response.priv);
       this.set('sendingData', false);
       this.set('showPublicKey', true);
   },
 
-  _handleKeyGenerateAjaxError: function (e) {
+  _handleKeyGenerateAjaxError (e) {
       this.set('sendingData', false);
   }
 });

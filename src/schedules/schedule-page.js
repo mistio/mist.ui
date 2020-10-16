@@ -20,6 +20,7 @@ import './schedule-actions.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles single-page tags-and-labels forms">
@@ -414,7 +415,7 @@ Polymer({
       },
       selectors: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       machinesIds: {
           type: Array,
@@ -513,33 +514,33 @@ Polymer({
       'save-date': '_applyDateTime'
   },
 
-  attached: function() {
+  attached() {
       this.isLoading = false;
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _viewID: function(e) {
+  _viewID(e) {
       this.set('showId', true);
   },
 
-  _hideID: function(e) {
+  _hideID(e) {
       this.set('showId', false);
   },
 
-  _copyId: function() {
+  _copyId() {
       console.log('copy');
       this.clearSelection();
-      var el = this.$.scheduleId;
+      const el = this.$.scheduleId;
       this.setSelection(el);
-      var successful = document.execCommand('copy');
-      var message = successful ? 'Copied to clipboard.' : 'There was an error copying to clipboard!';
+      const successful = document.execCommand('copy');
+      const message = successful ? 'Copied to clipboard.' : 'There was an error copying to clipboard!';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: message, duration: 3000} }));
   },
 
-  _scheduleChanged: function(schedule) {
+  _scheduleChanged(schedule) {
       if (this.schedule && this.schedule.id) {
           this.exists = true;
           this.set('selectors', this.schedule.selectors)
@@ -550,51 +551,51 @@ Polymer({
       }
   },
 
-  _computeHasExpired: function(schedule) {
+  _computeHasExpired(schedule) {
       if (this.schedule && this.schedule.expires != undefined && this.schedule.expires != "" && this.schedule.expires.length > 0){
           return moment().diff(moment.utc(this.schedule.expires).local()) > 0;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _computeIsInterval: function(schedule) {
+  _computeIsInterval(schedule) {
       if (this.schedule)
           return this.schedule.schedule_type == "interval";
   },
 
-  _computeIsCrontab: function(schedule) {
+  _computeIsCrontab(schedule) {
       if (this.schedule)
           return this.schedule.schedule_type == "crontab";
   },
 
-  _computeIsOneOff: function(schedule) {
+  _computeIsOneOff(schedule) {
       console.log('_computeIsOneOff');
       if (this.schedule)
           return this.schedule.schedule_type == "one_off";
   },
 
-  _computeIsAction: function(schedule) {
+  _computeIsAction(schedule) {
       if (this.schedule)
           return this.schedule.task_type.action;
   },
 
-  _computeIsRunScript: function(schedule) {
+  _computeIsRunScript(schedule) {
       if (this.schedule)
           return this.schedule.task_type.script_id;
   },
 
-  _computeIsSpecificMachines: function(schedule) {
+  _computeIsSpecificMachines(schedule) {
       if (this.schedule)
-          return this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('machines') ? true : false;
+          return !!(this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('machines'));
   },
 
-  _computeIsMachinesWithTags: function(schedule) {
+  _computeIsMachinesWithTags(schedule) {
       if (this.schedule)
-          return this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('tags')  ? true : false;
+          return !!(this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('tags'));
   },
 
-  _findSelector: function(field) {
+  _findSelector(field) {
       if (this.schedule && this.schedule.selectors && this.schedule.selectors.length){
           var field = this.schedule.selectors.find(function(con){
               return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
@@ -607,34 +608,34 @@ Polymer({
       return false;
   },
 
-  _computeMachineAge: function(selectors){
+  _computeMachineAge(selectors){
       if (selectors){
-          var ageEntry = selectors.find(function(c){
+          const ageEntry = selectors.find(function(c){
               return c.type == 'age';
           });
           return ageEntry ? ageEntry.minutes || false : false;
       }
   },
 
-  _computeMachineCost: function(selectors,rate){
+  _computeMachineCost(selectors,rate){
       if (selectors){
-          var costEntry = selectors.find(function(c){
+          const costEntry = selectors.find(function(c){
               return c.type == 'field' && c.field == 'cost__monthly';
           });
           return costEntry && costEntry.value != undefined ? costEntry.value : false;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _ratedCost: function(cost, rate){
+  _ratedCost(cost, rate){
       // TODO:  Does COST come in $ from backend? // cost ? (cost/this.currency.rate).formatMoney(2) : '';
       return cost.formatMoney(2);
   },
 
-  _computeAgeText: function(age){
-      var duration = 'minutes';
-      var machineAge = parseInt(age);
+  _computeAgeText(age){
+      let duration = 'minutes';
+      let machineAge = parseInt(age);
       if (age >= 60 && age%(60) == 0) {
           machineAge = age/60;
           duration = 'hours';
@@ -647,12 +648,12 @@ Polymer({
           if (machineAge == 1)
               duration = 'day';
       }
-      return machineAge +" "+ duration;
+      return `${machineAge } ${ duration}`;
   },
 
-  _applyDateTime: function(e) {
-      var payload = {};
-      var field = e.detail.name;
+  _applyDateTime(e) {
+      const payload = {};
+      const field = e.detail.name;
       if (field){
           if (!this.neverExpire){
               payload[field] = moment(e.detail.date).utc().format('YYYY-MM-DD HH:mm:ss').toString();
@@ -678,22 +679,22 @@ Polymer({
       }
   },
 
-  _handleScheduleEditExpirationResponse: function() {
-      var message = 'Updating date...';
+  _handleScheduleEditExpirationResponse() {
+      const message = 'Updating date...';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 3000 } }));
       this.$.dateTimePickers.close();
       this.expError = false;
       this.neverExpire = false;
   },
 
-  _handleScheduleEditExpirationError: function(e) {
+  _handleScheduleEditExpirationError(e) {
       console.log('_handleScheduleEditToggleError',e);
-      var message = e.detail.request.xhr.response;
+      const message = e.detail.request.xhr.response;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
       this.expError = true;
   },
 
-  _deleteSchedule: function(e) {
+  _deleteSchedule(e) {
       this._showDialog({
           title: 'Delete Schedule?',
           body: "Deleting schedules cannot be undone." ,
@@ -703,69 +704,69 @@ Polymer({
       });
   },
 
-  _handleScheduleDeleteResponse: function(e) {
+  _handleScheduleDeleteResponse(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/schedules'} }));
   },
 
-  _handleScheduleDeleteError: function(e) {
-      var message = e.detail.error;
+  _handleScheduleDeleteError(e) {
+      let message = e.detail.error;
       if (e.detail.request.statusText)
-          message += " "+e.detail.request.statusText;
+          message += ` ${e.detail.request.statusText}`;
 
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element#scheduleModal');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element#scheduleModal');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _makeCleanerTask: function(task) {
+  _makeCleanerTask(task) {
       if (task) {
-          var ret = '';
+          let ret = '';
           if (task.action) {
               ret = task.action.toUpperCase();
               ret += " machines";
           }
           else if (task.script_id) {
-              var scriptName = this.model && this.model.scripts && this.model.scripts[task.script_id] ? this.model.scripts[task.script_id].name : "missing script";
-              ret = 'RUN ' + scriptName;
+              const scriptName = this.model && this.model.scripts && this.model.scripts[task.script_id] ? this.model.scripts[task.script_id].name : "missing script";
+              ret = `RUN ${  scriptName}`;
           }
           return ret;
       }
   },
 
-  _parseToLocalTime: function(string) {
+  _parseToLocalTime(string) {
       if (!this.isOneOff) 
           return string;
-      else {
+      
           if (string){
-              var newString = "once on " + moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString() +" ("+ moment.utc(this.schedule.schedule_entry.entry).local().fromNow()+")";
+              var newString = `once on ${  moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString() } (${ moment.utc(this.schedule.schedule_entry.entry).local().fromNow()})`;
           }
           return newString;
-      }
+      
   },
 
-  _computeScriptLink: function(schedule) {
+  _computeScriptLink(schedule) {
       if (this.schedule && this.schedule.task_type.script_id) {
-          return '/scripts/'+this.schedule.task_type.script_id
+          return `/scripts/${this.schedule.task_type.script_id}`
       }
   },
 
-  _computeMachines: function(schedule, machines) {
-      var filteredMachines = [],
-          missingMachines = [],
-          _that = this;
+  _computeMachines(schedule, machines) {
+      let filteredMachines = [];
+          const missingMachines = [];
+          const _that = this;
       filteredMachines = Object.values(this.model.machines).filter(function(m){
           return _that.selector(m);
       });
 
       if (this.schedule && this.schedule.selectors && this._findSelector('machines')) {
-          for (var i = 0; i < this.machinesIds.length; i++) {
-              var machine = this.schedule.selectors.find(function(c){return c.type == "machines"}).ids[i];
+          for (let i = 0; i < this.machinesIds.length; i++) {
+              const machine = this.schedule.selectors.find(function(c){return c.type == "machines"}).ids[i];
               if (this.model.machines && !this.model.machines[machine]){
                   missingMachines.push(machine);
               }
@@ -776,20 +777,20 @@ Polymer({
       this.set('missingMachines', missingMachines);
   },
 
-  _computeMachinesIds: function(selectors) {
-      var ids = [];
+  _computeMachinesIds(selectors) {
+      let ids = [];
       if (!this.selectors.length || !this._findSelector('machines')){
           return ids;
       }
-      else {
+      
           ids = this.selectors.find(function(c){return c.type == "machines"}).ids;
-      }
+      
       return ids;
   },
 
-  selector: function(m) {
-      var fulfillsAge = true,
-          fulfillsCost = true;
+  selector(m) {
+      let fulfillsAge = true;
+          let fulfillsCost = true;
 
       if (!m)
           return false;
@@ -807,19 +808,19 @@ Polymer({
 
       if (this.isSpecificMachines) {
           return this.isSelectedMachine(m.id); // && fulfillsAge && fulfillsCost;
-      } else if (this.isMachinesWithTags) {
+      } if (this.isMachinesWithTags) {
           return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
       }
   },
 
-  isSelectedMachine: function(machineId) {
+  isSelectedMachine(machineId) {
       return !this.schedule.selectors || !this.schedule.selectors.find(function(c){return c.type == "machines"}) ? false : this.schedule.selectors.find(function(c){return c.type == "machines"}).ids.indexOf(machineId) > -1;
   },
 
-  machineHasTag: function(m) {
-      var exists = false;
-      for (var i = 0; i < m.tags.length; i++){
-          var scheduleTags = this.schedule.selectors.find(function(c){return c.type == "tags"}).include;
+  machineHasTag(m) {
+      let exists = false;
+      for (let i = 0; i < m.tags.length; i++){
+          const scheduleTags = this.schedule.selectors.find(function(c){return c.type == "tags"}).include;
 
           if (scheduleTags.hasOwnProperty(m.tags[i].key)){
               if (!scheduleTags[m.tags[i].key] && !m.tags[i].value){
@@ -835,55 +836,55 @@ Polymer({
       return exists;
   },
 
-  toggleEnable: function(){
+  toggleEnable(){
       this.$.editToggleSchedule.body = {task_enabled: !this.schedule.task_enabled};
       this.$.editToggleSchedule.headers["Content-Type"] = 'application/json';
       this.$.editToggleSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editToggleSchedule.generateRequest();
   },
 
-  _handleScheduleEditToggleResponse: function() {
-      var message = !this.schedule.task_enabled ? 'Disabling schedule..' : 'Enabling schedule..'
+  _handleScheduleEditToggleResponse() {
+      const message = !this.schedule.task_enabled ? 'Disabling schedule..' : 'Enabling schedule..'
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 3000 } }));
   },
 
-  _handleScheduleEditToggleError: function(e) {
+  _handleScheduleEditToggleError(e) {
       console.log('_handleScheduleEditToggleError',e);
-      var message = e.detail.request.xhr.response;
+      const message = e.detail.request.xhr.response;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
       this.$.scheduleEnabled.setAttribute('checked', this.schedule.task_enabled);
   },
 
-  _computeDateFromNow: function(time) {
+  _computeDateFromNow(time) {
       return moment.utc(time).local().fromNow();
   },
 
-  _computeAbsoluteDateText: function(time) {
+  _computeAbsoluteDateText(time) {
       return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
   },
 
-  _changeSelector: function() {
+  _changeSelector() {
       this.$.actions.$.editScheduleSelector._openEditScheduleModal();
   },
 
-  _editTask: function() {
+  _editTask() {
       this.$.actions.$.editScheduleTask._openEditScheduleModal();
   },
 
-  _computeTagsArray: function(selectors, isMachinesWithTags ){
+  _computeTagsArray(selectors, isMachinesWithTags ){
       console.log('_computeTagsArray');
       if (this.isMachinesWithTags && this.schedule.selectors) {
-          var tagsSelector = this.schedule.selectors.find(function(c){
+          const tagsSelector = this.schedule.selectors.find(function(c){
               return c.type == 'tags'
           });
           if (tagsSelector) {
-              var tags = tagsSelector.include;
+              const tags = tagsSelector.include;
 
-              var tagsArray = Object.keys(tags);
-              for (var i=0; i < tagsArray.length; i++) {
-                  var t = tagsArray[i];
+              const tagsArray = Object.keys(tags);
+              for (let i=0; i < tagsArray.length; i++) {
+                  const t = tagsArray[i];
                   if (tags[t] != null && tags[t].trim() != '') {
-                      tagsArray[i] = tagsArray[i]+'='+tags[t];
+                      tagsArray[i] = `${tagsArray[i]}=${tags[t]}`;
                   }
               }
               return tagsArray;
@@ -891,11 +892,11 @@ Polymer({
       }
   },
 
-  _editMaxRunCount: function(e){
+  _editMaxRunCount(e){
       this.shadowRoot.querySelector('schedule-actions').$.editMaxRunCount._openEditScheduleModal();
   },
 
-  _hideRunNow: function(hasExpired, max_run_count, total_run_count) {
+  _hideRunNow(hasExpired, max_run_count, total_run_count) {
       // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
       return true;
   }

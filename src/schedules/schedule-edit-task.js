@@ -226,10 +226,10 @@ Polymer({
 
   listeners: {},
 
-  _computeNewSchedule: function(schedule) {
+  _computeNewSchedule(schedule) {
       this.set('now', moment());
       if (this.schedule){
-          var newSchedule = {
+          const newSchedule = {
               action: this._computeAction(this.schedule.task_type),
               script_id: this._computeScript(this.schedule.task_type),
               schedule_type: this.schedule.schedule_type,
@@ -254,61 +254,61 @@ Polymer({
       }
   },
 
-  _computeIsInterval: function(scheduleType){
+  _computeIsInterval(scheduleType){
       return scheduleType == "interval";
   },
 
-  _computeIsCrontab: function(scheduleType){
+  _computeIsCrontab(scheduleType){
       return scheduleType == "crontab";
   },
 
-  _computeIsOneOff: function(scheduleType){
+  _computeIsOneOff(scheduleType){
       return scheduleType == "one_off";
   },
 
-  _computeIsAction: function(taskType) {
+  _computeIsAction(taskType) {
       if (taskType && taskType == "action"){
           return true;
       }
       return false;
   },
 
-  _computeAction: function(task){
+  _computeAction(task){
       if (task && task.action){
           return task.action;
       }
   },
 
-  _computeScript: function(task){
+  _computeScript(task){
       if (task && task.script_id){
           return task.script_id;
       }
   },
 
-  _stringifyCrontab: function(entry){
-      var scheduleEntry = "";
-      if (this.newSchedule.schedule_type == "crontab" && entry && typeof(entry) == "object") {
-          scheduleEntry = entry.minute +" "+ entry.hour +" "+ entry.day_of_month +" "+ entry.month_of_year +" "+ entry.day_of_week;
+  _stringifyCrontab(entry){
+      let scheduleEntry = "";
+      if (this.newSchedule.schedule_type == "crontab" && entry && typeof(entry) === "object") {
+          scheduleEntry = `${entry.minute } ${ entry.hour } ${ entry.day_of_month } ${ entry.month_of_year } ${ entry.day_of_week}`;
           return scheduleEntry;
       }
-      else if (entry && typeof(entry) == "string"){
+      if (entry && typeof(entry) === "string"){
           return entry;
       }
-      else {
+      
           return "";   
-      }
+      
   },
 
-  _openEditScheduleModal: function(e) {
+  _openEditScheduleModal(e) {
       this.$.editScheduleModal.opened = true;
   },
 
-  _closeEditScheduleModal: function(e) {
+  _closeEditScheduleModal(e) {
       this.$.editScheduleModal.opened = false;
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
       this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -316,9 +316,9 @@ Polymer({
       this.$.editSchedule.generateRequest();
   },
 
-  _formReset: function() {
-      //reset form dropdown menus
-      var menus = this.shadowRoot.querySelectorAll('paper-listbox');
+  _formReset() {
+      // reset form dropdown menus
+      const menus = this.shadowRoot.querySelectorAll('paper-listbox');
       Array.prototype.forEach.call(menus, function(m){
           m.selected = -1;
       });
@@ -327,26 +327,26 @@ Polymer({
       this._computeNewSchedule(this.schedule);
   },
 
-  _modalClosed: function(e){
+  _modalClosed(e){
       if (e.target == this.$.editScheduleModal)
           this._formReset();
   },
 
-  _handleScheduleEditResponse: function(e) {
+  _handleScheduleEditResponse(e) {
       this._closeEditScheduleModal();
   },
 
-  _handleScheduleEditError: function(e) {
-      var message = e.detail.error;
+  _handleScheduleEditError(e) {
+      let message = e.detail.error;
       if (e.detail.request.statusText)
-          message += " "+e.detail.request.statusText;
+          message += ` ${e.detail.request.statusText}`;
 
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
 
   },
 
-  _updatePayload: function(e) {
-      var pl = {};
+  _updatePayload(e) {
+      const pl = {};
       if (this.schedule && this.newSchedule) {
           // check if task changed
           if (this.taskType == 'action' && this._computeAction(this.schedule.task_type) != this.newSchedule.action) {
@@ -356,7 +356,7 @@ Polymer({
               pl.script_id = this.newSchedule.script_id;
               pl.params = this.newSchedule.params;
           }
-          //check if entry changed
+          // check if entry changed
           if (this.schedule.schedule_type != this.newSchedule.schedule_type) {
               pl.schedule_type = this.newSchedule.schedule_type;
               // clear max run count when editing form one_off to other type
@@ -373,29 +373,29 @@ Polymer({
       this._updateformReady(this.sendingData);
   },
 
-  _computePayloadEntry: function(entry,type,datetime) {
+  _computePayloadEntry(entry,type,datetime) {
       if (this.newSchedule.schedule_type == 'interval') {
           return {
               every: this.newSchedule.schedule_entry.every,
               period: this.newSchedule.schedule_entry.period
           }
       }
-      else if (this.newSchedule.schedule_type == 'crontab') {
+      if (this.newSchedule.schedule_type == 'crontab') {
           return this._processCrontab(this.crontabEntry);
       }
-      else if (this.newSchedule.schedule_type == 'one_off') {
+      if (this.newSchedule.schedule_type == 'one_off') {
           return moment(this.datetime).utc().format('YYYY-MM-DD HH:mm:ss')
       }
   },
 
-  _processCrontab: function(entry) {
-      var chunchs = entry.split(" ");
-      for (var i = 0; i < 5; i++) {
+  _processCrontab(entry) {
+      const chunchs = entry.split(" ");
+      for (let i = 0; i < 5; i++) {
           if (!chunchs[i])
               chunchs[i] = "*"
       }
-      var diff =  moment().utcOffset() / 60;
-      var construct = {
+      const diff =  moment().utcOffset() / 60;
+      const construct = {
               'minute': chunchs[0],
               'hour': chunchs[1],
               'day_of_month': chunchs[2],
@@ -408,7 +408,7 @@ Polymer({
       return construct;
   },
 
-  _updateformReady: function(sendingData) {
+  _updateformReady(sendingData) {
       console.log('_updateformReady');
       // not sending data && payload has at least one property
       if (!this.sendingData && JSON.stringify(this.payload) != '{}') {
@@ -424,34 +424,34 @@ Polymer({
       }
   },
 
-  _isValidInterval: function(entry) {
+  _isValidInterval(entry) {
       return entry && parseInt(entry.every) && entry.period;
   },
 
-  _isValidCrontab: function(entry) {
-      var string = "";
-          string = entry.minute +""+ entry.hour +""+ entry.day_of_week +""+ entry.day_of_month +""+ entry.month_of_year;
+  _isValidCrontab(entry) {
+      let string = "";
+          string = `${entry.minute }${ entry.hour }${ entry.day_of_week }${ entry.day_of_month }${ entry.month_of_year}`;
       return entry && string.trim() != "" && string.trim() != '*****' && string.indexOf('undefined') == -1;
   },
 
-  _displayDate: function(date){
+  _displayDate(date){
       if (!date || date.trim() == ""){
           return "never";
-      } else if (!moment(date).isValid()){
+      } if (!moment(date).isValid()){
           return "Invalid date";
-      } else {
-          var a = moment.utc(this.schedule.schedule_entry.entry).local();
+      } 
+          const a = moment.utc(this.schedule.schedule_entry.entry).local();
           return a.fromNow();
-      }
+      
   },
 
-  _datetimeChanged: function(datetime) {
+  _datetimeChanged(datetime) {
       this._validate(datetime);
   },
 
-  _validate: function(date) {
-      var invalid = true,
-          now = moment();
+  _validate(date) {
+      let invalid = true;
+          const now = moment();
       if (!date || !moment(date).isValid() || moment.utc(date).local().isBefore(now)) {
           invalid = true;
       } else {
@@ -461,7 +461,7 @@ Polymer({
       this._updatePayload();
   },
 
-  _crontabEntryChanged: function(crontab) {
+  _crontabEntryChanged(crontab) {
       if (this.schedule && this._computeIsCrontab(this.newSchedule.schedule_type) && crontab.value){
           this.set('newSchedule.schedule_entry', _processCrontab(crontab.value));
       }

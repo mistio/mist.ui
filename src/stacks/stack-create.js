@@ -10,7 +10,8 @@ import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
-let MACHINE_CREATE_FIELDS = [];
+
+const MACHINE_CREATE_FIELDS = [];
 
 // AZURE
 MACHINE_CREATE_FIELDS.push({
@@ -383,7 +384,7 @@ MACHINE_CREATE_FIELDS.push({
 // Alibaba Cloud
 MACHINE_CREATE_FIELDS.push({
     provider: 'aliyun_ecs',
-    fields: [/*{
+    fields: [/* {
         name: 'assign_public_ip',
         label: 'Assign Public IP',
         type: 'toggle',
@@ -407,7 +408,7 @@ MACHINE_CREATE_FIELDS.push({
             fieldName: 'assign_public_ip',
             fieldValues: [true],
         }
-    }*/],
+    } */],
 });
 
 
@@ -872,8 +873,8 @@ MACHINE_CREATE_FIELDS.push({
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
-    var addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) != -1;
-    var showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
+    const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) != -1;
+    const showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
 
     // add common machine properties fields
     p.fields.splice(0, 0, {
@@ -1245,10 +1246,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             },
         });
     }
-    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(p.provider) == -1;
+    const requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(p.provider) == -1;
     p.fields.push({
         name: 'key',
-        label: 'Key ' + (requiredKey ? '*' : ''),
+        label: `Key ${  requiredKey ? '*' : ''}`,
         type: 'ssh_key',
         value: '',
         defaultValue: '',
@@ -1298,8 +1299,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
     if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
-        var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
+        const allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
+        const allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -2052,34 +2053,34 @@ Polymer({
       'format-payload': '_updateFields'
   },
 
-  ready: function () {},
+  ready () {},
 
-  _fromTemplate: function (params, templates) {
+  _fromTemplate (params, templates) {
       if (params.template && this.model.templates) {
-          var yaml_inputs = '';
+          let yaml_inputs = '';
           this.model.templates[params.template].inputs.forEach(function (inp) {
-              yaml_inputs += inp.name + ': ';
-              var val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
+              yaml_inputs += `${inp.name  }: `;
+              let val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
               if (inp.value == 'custom')
                   val = JSON.stringify(inp.customValue);
-              yaml_inputs += val + '\n';
+              yaml_inputs += `${val  }\n`;
           }, this);
           this.set('yaml_inputs', yaml_inputs);
           // pass values into form's stackinputs default value
-          var ind;
-          var stackinputsField = this.fields.find(function (f, index) {
+          let ind;
+          const stackinputsField = this.fields.find(function (f, index) {
               ind = index;
               return f.name == "stackinputs";
           });
-          this.set('fields.' + ind + '.defaultValue', this.yaml_inputs);
+          this.set(`fields.${  ind  }.defaultValue`, this.yaml_inputs);
           // console.log('template is redefined');
 
-          var yaml_or_form = 'form';
-          var template = this.model.templates[params.template];
+          let yaml_or_form = 'form';
+          const template = this.model.templates[params.template];
           // console.log('Computing Fields started');
 
           if (this.fields) {
-              var yf = this.fields.find(function (f) {
+              const yf = this.fields.find(function (f) {
                   return f.name == 'yaml_or_form'
               });
               if (yf && yf.value)
@@ -2088,7 +2089,7 @@ Polymer({
                   yaml_or_form = 'form';
           }
 
-          var ret = [{
+          const ret = [{
               name: "name",
               label: "Stack Name",
               type: "text",
@@ -2146,13 +2147,13 @@ Polymer({
 
           if (template && template.inputs) {
               template.inputs.forEach(function (inp) {
-                  inp['showIf'] = {
+                  inp.showIf = {
                       fieldName: "yaml_or_form",
                       fieldValues: ["form"]
                   }
-                  inp['label'] = inp.name.replace(/_/g, ' ');
-                  inp['defaultValue'] = inp.default;
-                  inp['value'] = inp['value'] || inp.default;
+                  inp.label = inp.name.replace(/_/g, ' ');
+                  inp.defaultValue = inp.default;
+                  inp.value = inp.value || inp.default;
 
                   // Temp, before Tosca uses 'required' key
                   inp.required = false;
@@ -2167,7 +2168,7 @@ Polymer({
                       inp.type = 'ssh_key';
                       // inp.type = 'dropdown';
                       inp.helptext = 'Select key';
-                      inp.options = []; //this.model.keysArray;
+                      inp.options = []; // this.model.keysArray;
                   }
 
                   // make cloud dropdown
@@ -2175,7 +2176,7 @@ Polymer({
                       inp.label = 'cloud';
                       inp.type = 'mist_dropdown';
                       inp.helptext = 'Select cloud';
-                      inp.options = []; //this.model.cloudsArray;
+                      inp.options = []; // this.model.cloudsArray;
 
                       inp.options.forEach(function (o) {
                           o.disabled = !o.enabled;
@@ -2189,7 +2190,7 @@ Polymer({
                       inp.type = 'mist_dropdown';
                       inp.helptext = 'Select image';
                       inp.showIf = {
-                          fieldName: "mist_cloud" + xid,
+                          fieldName: `mist_cloud${  xid}`,
                           fieldExists: true
                       }
                   }
@@ -2201,7 +2202,7 @@ Polymer({
                       inp.type = 'mist_dropdown';
                       inp.helptext = 'Select network';
                       inp.showIf = {
-                          fieldName: "mist_cloud" + xid,
+                          fieldName: `mist_cloud${  xid}`,
                           fieldExists: true
                       }
                   }
@@ -2213,7 +2214,7 @@ Polymer({
                       inp.type = 'mist_dropdown';
                       inp.helptext = 'Select location';
                       inp.showIf = {
-                          fieldName: "mist_cloud" + xid,
+                          fieldName: `mist_cloud${  xid}`,
                           fieldExists: true
                       }
                   }
@@ -2225,7 +2226,7 @@ Polymer({
                       inp.type = 'mist_size';
                       inp.helptext = 'Machine size';
                       inp.showIf = {
-                          fieldName: "mist_cloud" + xid,
+                          fieldName: `mist_cloud${  xid}`,
                           fieldExists: true
                       }
                   }
@@ -2292,41 +2293,41 @@ Polymer({
           this.set('fields', ret);
 
           return this.model.templates[params.template];
-      } else {
+      } 
           return {
               name: "Template is missing"
           }
           console.log('template is missing');
-      }
+      
   },
 
-  _computeFields: function (template, templateInps, templateInputs, modelTemplates, clouds, keys,
+  _computeFields (template, templateInps, templateInputs, modelTemplates, clouds, keys,
       params) {
       this.fields.forEach(function (inp, index) {
           if (inp.name.startsWith('mist_key')) {
-              this.set('fields.' + index + '.options', this.model.keysArray);
+              this.set(`fields.${  index  }.options`, this.model.keysArray);
           }
 
           if (inp.name.startsWith('mist_cloud')) {
-              this.set('fields.' + index + '.options', this.model.cloudsArray);
+              this.set(`fields.${  index  }.options`, this.model.cloudsArray);
               this.fields[index].options.forEach(function (o) {
                   o.disabled = !o.enabled;
               })
           }
 
           if (inp.name.startsWith('mist_tags')) {
-              this.set('fields.' + index + '.value', []);
+              this.set(`fields.${  index  }.value`, []);
           }
 
           if (inp.name.startsWith('mist_')) {
-              this.set('fields.' + index + '.label', this.get('fields.' + index + '.label').replace('mist ', ''));
+              this.set(`fields.${  index  }.label`, this.get(`fields.${  index  }.label`).replace('mist ', ''));
           }
 
           if (inp.options && inp.options.length == 1) {
               if (inp.type == "dropdown")
-                  this.set('fields.' + index + '.value', inp.options[0].val);
+                  this.set(`fields.${  index  }.value`, inp.options[0].val);
               else
-                  this.set('fields.' + index + '.value', inp.options[0].id);
+                  this.set(`fields.${  index  }.value`, inp.options[0].id);
           }
 
           if (inp.name.startsWith("mist_machine")) {
@@ -2336,18 +2337,18 @@ Polymer({
 
   },
 
-  _updateFields: function (event) {
+  _updateFields (event) {
       // if a cloud changed
       if (this.fields && event && event.path.map(function(i){return i.id;}).join(',').indexOf("mist_cloud") > -1) {
-          var fieldName = event.path.find(function(f){
+          const fieldName = event.path.find(function(f){
                   return f.id && f.id.indexOf('mist_cloud') > -1
-              }),
-              fieldIndex = fieldName && this.fieldIndexByName(fieldName.id.replace('app-form-create_stack-','')),
-              field = fieldIndex > -1 && this.fields[fieldIndex];
+              });
+              const fieldIndex = fieldName && this.fieldIndexByName(fieldName.id.replace('app-form-create_stack-',''));
+              const field = fieldIndex > -1 && this.fields[fieldIndex];
 
           if (field && field.name.startsWith('mist_cloud') && this.model.clouds[field.value]) {
               function copy(o) { // deep copy an array of objects
-                  var output, v, key;
+                  let output; let v; let key;
                   output = Array.isArray(o) ? [] : {};
                   for (key in o) {
                       v = o[key];
@@ -2356,20 +2357,20 @@ Polymer({
                   return output;
               }
               // reset fields if cloud changed
-              var fields = copy(this.fields);
+              const fields = copy(this.fields);
               this.set('fields', []);
               this.set('fields', fields);
           }
       }
-      var e = dom(event);
-      var changeInYaml = e && e.path && e.path.indexOf(document.querySelector("paper-textarea#app-form-create_stack-stackinputs")) > -1;
+      const e = dom(event);
+      const changeInYaml = e && e.path && e.path.indexOf(document.querySelector("paper-textarea#app-form-create_stack-stackinputs")) > -1;
       if (changeInYaml) {
-          var yaml = document.querySelector("paper-textarea#app-form-create_stack-stackinputs").value;
-          var yaml_array = yaml.split('\n');
-          var inputs = [];
+          const yaml = document.querySelector("paper-textarea#app-form-create_stack-stackinputs").value;
+          const yaml_array = yaml.split('\n');
+          const inputs = [];
           yaml_array.forEach(function (line) {
-              var name = line.split(':')[0].trim();
-              var value = line.split(':')[1];
+              const name = line.split(':')[0].trim();
+              let value = line.split(':')[1];
               if (value)
                   value = value.trim();
               inputs[name] = value;
@@ -2377,27 +2378,27 @@ Polymer({
 
           this.fields.forEach(function (f, index) {
               if (inputs[f.name])
-                  this.set('fields.' + index + '.value', inputs[f.name])
+                  this.set(`fields.${  index  }.value`, inputs[f.name])
           }, this)
       } else {
-          var cloud = this.fields.find(function (f) {
+          const cloud = this.fields.find(function (f) {
               return f.name.startsWith("mist_cloud");
           });
-          var yaml_inputs = '';
+          let yaml_inputs = '';
           this.fields.forEach(function (inp, index) {
-              var fieldCloud, // cloud field Object
-                  xid, // resource batch index type string ex _1
-                  cloudId; // mist cloud id
+              let fieldCloud; // cloud field Object
+                  let xid; // resource batch index type string ex _1
+                  let cloudId; // mist cloud id
 
               if (['name', 'description', 'yaml_or_form', 'stackinputs', 'deploy'].indexOf(
                       inp.name) == -1) {
-                  yaml_inputs += inp.name + ': ';
-                  var preformatedValue = inp.preformatPayloadValue ? inp.preformatPayloadValue.apply(inp.value) : inp.value;
-                  var val = preformatedValue ? JSON.stringify(preformatedValue) : inp.defaultValue;
+                  yaml_inputs += `${inp.name  }: `;
+                  const preformatedValue = inp.preformatPayloadValue ? inp.preformatPayloadValue.apply(inp.value) : inp.value;
+                  let val = preformatedValue ? JSON.stringify(preformatedValue) : inp.defaultValue;
                   if (inp.value == 'custom') {
                       val = JSON.stringify(inp.customValue);
                   }
-                  yaml_inputs += val + '\n';
+                  yaml_inputs += `${val  }\n`;
               }
 
               // mist-machine contains its own cloud value
@@ -2411,18 +2412,18 @@ Polymer({
                   if (inp.name.startsWith("mist_cloud")) {
                       xid = inp.name.split("mist_cloud")[0];
                       cloudId = inp.value;
-                      if (cloudId && this.fieldIndexByName('mist_size' + xid) > -1) {
+                      if (cloudId && this.fieldIndexByName(`mist_size${  xid}`) > -1) {
                           if (["onapp", "vsphere", "libvirt", "gce"].indexOf(this.model.clouds[
                                   cloudId].provider) > -1) {
-                              this.set('fields.' + this.fieldIndexByName('mist_size' +
-                                  xid) + '.custom', true);
-                              this.set('fields.' + this.fieldIndexByName('mist_size' +
-                                  xid) + '.customValue', {});
+                              this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                  xid}`)  }.custom`, true);
+                              this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                  xid}`)  }.customValue`, {});
                           } else {
-                              this.set('fields.' + this.fieldIndexByName('mist_size' +
-                                  xid) + '.custom', false);
-                              this.set('fields.' + this.fieldIndexByName('mist_size' +
-                                  xid) + '.customValue', false);
+                              this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                  xid}`)  }.custom`, false);
+                              this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                  xid}`)  }.customValue`, false);
                           }
                       }
                       if (!inp.show) {
@@ -2434,59 +2435,59 @@ Polymer({
                   if (inp.name.startsWith("mist_location")) {
                       xid = inp.name.split("mist_location")[0];
                       fieldCloud = this.fields.find(function (f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       cloudId = fieldCloud.value;
                       if (cloudId)
-                          inp['options'] = Object.values(this.model.clouds[cloudId].locations);
+                          inp.options = Object.values(this.model.clouds[cloudId].locations);
                   }
                   if (inp.name.startsWith("mist_image")) {
                       xid = inp.name.split("mist_image")[0];
                       fieldCloud = this.fields.find(function (f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       cloudId = fieldCloud.value;
                       if (this.model && cloudId)
-                          inp['options'] = this.model.clouds[cloudId].imagesArray;
+                          inp.options = this.model.clouds[cloudId].imagesArray;
                   }
                   if (inp.name.startsWith("mist_networks")) {
                       xid = inp.name.split("mist_networks")[0];
                       fieldCloud = this.fields.find(function (f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       cloudId = fieldCloud.value;
                       if (this.model && cloudId)
-                          inp['options'] = Object.values(this.model.clouds[cloudId].networks) || [];
+                          inp.options = Object.values(this.model.clouds[cloudId].networks) || [];
                       else
-                          inp['options'] = [];
+                          inp.options = [];
                   }
                   if (inp.name.startsWith("mist_size")) {
                       xid = inp.name.split("mist_size")[0];
                       fieldCloud = this.fields.find(function (f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       cloudId = fieldCloud.value;
                       if (cloudId) {
-                          inp['options'] = this.model.clouds[cloudId].sizesArray ? this.model.clouds[cloudId].sizesArray : [];
+                          inp.options = this.model.clouds[cloudId].sizesArray ? this.model.clouds[cloudId].sizesArray : [];
                           if (["onapp", "vsphere", "libvirt"].indexOf(this.model.clouds[cloudId].provider) > -1) {
-                              var provider = this.model.clouds[cloudId].provider,
-                                  fields = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider}).fields;
-                              inp['custom'] = true;
-                              inp["value"] = "custom";
-                              inp["customSizeFields"] = fields.find(function(f){return f.type == "mist_size"}).customSizeFields;
+                              const {provider} = this.model.clouds[cloudId];
+                                  const {fields} = MACHINE_CREATE_FIELDS.find(function(p) {return p.provider == provider});
+                              inp.custom = true;
+                              inp.value = "custom";
+                              inp.customSizeFields = fields.find(function(f){return f.type == "mist_size"}).customSizeFields;
                           }
                           else
-                              inp['custom'] = false;
+                              inp.custom = false;
                       }
                   }
 
                   if (inp.options && inp.options.length == 1) {
                       if (inp.type == "dropdown") {
-                          this.set('fields.' + index + '.value', f.options[0]
+                          this.set(`fields.${  index  }.value`, f.options[0]
                               .val);
                       }
                       else {
-                          this.set('fields.' + index + '.value', f.options[0]
+                          this.set(`fields.${  index  }.value`, f.options[0]
                               .id);
                       }
                   }
@@ -2496,24 +2497,24 @@ Polymer({
           this.set('yaml_inputs', yaml_inputs);
 
           // pass values into form's stackinputs value
-          var ind;
-          var stackinputsField = this.fields.find(function (f, index) {
+          let ind;
+          const stackinputsField = this.fields.find(function (f, index) {
               ind = index;
               return f.name == "stackinputs";
           });
 
-          this.set('fields.' + ind + '.value', this.yaml_inputs);
+          this.set(`fields.${  ind  }.value`, this.yaml_inputs);
       }
   },
 
-  fieldIndexByName: function (name) {
-      var index = this.fields.findIndex(function (f) {
+  fieldIndexByName (name) {
+      const index = this.fields.findIndex(function (f) {
           return f.name == name;
       });
       return index;
   },
 
-  updateKeys: function (e) {
+  updateKeys (e) {
       // console.log('_updateKeys', e);
       this.async(function () {
           // console.log(this.template);
@@ -2522,22 +2523,22 @@ Polymer({
                   // make key dropdown && select newly created key
                   if (f.name.startsWith('mist_key')) {
                       f.options = this.model.keysArray;
-                      this.set('fields.' + index + '.value', e.detail.key);
+                      this.set(`fields.${  index  }.value`, e.detail.key);
                   }
               }, this);
       }.bind(this), 1000);
   },
 
-  _handleRequest: function (e) {
+  _handleRequest (e) {
 
   },
 
-  _handleResponse: function (e) {
+  _handleResponse (e) {
       // console.log('create stack ', e);
-      var response = YAML.parse(e.detail.xhr.response);
-      var sid = response.id;
+      const response = YAML.parse(e.detail.xhr.response);
+      const sid = response.id;
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-          url: '/stacks/' + sid
+          url: `/stacks/${  sid}`
       } }));
 
       this.debounce('resetForm', function () {
@@ -2545,30 +2546,30 @@ Polymer({
       }, 500);
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
 
   },
 
-  _resetForm: function (e) {
+  _resetForm (e) {
       // Reset form
-      for (var attr in this.form) {
-          this.set('form.' + attr, '');
+      for (const attr in this.form) {
+          this.set(`form.${  attr}`, '');
       }
       // Reset Form Fields
       this.fields.forEach(function (el, index) {
           if (el.showIf) {
-              this.set('fields.' + index + '.show', false);
+              this.set(`fields.${  index  }.show`, false);
           }
           // Reset Form Fields Validation
           this._resetField(el, index);
       }, this);
   },
 
-  _computeProviderLogo: function (provider) {
-      return 'assets/providers/provider-' + provider + '.png';
+  _computeProviderLogo (provider) {
+      return `assets/providers/provider-${  provider  }.png`;
   },
 
-  _resetField: function (el, index) {
+  _resetField (el, index) {
       // this.set('fields.' + index + '.value', el.defaultValue);
       // var input = this.shadowRoot.querySelector('#' + el.name);
       // if (input) {

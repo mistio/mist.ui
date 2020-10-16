@@ -10,6 +10,7 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import './mist-networks-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -112,17 +113,17 @@ Polymer({
       '_fieldChanged(field, field.options, field.options.*)'
   ],
 
-  ready: function() {
+  ready() {
       this.set('field.valid', !this.field.required);
   },
 
-  _computeCanConfigure: function(fieldCc) {
+  _computeCanConfigure(fieldCc) {
       if (!this.field)
           return false;
       return this.field.canConfigure;
   },
 
-  _fieldChanged: function(field) {
+  _fieldChanged(field) {
       this.set('selectedOptions', []);
       this.set('field.value', []);
       this.set('field.valid', !this.field.required);
@@ -130,20 +131,20 @@ Polymer({
       this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
   },
 
-  _itemChanged: function(e) {
+  _itemChanged(e) {
       e.stopImmediatePropagation();
 
       console.log("item changed", e);
       
-      var item = e.model.option,
-          elementId = e.model.option.id;
+      const item = e.model.option;
+          const elementId = e.model.option.id;
 
-      var selectedOptionIndex = this.selectedOptions.findIndex(function(option){return option.id == item.id});
+      const selectedOptionIndex = this.selectedOptions.findIndex(function(option){return option.id == item.id});
 
-      if (this.shadowRoot.querySelector('mist-networks-item[id="'+elementId+'"]')) {
-          var el = this.shadowRoot.querySelector('mist-networks-item[id="'+elementId+'"]'),
-              checked = el.checked,
-              valid = el.valid;
+      if (this.shadowRoot.querySelector(`mist-networks-item[id="${elementId}"]`)) {
+          const el = this.shadowRoot.querySelector(`mist-networks-item[id="${elementId}"]`);
+              var {checked} = el;
+              const {valid} = el;
       }
 
       // add network
@@ -162,14 +163,14 @@ Polymer({
       this._updateValue();
   },
 
-  _updateValue: function() {
+  _updateValue() {
       this.set('field.value', this.selectedOptions.map(op => op.fieldValue));
       this.set('field.valid', this._checkValidity());
   },
 
-  _checkValidity: function() {
-      var checkedItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked]'),
-          validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
+  _checkValidity() {
+      const checkedItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked]');
+          const validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
       console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
       if (!checkedItems){
           return !this.field.required;

@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<dom-module id="expose-ports">
@@ -51,7 +52,7 @@ $_documentContainer.innerHTML = `<dom-module id="expose-ports">
 </dom-module>`;
 
 document.head.appendChild($_documentContainer.content);
-let MACHINE_CREATE_FIELDS = [];
+const MACHINE_CREATE_FIELDS = [];
 
 // AZURE
 MACHINE_CREATE_FIELDS.push({
@@ -424,7 +425,7 @@ MACHINE_CREATE_FIELDS.push({
 // Alibaba Cloud
 MACHINE_CREATE_FIELDS.push({
     provider: 'aliyun_ecs',
-    fields: [/*{
+    fields: [/* {
         name: 'assign_public_ip',
         label: 'Assign Public IP',
         type: 'toggle',
@@ -448,7 +449,7 @@ MACHINE_CREATE_FIELDS.push({
             fieldName: 'assign_public_ip',
             fieldValues: [true],
         }
-    }*/],
+    } */],
 });
 
 
@@ -913,8 +914,8 @@ MACHINE_CREATE_FIELDS.push({
 
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(function(p) {
-    var addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) != -1;
-    var showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
+    const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) != -1;
+    const showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) == -1;
 
     // add common machine properties fields
     p.fields.splice(0, 0, {
@@ -1286,10 +1287,10 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
             },
         });
     }
-    var requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(p.provider) == -1;
+    const requiredKey = ['gig_g8', 'lxd', 'docker', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(p.provider) == -1;
     p.fields.push({
         name: 'key',
-        label: 'Key ' + (requiredKey ? '*' : ''),
+        label: `Key ${  requiredKey ? '*' : ''}`,
         type: 'ssh_key',
         value: '',
         defaultValue: '',
@@ -1339,8 +1340,8 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
 
     if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
-        var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
-        var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
+        const allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
+        const allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({
             name: 'addvolume',
             excludeFromPayload: true,
@@ -1942,7 +1943,7 @@ Polymer({
         },
         form: {
             type: Object,
-            value: function(){
+            value(){
                 return {action: 'expose'}
             }
         },
@@ -1966,16 +1967,16 @@ Polymer({
     observers: [
         '_updatePorts(machine, machine.extra.port_forwards.*)',
     ],
-    _serviceTypeUpdated: function(e) {
+    _serviceTypeUpdated(e) {
         console.log('Service Type Updated: ', e);
         this._updatePorts();
     },
-    _updatePorts: function(machine, portForwards) {
-        var ports = [];
+    _updatePorts(machine, portForwards) {
+        const ports = [];
         if (this.machine && this.machine.extra && this.machine.extra.port_forwards) {
-            for (var i=0; i < this.machine.extra.port_forwards.length; i++){
-                var port = this.machine.extra.port_forwards[i];
-                var newPort = {
+            for (let i=0; i < this.machine.extra.port_forwards.length; i++){
+                const port = this.machine.extra.port_forwards[i];
+                const newPort = {
                     port: port.public_port,
                     target_port: port.local_port,
                     protocol: port.protocol,
@@ -1988,34 +1989,34 @@ Polymer({
         this.set('form.action', 'expose');
         this.set('ports', JSON.parse(JSON.stringify(ports)));
     },
-    _computeFields: function(machine, provider, ports) {
-        var providerFields = MACHINE_CREATE_FIELDS.find(function(x) {
+    _computeFields(machine, provider, ports) {
+        const providerFields = MACHINE_CREATE_FIELDS.find(function(x) {
             return x.provider == provider;
         });
         // locate port fieldgroup definition
-        var portFieldGroup = providerFields && providerFields.fields.find(function(f){
+        const portFieldGroup = providerFields && providerFields.fields.find(function(f){
             return f.name == 'port_forwards';
         });
         
         if (portFieldGroup) {
             // locate ports field
-            var fields = portFieldGroup.subfields.filter(function(f){
+            const fields = portFieldGroup.subfields.filter(function(f){
         
                 return f.type == 'list';
             });
         
-            var serviceTypeField = portFieldGroup.subfields.filter(function(f){
+            const serviceTypeField = portFieldGroup.subfields.filter(function(f){
                 return f.type == 'dropdown';
             });
             if (fields) {
-                var ports = this.ports;
-                var cleanCopy = JSON.parse(JSON.stringify(fields));
+                var {ports} = this;
+                const cleanCopy = JSON.parse(JSON.stringify(fields));
                 if(ports){
-                    for(let port of ports){
+                    for(const port of ports){
                         if(serviceTypeField[0] && port.service_type != serviceTypeField[0].value){
                             continue;
                         }
-                        let toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
+                        const toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
                         toAdd[0].value = port.port;
                         toAdd[1].value = port.target_port;
                         toAdd[2].value = port.protocol.toUpperCase();
@@ -2029,12 +2030,12 @@ Polymer({
             }
         }
     },
-    _openDialog: function(e) {
+    _openDialog(e) {
         // Recompute ports on open to reset when canceled
         this._updatePorts();
         this.$.exposePortsDialog.opened = true;
     },
-    _closeDialog: function(e) {
+    _closeDialog(e) {
         this.$.exposePortsDialog.opened = false;
     }
 });

@@ -8,7 +8,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
+
 import '../../node_modules/@vaadin/vaadin-upload/vaadin-upload.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
@@ -325,8 +325,8 @@ Polymer({
       // '_enableOwnershipChanged(enableOwnership)'
   ],
 
-  attached: function() {
-      var that = this;
+  attached() {
+      const that = this;
       this.$.orgAvatarUpload.addEventListener('upload-response', function(e) {
           if (e.detail.xhr.status == 200) {
               that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
@@ -337,33 +337,33 @@ Polymer({
       }),{passive: true};
   },
 
-  _userUpdated: function(user) {
+  _userUpdated(user) {
       this.firstName = user.first_name;
       this.lastName = user.last_name;
   },
 
-  _orgUpdated: function(org) {
+  _orgUpdated(org) {
       this.orgName = this.org.name;
       this.orgAlertEmails = this.org.alerts_email.join('\n');
-      this.customLogo = this.org.avatar ? true : false;
+      this.customLogo = !!this.org.avatar;
       this.enableR12ns = this.org.enable_r12ns;
       this.enableOwnership = this.org.ownership_enabled;
   },
 
-  _computeUploadHeaders: function() {
+  _computeUploadHeaders() {
       return {'Csrf-Token': CSRF_TOKEN, 'Accept': 'application/json'};
   },
 
-  _deleteAvatar: function(event) {
-      var xhr = new XMLHttpRequest();
-      xhr.open("DELETE", "/api/v1/avatars/" + this.org.avatar);
+  _deleteAvatar(event) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("DELETE", `/api/v1/avatars/${  this.org.avatar}`);
       xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
       xhr.send();
       this.orgAvatar = '';
       this.$.orgAvatarUpload.files = [];
   },
 
-  _computeUserFormReady: function(firstName, lastName, loading, user) {
+  _computeUserFormReady(firstName, lastName, loading, user) {
       if (loading || !user)
           return false;
 
@@ -376,7 +376,7 @@ Polymer({
       return false;
   },
 
-  _computeOrgFormReady: function(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org, enableOwnership){
+  _computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loading, org, enableOwnership){
       if (orgName && orgName.trim() != "" && org.is_owner && !loading &&
           (orgName != org.name || enableR12ns != org.enable_r12ns || enableOwnership != org.ownership_enabled || (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) ||
            (orgAvatar && orgAvatar != org.avatar)))
@@ -384,17 +384,17 @@ Polymer({
       return false;
   },
 
-  _computeShowProgress: function(sendingData) {
+  _computeShowProgress(sendingData) {
       return sendingData;
   },
 
-  _computeAvatarURL: function(orgAvatar) {
+  _computeAvatarURL(orgAvatar) {
       if (orgAvatar.length)
-          return '/api/v1/avatars/' + orgAvatar;
+          return `/api/v1/avatars/${  orgAvatar}`;
   },
 
-  _submitUserForm: function(e, user) {
-      var payload = {
+  _submitUserForm(e, user) {
+      const payload = {
           action: 'update_details',
           first_name: this.firstName,
           last_name: this.lastName
@@ -407,13 +407,13 @@ Polymer({
       console.log('loadingUser', this.loadingUser);
   },
 
-  _toggleOwnership: function() {
+  _toggleOwnership() {
       this.$.ownershipRequest.headers["Content-Type"] = 'application/json';
       this.$.ownershipRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.ownershipRequest.generateRequest();
   },
 
-  _submitOrgForm: function(e, org) {
+  _submitOrgForm(e, org) {
       if (!(this.org.ownership_enabled == undefined && this.enableOwnership == false) && this.enableOwnership != this.org.ownership_enabled)
           this._toggleOwnership();
 
@@ -421,14 +421,14 @@ Polymer({
               (orgAlertEmails && orgAlertEmails != org.alerts_email.join('\n')) || 
               (orgAvatar && orgAvatar != org.avatar)) {
 
-          var payload = {
+          const payload = {
               new_name: this.orgName,
               alerts_email: this.orgAlertEmails,
               enable_r12ns: this.enableR12ns
           };
 
           if (this.orgAvatar)
-              payload['avatar'] = this.orgAvatar;
+              payload.avatar = this.orgAvatar;
 
           this.$.orgAjaxRequest.headers["Content-Type"] = 'application/json';
           this.$.orgAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -438,17 +438,17 @@ Polymer({
       }
   },
 
-  _handleAjaxResponse: function(e) {
+  _handleAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Changes saved succesfully!",duration:3000} }));
 
   },
 
-  _handleAjaxError: function() {
+  _handleAjaxError() {
       this.set('userError', true);
       this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  _handleOrgAjaxError: function(e) {
+  _handleOrgAjaxError(e) {
       this.set('orgError', true);
       this.$.orgerrormsg.textContent = e.detail.request.xhr.responseText;
   }

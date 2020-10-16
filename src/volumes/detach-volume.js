@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -121,31 +122,31 @@ Polymer({
       // 'iron-select' : 'computedSelectedMachineId'
   },
 
-  ready: function() {},
+  ready() {},
 
-  computedSelectedMachineId: function(selected) {
+  computedSelectedMachineId(selected) {
       // this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.set('selectedMachineId', false);
       this.set('formError', false);
       this.$.detachDialogModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.set('formError', false);
       this.$.detachDialogModal.close();
   },
 
-  detachVolume: function(e) {
-      var request = this.$.detachVolumeRequest,
-          items = this.items.slice(0),
-          selectedMachineId = this.selectedMachineId;
+  detachVolume(e) {
+      const request = this.$.detachVolumeRequest;
+          const items = this.items.slice(0);
+          const {selectedMachineId} = this;
       var run = function(el) {
-          var item = items.shift(),
-              itemType,
-              itemId;
+          const item = items.shift();
+              let itemType;
+              let itemId;
           if (item.length) {
               chunks = item.split(':'),
                   itemId = chunks[2],
@@ -154,7 +155,7 @@ Polymer({
               itemId = item.external_id;
               cloudId = item.cloud;
           }
-          request.url = "/api/v1/clouds/" + cloudId + "/volumes/" + itemId;
+          request.url = `/api/v1/clouds/${  cloudId  }/volumes/${  itemId}`;
           request.body = { action: 'detach', machine: selectedMachineId };
           request.headers["Content-Type"] = 'application/json';
           request.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -167,14 +168,14 @@ Polymer({
       run(this);
   },
 
-  _detachVolumeRequest: function() {
+  _detachVolumeRequest() {
       this.clearError();
-      var logMessage = 'Sending request to detach volume on machine.';
+      const logMessage = 'Sending request to detach volume on machine.';
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _detachVolumeResponse: function(e) {
+  _detachVolumeResponse(e) {
       console.log(e, e.detail);
       this._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -183,13 +184,13 @@ Polymer({
 
   },
 
-  _detachVolumeError: function(e) {
+  _detachVolumeError(e) {
       console.log(e, e.detail);
       this.$.errormsg.textContent = e.detail.request.xhr.response;
       this.set('formError', true);
   },
 
-  clearError: function() {
+  clearError() {
       this.set('formError', false);
       this.$.errormsg.textContent = '';
       this.$.detachDialogModal.refit();

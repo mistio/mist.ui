@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@vaadin/vaadin-combo-box/vaadin-combo-box.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">
@@ -57,7 +58,7 @@ Polymer({
       },
       oldTag: {
           type: Object,
-          value: function() { return {}; },
+          value() { return {}; },
           computed: 'storeOldTag(tag)'
       },
       index: {
@@ -73,28 +74,28 @@ Polymer({
       'change': '_tagChange',
   },
 
-  storeOldTag: function (tag) {
-      //store tag
-      var oldTag = {};
+  storeOldTag (tag) {
+      // store tag
+      const oldTag = {};
       oldTag.key = this.tag.key;
       oldTag.value = this.tag.value;
 
       return oldTag;
   },
 
-  _computeNewIndex: function (index) {
+  _computeNewIndex (index) {
       return index + 1;
   },
 
-  _deleteTag: function (e) {
-      var that = this;
+  _deleteTag (e) {
+      const that = this;
       this.dispatchEvent(new CustomEvent('tag-delete', { bubbles: true, composed: true, detail: {
           tag: that.tag
       } }));
   },
 
-  _tagChange: function (e) {
-      var that = this;
+  _tagChange (e) {
+      const that = this;
       this.dispatchEvent(new CustomEvent('tag-change', { bubbles: true, composed: true, detail: {
           'oldTag': that.oldTag,
           'newTag': that.tag,

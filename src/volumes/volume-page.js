@@ -12,6 +12,7 @@ import '../element-for-in/element-for-in.js';
 import './volume-actions.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels single-page">
@@ -284,16 +285,16 @@ Polymer({
       '_change(volume)'
   ],
 
-  _displayUser: function(id, members) {
+  _displayUser(id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
   },
 
-  _change: function(item) {
+  _change(item) {
       if (item)
           this.set('itemArray', [this.volume]);
   },
 
-  _computeLocationsName: function(model, cloud, vol, loc) {
+  _computeLocationsName(model, cloud, vol, loc) {
       if (model && cloud && loc && this.volume && this.volume.location) {
           return this.volume
                   && this.model.clouds
@@ -305,38 +306,38 @@ Polymer({
       return '';
   },
 
-  _computeShowVolumeMachines: function(machines) {
+  _computeShowVolumeMachines(machines) {
       if (this.volume) {
           return this.volume.attached_to && this.volume.attached_to.length > 0;
       }
       return false;
   },
 
-  _computeVolumeMachines: function(machineIds, machines) {
+  _computeVolumeMachines(machineIds, machines) {
       if (this.volume) {
           return this.model && this.model.machines && this.volume.attached_to && this.volume.attached_to.length ? this.volume.attached_to.map(i => this.model.machines[i] || { name: 'missing' , id: "#"}) : [];
       }
       return [];
   },
 
-  _computeVolumeCloud: function(volume, clouds) {
+  _computeVolumeCloud(volume, clouds) {
       if (volume && clouds) {
           return this.model.clouds[this.volume.cloud];
       }
       return {};
   },
 
-  _computeVolumeProvider: function(volume, clouds) {
+  _computeVolumeProvider(volume, clouds) {
       if (this.volume) {
           return this.model.clouds[this.volume.cloud].provider;
       }
       return "";
   },
 
-  _computedMachinesVolumeCanAttachTo: function(provide, machines) {
+  _computedMachinesVolumeCanAttachTo(provide, machines) {
       if (this.volume) {
-          var that = this,
-              machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
+          const that = this;
+              const machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
           return machinesArray.filter(function(m) {
               return m.cloud == that.volume.cloud && (!that.volume.location || m.location == that.volume.location) && that.volume.attached_to.indexOf(m.id) == -1
           });
@@ -344,53 +345,53 @@ Polymer({
       return [];
   },
 
-  _computeVolumeTags: function(volume, volumeTags) {
+  _computeVolumeTags(volume, volumeTags) {
       if (this.volume) {
           return Object.entries(this.volume.tags).map(([key, value]) => ({ key, value }));
       }
   },
 
-  _editVolume: function(e) {
+  _editVolume(e) {
       console.log(e);
   },
 
-  _deleteVolume: function(e) {
+  _deleteVolume(e) {
       this._showDialog({
           title: 'Delete Volume?',
-          body: "Deleting volumes cannot be undone. You are about to delete volume: '" +
-              this.volume.name + "'.",
+          body: `Deleting volumes cannot be undone. You are about to delete volume: '${ 
+              this.volume.name  }'.`,
           danger: true,
           reason: "volume.delete"
       });
   },
 
-  _handleVolumeDeletekAjaxResponse: function(e) {
+  _handleVolumeDeletekAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/volumes'
       } }));
 
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _computeIsloading: function(volume) {
-      return !this.volume ? true : false;
+  _computeIsloading(volume) {
+      return !this.volume;
   },
 
-  _toArray: function(x, z) {
+  _toArray(x, z) {
       if (x) {
           return Object.keys(x).map(y => x[y])
       }
       return [];
   },
 
-  _getVolumeNameOrExternalId: function (volume) {
+  _getVolumeNameOrExternalId (volume) {
       return volume && (volume.name || volume.external_id)
   }
 });

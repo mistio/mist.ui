@@ -203,7 +203,7 @@ Polymer({
       },
       recordsSections: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   id: 'records',
                   color: '#3F51B5',
@@ -270,56 +270,56 @@ Polymer({
       'action-finished': 'clearListSelection'
   },
 
-  _changed: function(zone) {
+  _changed(zone) {
       if (this.zone) {
           this.set('itemArray', [this.zone]);
           this.set('renderRecordsList', this.zone.id && this.zone.records)
       }
   },
 
-  clearListSelection: function(){
+  clearListSelection(){
       this.set('selectedItems', []);
   },
 
-  attached: function(){
+  attached(){
       this.async(function(){
           if (this.$.recordsList)
               this.$.recordsList.fire('resize');
       },500)
   },
 
-  _computeHasRecords: function(records) {
+  _computeHasRecords(records) {
       if (this.$.recordsList)
               this.$.recordsList.fire('resize');
       return records && Object.keys(records).length;
   },
 
-  _computeZoneCloud: function(zone, clouds){
+  _computeZoneCloud(zone, clouds){
       if (zone)
           return this.model.clouds[this.zone.cloud].title
   },
 
-  _computeZoneTags: function (zone, zoneTags) {
+  _computeZoneTags (zone, zoneTags) {
       if (this.zone) {
           return Object.entries(this.zone.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _computeRecordsLength: function(records) {
+  _computeRecordsLength(records) {
       return records ? Object.keys(records).length : 0
   },
 
-  _computeRecords: function(records) {
+  _computeRecords(records) {
       if (this.zone) {
           return Object.values(this.zone.records);
       }
   },
 
-  _editZone: function(e) {
+  _editZone(e) {
       console.log(e);
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       if (id && members) {
           return this.model && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
       }
@@ -349,15 +349,15 @@ Polymer({
   //         });
   //     }
   // },
-  _fabAction: function(e) {
+  _fabAction(e) {
       if (this.zone) {
-          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'zones/' + this.zone.id + '/+create'} }))
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:`zones/${  this.zone.id  }/+create`} }))
       }
   },
 
-  _deleteZoneEventResponse: function(e) {
-      var reason = e.detail.reason,
-          response = e.detail.response;
+  _deleteZoneEventResponse(e) {
+      const {reason} = e.detail;
+          const {response} = e.detail;
 
       if (response == 'confirm' && reason == "zone.delete") {
           this.$.zoneDeleteAjaxRequest.body = {};
@@ -367,52 +367,52 @@ Polymer({
       }
   },
 
-  _handleZoneDeleteAjaxResponse: function(e) {
+  _handleZoneDeleteAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Delete was successful.', duration:3000} }));
 
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'/zones'} }))
   },
 
-  _handleZoneDeleteAjaxError: function(e) {
+  _handleZoneDeleteAjaxError(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.response, duration:3000} }));
 
   },
 
-  _computeTagsExist: function(zone, tags){
-      if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0]['key'] && this.zone.tags[0]['key'] != "") {
+  _computeTagsExist(zone, tags){
+      if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0].key && this.zone.tags[0].key != "") {
           return true;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  computeTagItems: function(zone){
+  computeTagItems(zone){
       if (zone) {
-          var arr = [];
-          var item = itemUid(zone, this.section);
+          const arr = [];
+          const item = itemUid(zone, this.section);
           arr.push(item);
           return arr;
       }
   },
 
-  _addResource: function(e) {
+  _addResource(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: this.model.sections.zones.add} }));
   },
 
-  _getFrozenLogColumn: function(){
+  _getFrozenLogColumn(){
       return ['name'];
   },
 
-  _getVisibleColumns: function(){
+  _getVisibleColumns(){
       return ['type', 'id', 'ttl', 'rdata'];
   },
 
-  _getRenderers: function() {
-      var _this = this;
+  _getRenderers() {
+      const _this = this;
       return {
           'name': {
               'body': function(item) {
-                  return '<strong class="name">'+ item + '</strong>';
+                  return `<strong class="name">${ item  }</strong>`;
               }
         },
         'rdata': {
@@ -428,12 +428,12 @@ Polymer({
         },
         'tags': {
               'body': function (item, row) {
-                  var tags = item,
-                      display = "";
+                  const tags = item;
+                      let display = "";
                   for (key in tags) {
-                      display += "<span class='tag'>" + key;
+                      display += `<span class='tag'>${  key}`;
                       if (tags[key] != undefined && tags[key] != "")
-                          display += "=" + tags[key];
+                          display += `=${  tags[key]}`;
                       display += "</span>";
                   }
                   return display;
@@ -442,19 +442,19 @@ Polymer({
     }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('.zone-dialog');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('.zone-dialog');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _computeIsloading: function(zone) {
-      return !this.zone ? true : false;
+  _computeIsloading(zone) {
+      return !this.zone;
   },
 
-  _computeAddRecordPageActive: function(path) {
+  _computeAddRecordPageActive(path) {
       return path.endsWith('/+create');
   }
 });

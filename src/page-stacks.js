@@ -8,6 +8,7 @@ import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -70,42 +71,42 @@ Polymer({
     },
 
     listeners: {},
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path.split('?')[0] == '/+create';
     },
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         return path && path.split('?')[0] != '/+create';
     },
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
-    _getStack: function(id) {
+    _getStack(id) {
         if (this.model.stacks) {
             return this.model.stacks[id];
         }
     },
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.stacks.add
         } }));
     },
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['template', 'status', 'created_by', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['template', 'status', 'created_by', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers: function(stacks, templates) {
-        var _this = this;
+    _getRenderers(stacks, templates) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'template': {
@@ -113,8 +114,7 @@ Polymer({
                     if (_this.model && _this.model.templates)
                         return _this.model.templates[item] ? _this.model.templates[item].name :
                             'missing template';
-                    else
-                        return '';
+                    return '';
                 }
             },
             'owned_by': {
@@ -136,21 +136,21 @@ Polymer({
             'status': {
                 'body': function(item, row) {
                     if (item == "error") {
-                        return "<span class='error'>" + item.charAt(0).toUpperCase() + item.slice(
-                            1); + "</span>";
-                    } else {
+                        return `<span class='error'>${  item.charAt(0).toUpperCase()  }${item.slice(
+                            1)}`; + "</span>";
+                    } 
                         return item ? item.replace(/_/g, " ") : '';
-                    }
+                    
                 }
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;

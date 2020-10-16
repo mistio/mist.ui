@@ -16,6 +16,7 @@ import '../helpers/dialog-element.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const CLOUD_ACTIONS = {
   'tag': {
     'name': 'tag',
@@ -125,7 +126,7 @@ Polymer({
     },
     items: {
       type: Array,
-      value: function () { return [] }
+      value () { return [] }
     },
     cloud: {
       type: Object,
@@ -133,7 +134,7 @@ Polymer({
     },
     actions: {
       type: Array,
-      value: function () { return [] },
+      value () { return [] },
       notify: true
     },
     resourceType: {
@@ -170,18 +171,18 @@ Polymer({
     'cancel': 'closeDialogs'
   },
 
-  attached: function () {
+  attached () {
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
-  closeRenameDialog: function (e) {
+  closeRenameDialog (e) {
     this.$.renameDialog.opened = false;
   },
 
-  computeItemActions: function (cloud) {
-    var arr = [];
+  computeItemActions (cloud) {
+    const arr = [];
     if (cloud) {
       arr.push('tag');
       arr.push('rename');
@@ -194,30 +195,30 @@ Polymer({
     return arr;
   },
 
-  _isBareMetal: function (provider) {
+  _isBareMetal (provider) {
     return provider == 'bare_metal';
   },
 
-  _isKvmLibvirt: function (provider) {
+  _isKvmLibvirt (provider) {
     return provider == 'libvirt';
   },
 
-  computeActionListDetails: function (actions) {
-    var ret = [];
-    for (var i = 0; i < actions.length; i++) {
+  computeActionListDetails (actions) {
+    const ret = [];
+    for (let i = 0; i < actions.length; i++) {
       ret.push(CLOUD_ACTIONS[actions[i]]);
     }
     return ret;
   },
 
-  confirmAction: function (e) {
+  confirmAction (e) {
     if (e.detail.confirmed)
       this.performAction(this.action, this.items);
   },
 
-  selectAction: function (e) {
+  selectAction (e) {
     if (this.items.length) {
-      var action = e.detail.action;
+      const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (action.confirm && action.name == 'delete' && this.items.length == 1) {
@@ -229,17 +230,17 @@ Polymer({
           reason: "cloud.delete"
         });
       } else if (action.confirm && action.name != 'tag') {
-        var plural = this.items.length == 1 ? '' : 's',
-          count = this.items.length > 1 ? this.items.length + ' ' : '';
-        //this.tense(this.action.name) + " " + this.resourceType + "s can not be undone. 
+        const plural = this.items.length == 1 ? '' : 's';
+          const count = this.items.length > 1 ? `${this.items.length  } ` : '';
+        // this.tense(this.action.name) + " " + this.resourceType + "s can not be undone. 
         this._showDialog({
-          title: this.action.name + ' ' + count + this.resourceType + plural + '?',
-          body: "You are about to " + this.action.name + " " + this.items.length + " " + this.resourceType +
-            plural + ".",
+          title: `${this.action.name  } ${  count  }${this.resourceType  }${plural  }?`,
+          body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.resourceType 
+            }${plural  }.`,
           list: this._makeList(this.items, 'title'),
           action: action.name,
           danger: true,
-          reason: this.resourceType + "." + this.action.name
+          reason: `${this.resourceType  }.${  this.action.name}`
         });
       } else if (action.name == 'tag') {
         this.$.tagsdialog._openDialog();
@@ -253,46 +254,46 @@ Polymer({
     }
   },
 
-  openEditDialog: function () {
+  openEditDialog () {
     this.$.credentialsDialog.opened = true;
   },
 
-  closeDialog: function () {
+  closeDialog () {
     // console.log('closeDialog');
     this.$.credentialsDialog.opened = false;
   },
 
-  closeDialogs: function () {
+  closeDialogs () {
     this.$.renameDialog.opened = false;
     this.$.credentialsDialog.opened = false;
     this.$.addhostsDialog.opened = false;
     this.$.cloudDeleteAjaxRequest.opened = false;
   },
 
-  _showDialog: function (info) {
-    var dialog = this.shadowRoot.querySelector('dialog-element');
+  _showDialog (info) {
+    const dialog = this.shadowRoot.querySelector('dialog-element');
     if (info) {
-      for (var i in info) {
+      for (const i in info) {
         dialog[i] = info[i];
       }
     }
     dialog._openDialog();
   },
 
-  performAction: function (action, items) {
+  performAction (action, items) {
     if (action.name == 'rename') {
       this.$.renameDialog.opened = true;
     } else if (action.name == 'delete') {
-      var l = items.length;
-      for (var i=0;i<l;i++) {
+      const l = items.length;
+      for (let i=0;i<l;i++) {
         this._deleteCloud();
         this.set('items', this.splice('items',1));
       }
     }
   },
 
-  _deleteCloud: function () {
-    var cid = this.cloud.id;
+  _deleteCloud () {
+    const cid = this.cloud.id;
     this.dispatchEvent(new CustomEvent('cloud-delete', { bubbles: true, composed: true, detail: {
       cloud: cid
     } }));
@@ -301,20 +302,20 @@ Polymer({
     this.$.cloudDeleteAjaxRequest.generateRequest();
   },
 
-  handleResponse: function (e) {
+  handleResponse (e) {
     this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
       success: true
     } }));
 
     if (this.$.request && this.$.request.body && this.$.request.body.action)
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-        msg: 'Action: ' + this.$.request.body.action + ' successfull',
+        msg: `Action: ${  this.$.request.body.action  } successfull`,
         duration: 3000
       } }));
   },
 
-  _handleCloudDeletionAjaxResponse: function (e) {
-    var title = '';
+  _handleCloudDeletionAjaxResponse (e) {
+    let title = '';
     if (this.cloud && this.cloud.title)
       title = this.cloud.title;
 
@@ -324,54 +325,54 @@ Polymer({
       } }));
 
     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-      msg: 'Cloud ' + title + ' was deleted',
+      msg: `Cloud ${  title  } was deleted`,
       duration: 3000
     } }));
 
   },
 
-  _handleCloudDeletionAjaxError: function (e) {
+  _handleCloudDeletionAjaxError (e) {
     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-      msg: 'There was an error deleting ' + this.cloud.title + '.',
+      msg: `There was an error deleting ${  this.cloud.title  }.`,
       duration: 3000
     } }));
 
   },
 
-  handleError: function (e) {
+  handleError (e) {
     // console.log(e.detail.request.xhr.statusText);
     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-      msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
+      msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`,
       duration: 5000
     } }));
 
   },
 
-  _makeList: function (items, property) {
+  _makeList (items, property) {
     if (items && items.length)
       return items.map(function (item) {
         return item[property];
       });
   },
 
-  _computeCloud: function (items) {
+  _computeCloud (items) {
     if (this.items.length > 0)
       return this.items[0];
   },
 
-  _computeNewCloud: function(cloud) {
+  _computeNewCloud(cloud) {
     if (cloud)
       return {
         title: this.cloud.title
       }
   },
 
-  _computeIsEnabled: function(enabled) {
+  _computeIsEnabled(enabled) {
     return enabled;
   },
 
-  _computeFormReady: function(title, newTitle, sendingData) {
-    var formReady = false;
+  _computeFormReady(title, newTitle, sendingData) {
+    let formReady = false;
     if (newTitle && newTitle != title) {
       formReady = true;
     }
@@ -382,7 +383,7 @@ Polymer({
     return formReady;
   },
 
-  _changeTitle: function() {
+  _changeTitle() {
     this.$.cloudEditAjaxRequest.headers["Content-Type"] = 'application/json';
     this.$.cloudEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
     this.$.cloudEditAjaxRequest.body = {
@@ -393,7 +394,7 @@ Polymer({
     this.set('opened', false);
   },
 
-  _handleCloudEditAjaxResponse: function() {
+  _handleCloudEditAjaxResponse() {
     this.set('sendingData', false);
   }
 });

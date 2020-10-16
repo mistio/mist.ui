@@ -6,6 +6,7 @@ import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -50,24 +51,24 @@ Polymer({
       }
   },
 
-  toggle: function(e) {
+  toggle(e) {
       this.shadowRoot.querySelector('iron-collapse').toggle();
   },
 
-  addGraph: function(e) {
+  addGraph(e) {
       console.log('addGraph', this.machine);
       document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
-      var metric = this.metric.name;
-      var payload = {
+      const metric = this.metric.name;
+      const payload = {
           metric_id: metric
       };
-      this.$.associateMetric.url = "/api/v1/machines/" + this.machine + "/metrics";
+      this.$.associateMetric.url = `/api/v1/machines/${  this.machine  }/metrics`;
       this.$.associateMetric.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.associateMetric.params = payload;
       this.$.associateMetric.generateRequest();
   },
 
-  _handleAssociateResponse: function(e) {
+  _handleAssociateResponse(e) {
       console.log('event in add-graph');
       e.stopPropagation();
       document.querySelector('mist-app').fire('update-dashboard');

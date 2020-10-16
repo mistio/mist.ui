@@ -16,6 +16,7 @@ import './other-cloud-add-machine.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="tags-and-labels single-page shared-styles">
@@ -518,29 +519,29 @@ Polymer({
       '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networks,cloud.machines)'
   ],
 
-  _cloudChanged: function (cloud) {
+  _cloudChanged (cloud) {
       // console.log(this.cloud, this.cloud.enabled, [this.cloud])
       this.set('itemArray', this.cloud ? [this.cloud] : []);
       this._cloudArraysChanged();
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
   },
 
-  _canShowImages: function(provider) {
+  _canShowImages(provider) {
       return !this._isBareMetal(provider);
   },
 
-  _canShowLocations: function(provider) {
+  _canShowLocations(provider) {
       return !this._isBareMetal(provider);
   },
 
-  _canShowHostsList: function(provider) {
+  _canShowHostsList(provider) {
       return provider == "libvirt" || this._isBareMetal(provider);
   },
 
-  _cloudArraysChanged: function (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
+  _cloudArraysChanged (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
       if (this.cloud) {
           this.async(function () {
               if (this.cloud) {
@@ -559,113 +560,113 @@ Polymer({
       }
   },
 
-  viewRunning: function () {
+  viewRunning () {
       this.goToFilteredList('machines', 'running')
   },
 
-  viewStopped: function () {
+  viewStopped () {
       this.goToFilteredList('machines', 'stopped')
   },
 
-  viewImages: function () {
+  viewImages () {
       this.goToFilteredList('images')
   },
 
-  viewNetworks: function () {
+  viewNetworks () {
       this.goToFilteredList('networks')
   },
 
-  goToFilteredList: function (page, state) {
-      var search = state ? ' ' + state : '';
+  goToFilteredList (page, state) {
+      const search = state ? ` ${  state}` : '';
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-          url: '/' + page,
+          url: `/${  page}`,
           search: this.cloud.title + search
       } }));
 
   },
 
-  _computeShowCount: function (c) {
+  _computeShowCount (c) {
       console.log('_computeShowCount', c);
-      return c != 0 ? true : false;
+      return c != 0;
   },
 
-  _computeRunningMachines: function (machines) {
-      var _this = this;
+  _computeRunningMachines (machines) {
+      const _this = this;
       return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
           return _this.cloud.machines[m].state == 'running'
       }).length : 0;
   },
 
-  _computeStoppedMachines: function (machines) {
-      var _this = this;
+  _computeStoppedMachines (machines) {
+      const _this = this;
       return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
           return _this.cloud.machines[m].state == 'stopped'
       }).length : 0;
   },
 
-  _computeCloudTitle: function (cloud) {
+  _computeCloudTitle (cloud) {
       if (cloud)
           return cloud.title;
   },
 
-  _computeCloudTags: function (cloud, cloudTags) {
+  _computeCloudTags (cloud, cloudTags) {
       if (this.cloud) {
           return Object.entries(this.cloud.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _computeIsloading: function (cloud) {
-      return !this.cloud ? true : false;
+  _computeIsloading (cloud) {
+      return !this.cloud;
   },
 
-  _computeItemImage: function (item) {
+  _computeItemImage (item) {
       if (item && item.provider) {
-          var provider = item.provider.replace('_', '');
-          return 'assets/providers/provider-' + provider + '.png';
+          const provider = item.provider.replace('_', '');
+          return `assets/providers/provider-${  provider  }.png`;
       }
   },
 
-  _showDialog: function (info) {
-      var dialog = this.querySelector('dialog-element#confirm');
+  _showDialog (info) {
+      const dialog = this.querySelector('dialog-element#confirm');
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _isSupportedDNSProvider: function (provider) {
+  _isSupportedDNSProvider (provider) {
       // FIXME: Don't hardcode this. Backend needs to pass this info to ui.
       return ['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer', 'vultr'].indexOf(
               provider) > -1;
   },
 
-  _isBareMetal: function (provider) {
+  _isBareMetal (provider) {
       return provider == 'bare_metal';
   },
 
-  _changeState: function (e) {
+  _changeState (e) {
       this.$['enable-disable-cloud'].disabled = true;
-      this.$['cloudStateAjaxRequest'].headers["Content-Type"] = 'application/json';
-      this.$['cloudStateAjaxRequest'].headers["Csrf-Token"] = CSRFToken.value;
-      this.$['cloudStateAjaxRequest'].body = {
+      this.$.cloudStateAjaxRequest.headers["Content-Type"] = 'application/json';
+      this.$.cloudStateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
+      this.$.cloudStateAjaxRequest.body = {
           new_state: this.cloud.enabled ? '0' : '1'
       };
       this.expectedState = this.cloud.enabled ? '0' : '1';
-      this.$['cloudStateAjaxRequest'].generateRequest();
+      this.$.cloudStateAjaxRequest.generateRequest();
   },
 
-  _handleCloudStateAjaxResponse: function (e) {
-      var message = this.expectedState == true ? 'Cloud ' + this.cloud.title +
-          ' was enabled!' : 'Cloud ' + this.cloud.title + ' was disabled!';
+  _handleCloudStateAjaxResponse (e) {
+      const message = this.expectedState == true ? `Cloud ${  this.cloud.title 
+          } was enabled!` : `Cloud ${  this.cloud.title  } was disabled!`;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: message,
           duration: 5000
       } }));
   },
 
-  _handleCloudStateAjaxError: function (e) {
+  _handleCloudStateAjaxError (e) {
       this.$['enable-disable-cloud'].checked = this.cloud.enabled;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: e.detail.request.xhr.response,
@@ -673,42 +674,42 @@ Polymer({
       } }));
   },
 
-  _changeOBSLOGSenabled: function(e) {
-      var observation_logs_enabled = this.cloud.observation_logs_enabled ? 0 : 1;
+  _changeOBSLOGSenabled(e) {
+      const observation_logs_enabled = this.cloud.observation_logs_enabled ? 0 : 1;
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditOBSLOGSAjaxRequest.body = {
-          observation_logs_enabled: observation_logs_enabled
+          observation_logs_enabled
       };
       this.$.cloudEditOBSLOGSAjaxRequest.generateRequest();
   },
 
-  _handleCloudEditOBSLOGSAjaxResponse: function() {
-      var message = this.shadowRoot.querySelector('#OBS-enable-disable').checked ? 'Observation logs for ' + this.cloud.title + ' enabled!' : 'Observation logs for ' + this.cloud.title + ' disabled!' ;
+  _handleCloudEditOBSLOGSAjaxResponse() {
+      const message = this.shadowRoot.querySelector('#OBS-enable-disable').checked ? `Observation logs for ${  this.cloud.title  } enabled!` : `Observation logs for ${  this.cloud.title  } disabled!` ;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:5000} }));
   },
 
-  _handleCloudEditOBSLOGSAjaxError: function(e) {
+  _handleCloudEditOBSLOGSAjaxError(e) {
       this.shadowRoot.querySelector('#OBS-enable-disable').checked = this.cloud.observation_logs_enabled;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.request.xhr.response,duration:10000} }));
   },
 
-  _changeDNSenabled: function(e) {
-      var dns_enabled = this.cloud.dns_enabled ? 0 : 1;
+  _changeDNSenabled(e) {
+      const dns_enabled = this.cloud.dns_enabled ? 0 : 1;
       this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditDNSAjaxRequest.body = {
-          dns_enabled: dns_enabled
+          dns_enabled
       };
       this.$.cloudEditDNSAjaxRequest.generateRequest();
   },
 
-  _handleCloudEditDNSAjaxResponse: function() {
-      var message = this.shadowRoot.querySelector('#DNS-enable-disable').checked ? 'DNS support for ' + this.cloud.title + ' enabled!' : 'DNS support for ' + this.cloud.title + ' disabled!' ;
+  _handleCloudEditDNSAjaxResponse() {
+      const message = this.shadowRoot.querySelector('#DNS-enable-disable').checked ? `DNS support for ${  this.cloud.title  } enabled!` : `DNS support for ${  this.cloud.title  } disabled!` ;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:5000} }));
   },
 
-  _handleCloudEditDNSAjaxError: function(e) {
+  _handleCloudEditDNSAjaxError(e) {
       this.shadowRoot.querySelector('#DNS-enable-disable').checked = this.cloud.dns_enabled;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.request.xhr.response,duration:10000} }));
   }

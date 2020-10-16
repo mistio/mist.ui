@@ -4,6 +4,7 @@ import '../../node_modules/@mistio/mist-list/mist-list.js';
 import './other-cloud-machine-actions.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <h3>Hosts</h3>
@@ -32,7 +33,7 @@ Polymer({
       },
       selectedMachineItems: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       }
   },
 
@@ -44,41 +45,41 @@ Polymer({
       'machinesChanged(cloud.*, cloud.machines.*)'
   ],
 
-  machinesChanged: function(c,m){
+  machinesChanged(c,m){
       if (this.shadowRoot.querySelector('mist-list'))
           this.shadowRoot.querySelector('mist-list').fire('resize');
   },
 
-  _computeMachines: function (cloud) {
+  _computeMachines (cloud) {
       if (cloud.provider != "libvirt") {
           return this.cloud.machines || {};
-      } else {
+      } 
           // filter kvm hosts and push back to object
-          var ms = Object.values(this.cloud.machines).filter(function(m){
+          const ms = Object.values(this.cloud.machines).filter(function(m){
               return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type == "hypervisor";
           });
-          var ret = {};
-          for (var i=0; i<ms.length; i++) {
+          const ret = {};
+          for (let i=0; i<ms.length; i++) {
               ret[ms[i].id] = ms[i];
           }
           return ret;
-      }
+      
   },
 
-  _getFrozenLogColumn: function(){
+  _getFrozenLogColumn(){
       return ['name'];
   },
 
-  _getVisibleColumns: function(){
+  _getVisibleColumns(){
       return ['state', 'id', 'missing_since', 'public_ips', 'tags'];
   },
 
-  _getRenderers: function() {
-      var _this = this;
+  _getRenderers() {
+      const _this = this;
       return {
           'name': {
               'body': function(item) {
-                  return '<strong class="name">' + item + '</strong>';
+                  return `<strong class="name">${  item  }</strong>`;
               }
           },
           'missing_since': {
@@ -99,12 +100,12 @@ Polymer({
           },
           'tags': {
               'body': function(item, row) {
-                  var tags = item,
-                      display = "";
-                  for (var i=0; i<tags.length; i++){
-                      display += "<span class='tag'>"+tags[i].key;
+                  const tags = item;
+                      let display = "";
+                  for (let i=0; i<tags.length; i++){
+                      display += `<span class='tag'>${tags[i].key}`;
                       if (tags[i].value != undefined && tags[i].value != "")
-                      display += "=" + tags[i].value;
+                      display += `=${  tags[i].value}`;
                       display += "</span>";
                   }
                   return display;
@@ -114,7 +115,7 @@ Polymer({
   },
 
   // redirect events
-  selectAction: function(e) {
+  selectAction(e) {
       e.stopImmediatePropagation();
       if (this.shadowRoot.querySelector('other-cloud-machine-actions')) {
           this.shadowRoot.querySelector('other-cloud-machine-actions').selectAction(e);

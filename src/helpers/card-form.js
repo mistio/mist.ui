@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/gold-cc-input/gold-cc-input.js';
 import '../../node_modules/@polymer/gold-cc-cvc-input/gold-cc-cvc-input.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -124,7 +125,7 @@ Polymer({
       },
       payload: {
           type: Object,
-          value: function(){
+          value(){
               return {
                   number: "",
                   exp_month: "",
@@ -167,11 +168,11 @@ Polymer({
     '_assessValidity(payload.*)'
   ],
 
-  ready: function(){
+  ready(){
 
   },
 
-  reset: function(){
+  reset(){
       this.set('errors', '');
       this.set('token', null);
       this.set('cardValid', false);
@@ -185,17 +186,17 @@ Polymer({
       this.$.cc.invalid = this.$.cvc.invalid = this.$.expirationYear.invalid = this.$.expirationMonth.invalid = this.$.zipCode.invalid = false;
   },
 
-  verify: function(){
-      //extra stripe validation
+  verify(){
+      // extra stripe validation
       if (this.cardValid) {
-          var isValid = Stripe.card.validateCardNumber(this.payload.number) &&
+          const isValid = Stripe.card.validateCardNumber(this.payload.number) &&
               Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
               Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
 
           if (isValid){
               Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
               Stripe.card.createToken(this.payload, stripeResponseHandler);
-              var that = this;
+              const that = this;
               function stripeResponseHandler(status, response){
                   if (response.error) {
                       console.error('stripeResponseHandler failed', response.error.message);
@@ -206,7 +207,7 @@ Polymer({
                   }
               }
           } else {
-              var errorsArray = [];
+              const errorsArray = [];
               if (!Stripe.card.validateCardNumber(this.payload.number))
                   errorsArray.push('card number');
 
@@ -219,25 +220,25 @@ Polymer({
               if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
                   errorsArray.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
               }
-              this._setError('There seems to be an error in '+ errorsArray.join(', ') +'.');
+              this._setError(`There seems to be an error in ${ errorsArray.join(', ') }.`);
           }
           this.dispatchEvent(new CustomEvent('card-response'));
       }
   },
 
-  _setToken: function(status, response) {
+  _setToken(status, response) {
       this.set('token', response.id);
       this.set('errors', '');
       this.dispatchEvent(new CustomEvent('card-response', { bubbles: true, composed: true, detail: {token: this.token} }));
 
   },
 
-  _setError: function(str){
+  _setError(str){
       this.set('errors', str);
       this.set('token', null);
   },
 
-  _dateChanged: function(month, year) {
+  _dateChanged(month, year) {
       if (year.length)
           this.$.expirationYear.invalid = !this._validateDate(month, year);
       if (month.length)
@@ -248,21 +249,21 @@ Polymer({
       }
   },
 
-  _validateDate: function(month, year) {
+  _validateDate(month, year) {
       if (!month.length || !year.length)
           return false;
       if (month > 12 || month < 1)
           return false;
-      var then = new Date ('20' + year, month);
-      var now = new Date();
+      const then = new Date (`20${  year}`, month);
+      const now = new Date();
       return (then > now);
   },
 
-  _selectYear: function() {
+  _selectYear() {
       this.$.expirationYear.focus();
   },
 
-  _assessValidity: function(payload) {
+  _assessValidity(payload) {
       this._setError('');
       if (this._emptyProperty(this.payload) ||
           this.$.cc.invalid ||
@@ -276,9 +277,9 @@ Polymer({
       }
   },
 
-  _emptyProperty: function(obj) {
+  _emptyProperty(obj) {
       if (obj) {
-          for (var p in obj) {
+          for (const p in obj) {
               if (!obj[p] || !obj[p].trim().length)
                   return true;
           }

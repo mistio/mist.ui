@@ -12,6 +12,7 @@ import './key-edit.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const KEY_ACTIONS = {
   'rename': {
     'name': 'rename',
@@ -81,11 +82,11 @@ Polymer({
     },
     items: { 
       type: Array,
-      value: function () { return []; }
+      value () { return []; }
     },
     actions: { 
       type: Array,
-      value: function () { return []; },
+      value () { return []; },
       notify: true
     },
     type: {
@@ -106,20 +107,20 @@ Polymer({
     'select-action': 'selectAction'
   },
 
-  attached: function() {
+  attached() {
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
-  _updateVisibleActions: function() {
+  _updateVisibleActions() {
     if (this.$.actions)
       this.$.actions._updateVisibleActions();
   },
 
-  _otherMembers: function (members,items) {
+  _otherMembers (members,items) {
     if (this.items && members) {
-      var owners = this.items.map(function(i){return i.owned_by;})
+      const owners = this.items.map(function(i){return i.owned_by;})
                         .filter(function(value,index,self){return self.indexOf(value) === index;});
       // filter out pending users and the single owner of the item-set if that is the case
       return members.filter(function(m) {
@@ -128,8 +129,8 @@ Polymer({
     }
   },
 
-  computeItemActions: function(key) {
-    var arr = [];
+  computeItemActions(key) {
+    const arr = [];
     if (key && !key.isDefault && this.org.is_owner) {
       arr.push('make_default');
     }
@@ -145,36 +146,36 @@ Polymer({
     return arr;
   },
 
-  computeActionListDetails: function (actions) {
-    var ret = [];
-    for (var i=0; i<actions.length; i++) {
+  computeActionListDetails (actions) {
+    const ret = [];
+    for (let i=0; i<actions.length; i++) {
         ret.push(KEY_ACTIONS[actions[i]]);
     }
     return ret;
   },
 
-  confirmAction: function(e){
+  confirmAction(e){
     if (e.detail.confirmed)
       this.performAction(this.action, this.items);
   },
 
-  selectAction: function(e){
+  selectAction(e){
     if (this.items.length) {
-      var action = e.detail.action;
+      const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (action.confirm && action.name != 'tag') {
-        var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-            plural = this.items.length == 1 ? '' : 's',
-            count = this.items.length > 1 ? this.items.length+' ' : '';
-        //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
+            const plural = this.items.length == 1 ? '' : 's';
+            const count = this.items.length > 1 ? `${this.items.length} ` : '';
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
-            title: this.action.name + ' ' + count + this.type + plural+'?',
-            body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural+".",
+            title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
+            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}.`,
             list: this._makeList(this.items, property),
             action: action.name,
             danger: true,
-            reason: this.type + "." + this.action.name
+            reason: `${this.type  }.${  this.action.name}`
         });
       }
       else if (action.name == 'make default') {
@@ -192,9 +193,9 @@ Polymer({
     }
   },
 
-  transferOwnership: function (e) {
-    var payload = {
-      user_id: e.detail.user_id, //new owner
+  transferOwnership (e) {
+    const payload = {
+      user_id: e.detail.user_id, // new owner
       resources: {}
     };
     payload.resources[this.type] = this.items.map(function(i){return i.id});
@@ -207,44 +208,44 @@ Polymer({
     this.$.request.generateRequest();
   },
 
-  _delete: function() {
-    //set up iron ajax
+  _delete() {
+    // set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
 
-    for (var i = 0; i < this.items.length; i++) {
-      this.$.request.url = "/api/v1/keys/"+ this.items[i].id
+    for (let i = 0; i < this.items.length; i++) {
+      this.$.request.url = `/api/v1/keys/${ this.items[i].id}`
       this.$.request.generateRequest();
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Deleting ' + this.items[i].name , duration: 1000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Deleting ${  this.items[i].name}` , duration: 1000} }));
     }
   },
 
-  _makeDefault: function(){
-    //set up iron ajax
+  _makeDefault(){
+    // set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
 
-    for (var i = 0; i < this.items.length; i++) {
-      this.$.request.url = "/api/v1/keys/"+ this.items[i].id
+    for (let i = 0; i < this.items.length; i++) {
+      this.$.request.url = `/api/v1/keys/${ this.items[i].id}`
       this.$.request.generateRequest();
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Making key ' + this.items[i].name + " the default.", duration: 1000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Making key ${  this.items[i].name  } the default.`, duration: 1000} }));
     }
 
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-        for (var i in info) {
+        for (const i in info) {
             dialog[i] = info[i];
         }
       }
       dialog._openDialog();
   },
 
-  performAction: function(action, items) {
+  performAction(action, items) {
     if (action.name == 'delete') {
       this._delete();
     }
@@ -253,18 +254,18 @@ Polymer({
     }
   },
 
-  _editKey: function(e) {
+  _editKey(e) {
       e.stopImmediatePropagation();
-      var el = this.shadowRoot.querySelector('key-edit');
+      const el = this.shadowRoot.querySelector('key-edit');
       el._openEditKeyModal();
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
     this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {success: true} }));
 
     if (this.$.request && this.$.request.body && this.$.request.body.action){
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Action: '+this.$.request.body.action
-        +' successfull', duration: 3000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Action: ${this.$.request.body.action
+        } successfull`, duration: 3000} }));
     } else if (this.$.request && !this.$.request.body) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/keys'} }));
     }
@@ -279,16 +280,16 @@ Polymer({
     }
   },
 
-  handleError: function(e) {
+  handleError(e) {
     // console.log(e.detail.request.xhr.statusText);
-    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: 'Error: ' + e.detail.request.xhr.status +" "+ e.detail.request.xhr.statusText, duration: 5000} }));
+    this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `Error: ${  e.detail.request.xhr.status } ${ e.detail.request.xhr.statusText}`, duration: 5000} }));
 
     if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
       this.$.ownershipdialog._closeDialog();
     }
   },
 
-  _makeList: function(items, property){
+  _makeList(items, property){
     if (items && items.length)
       return items.map(function(item){
         return item[property];

@@ -418,7 +418,7 @@ Polymer({
       },
       stacks: {
           type: Array,
-          value: function() {return [];}
+          value() {return [];}
       },
       isInline: {
           type: Boolean,
@@ -450,91 +450,91 @@ Polymer({
       '_activated(hidden)'
   ],
 
-  ready: function() {
-      var wh = window.innerHeight;
-      this.vpHeight = 'height:' + wh + 'px; overflow: auto;';
+  ready() {
+      const wh = window.innerHeight;
+      this.vpHeight = `height:${  wh  }px; overflow: auto;`;
   },
 
-  _activated: function(active) {
+  _activated(active) {
       this.$.templateActions.fire('update');
   },
 
-  _computeTemplate: function(id, templates) {
+  _computeTemplate(id, templates) {
       if (this.model.templates)
           return this.model.templates[id];
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
   },
 
-  _computeReadableDate: function(date) {
+  _computeReadableDate(date) {
       return moment.utc(date).fromNow();
   },
 
-  _computeHasStacks: function(stacks) {
+  _computeHasStacks(stacks) {
       if (this.stacks) {
           return this.stacks.length > 0;
-      } else {
+      } 
           return false;
-      }
+      
   },
 
-  _computeIsInline: function(source) {
+  _computeIsInline(source) {
       return source == 'inline';
   },
 
-  _computeTemplateTags: function (template, templateTags) {
+  _computeTemplateTags (template, templateTags) {
       if (this.template) {
           return Object.entries(this.template.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _class: function(isinline) {
+  _class(isinline) {
       return isinline ? "command-container" : "";
   },
 
-  _createStack: function(e) {
+  _createStack(e) {
       e.stopImmediatePropagation();
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.template._id}} }))
   },
 
-  _handleResponse: function(e){
+  _handleResponse(e){
       // console.log('response',e);
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/templates'} }));
 
   },
 
-  _handleError: function(e){
+  _handleError(e){
       console.log('error',e);
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element'),
-          i;
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+          let i;
       for (i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  _goBack: function() {
+  _goBack() {
       history.back();
   },
 
-  toggleAll: function(e) {
-      var t = e.target;
-      var els = this.shadowRoot.querySelectorAll('app-togglable');
+  toggleAll(e) {
+      const t = e.target;
+      const els = this.shadowRoot.querySelectorAll('app-togglable');
       [].forEach.call(els, function(el, index) {
           el.open = true;
       });
   },
 
-  _computeIsloading: function(template) {
-      return !this.template ? true : false;
+  _computeIsloading(template) {
+      return !this.template;
   },
 
-  _changed: function(item) {
+  _changed(item) {
       if (this.template)
           this.set('itemArray', [this.template]);
   }

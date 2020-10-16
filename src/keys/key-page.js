@@ -352,7 +352,7 @@ Polymer({
       '_hiddenUpdated(hidden)'
   ],
 
-  resourceHasTags: function(key,selectors) {
+  resourceHasTags(key,selectors) {
       // CAUTION: Selectors' format is as follows
       //      selectors = [{type:'tags',tags:{test:null,xtest:true}}, {type:'key',ids:[]}]
       // whereas key tags are in the format
@@ -362,10 +362,10 @@ Polymer({
       // The following returns true if the volume has at least one of the selectors tags
       if (!key || !selectors)
           return false;
-      var bool =  selectors.filter(function(t){return t.type == 'tags'})
+      const bool =  selectors.filter(function(t){return t.type == 'tags'})
                       .map(x=>x.tags)
                       .findIndex(function(s){
-                          for (var p in s ) {
+                          for (const p in s ) {
                               if (key.tags[p] === s[p] || (key.tags[p] === "" && s[p]=== null)) {
                                   return true;
                               }
@@ -375,11 +375,11 @@ Polymer({
       return bool;
   },
 
-  _hiddenUpdated: function (hidden) {
+  _hiddenUpdated (hidden) {
       this.$.keyActions.fire('update');
   },
 
-  _keyUpdated: function(key){
+  _keyUpdated(key){
       if (key){
           this.$.keyPublicRequest.headers["Content-Type"] = 'application/json';
           this.$.keyPublicRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -394,94 +394,94 @@ Polymer({
       this.set('visiblePrivateKey', false);
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
   },
 
-  _getHeaderStyle: function(section) {
-      return 'background-color: ' + section.color + '; color: #fff;';
+  _getHeaderStyle(section) {
+      return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _computeKeyTags: function(key, tags){
+  _computeKeyTags(key, tags){
       if (this.key) {
           return Object.entries(this.key.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  computeTagItems: function(key){
+  computeTagItems(key){
       if (key) {
-          var arr = [];
-          var item = itemUid(key, this.section);
+          const arr = [];
+          const item = itemUid(key, this.section);
           arr.push(item);
           return arr;
       }
   },
 
-  _computeKeyMachines: function(key) {
+  _computeKeyMachines(key) {
       if (key)
           return key.machines;
   },
 
-  _keyHasMachines: function(keyMachines) {
+  _keyHasMachines(keyMachines) {
       if (keyMachines)
-          return keyMachines.length > 0 ? true : false;
+          return keyMachines.length > 0;
   },
 
-  _keyHasMachinesMoreThanOne: function(keyMachines) {
+  _keyHasMachinesMoreThanOne(keyMachines) {
       if (keyMachines)
-          return keyMachines.length > 1 ? true : false;
+          return keyMachines.length > 1;
   },
 
-  getMachineUrl: function(keymachine) {
-      var cloud = this.model.clouds[keymachine[0]];
+  getMachineUrl(keymachine) {
+      const cloud = this.model.clouds[keymachine[0]];
       if (!cloud) return;
-      var machine = cloud.machines && cloud.machines[keymachine[1]];
-      return machine && "/machines/" + machine.id;
+      const machine = cloud.machines && cloud.machines[keymachine[1]];
+      return machine && `/machines/${  machine.id}`;
   },
 
-  getCloudTitle: function(keymachine) {
-      var cloud = this.model.clouds[keymachine[0]];
+  getCloudTitle(keymachine) {
+      const cloud = this.model.clouds[keymachine[0]];
       if (!cloud) return '';
       return cloud.title;
   },
 
-  getMachineName: function(keymachine, machines) {
-      var cloud = this.model.clouds[keymachine[0]];
+  getMachineName(keymachine, machines) {
+      const cloud = this.model.clouds[keymachine[0]];
       if (!cloud) return '';
-      var machine = cloud.machines && cloud.machines[keymachine[1]];
+      const machine = cloud.machines && cloud.machines[keymachine[1]];
       return machine && machine.name;
   },
 
-  _computeIsDefault: function(isDefault) {
+  _computeIsDefault(isDefault) {
       return isDefault;
   },
 
-  copyPublicKey: function() {
+  copyPublicKey() {
       this.clearSelection();
-      var el = this.$.keyPublic;
+      const el = this.$.keyPublic;
       this.setSelection(el);
-      var successful = document.execCommand('copy');
-      var message = successful ? 'The Public Key was copied to clipboard!' : 'There was an error copying to clipboard!';
+      const successful = document.execCommand('copy');
+      const message = successful ? 'The Public Key was copied to clipboard!' : 'There was an error copying to clipboard!';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
 
   },
 
-  copyPrivateKey: function() {
+  copyPrivateKey() {
       this.clearSelection();
-      var el = this.$.keyPrivate;
+      const el = this.$.keyPrivate;
       this.setSelection(el);
-      var successful = document.execCommand('copy');
-      var message = successful ? 'The Private Key was copied to clipboard!' : 'There was an error copying to clipboard!';
+      const successful = document.execCommand('copy');
+      const message = successful ? 'The Private Key was copied to clipboard!' : 'There was an error copying to clipboard!';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
 
   },
 
-  handlePublicResponse: function(data) {
-      //console.log(data);
+  handlePublicResponse(data) {
+      // console.log(data);
       this.set('publicKey', data.detail.response);
   },
 
-  showPrivateKey: function() {
+  showPrivateKey() {
       this.$.keyPrivateRequest.headers["Content-Type"] = 'application/json';
       this.$.keyPrivateRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyPrivateRequest.body = {};
@@ -489,47 +489,47 @@ Polymer({
       this.visiblePrivateKey = true;
   },
 
-  hidePrivateKey: function() {
+  hidePrivateKey() {
       this.visiblePrivateKey = false;
   },
 
-  handlePrivateResponse: function(data) {
+  handlePrivateResponse(data) {
       this.set('privateKey', data.detail.response);
   },
 
-  _editTags: function() {
-      var el = this.shadowRoot.querySelector('tags-list'),
-      items = [];
+  _editTags() {
+      const el = this.shadowRoot.querySelector('tags-list');
+      const items = [];
       items.push(itemUid(this.key, this.section));
       el.items = items;
       el._openDialog();
   },
 
-  _deleteKey: function(e) {
+  _deleteKey(e) {
       this._showDialog({
           title: 'Delete Key?',
-          body: "Deleting a key can not be undone. You are about to delete key '" + this.key.name + "'.",
+          body: `Deleting a key can not be undone. You are about to delete key '${  this.key.name  }'.`,
           danger: true,
           reason: "key.delete"
       });
   },
 
-  _handleKeyDeleteAjaxResponse: function(e) {
+  _handleKeyDeleteAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/keys'} }));
 
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  clearSelection: function(){
+  clearSelection(){
       if (window.getSelection) {
           if (window.getSelection().empty) {  // Chrome
               window.getSelection().empty();
@@ -541,7 +541,7 @@ Polymer({
       }
   },
 
-  setSelection: function(el){
+  setSelection(el){
       if (document.selection) {
           var range = document.body.createTextRange();
               range.moveToElementText(el);

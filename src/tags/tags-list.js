@@ -152,43 +152,42 @@ Polymer({
         'tag-change': '_tagUpdate'
     },
 
-    ready: function(){
+    ready(){
         this.set('items', []);
         this.set('tags', []);
         this.set('tagsToDelete', []);
     },
 
-    _openDialog: function(e) {
+    _openDialog(e) {
         this.shadowRoot.querySelector('paper-dialog').open();
     },
 
-    _closeDialog: function() {
+    _closeDialog() {
         this.shadowRoot.querySelector('paper-dialog').close();
     },
 
-    _modalClosed: function(e) {
+    _modalClosed(e) {
         this.set('tagsToDelete', []);
         this.set('showProgress', false);
         this.set('hasError', false);
         this.$.errormsg.textContent = '';
     },
 
-    selectedItemsChanged: function(splices){
+    selectedItemsChanged(splices){
         // console.log('selectedItemsChanged', splices);
         // freeze updating of selectedItems when dialog is open
         if (!this.$.tagsModal.opened)
             this._computeTags(this.items);
     },
 
-    _computeShowEmpty: function(tags, length){
+    _computeShowEmpty(tags, length){
         if (this.tags && this.tags.length>0)
             return false;
-        else
-            return true;
+        return true;
     },
 
-    _computeTags: function(lengths) {
-        var tags = this._computeCommonTags(this.items);
+    _computeTags(lengths) {
+        let tags = this._computeCommonTags(this.items);
         // console.log('_computeTags',tags.length);
         if (!tags.length) {
             tags = [{
@@ -199,22 +198,22 @@ Polymer({
         this.set('tags', tags);
     },
 
-    _computeCommonTags: function(items) {
+    _computeCommonTags(items) {
         let tagset = new Set();
         let isection = new Set();
 
-        for (var i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
 
-            var item = items[i];
+            const item = items[i];
 
-            var itemType = item.split(":")[0],
-                itemCloudId = item.split(":")[1],
-                itemId = item.split(":")[2],
-                itemObj = {};
+            const itemType = item.split(":")[0];
+                const itemCloudId = item.split(":")[1];
+                const itemId = item.split(":")[2];
+                let itemObj = {};
             if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
-                itemObj = this.model.clouds[itemCloudId][itemType+'s'][itemId];
+                itemObj = this.model.clouds[itemCloudId][`${itemType}s`][itemId];
             else {
-                itemObj = this.model[itemType+'s'][itemId];
+                itemObj = this.model[`${itemType}s`][itemId];
             }
             if (itemObj) {
 
@@ -222,9 +221,9 @@ Polymer({
                     itemObj.tags = [];
                 // TO FIX: network tags should not be type 'object', but Array of objects
                 // only networks return their tags in such format. Below code patches it.
-                else if (itemObj.tags && typeof(itemObj.tags) == 'object') {
-                    var foo = []
-                    for (var p in itemObj.tags) {
+                else if (itemObj.tags && typeof(itemObj.tags) === 'object') {
+                    const foo = []
+                    for (const p in itemObj.tags) {
                         foo.push(itemObj.tags[p])
                     }
                     itemObj.tags = foo;
@@ -233,12 +232,12 @@ Polymer({
                 if (i == 0) {
                     // console.log('itemObj.tags',itemObj.tags);
                     tagset = new Set(itemObj.tags.map(function(tag){
-                        return tag.key+'='+tag.value;
+                        return `${tag.key}=${tag.value}`;
                     }));
                 }
                 else {
                     isection = intersection(tagset, itemObj.tags.map(function(tag){
-                            return tag.key+'='+tag.value;
+                            return `${tag.key}=${tag.value}`;
                         }) || []);
                     tagset = new Set(isection);
                 }
@@ -251,17 +250,17 @@ Polymer({
         }) || [];
     },
 
-    _addTag: function() {
-        var newTag = {
+    _addTag() {
+        const newTag = {
             key: '',
             value: ''
         };
         this.push('tags', newTag);
     },
 
-    _tagDeleteHandler: function(e) {
-        var tag = e.detail.tag,
-            index = this.tags.indexOf(tag);
+    _tagDeleteHandler(e) {
+        const {tag} = e.detail;
+            const index = this.tags.indexOf(tag);
             this.splice('tags', index, 1);
         if (tag.key && !this._inArray(tag, this.tagsToDelete)) {
             tag.op = "-";
@@ -269,35 +268,35 @@ Polymer({
         }
     },
 
-    _tagUpdate: function(e){
+    _tagUpdate(e){
         // this._tagDeleteHandler(e);
         console.log(e.detail);
 
-        var oldTag = e.detail.oldTag;
-        var newTag = e.detail.newTag;
+        const {oldTag} = e.detail;
+        const {newTag} = e.detail;
 
-        //move old tag to tags to delete
+        // move old tag to tags to delete
         if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
             oldTag.op = "-";
             this.push('tagsToDelete', oldTag);
         }
     },
 
-    _inArray: function(tag, tagstodelete){
-        var tin = this.tagsToDelete.find(function(t){
+    _inArray(tag, tagstodelete){
+        const tin = this.tagsToDelete.find(function(t){
             return t.key == tag.key;
         })
         console.log('tin', tin);
-        return tin ? true : false;
+        return !!tin;
     },
 
-    _saveTags: function() {
+    _saveTags() {
         // console.log('_saveTags', this.items);
-        var newTags = this.tags.filter(function(tag) {
+        const newTags = this.tags.filter(function(tag) {
                 return tag.key;
-            }),
-            payload = [],
-            deltags = [];
+            });
+            let payload = [];
+            let deltags = [];
 
         if (this.tagsToDelete.length > 0) {
             deltags = this.tagsToDelete.filter(function(tag){
@@ -306,11 +305,11 @@ Polymer({
         }
 
         payload = this.items.map(function(item) {
-            var itemType = item.split(":")[0],
-                itemCloudId = item.split(":")[1],
-                itemId = item.split(":")[2];
+            const itemType = item.split(":")[0];
+                const itemCloudId = item.split(":")[1];
+                const itemId = item.split(":")[2];
 
-            var newItem = {};
+            const newItem = {};
 
             if (itemType == "machine") {
                 newItem.resource = {
@@ -339,13 +338,13 @@ Polymer({
         this.set('showProgress', true);
     },
 
-    _handleTagsAjaxResponse: function(e) {
+    _handleTagsAjaxResponse(e) {
         this._closeDialog();
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
 
     },
 
-    _handleTagsAjaxError: function(e){
+    _handleTagsAjaxError(e){
         console.log('Tags Error',e, e.detail.request.xhr.responseText);
         this.set('showProgress', false);
         this.set('hasError', true);

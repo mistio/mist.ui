@@ -181,7 +181,7 @@ Polymer({
       'input': 'computeErrors'
   },
 
-  _computeFormReady: function(currentPassword, newPassword, confirmNewPassword, loading) {
+  _computeFormReady(currentPassword, newPassword, confirmNewPassword, loading) {
       if (currentPassword && newPassword && confirmNewPassword && newPassword==confirmNewPassword) {
           this.set('formError', false);
           this.set('formReady', true);
@@ -201,8 +201,8 @@ Polymer({
 
   },
 
-  _submitForm: function(e) {
-      var payload = {
+  _submitForm(e) {
+      const payload = {
           action: 'update_password',
           current_password: this.currentPassword,
           password: this.newPassword,
@@ -214,41 +214,41 @@ Polymer({
       this.$.passwordUpdateAjaxRequest.generateRequest();
   },
 
-  _handlePasswordUpdateAjaxResponse: function(e) {
+  _handlePasswordUpdateAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('toast',{ bubbles: true, composed: true, detail: {msg:'Password updated successfully!', duration:3000} }));
 
       this._formReset();
   },
 
-  _handlePasswordUpdateAjaxError: function(e) {
+  _handlePasswordUpdateAjaxError(e) {
       this.set('formError', true);
       this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
   },
 
-  _setPassword: function() {
+  _setPassword() {
       this.$.passwordSetAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.passwordSetAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.passwordSetAjaxRequest.body = {};
       this.$.passwordSetAjaxRequest.generateRequest();
   },
 
-  _handlePasswordSetAjaxResponse: function(e) {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'An email was sent to your email account: "' + this.user.email +'"', duration:5000} }));
+  _handlePasswordSetAjaxResponse(e) {
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:`An email was sent to your email account: "${  this.user.email }"`, duration:5000} }));
 
   },
 
-  _handlePasswordSetAjaxError: function(e) {
+  _handlePasswordSetAjaxError(e) {
       this.set('formError', true);
       this.shadowRoot.querySelector("#errormsg").textContent = e.detail.request.xhr.responseText;
   },
 
-  _formReset: function() {
+  _formReset() {
       this.set('this.currentPassword', null);
       this.set('this.newPassword', null);
       this.set('this.confirmNewPassword', null);
   },
 
-  hideErrors: function(){
+  hideErrors(){
       this.set('formError', false);
   }
 });

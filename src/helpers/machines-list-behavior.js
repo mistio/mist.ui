@@ -6,27 +6,27 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 */
 export const machinesListBehavior = {
     properties: {},
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
+    _getVisibleColumns() {
+        const ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         // console.log('parent sets visible', ret);
         return ret;
     },
 
-    _getRenderers: function() {
-        var _this = this;
+    _getRenderers() {
+        const _this = this;
         return {
             'indicator': {
                 'body': function(item, row) {
-                    var green = "#69b46c",
-                        pending = "#eee",
-                        red = "#d96557",
-                        color = 'transparent';
+                    const green = "#69b46c";
+                        const pending = "#eee";
+                        const red = "#d96557";
+                        let color = 'transparent';
                     // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
                     if (row.monitoring && row.monitoring.hasmonitoring) {
                         color = green;
@@ -36,7 +36,7 @@ export const machinesListBehavior = {
                             .installation_status == "installing" || !row.monitoring.installation_status
                             .activated_at)
                             color = pending;
-                        return 'border-left: 8px solid ' + color + '; padding-left: 8px;';
+                        return `border-left: 8px solid ${  color  }; padding-left: 8px;`;
                     }
                     return '';
                 }
@@ -45,44 +45,44 @@ export const machinesListBehavior = {
                 'body': function(item, row) {
                     if (!_this.model.clouds[row.cloud])
                         return '';
-                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                        .replace(" ", "") + '.png';
+                    return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "")  }.png`;
                 }
             },
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'state': {
                 'body': function(item, row) {
-                    var ret = '',
-                        prefix = '';
+                    let ret = '';
+                        let prefix = '';
                     if (_this.itemRecommendation(row)) {
                         prefix =
                             '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                     }
                     if (item == "running")
-                        ret += "<div class='state " + _this.itemProbeClasses(row) +
-                        "'><span class='green'>" + item + "</span></div>";
+                        ret += `<div class='state ${  _this.itemProbeClasses(row) 
+                        }'><span class='green'>${  item  }</span></div>`;
                     else if (item == "error")
-                        ret += "<div class='state " + _this.itemProbeClasses(row) +
-                        "'><span class='error'>" + item + "</span></div>";
+                        ret += `<div class='state ${  _this.itemProbeClasses(row) 
+                        }'><span class='error'>${  item  }</span></div>`;
                     else if (item == "stopped")
-                        ret += "<div class='state " + _this.itemProbeClasses(row) +
-                        "'><span class='orange'>" + item + "</span></div>";
+                        ret += `<div class='state ${  _this.itemProbeClasses(row) 
+                        }'><span class='orange'>${  item  }</span></div>`;
                     else
-                        ret += "<div class='state'>" + item + "</span>";
+                        ret += `<div class='state'>${  item  }</span>`;
 
                     return prefix + ret;
                 },
                 'cmp': function(item1, item2, row1, row2) {
                     if (row1.monitoring && !row2.monitoring) {
                         return -1;
-                    } else if (!row1.monitoring && row2.monitoring) {
+                    } if (!row1.monitoring && row2.monitoring) {
                         return 1;
                     }
-                    return 0; //item1.localeCompare(item2);
+                    return 0; // item1.localeCompare(item2);
                 }
             },
             'cloud': {
@@ -104,7 +104,7 @@ export const machinesListBehavior = {
             },
             'cost': {
                 'body': function(item, row) {
-                    var cost = parseFloat(item.monthly) * _this.currency.rate;
+                    const cost = parseFloat(item.monthly) * _this.currency.rate;
                     return item && item.monthly ? _this.currency.sign + cost.formatMoney(0) : '';
                 },
                 'cmp': function(item1, item2, row1, row2) {
@@ -141,8 +141,8 @@ export const machinesListBehavior = {
                     return _this.computeSize(row, item);
                 },
                 'cmp': function(item1, item2, row1, row2) {
-                    var s1 = _this.computeSize(row1, item1),
-                        s2 = _this.computeSize(row2, item2);
+                    const s1 = _this.computeSize(row1, item1);
+                        const s2 = _this.computeSize(row2, item2);
 
                     if (!s1.length && !s2.length)
                         return 0;
@@ -167,8 +167,8 @@ export const machinesListBehavior = {
                     return _this._computeImage(row, item);
                 },
                 'cmp': function(item1, item2, row1, row2) {
-                    var im1 = _this._computeImage(row1, item1),
-                        im2 = _this._computeImage(row2, item2);
+                    const im1 = _this._computeImage(row1, item1);
+                        const im2 = _this._computeImage(row2, item2);
 
                     if (!im1.length && !im2.length)
                         return 0;
@@ -194,12 +194,12 @@ export const machinesListBehavior = {
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;
@@ -231,18 +231,18 @@ export const machinesListBehavior = {
         }
     },
 
-    _computeImage: function(row, item) {
+    _computeImage(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        var image_id = item;
+        let image_id = item;
 
         if (!image_id && row.extra && row.extra.image) {
             if (row.extra.image.distribution && row.extra.image.name) {
-                return row.extra.image.distribution + " " + row.extra.image.name;
+                return `${row.extra.image.distribution  } ${  row.extra.image.name}`;
             }
             image_id = row.extra.image;
         }
         if (!image_id && row.extra) {
-            image_id = row.extra['image_id'] || row.imageId || (row.extra.image && (row.extra.image
+            image_id = row.extra.image_id || row.imageId || (row.extra.image && (row.extra.image
                 .slug || row.extra.image.name));
         }
 
@@ -254,18 +254,18 @@ export const machinesListBehavior = {
         return image_id || "";
     },
 
-    computeSize: function(row, item) {
+    computeSize(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        var size_id = item;
+        let size_id = item;
 
 
         // Try to figure out size_id
-        if (row.size && typeof(row.size) != 'object') {
+        if (row.size && typeof(row.size) !== 'object') {
             size_id = row.size || '';
         }
 
         if (!size_id && row.extra) {
-            if (row.extra.size && typeof(row.extra.size) == 'string') {
+            if (row.extra.size && typeof(row.extra.size) === 'string') {
                 size_id = row.extra.size;
             } else {
                 size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
@@ -277,21 +277,21 @@ export const machinesListBehavior = {
         if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
                 row.cloud.id].sizes && this.model.clouds[
                 row.cloud.id].sizes[size_id]) {
-            var size = this.model.clouds[row.cloud.id].sizes[size_id];
+            const size = this.model.clouds[row.cloud.id].sizes[size_id];
             return size.name || size.id;
         }
 
         // If that fails look for size info in the extra metadata
         if (row.extra) {
             if (row.extra.size && row.extra.size.vcpus) {
-                var size_name = row.extra.size.vcpus + 'vCPU';
+                var size_name = `${row.extra.size.vcpus  }vCPU`;
                 if (row.extra.size.memory)
-                    size_name += ', ' + row.extra.size.memory + 'MB RAM';
+                    size_name += `, ${  row.extra.size.memory  }MB RAM`;
                 return size_name;
-            } else if (row.extra.maxCpu) {
-                size_name = row.extra.maxCpu + 'vCPU';
+            } if (row.extra.maxCpu) {
+                size_name = `${row.extra.maxCpu  }vCPU`;
                 if (row.extra.maxMemory)
-                    size_name += ', ' + row.extra.maxMemory + 'MB RAM';
+                    size_name += `, ${  row.extra.maxMemory  }MB RAM`;
                 return size_name;
             }
         }
@@ -299,40 +299,40 @@ export const machinesListBehavior = {
         return size_id || '';
     },
 
-    _getMachineWeight: function(machine, model) {
-        var weight = 0;
-        var machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray),
-            machineHasMonitor = this._machineHasMonitoring(machine),
-            machineHasrecommendations = this._machineHasrecommendations(machine),
-            machineHasProbe = this._machineHasProbe(machine);
+    _getMachineWeight(machine, model) {
+        let weight = 0;
+        const machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray);
+            const machineHasMonitor = this._machineHasMonitoring(machine);
+            const machineHasrecommendations = this._machineHasrecommendations(machine);
+            const machineHasProbe = this._machineHasProbe(machine);
         machineState = this._machineState(machine);
         weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
             machineHasProbe + machineState;
         return weight != NaN ? weight : 0;
     },
 
-    _machineHasIncidents: function(machine, incidents) {
-        var machineIncidents = incidents ? incidents.filter(function(inc) {
+    _machineHasIncidents(machine, incidents) {
+        const machineIncidents = incidents ? incidents.filter(function(inc) {
             return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
         }) : [];
         return machineIncidents ? machineIncidents.length * 1000 : 0;
     },
 
-    _machineHasMonitoring: function(machine) {
+    _machineHasMonitoring(machine) {
         return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
     },
 
-    _machineHasrecommendations: function(machine, probes) {
+    _machineHasrecommendations(machine, probes) {
         return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
     },
 
-    _machineHasProbe: function(machine) {
+    _machineHasProbe(machine) {
         return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg ? machine.probe.ssh
             .loadloadavg[0] + machine.probe.ssh.loadloadavg[1] + machine.probe.ssh.loadloadavg[2] :
             1;
     },
 
-    _machineState: function(machine) {
+    _machineState(machine) {
         if (machine.state == 'running')
             return 5;
         if (machine.state == 'error')
@@ -346,51 +346,50 @@ export const machinesListBehavior = {
         return 0;
     },
 
-    itemRecommendation: function(item) {
+    itemRecommendation(item) {
         if (this.probes == {} || !item || !item.id) {
             return false;
-        } else {
+        } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
                 return false;
             return true;
-        }
+        
     },
 
-    itemProbeClasses: function(item) {
+    itemProbeClasses(item) {
         if (this.probes == {}) {
             return '';
-        } else {
+        } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                 return "";
-            } else {
-                var probe = this.model.probes[item.id].loadavg;
-                var cores = parseInt(this.model.probes[item.id].cores);
-                var classes = '';
-                var prefix = '';
+            } 
+                const probe = this.model.probes[item.id].loadavg;
+                const cores = parseInt(this.model.probes[item.id].cores);
+                let classes = '';
+                const prefix = '';
 
                 classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
                 classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
                 classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
 
-                //has probe data
+                // has probe data
                 if (classes != "")
                     classes += "hasprobe "
 
                 return classes;
-            }
-        }
+            
+        
     },
 
-    loadToColor: function(load, prefix) {
+    loadToColor(load, prefix) {
         if (load > 1.2)
-            return prefix + "high ";
-        else if (load > 0.8)
-            return prefix + "medium ";
-        else if (load > 0.6)
-            return prefix + "eco ";
-        else if (load > 0.2)
-            return prefix + "low ";
-        else
-            return prefix + "low ";
+            return `${prefix  }high `;
+        if (load > 0.8)
+            return `${prefix  }medium `;
+        if (load > 0.6)
+            return `${prefix  }eco `;
+        if (load > 0.2)
+            return `${prefix  }low `;
+        return `${prefix  }low `;
     }
 }

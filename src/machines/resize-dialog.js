@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -200,10 +201,10 @@ Polymer({
       '_selectedSizeChanged(selectedSize)'
   ],
 
-  ready: function() {},
-  attached: function() {},
+  ready() {},
+  attached() {},
 
-  resizeMachine: function() {
+  resizeMachine() {
       if (this.showCustomSizeForm) {
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
           this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -217,7 +218,7 @@ Polymer({
       }
   },
 
-  _updateShowNotification: function(machine, memory) {
+  _updateShowNotification(machine, memory) {
       if (this.machine && this.machine.extra.hypervisor_type) {
           if (this.machine.extra.hypervisor_type == 'kvm' && this.current_memory >= this.memory) {
               this.set('showNotification', false);
@@ -229,46 +230,46 @@ Polymer({
       }
   },
 
-  updateValues: function(machine) {
+  updateValues(machine) {
       if (this.machine) {
           if (this.showCustomSizeForm) {
-              this.set('size', 'Current ' + this.machine.extra.size);
+              this.set('size', `Current ${  this.machine.extra.size}`);
           } else {
-              var currentSize = this.sizes.find(function(p) { return p.id == this.machine.size }.bind(this)),
-                  name = currentSize ? currentSize.name : "";
-              this.set('size', name.length ? 'Current ' + name : '');
+              const currentSize = this.sizes.find(function(p) { return p.id == this.machine.size }.bind(this));
+                  const name = currentSize ? currentSize.name : "";
+              this.set('size', name.length ? `Current ${  name}` : '');
           }
       }
       this.clearError();
   },
 
-  computeCurrentCpus: function(machine) {
+  computeCurrentCpus(machine) {
       if (this.machine && this.machine.extra && this.machine.extra.cpus) {
           this.cpus = this.machine.extra.cpus;
           return this.machine.extra.cpus;
       }
   },
 
-  computeCurrentMemory: function(machine) {
+  computeCurrentMemory(machine) {
       if (this.machine && this.machine.extra && this.machine.extra.memory) {
           this.memory = this.machine.extra.memory;
           return this.machine.extra.memory;
       }
   },
 
-  computeShowCustomSizeForm: function(machine_cloud, clouds) {
+  computeShowCustomSizeForm(machine_cloud, clouds) {
       if (this.machine && this.machine.cloud && this.clouds && this.clouds[this.machine.cloud] && this.clouds[this.machine.cloud].provider)
           return ['onapp'].indexOf(this.clouds[this.machine.cloud].provider) > -1;
   },
 
-  _updateSizes: function(machine, clouds) {
-      if (this.machine && this.clouds && this.clouds[this.machine.cloud] && (clouds.path == 'clouds' || clouds.path.startsWith('clouds.' + this.machine.cloud + '.sizes'))) {
+  _updateSizes(machine, clouds) {
+      if (this.machine && this.clouds && this.clouds[this.machine.cloud] && (clouds.path == 'clouds' || clouds.path.startsWith(`clouds.${  this.machine.cloud  }.sizes`))) {
           // console.log('update sizes', clouds.path);
-          var sizes = [];
+          let sizes = [];
           if (this.clouds[this.machine.cloud].provider.startsWith("aliyun")) {
-              var machineLocationID = this.machine.location;
-              var machineLocation = this.clouds[this.machine.cloud].locations[machineLocationID];
-              var availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter(function(size){
+              const machineLocationID = this.machine.location;
+              const machineLocation = this.clouds[this.machine.cloud].locations[machineLocationID];
+              const availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter(function(size){
                   return machineLocation.extra.available_instance_types.indexOf(size.external_id) > -1;
               })
               sizes = availableLocationSizes || [];
@@ -287,35 +288,35 @@ Polymer({
       }
   },
 
-  _selectedSizeChanged: function() {
+  _selectedSizeChanged() {
       this.clearError();
   },
 
-  clearError: function() {
+  clearError() {
       this.set('formError', false);
       this.$.errormsg.textContent = '';
       this.$.dialogModal.refit();
   },
 
-  _updateFormReadyOnapp: function(current_cpus, current_memory, cpus, memory) {
+  _updateFormReadyOnapp(current_cpus, current_memory, cpus, memory) {
       if (this.showCustomSizeForm) {
           this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
       }
   },
 
-  _updateFormReady: function(machine, selectedSize) {
+  _updateFormReady(machine, selectedSize) {
       if (!this.showCustomSizeForm && this.selectedSize != undefined) {
           this.set('formReady', true);
       }
   },
 
-  _openDialog: function(e) {
-      //reset
+  _openDialog(e) {
+      // reset
       this.updateValues(this.machine);
       this.$.dialogModal.open();
   },
 
-  _resizeMachineResponse: function(e) {
+  _resizeMachineResponse(e) {
       this.$.dialogModal.close();
       this.clearSelection();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -323,57 +324,57 @@ Polymer({
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Resize request sent successfully. Updating machine..', duration: 3000 } }));
   },
 
-  _resizeMachineError: function(e) {
+  _resizeMachineError(e) {
       this.set('formError', true);
       console.log('error', e)
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.$.dialogModal.refit();
   },
 
-  _resizeMachineRequest: function(e) {},
+  _resizeMachineRequest(e) {},
 
-  isCurrent: function(size, machineSize) {
+  isCurrent(size, machineSize) {
       return size.id == machineSize || size.name == machineSize;
   },
 
-  clearSelection: function() {
+  clearSelection() {
       this.set('selectedSize', undefined);
       this.set('formReady', false);
   },
 
-  displayNumber: function(n) {
+  displayNumber(n) {
       if (!n) {
           return n;
-      } else if (typeof(n) == 'number') {
+      } if (typeof(n) === 'number') {
           return n.formatMoney(0, ',', '.');
       }
   },
 
-  displayPrice: function(size) {
-      var price = size.price || (size.extra && size.extra.price);
+  displayPrice(size) {
+      const price = size.price || (size.extra && size.extra.price);
       // console.log('extra.price',price, size.extra.price);
-      if (typeof(price) == 'string') {
+      if (typeof(price) === 'string') {
           return price;
-      } else if (typeof(price) == 'number') {
+      } if (typeof(price) === 'number') {
           return price.formatMoney();
-      } else if (typeof(price) == 'object' && this.machine.os_type == 'windows' && price.mswin) {
+      } if (typeof(price) === 'object' && this.machine.os_type == 'windows' && price.mswin) {
           return price.mswin;
-      } else if (price && typeof(price) == 'object' && price.linux) {
+      } if (price && typeof(price) === 'object' && price.linux) {
           // && this.machine.os_type == 'unix' //show linux price for all other machines
           return price.linux;
-      } else {
-          return !(!price) ? JSON.stringify(price) : false;
-      }
+      } 
+          return price ? JSON.stringify(price) : false;
+      
   },
 
-  hotkeys: function(e) {
+  hotkeys(e) {
       console.log('hotkeys', e);
       if (e.keyCode === 38) {
-          //arrow up
+          // arrow up
           if (e.path.indexOf(this.$.cpus) > -1) { this.set('cpus', Math.max(this.cpus + 1, 1)) }
           if (e.path.indexOf(this.$.memory) > -1) { this.set('memory', Math.max(this.memory + 5, 256)) }
       } else if (e.keyCode === 40) {
-          //arrow down
+          // arrow down
           if (e.path.indexOf(this.$.cpus) > -1) { this.set('cpus', Math.max(this.cpus - 1, 1)) }
           if (e.path.indexOf(this.$.memory) > -1) { this.set('memory', Math.max(this.memory - 5, 256)) }
       }

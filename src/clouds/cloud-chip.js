@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/paper-material/paper-material.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
     <style>
@@ -152,7 +153,7 @@ Polymer({
     '_computeIsOnline(cloud.enabled,cloud.state)',
   ],
 
-  ready: function () {
+  ready () {
     this.cloud = {};
     if (this.$.removeBtn) {
       // disable tabindex on remove button so that tabindex can be used for chips
@@ -160,7 +161,7 @@ Polymer({
     }
   },
 
-  _computeIsOnline: function (enabled, state) {
+  _computeIsOnline (enabled, state) {
     if (this.cloud) {
       if (this.cloud.state == 'online') {
         this.set('online', true);
@@ -177,8 +178,8 @@ Polymer({
    *
    * @event remove
    */
-  remove: function () {
-    var e = this.dispatchEvent(new CustomEvent('remove', {}, this, false, true));
+  remove () {
+    const e = this.dispatchEvent(new CustomEvent('remove', {}, this, false, true));
     if (!e.defaultPrevented) {
       this.parentNode.removeChild(this);
     }

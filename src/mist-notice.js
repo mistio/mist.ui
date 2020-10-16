@@ -3,6 +3,7 @@ import '../node_modules/@polymer/paper-styles/typography.js';
 import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -46,16 +47,16 @@ Polymer({
       }
   },
 
-  _computeUpgrade: function() {
+  _computeUpgrade() {
       if (!this.model || !this.model.user || !this.model.user.available_upgrades || !this.model.user.available_upgrades.length)
           return '';
-      if (localStorage.getItem('dismiss-' + this.model.user.available_upgrades[0].name))
+      if (localStorage.getItem(`dismiss-${  this.model.user.available_upgrades[0].name}`))
           return '';
       return this.model.user.available_upgrades[0].name;
   },
 
-  _dismiss: function(e) {
-      localStorage.setItem('dismiss-' + this.upgrade, true);
+  _dismiss(e) {
+      localStorage.setItem(`dismiss-${  this.upgrade}`, true);
       this.pop('model.user.available_upgrades');
       e.preventDefault();
   }

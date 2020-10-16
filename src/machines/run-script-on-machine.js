@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -83,31 +84,31 @@ Polymer({
   },
 
   listeners: {},
-  ready: function() {},
-  computedSelectedScriptId: function(selected) {},
+  ready() {},
+  computedSelectedScriptId(selected) {},
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.set('selected', false);
       this.set('selectedScriptId', false);
       this.set('params', '');
       this.$.scriptDialogModal.opened = true;
   },
 
-  _dismissDialog: function(e) {
+  _dismissDialog(e) {
       this.$.scriptDialogModal.opened = false;
   },
 
-  runScript: function(e) {
-      var request = this.$.runScriptRequest;
-      var scriptparams = this.params || '';
+  runScript(e) {
+      const request = this.$.runScriptRequest;
+      const scriptparams = this.params || '';
 
       console.log('runScript', request.id, items, scriptparams);
 
       var items = this.items.slice(0);
       var run = function(el) {
-          var item = items.shift(),
-              itemType,
-              itemId;
+          const item = items.shift();
+              let itemType;
+              let itemId;
           if (item.length) {
               chunks = item.split(':'),
                   itemId = chunks[2],
@@ -131,20 +132,20 @@ Polymer({
       run(this);
   },
 
-  _runScriptRequest: function() {
-      var logMessage = 'Sending request to run script on machine.';
+  _runScriptRequest() {
+      const logMessage = 'Sending request to run script on machine.';
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _runScriptResponse: function(e) {
+  _runScriptResponse(e) {
       console.log(e, e.detail);
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Run script request sent successfully. Review in machine logs.', duration: 5000 } }));
       this._dismissDialog();
   },
 
-  _runScriptError: function(e) {
+  _runScriptError(e) {
       console.log(e, e.detail);
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
 

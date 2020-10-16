@@ -25,6 +25,7 @@ import './orchestration-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/anchorme.js/dist-browser/anchorme.min.js';
+
 Polymer({
   _template: html`
         <style include="lists forms tags-and-labels single-page shared-styles">
@@ -726,22 +727,22 @@ Polymer({
       listMachines: {
           type: Array,
           computed: '_computeListMachines(stack.node_instances.*, model.machines.*)',
-          value: function () { return []; }
+          value () { return []; }
       },
       networks: {
           type: Array,
           computed: '_computeListNetworks(stack.node_instances.*, model.networks.*)',
-          value: function () { return []; }
+          value () { return []; }
       },
       zones: {
           type: Array,
           computed: '_computeListZones(stack.node_instances.*, model.zonesArray.*)',
-          value: function () { return []; }
+          value () { return []; }
       },
       keys: {
           type: Array,
           computed: '_computeListKeys(stack.node_instances.*, model.keys.*)',
-          value: function () { return []; }
+          value () { return []; }
       },
       workflows: {
           type: Array,
@@ -834,22 +835,22 @@ Polymer({
       'deploy-now': 'deployNowWork'
   },
 
-  ready: function () {},
-  attached: function () {},
+  ready () {},
+  attached () {},
 
-  updateTerm: function (show) {
+  updateTerm (show) {
       if (show) {
           this.attachTerm();
       } else {
-          var xterm = this.shadowRoot.querySelector("xterm-dialog");
+          const xterm = this.shadowRoot.querySelector("xterm-dialog");
           if (xterm) {
               xterm.remove();
           }
       }
   },
 
-  attachTerm: function () {
-      var xterm = this.shadowRoot.querySelector("xterm-dialog");
+  attachTerm () {
+      let xterm = this.shadowRoot.querySelector("xterm-dialog");
       if (xterm)
           xterm.remove();
       xterm = document.createElement("xterm-dialog");
@@ -859,28 +860,28 @@ Polymer({
       xterm.height = 500;
       xterm.controls = false;
       xterm.classList.add('inparent');
-      var parent = this.shadowRoot.querySelector("div#cfyshell");
+      const parent = this.shadowRoot.querySelector("div#cfyshell");
       parent.insertBefore(xterm, parent.firstChild);
       console.warn('xterm open', xterm);
   },
 
-  enhanceWorkflowLogs: function (workflows) {
-      var workflowLogs = this.stack ? this.stack.workflows : [];
-      var runitems = this._sortByTimestamp(workflowLogs.slice());
+  enhanceWorkflowLogs (workflows) {
+      const workflowLogs = this.stack ? this.stack.workflows : [];
+      const runitems = this._sortByTimestamp(workflowLogs.slice());
 
       var run = function (el) {
-          var item = runitems.shift();
+          const item = runitems.shift();
           if (item) {
-              var uri = '/api/v1/jobs/' + item.job_id;
-              var xhr = new XMLHttpRequest();
+              const uri = `/api/v1/jobs/${  item.job_id}`;
+              const xhr = new XMLHttpRequest();
               xhr.onreadystatechange = function () {
                   if (xhr.readyState == XMLHttpRequest.DONE) {
                       if (xhr.status == 200) {
-                          var response = xhr.response ? xhr.response : [];
+                          let response = xhr.response ? xhr.response : [];
                           if (response) {
                               response = JSON.parse(response);
                               console.log(response);
-                              for (var p in response) {
+                              for (const p in response) {
                                   item[p] = response[p];
                               }
                           }
@@ -902,26 +903,26 @@ Polymer({
       run(this);
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
   },
 
-  _computeStack: function (params) {
-      var stack = {};
+  _computeStack (params) {
+      let stack = {};
       if (params.id)
           stack = this.model.stacks[params.id];
 
       if (stack) {
           // console.log('Stack',stack);
           return stack;
-      } else {
+      } 
           return {
               name: "Stack is missing"
           }
-      }
+      
   },
 
-  _sortByTimestamp: function (items) {
+  _sortByTimestamp (items) {
       if (items)
           return items.sort(function (a, b) {
               return a.timestamp < b.timestamp
@@ -929,25 +930,25 @@ Polymer({
       return items;
   },
 
-  _computeFromNow: function (timestamp) {
+  _computeFromNow (timestamp) {
       return moment.utc(timestamp * 1000).fromNow();
   },
 
-  _getVisibleColumns: function () {
+  _getVisibleColumns () {
       return ['name', 'error']
   },
 
-  _getFrozenLogColumn: function () {
+  _getFrozenLogColumn () {
       return ['timestamp']
   },
 
-  _getRenderers: function () {
-      var _this = this;
+  _getRenderers () {
+      const _this = this;
       return {
           'timestamp': {
               'body': function (item, row) {
-                  var ret = '<span title="' + moment(item * 1000).format() + '">' +
-                      moment(item * 1000).fromNow() + '</span>';
+                  let ret = `<span title="${  moment(item * 1000).format()  }">${ 
+                      moment(item * 1000).fromNow()  }</span>`;
                   if (row.error)
                       ret +=
                       '<iron-icon icon="error" style="float: right"></iron-icon>';
@@ -965,19 +966,19 @@ Polymer({
       };
   },
 
-  _computeHasResources: function (machines, networks, keys, nodeInstances) {
+  _computeHasResources (machines, networks, keys, nodeInstances) {
       return this.listMachines.length || this.networks.length || this.keys.length;
   },
 
-  _computeOutputsAreEmpty: function (stack) {
+  _computeOutputsAreEmpty (stack) {
       if (stack && stack.outputs)
-          for (var p in stack.outputs) {
+          for (const p in stack.outputs) {
               return false;
           }
       return true;
   },
 
-  _computeOutputs: function (outputs) {
+  _computeOutputs (outputs) {
       return Object.keys(outputs).map(function (key) {
           return {
               name: key,
@@ -986,11 +987,11 @@ Polymer({
       });
   },
 
-  _computeStackTags: function (stack, stackTags) {
+  _computeStackTags (stack, stackTags) {
       return this.stack && Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));
   },
 
-  _stackStateChanged: function(status) {
+  _stackStateChanged(status) {
       this.set('inStartCreationState', false) 
       this.set('inErrorState', false)
       this.set('inWorkflowStartedState', false)
@@ -1007,37 +1008,37 @@ Polymer({
       }
   },
 
-  _showAll: function (stack) {
+  _showAll (stack) {
       if (stack)
           return stack.status == 'ok' || stack.status == 'error';
   },
 
-  _hideWorkflows: function (status) {
+  _hideWorkflows (status) {
       if (this.stack)
           return !this.stack.deploy || this.stack.status == 'workflow_started' || this.stack
               .status == 'start_creation';
   },
 
-  _hideDeployNow: function (stack) {
+  _hideDeployNow (stack) {
       if (stack)
           return stack.deploy || stack.status == 'workflow_started' || stack.status ==
               'start_creation';
   },
 
-  _disabledButtons: function (stack) {
+  _disabledButtons (stack) {
       if (stack)
           return stack.status == 'workflow_started' || stack.status == 'start_creation';
   },
 
-  _closeworkflows: function () {
+  _closeworkflows () {
       this.$.workflows.classList.remove('open');
       this.set('workflowsOpen', false)
   },
 
-  openWorkflows: function (e) {
+  openWorkflows (e) {
       this.$.workflows.classList.toggle('open');
       this.set('workflowsOpen', !this.workflowsOpen);
-      var pages = this.$.workflowsView.children;
+      const pages = this.$.workflowsView.children;
       [].forEach.call(pages, function (p, index) {
           if (index != 0) {
               p.setAttribute("show", false);
@@ -1047,19 +1048,19 @@ Polymer({
       });
   },
 
-  handleErrorsResponse: function (e) {
+  handleErrorsResponse (e) {
       console.log("handleErrorsResponse: ", e.detail);
       // get error
   },
 
-  handleErrorsError: function (e) {
+  handleErrorsError (e) {
       console.log("handleErrorsResponse: ", e.detail);
       // could not do the request
       this.hasErrors = true;
   },
 
-  _resourcelist: function (keys, networks, zones, machines) {
-      var sum = 0;
+  _resourcelist (keys, networks, zones, machines) {
+      let sum = 0;
       if (keys)
           sum += keys.length;
       if (networks)
@@ -1069,38 +1070,38 @@ Polymer({
       if (machines)
           sum += machines.length;
 
-      return sum > 0 ? true : false;
+      return sum > 0;
   },
 
-  _computeTemplate: function (stacktemplate, templates) {
+  _computeTemplate (stacktemplate, templates) {
       if (this.stack && this.model && this.model.templates) {
           return this.model.templates[this.stack.template];
       }
   },
 
-  _machines: function (stack) {
+  _machines (stack) {
       return stack && stack.machines;
   },
 
-  _computeListMachines: function (nodeInstances, machines) {
+  _computeListMachines (nodeInstances, machines) {
       var machines = [];
       if (nodeInstances && nodeInstances.base) {
           nodeInstances.base.forEach(function (rtpy) {
               if (rtpy.runtime_properties.mist_type == 'machine') {
-                  var mac = Object.values(this.model.machines).find(function (mach) {
+                  const mac = Object.values(this.model.machines).find(function (mach) {
                       return rtpy.runtime_properties && rtpy.runtime_properties.info != null && mach && mach.id == rtpy.runtime_properties.info.id;
                   });
 
                   if (mac) {
                       machines.push(mac);
                   } else {
-                      var deadMachine = {
+                      const deadMachine = {
                           name: rtpy.runtime_properties.info.name,
                           state: 'missing',
                           cloud: {
-                              provider: 'Machine id: ' + rtpy.runtime_properties
-                                  .info.machine_id + ' Cloud id: ' + rtpy.runtime_properties
-                                  .info.cloud
+                              provider: `Machine id: ${  rtpy.runtime_properties
+                                  .info.machine_id  } Cloud id: ${  rtpy.runtime_properties
+                                  .info.cloud}`
                           },
                           isDead: true
                       };
@@ -1112,12 +1113,12 @@ Polymer({
       return machines;
   },
 
-  _computeListNetworks: function (nodeInstances, networks) {
+  _computeListNetworks (nodeInstances, networks) {
       var networks = [];
       if (nodeInstances && nodeInstances.base) {
           nodeInstances.base.forEach(function (rtpy) {
               if (rtpy.runtime_properties.mist_type == 'network') {
-                  var net = this.model.networks[rtpy.runtime_properties.info.id];
+                  const net = this.model.networks[rtpy.runtime_properties.info.id];
                   if (net) {
                       networks.push(net);
                   }
@@ -1127,12 +1128,12 @@ Polymer({
       return networks;
   },
 
-  _computeListZones: function (nodeInstances, zones) {
+  _computeListZones (nodeInstances, zones) {
       var zones = [];
       if (nodeInstances && nodeInstances.base) {
           nodeInstances.base.forEach(function (rtpy) {
               if (rtpy.runtime_properties.mist_type == 'zone') {
-                  var zone = this.model.zonesArray.find(function (zone) {
+                  const zone = this.model.zonesArray.find(function (zone) {
                       return zone.id == rtpy.runtime_properties.info.id
                   }, this);
                   if (zone)
@@ -1143,18 +1144,18 @@ Polymer({
       return zones;
   },
 
-  _computeListKeys: function (nodeInstances, keys) {
+  _computeListKeys (nodeInstances, keys) {
       var keys = [];
 
       if (nodeInstances && nodeInstances.base) {
           nodeInstances.base.forEach(function (rtpy) {
               if (['keypair', 'key'].indexOf(rtpy.runtime_properties.mist_type) > -1) {
-                  var key = this.model.keys[rtpy.runtime_properties.key];
+                  const key = this.model.keys[rtpy.runtime_properties.key];
 
                   if (key) {
                       keys.push(key);
                   } else {
-                      var deadKey = {
+                      const deadKey = {
                           id: rtpy.key_id,
                           isDefault: false,
                           machines: [],
@@ -1169,15 +1170,15 @@ Polymer({
       return keys;
   },
 
-  _computeWorkflows: function (stack,template) {
+  _computeWorkflows (stack,template) {
       console.log('_computeWorkflows');
-      var workflows = [];
+      let workflows = [];
       if (this.template && this.template.workflows) {
           workflows = this.template.workflows.filter(function (wf) {
               return wf.name != 'scale' && wf.name != 'execute_operation';
           }).slice(0);
       }
-      var param1 = {
+      const param1 = {
           name: "yaml_or_form",
           label: "YAML or form",
           type: "radio",
@@ -1196,7 +1197,7 @@ Polymer({
               val: "form"
           }]
       };
-      var param2 = {
+      const param2 = {
           name: "stackinputs",
           label: "Workflow Inputs YAML",
           type: "textarea",
@@ -1212,14 +1213,14 @@ Polymer({
               fieldValues: ["yaml"]
           }
       };
-      for (var i=0; i<workflows.length; i++) {
-          var yaml_inputs = '',
-              wf = workflows[i];
-              var radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
+      for (let i=0; i<workflows.length; i++) {
+          var yaml_inputs = '';
+              const wf = workflows[i];
+              const radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
           if (wf.params && wf.params.length > 0 && radioField === -1) {
-              for (var j=0; j<wf.params.length; j++) {
-                  var workflowField = wf.params[j];
-                  yaml_inputs += workflowField.name + ': ' + workflowField.default+'\n';
+              for (let j=0; j<wf.params.length; j++) {
+                  const workflowField = wf.params[j];
+                  yaml_inputs += `${workflowField.name  }: ${  workflowField.default}\n`;
                   if (['yaml_or_form','stackinputs'].indexOf(workflowField.name) == -1) {
                       workflowField.show = true;
                       workflowField.showIf = {
@@ -1238,13 +1239,13 @@ Polymer({
       return workflows;
   },
 
-  _computeReadableDate: function (date) {
+  _computeReadableDate (date) {
       return moment.utc(date).fromNow();
   },
 
-  _showDialog: function (info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element'),
-          i;
+  _showDialog (info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+          let i;
       if (info){
           for (i in info) {
               dialog[i] = info[i];
@@ -1253,34 +1254,34 @@ Polymer({
       dialog._openDialog();
   },
 
-  _workflowNavigation: function (action) {
+  _workflowNavigation (action) {
       this.$.workflows.classList.add('open');
       this.set('workflowsOpen', true)
-      var pages = this.$.workflowsView.children;
+      const pages = this.$.workflowsView.children;
       [].forEach.call(pages, function (p, index) {
           p.setAttribute("show", false);
       });
-      var page = this.shadowRoot.querySelector('#' + action + 'show');
+      const page = this.shadowRoot.querySelector(`#${  action  }show`);
       if (page) {
           page.setAttribute("show", true);
       }
   },
 
-  _quickActionsNavigation: function (e) {
+  _quickActionsNavigation (e) {
       // console.log(e);
       this.selected = 1;
       this._workflowNavigation(e.detail.name || e.target.id);
   },
 
-  doWorkflow: function (e) {
-      var action = e.target.id;
+  doWorkflow (e) {
+      const action = e.target.id;
       this.$.workflows.classList.add('open');
       this.set('workflowsOpen', true)
 
-      var workflow = this.workflows.find(function (workflow) {
+      const workflow = this.workflows.find(function (workflow) {
           return workflow.name == action;
       });
-      this.$.workflowRequest.url = "/api/v1/stacks/" + this.stack.id;
+      this.$.workflowRequest.url = `/api/v1/stacks/${  this.stack.id}`;
       this.$.workflowRequest.headers = {
           "csrf-token": CSRF_TOKEN,
           "Content-Type": "application/json"
@@ -1290,18 +1291,18 @@ Polymer({
       };
       if (action == 'install') {
           this.$.deploynow.classList.add('hidden');
-          this.$.workflowRequest.body["inputs"] = this.stack.inputs.install;
+          this.$.workflowRequest.body.inputs = this.stack.inputs.install;
       }
       this.$.workflowRequest.generateRequest();
   },
 
-  deployNowWork: function () {
-      var action = 'install';
+  deployNowWork () {
+      const action = 'install';
 
-      var workflow = this.workflows.find(function (workflow) {
+      const workflow = this.workflows.find(function (workflow) {
           return workflow.name == action;
       });
-      this.$.workflowRequest.url = "/api/v1/stacks/" + this.stack.id;
+      this.$.workflowRequest.url = `/api/v1/stacks/${  this.stack.id}`;
       this.$.workflowRequest.headers = {
           "csrf-token": CSRF_TOKEN,
           "Content-Type": "application/json"
@@ -1317,7 +1318,7 @@ Polymer({
 
   },
 
-  cancelWorkflow: function (e) {
+  cancelWorkflow (e) {
       this.$.cancelJob.headers = {
           "csrf-token": CSRF_TOKEN,
           "Content-Type": "application/json"
@@ -1325,20 +1326,20 @@ Polymer({
       this.$.cancelJob.generateRequest();
   },
 
-  handleCanceled: function (e) {},
-  handleWorkflowRequest: function (e) {},
+  handleCanceled (e) {},
+  handleWorkflowRequest (e) {},
 
-  handleWorkflowResponse: function (e) {
+  handleWorkflowResponse (e) {
       this._closeworkflows();
   },
 
-  handleWorkflowError: function (e) {},
+  handleWorkflowError (e) {},
 
-  stackoutputsChanged: function (outputs) {
+  stackoutputsChanged (outputs) {
       this.$.stackOutputs.innerHTML = this.stack && outputs && this._makeString(outputs).replace(new RegExp('mycontext', 'g'), this.stack.name);
   },
 
-  _makeString: function (info) {
+  _makeString (info) {
       // console.log(YAML.dump(info));
       // console.log(anchorme.js(YAML.dump(info)));
       if (info)
@@ -1346,11 +1347,11 @@ Polymer({
       return '';
   },
 
-  newStackPage: function (id) {
+  newStackPage (id) {
       console.log('un setting interval for', this.intervalID);
       window.clearInterval(this.intervalID);
       this.intervalID = null;
-      var xterm = this.shadowRoot.querySelector("xterm-dialog");
+      const xterm = this.shadowRoot.querySelector("xterm-dialog");
       if (xterm)
           xterm.remove();
       this.set('showOutput', false);
@@ -1362,21 +1363,21 @@ Polymer({
       }
   },
 
-  _computeIsloading: function (stack) {
-      return !this.stack ? true : false;
+  _computeIsloading (stack) {
+      return !this.stack;
   },
 
-  getScriptlink: function (id) {
+  getScriptlink (id) {
       if (id && this.model.scripts[id])
-          return "/scripts/" + this.model.scripts[id].id;
+          return `/scripts/${  this.model.scripts[id].id}`;
   },
 
-  getScriptName: function (id) {
+  getScriptName (id) {
       if (id && this.model.scripts[id])
           return this.model.scripts[id].name;
   },
 
-  isEmpty: function (arr) {
+  isEmpty (arr) {
       return !arr || arr.length == 0;
   }
 });

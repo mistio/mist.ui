@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import moment from '../../node_modules/moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles single-page tags-and-labels forms">
@@ -86,7 +87,7 @@ Polymer({
       }
   },
 
-  _computeAbsoluteDateText: function (time) {
+  _computeAbsoluteDateText (time) {
       // console.log('time: ',moment(time).format("MMMM D YYYY HH:mm:ss"));
       // console.log('time utc: ',moment.utc(time).format("MMMM D YYYY HH:mm:ss"));
       // console.log('time local: ',moment(time).local().format("MMMM D YYYY HH:mm:ss"));
@@ -94,7 +95,7 @@ Polymer({
       return moment(time).isValid() ? moment.utc(time).local().format("MMMM D YYYY HH:mm:ss") : "";
   },
 
-  _saveDate: function() {
+  _saveDate() {
       if (this.value) {
           this.dispatchEvent(new CustomEvent('save-date', { bubbles: true, composed: true, detail: {name: this.field, date: this.value} }));
 
@@ -102,11 +103,11 @@ Polymer({
       }
   },
 
-  _edit: function() {
+  _edit() {
       this.set('editing', true);
   },
 
-  _stopEdit: function() {
+  _stopEdit() {
       this.set('editing', false);
   }
 });

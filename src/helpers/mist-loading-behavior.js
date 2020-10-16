@@ -27,10 +27,10 @@ export const mistLoadingBehavior = {
         '_updateState(resourceId, section.count)',
         // '_updateClasses(state)'
     ],
-    updateState: function() {
+    updateState() {
         this._updateState(this.resourceId, this.section);
     },
-    _updateState: function (resourceId, section) {
+    _updateState (resourceId, section) {
         if (this.resourceId && this.resourceId.indexOf('+add', '+create') == -1) {
             console.log('load state resourceId', resourceId, section);
             // // initial state
@@ -56,14 +56,14 @@ export const mistLoadingBehavior = {
             this._updateClasses(this.state);
         }
     },
-    _clearAsync: function() {
+    _clearAsync() {
         if (this.asyncID){
             // cancel Async
             this.cancelAsync(this.asyncID);
             this.set("asyncID", null);
         }
     },
-    _tryAgain: function (){
+    _tryAgain (){
         console.log('load timeout', this.trials);
         this.set('trials', this.trials ? this.trials + 1 : 1);
         this._clearAsync();
@@ -76,7 +76,7 @@ export const mistLoadingBehavior = {
             }.bind(this), 1000);
         }
     },
-    _updateClasses: function(state) {
+    _updateClasses(state) {
         console.log('load state', this.state);
         if (state == 'loading') {
             this.classList.add('loadingResource');

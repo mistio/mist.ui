@@ -12,6 +12,7 @@ import './script-edit.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const SCRIPT_ACTIONS = {
     'run': {
         'name': 'run',
@@ -100,16 +101,16 @@ Polymer({
       'transfer-ownership': 'transferOwnership'
   },
 
-  ready: function() {},
+  ready() {},
 
-  attached: function() {
+  attached() {
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
-  computeItemActions: function(script) {
-      var arr = [];
+  computeItemActions(script) {
+      const arr = [];
       if (script) {
           arr.push('run');
           arr.push('edit');
@@ -122,9 +123,9 @@ Polymer({
       return arr;
   },
 
-  _otherMembers: function(members, items) {
+  _otherMembers(members, items) {
       if (this.items && members) {
-          var owners = this.items.map(function(i) { return i.owned_by; })
+          const owners = this.items.map(function(i) { return i.owned_by; })
               .filter(function(value, index, self) { return self.indexOf(value) === index; });
           // filter out pending users and the single owner of the item-set if that is the case
           return members.filter(function(m) {
@@ -133,62 +134,62 @@ Polymer({
       }
   },
 
-  computeActionListDetails: function(actions) {
-      var ret = [];
-      for (var i = 0; i < actions.length; i++) {
+  computeActionListDetails(actions) {
+      const ret = [];
+      for (let i = 0; i < actions.length; i++) {
           ret.push(SCRIPT_ACTIONS[actions[i]]);
       }
       return ret;
   },
 
-  _delete: function() {
-      //set up iron ajax
+  _delete() {
+      // set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
-      for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/scripts/" + this.items[i].id
+      for (let i = 0; i < this.items.length; i++) {
+          this.$.request.url = `/api/v1/scripts/${  this.items[i].id}`
           this.$.request.generateRequest();
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Deleting ' + this.items[i].name, duration: 1000 } }));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `Deleting ${  this.items[i].name}`, duration: 1000 } }));
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  performAction: function(action, items) {
+  performAction(action, items) {
       if (action.name == 'delete') {
           this._delete();
       } else if (action.name == 'run') {
-          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/scripts/' + items[0].id + '/+run' } }));
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/scripts/${  items[0].id  }/+run` } }));
       } else if (action.name == 'edit') {
           this.shadowRoot.querySelector('script-edit')._openEditScriptModal();
       }
   },
 
-  selectAction: function(e) {
+  selectAction(e) {
       if (this.items.length) {
-          var action = e.detail.action;
+          const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name != 'tag') {
-              var property = "name",
-                  plural = this.items.length == 1 ? '' : 's',
-                  count = this.items.length > 1 ? this.items.length + ' ' : '';
-              //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+              const property = "name";
+                  const plural = this.items.length == 1 ? '' : 's';
+                  const count = this.items.length > 1 ? `${this.items.length  } ` : '';
+              // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
               this._showDialog({
-                  title: this.action.name + ' ' + count + this.type + plural + '?',
-                  body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural + ".",
+                  title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural  }.`,
                   list: this._makeList(this.items, property),
                   action: action.name,
                   danger: true,
-                  reason: this.type + "." + this.action.name
+                  reason: `${this.type  }.${  this.action.name}`
               });
           } else if (action.name == "tag") {
               this.$.tagsdialog._openDialog();
@@ -200,9 +201,9 @@ Polymer({
       }
   },
 
-  transferOwnership: function(e) {
-      var payload = {
-          user_id: e.detail.user_id, //new owner
+  transferOwnership(e) {
+      const payload = {
+          user_id: e.detail.user_id, // new owner
           resources: {}
       };
       payload.resources[this.type] = this.items.map(function(i) { return i.id });
@@ -215,15 +216,15 @@ Polymer({
       this.$.request.generateRequest();
   },
 
-  confirmAction: function(e) {
+  confirmAction(e) {
       if (e.detail.confirmed)
           this.performAction(this.action, this.items);
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
     console.log('handleResponse', this.$.request, this.$.request.body);
       if (this.$.request && this.$.request.body && this.$.request.body.action) {
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 } }));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `Action: ${  this.$.request.body.action  } successfull`, duration: 3000 } }));
       } else if (this.$.request && !this.$.request.body) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/scripts'} }));
       } else if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
@@ -240,16 +241,16 @@ Polymer({
       }
   },
 
-  handleError: function(e) {
+  handleError(e) {
       // console.log(e.detail.request.xhr.statusText);
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 } }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`, duration: 5000 } }));
 
       if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
       }
   },
 
-  _makeList: function(items, property) {
+  _makeList(items, property) {
       if (items && items.length) {
           return items.map(function(item) {
               return item[property];

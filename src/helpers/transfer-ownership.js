@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/paper-dialog-scrollable/paper-dialog-scrolla
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
     <style include="shared-styles dialogs">
@@ -138,33 +139,33 @@ Polymer({
       'confirmation': 'confirmationListener'
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _displayName: function(item, type) {
+  _displayName(item, type) {
       return type != 'zone' ? item.name : item.domain;
   },
 
-  _computeType: function(type, value) {
+  _computeType(type, value) {
       return type == value;
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.$.dialogModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.dialogModal.close();
       this.set('sendingData', false)
   },
 
-  overlayClosed: function (e) {
+  overlayClosed (e) {
       // console.log('iron-overlay-closed', e);
       e.stopPropagation();
   },
 
-  confirmTransfer: function (e) {
+  confirmTransfer (e) {
       // console.log('confirmation', e);
       e.stopPropagation();
       this.dispatchEvent(new CustomEvent('transfer-ownership', { bubbles: true, composed: true, detail: {user_id: this.newOwner} }));
@@ -172,15 +173,15 @@ Polymer({
       this.set('sendingData', true)
   },
 
-  _displayUser: function (member){
+  _displayUser (member){
       return member && member.name || member.email || member.username;
   },
 
-  _plural: function (arr) {
+  _plural (arr) {
       return arr.length && arr.length>1 ? 's' : '';
   },
 
-  _filteredMembers: function(members, membersFilter) {
+  _filteredMembers(members, membersFilter) {
       if (!membersFilter) return members;
       return members.filter(member => member.name.indexOf(membersFilter) != -1)
   }

@@ -10,6 +10,7 @@ import '../../node_modules/@polymer/paper-slider/paper-slider.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -84,56 +85,56 @@ Polymer({
       '_updateCustomValue(field.customSizeFields.*)'
   ],
 
-  showOption: function (option) {
+  showOption (option) {
       if (option.name)
           return option.name;
       if (option.id)
           return option.id;
   },
 
-  _showCustomSizeFields: function(custom, value) {
+  _showCustomSizeFields(custom, value) {
       return this.field.custom && (!this.field.value || this.field.value == "custom")
   },
 
-  _replaceAsterisk: function (str) {
+  _replaceAsterisk (str) {
       return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
   },
 
-  _hideDropdown: function(options, field) {
+  _hideDropdown(options, field) {
       return field.custom == true && (!this.field.options || this.field.options.length == 0);
   },
 
-  _noOptions: function (options) {
+  _noOptions (options) {
       return !this.field.options || this.field.options.length == 0;
   },
 
-  _allowCustom: function (field) {
+  _allowCustom (field) {
       return field.custom == true || !this.field.options || !this.field.options.length;
   },
 
-  _updateCustomValue: function (e) {
+  _updateCustomValue (e) {
       if (!this.field.custom) {
           this.set('field.customValue', false);
       } else if (this.field.custom && this.field.customSizeFields) {
-          var cv = {};
-          for (var i=0; i<this.field.customSizeFields.length; i++){
+          const cv = {};
+          for (let i=0; i<this.field.customSizeFields.length; i++){
               cv[this.field.customSizeFields[i].name] = this.field.customSizeFields[i].value;
           }
           this.set('field.customValue', cv);
       }
   },
 
-  _resetField: function () {
+  _resetField () {
       this.set('field.value', this.field.defaultValue);
   },
 
-  _filter: function (options, search) {
+  _filter (options, search) {
       return options ? this._sort(options.filter(function (op) {
           return op.name && (!search || op.name.toLowerCase().indexOf(search.toLowerCase()) > -1);
       })) : [];
   },
 
-  _sort: function(arr) {
+  _sort(arr) {
       if (arr && arr.length)
           return arr.sort(function(a,b){
               if (a.cpus < b.cpus) {
@@ -144,7 +145,6 @@ Polymer({
               }
               return 0;
           })
-      else
-          return [];
+      return [];
   }
 });

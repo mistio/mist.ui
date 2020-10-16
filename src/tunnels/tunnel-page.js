@@ -3,7 +3,7 @@ import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-material/paper-material.js';
 import '../../node_modules/@polymer/paper-menu-button/paper-menu-button.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
+
 import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../helpers/dialog-element.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
@@ -313,7 +313,7 @@ Script:</code></pre>
       'edit': '_editTunnel'
   },
 
-  _clearCommandArea: function(id){
+  _clearCommandArea(id){
       if (this.shadowRoot.querySelector("#tunnelscommand"))
           this.shadowRoot.querySelector("#tunnelscommand").textContent = '';
       if (this.shadowRoot.querySelector("#tunnelscript"))
@@ -325,125 +325,124 @@ Script:</code></pre>
           this.set('itemArray', [this.tunnel])
   },
 
-  _getHeaderStyle: function(section) {
-      return 'background-color: ' + section.color + '; color: #fff;';
+  _getHeaderStyle(section) {
+      return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _computeIsInline: function(location_type) {
+  _computeIsInline(location_type) {
       if (location_type)
           return location_type == 'inline';
-      else
-          return true;
+      return true;
   },
 
-  _computeTunnelTags: function (tunnel, tunnelTags) {
+  _computeTunnelTags (tunnel, tunnelTags) {
           return this.tunnel && Object.entries(this.tunnel.tags).map(([key, value]) => ({key,value}));
       },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _editTags: function() {
-      var el = this.shadowRoot.querySelector('tags-list'),
-      items = [];
+  _editTags() {
+      const el = this.shadowRoot.querySelector('tags-list');
+      const items = [];
       items.push(itemUid(this.tunnel, this.section));
       el.items = items;
       el._openDialog();
   },
 
-  _editTunnel: function(e) {
-      var el = this.shadowRoot.querySelector('tunnel-edit');
+  _editTunnel(e) {
+      const el = this.shadowRoot.querySelector('tunnel-edit');
       el._openEditTunnelModal();
   },
 
-  _updateScript: function(e) {
-      var tunnel = e.detail.tunnel;
+  _updateScript(e) {
+      const {tunnel} = e.detail;
       this.set('tunnel.name', tunnel.name);
       this.set('script.description', script.description);
   },
 
   // script
-  _requestScript: function(){
+  _requestScript(){
       this.$.scriptAjaxRequest.body = {};
       this.$.scriptAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.scriptAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.scriptAjaxRequest.generateRequest();
   },
 
-  _handleScriptAjaxRequest: function(e){
+  _handleScriptAjaxRequest(e){
       console.log(e);
-      var response = e.detail.response;
+      const {response} = e.detail;
       if (e.detail.xhr.status == 200){
           this.$.tunnelscript.textContent = response;
           this.$.copyscript.setAttribute('show', true);
       }
   },
 
-  _handleScriptAjaxError: function(e){
+  _handleScriptAjaxError(e){
 
   },
 
   // command
-  _requestCommand: function(){
+  _requestCommand(){
       this.$.commandAjaxRequest.body = {};
       this.$.commandAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.commandAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.commandAjaxRequest.generateRequest();
   },
 
-  _handleCommandAjaxRequest: function(e){
+  _handleCommandAjaxRequest(e){
       console.log(e);
-      var response = e.detail.xhr.responseText;
+      const response = e.detail.xhr.responseText;
       if (e.detail.type != "error"){
           this.$.tunnelcommand.textContent = response;
           this.$.copycurl.setAttribute('show', true);
       }
   },
 
-  _handleCommandAjaxError: function(e){
+  _handleCommandAjaxError(e){
       console.log(e);
-      var response = e.detail.error;
+      const response = e.detail.error;
       this.$.tunnelcommand.textContent = response;
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  copyScript: function(e) {
+  copyScript(e) {
       this.clearSelection();
-      var el = this.$.tunnelscript;
+      const el = this.$.tunnelscript;
       this.setSelection(el);
-      var successful = document.execCommand('copy');
-      var message = successful ? 'The script was copied to clipboard!' : 'There was an error copying to clipboard!';
+      const successful = document.execCommand('copy');
+      const message = successful ? 'The script was copied to clipboard!' : 'There was an error copying to clipboard!';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
 
   },
 
-  copyCurl: function(e) {
+  copyCurl(e) {
       this.clearSelection();
-      var el = this.$.tunnelcommand;
+      const el = this.$.tunnelcommand;
       this.setSelection(el);
-      var successful = document.execCommand('copy');
-      var message = successful ? 'The command was copied to clipboard!' : 'There was an error copying to clipboard!';
+      const successful = document.execCommand('copy');
+      const message = successful ? 'The command was copied to clipboard!' : 'There was an error copying to clipboard!';
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:3000} }));
 
   },
 
-  _enableTunnel: function(){
+  _enableTunnel(){
 
   },
 
-  _disableTunnel: function(){
+  _disableTunnel(){
 
   },
 
-  clearSelection: function(){
+  clearSelection(){
       if (window.getSelection) {
           if (window.getSelection().empty) {  // Chrome
               window.getSelection().empty();
@@ -455,7 +454,7 @@ Script:</code></pre>
       }
   },
 
-  setSelection: function(el){
+  setSelection(el){
       if (document.selection) {
           var range = document.body.createTextRange();
               range.moveToElementText(el);
@@ -467,7 +466,7 @@ Script:</code></pre>
       }
   },
 
-  _computeIsloading: function(tunnel) {
-      return !this.tunnel ? true : false;
+  _computeIsloading(tunnel) {
+      return !this.tunnel;
   }
 });

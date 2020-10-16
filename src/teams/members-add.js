@@ -89,31 +89,31 @@ Polymer({
 
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeTeam: function(params, teamsArray) {
+  _computeTeam(params, teamsArray) {
       if (params) {
-          var team = this.model.teamsArray.find(function(t) {
+          const team = this.model.teamsArray.find(function(t) {
               return t.id == params.team
           });
           if (team) {
               return team;
-          } else {
+          } 
               return {
                   name: "team not found"
               };
-          }
+          
       }
   },
 
-  _addMembersRequest: function() {
+  _addMembersRequest() {
       this.set('sendingData', true);
   },
 
-  _addMembersResponse: function(e) {
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/teams/' + this.team.id } }));
+  _addMembersResponse(e) {
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/teams/${  this.team.id}` } }));
 
       this.set('sendingData', false);
   }

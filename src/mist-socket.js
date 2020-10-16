@@ -1,10 +1,10 @@
 import '../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../node_modules/sockjs-client/dist/sockjs.min.js';
 import * as jsonpatch from '../node_modules/fast-json-patch/index.mjs';
-import { _generateMap } from './helpers/utils.js'
+import { _generateMap , CSRFToken } from './helpers/utils.js'
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { CSRFToken } from './helpers/utils.js'
-let DEBUG_SOCKET = false;
+
+const DEBUG_SOCKET = false;
 let STRIPE_PUBLIC_APIKEY = ''
 Polymer({
     is: 'mist-socket',
@@ -16,11 +16,11 @@ Polymer({
         },
         openRequests: {
             type: Array,
-            value: function () { return []; }
+            value () { return []; }
         },
         model: {
             type: Object,
-            value: function () { return { sections: {}}; },
+            value () { return { sections: {}}; },
             notify: true
         },
         initialized: {
@@ -32,7 +32,7 @@ Polymer({
         }
     },
 
-    ready: function () {
+    ready () {
         // Create the socket if it does not exist
         console.warn('ready');
         if (this.socket)
@@ -41,7 +41,7 @@ Polymer({
         this.document = document; // suppresses an error message when sending mouse clicks to xterm.js
     },
 
-    connect: function () {
+    connect () {
         console.warn('connecting at ', this.url);
         // Create the SockJS object
         this.socket = new SockJS(this.url, null, {
@@ -49,12 +49,12 @@ Polymer({
         });
 
         // Connect the receiver
-        var receiver = this.receive.bind(this);
+        const receiver = this.receive.bind(this);
         this.socket.onmessage = function (e) {
             receiver(e.data);
         };
 
-        var that = this;
+        const that = this;
 
         // Handle error & close
         this.socket.onerror = function () {
@@ -79,84 +79,84 @@ Polymer({
         // Initialize main handlers
         this.handlers = {
             main: {
-                patch_model: function (data) {
+                patch_model (data) {
                     that._patchModel(data);
                 },
-                list_clouds: function (data) {
+                list_clouds (data) {
                     console.warn(that.model.pending)
                     that._updateClouds(data);
                 },
-                list_keys: function (data) {
+                list_keys (data) {
                     that._updateKeys(data);
                 },
-                list_scripts: function (data) {
+                list_scripts (data) {
                     that._updateScripts(data);
                 },
-                list_schedules: function (data) {
+                list_schedules (data) {
                     that._updateSchedules(data);
                 },
-                list_templates: function (data) {
+                list_templates (data) {
                     that._updateTemplates(data);
                 },
-                list_stacks: function (data) {
+                list_stacks (data) {
                     that._updateStacks(data);
                 },
-                list_machines: function (data) {
+                list_machines (data) {
                     that._updateMachines(data);
                 },
-                list_rules: function (data) {
+                list_rules (data) {
                     that._updateRules(data);
                 },
-                list_images: function (data) {
+                list_images (data) {
                     that._updateImages(data);
                 },
-                list_sizes: function (data) {
+                list_sizes (data) {
                     that._updateSizes(data);
                 },
-                list_locations: function (data) {
+                list_locations (data) {
                     that._updateLocations(data);
                 },
-                list_networks: function (data) {
+                list_networks (data) {
                     that._updateNetworks(data);
                 },
-                list_volumes: function (data) {
+                list_volumes (data) {
                     that._updateVolumes(data);
                 },
-                list_zones: function (data) {
+                list_zones (data) {
                     that._updateZones(data);
                 },
-                list_tunnels: function (data) {
+                list_tunnels (data) {
                     that._updateTunnels(data);
                 },
-                list_projects: function (data) {
+                list_projects (data) {
                     that._updateProjects(data);
                 },
-                list_resource_groups: function (data) {;
+                list_resource_groups (data) {;
                     that._updateResourceGroups(data);
                 },
-                list_storage_accounts: function (data) {;
+                list_storage_accounts (data) {;
                     that._updateStorageAccounts(data);
                 },
-                list_tags: function (data) {
+                list_tags (data) {
                     that._updateTags(data);
                 },
-                monitoring: function (data) {
+                monitoring (data) {
                     that._updateMonitoring(data);
                 },
-                reload: function (data) {
+                reload (data) {
                     that._reloadPage(data);
                 },
-                user: function (data) {
+                user (data) {
                     that._updateUser(data);
                 },
-                org: function (data) {
+                org (data) {
                     console.info('Loaded org data');
                     that._updateOrg(data);
                 },
-                logout: function (data) {
+                logout (data) {
                     document.location.pathname = '/';
                 },
-                stats: function (data) {
+                stats (data) {
                     if (!that.openRequests[data.request_id])
                         console.warn('cannot find open request', data.request_id)
                     else {
@@ -164,7 +164,7 @@ Polymer({
                         delete that.openRequests[data.request_id];
                     }
                 },
-                notifications: function (data) {
+                notifications (data) {
                     that.debounce(
                         'loadNotifications',
                         function () {
@@ -176,13 +176,13 @@ Polymer({
                         250
                     );
                 },
-                patch_notifications: function (data) {
+                patch_notifications (data) {
                     that._patchNotifications(data);
                     console.debug('Applied notifications patch');
                 }
             },
             shell: {
-                shell_data: function (data) {
+                shell_data (data) {
                     if (that.term) {
                         that.term.write(data);
                     } else {
@@ -193,37 +193,37 @@ Polymer({
                 }
             },
             logs: {
-                logs: function (data) {
+                logs (data) {
                     console.warn('received log entries from socket', data);
                 },
-                event: function (data) {
+                event (data) {
                     if (DEBUG_SOCKET)
                         console.debug('received log event', data);
                     that.fire('forward-log', data);
                 },
-                incidents: function (data) {
+                incidents (data) {
                     if (DEBUG_SOCKET)
                         console.debug('got incidents', data);
                     that.debounce(that._updateIncidents(data), function () {
                         console.debug('Loaded incidents data');
                     }, 250);
                 },
-                jobs: function (data) {
+                jobs (data) {
                     if (DEBUG_SOCKET)
                         console.debug('got jobs', data);
                     that.set('model.jobs', _generateMap(data, 'story_id'));
                 },
-                sessions: function (data) {
+                sessions (data) {
                     if (DEBUG_SOCKET)
                         console.debug('got sessions', data);
                     that.set('model.sessions', _generateMap(data, 'story_id'));
                 },
-                shells: function (data) {
+                shells (data) {
                     if (DEBUG_SOCKET)
                         console.debug('got shells', data);
                     that.set('model.shells', _generateMap(data, 'story_id'));
                 },
-                patch_stories: function (data) {
+                patch_stories (data) {
                     that._patchStories(data);
                     console.warn('Applied stories patch');
                 }
@@ -231,9 +231,9 @@ Polymer({
         };
     },
 
-    heartbeat: function () {
+    heartbeat () {
         console.debug('got heartbeat');
-        var _this = this;
+        const _this = this;
         requestIdleCallback(function () {
             _this.send('h'); // reply with empty frame
         }, {
@@ -241,68 +241,68 @@ Polymer({
         });
     },
 
-    getStats: function (data, callback) {
+    getStats (data, callback) {
         // console.log('getStats', data);
-        var reqId = this.generateGuid(); // Math.floor(10000 * Math.random());
+        const reqId = this.generateGuid(); // Math.floor(10000 * Math.random());
         data[5] = reqId;
         this.openRequests[reqId] = callback;
         this.send('msg', 'main', 'stats', data);
     },
 
-    generateGuid: function () {
+    generateGuid () {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
                 .toString(16)
                 .substring(1);
         }
-        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-            s4() + '-' + s4() + s4() + s4();
+        return `${s4() + s4()  }-${  s4()  }-${  s4()  }-${ 
+            s4()  }-${  s4()  }${s4()  }${s4()}`;
     },
 
-    send: function (type, namespace, body, params) {
+    send (type, namespace, body, params) {
         if (namespace == undefined)
             namespace = 'main';
 
-        var payload = type + ',' + namespace;
+        let payload = `${type  },${  namespace}`;
 
         if (body !== undefined)
-            payload += ',' + body;
+            payload += `,${  body}`;
 
         if (params !== undefined)
-            payload += ',' + JSON.stringify(params);
+            payload += `,${  JSON.stringify(params)}`;
 
         this.socket.send(payload);
         if (DEBUG_SOCKET)
-            console.debug('SENT: ' + payload);
+            console.debug(`SENT: ${  payload}`);
     },
 
-    receive: function (message) {
+    receive (message) {
         if (DEBUG_SOCKET)
-            console.debug('RECEIVED: ' + message);
+            console.debug(`RECEIVED: ${  message}`);
 
-        var parts = message.split(',');
-        var type = parts[0],
-            namespace = parts[1];
-        var body = JSON.parse(parts.splice(2).join(','));
+        const parts = message.split(',');
+        const type = parts[0];
+            const namespace = parts[1];
+        const body = JSON.parse(parts.splice(2).join(','));
         if (this.handlers[namespace] === undefined)
             console.warn('Unknown namespace', namespace);
-        var endpoint = this.handlers[namespace][Object.keys(body)[0].trim()];
+        const endpoint = this.handlers[namespace][Object.keys(body)[0].trim()];
         if (endpoint === undefined)
             console.warn('Unknown endpoint', Object.keys(body)[0], 'in namespace', namespace);
         else
             endpoint(body[Object.keys(body)[0]]);
     },
 
-    _reloadPage: function (data) {
+    _reloadPage (data) {
         console.warn('reloading', data);
         document.location.reload();
     },
 
-    _patchModel: function (patch) {
-        var _this = this;
+    _patchModel (patch) {
+        const _this = this;
         patch.forEach(function(operation) {
-            var idleCallbackId = requestIdleCallback(function () {
-                var cloud_id, resource_type, resource_id, resource_external_id, path, property_path, old_cloud_resource_external_ids, old_cloud_resource_ids;
+            const idleCallbackId = requestIdleCallback(function () {
+                let cloud_id; let resource_type; let resource_id; let resource_external_id; let path; let property_path; let old_cloud_resource_external_ids; let old_cloud_resource_ids;
 
                 // Let's figure out if the patch applies to a cloud and which one
                 if (operation.path.search('/clouds/') > -1) {
@@ -314,7 +314,7 @@ Polymer({
                     // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
                     if (['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1) {
                         resource_type = path[1];
-                        path = operation.path.split('/' + resource_type + '/')[1].split('/');
+                        path = operation.path.split(`/${  resource_type  }/`)[1].split('/');
                         resource_external_id = path[0];
                         property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
 
@@ -342,9 +342,9 @@ Polymer({
                 }
 
                 if (resource_type && cloud_id && _this.model.clouds && _this.model.clouds[cloud_id] && _this.model.clouds[cloud_id][resource_type]) {
-                    var new_cloud_resources = _this.model.clouds[cloud_id][resource_type],
-                        new_cloud_resource_external_ids = Object.keys(new_cloud_resources),
-                        new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
+                    const new_cloud_resources = _this.model.clouds[cloud_id][resource_type];
+                        const new_cloud_resource_external_ids = Object.keys(new_cloud_resources);
+                        const new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
 
 
                         // console.log('DEBUG 4 -  new ids', new_cloud_resources, new_cloud_resource_external_ids, new_cloud_resource_ids);
@@ -353,8 +353,8 @@ Polymer({
                     for (var i=0; i < old_cloud_resource_ids.length; i++) {
                         if (new_cloud_resources[old_cloud_resource_external_ids[i]] == undefined
                             && _this.model[resource_type][old_cloud_resource_ids[i]] != undefined) {
-                            _this.set('model.' + resource_type + '.' + old_cloud_resource_ids[i], null);
-                            _this.notifyPath('model.' + resource_type + '.' + old_cloud_resource_ids[i]);
+                            _this.set(`model.${  resource_type  }.${  old_cloud_resource_ids[i]}`, null);
+                            _this.notifyPath(`model.${  resource_type  }.${  old_cloud_resource_ids[i]}`);
                             delete _this.model[resource_type][old_cloud_resource_ids[i]];
                         }
                     }
@@ -362,16 +362,16 @@ Polymer({
                     // Link paths of new resources for easy global lookup
                     for (var i=0; i < new_cloud_resource_ids.length; i++) {
                         if (_this.model[resource_type][new_cloud_resource_ids[i]] == undefined) {
-                            _this.set('model.' + resource_type + '.' + new_cloud_resource_ids[i], _this.model.clouds[cloud_id][resource_type][new_cloud_resource_external_ids[i]]);
-                            _this.linkPaths('model.'+ resource_type + '.' + new_cloud_resource_ids[i], 'model.clouds.' + cloud_id + '.' + resource_type + '.' + new_cloud_resource_external_ids[i]);
+                            _this.set(`model.${  resource_type  }.${  new_cloud_resource_ids[i]}`, _this.model.clouds[cloud_id][resource_type][new_cloud_resource_external_ids[i]]);
+                            _this.linkPaths(`model.${ resource_type  }.${  new_cloud_resource_ids[i]}`, `model.clouds.${  cloud_id  }.${  resource_type  }.${  new_cloud_resource_external_ids[i]}`);
                         }
                     }
 
                     if (property_path && _this.model.clouds[cloud_id][resource_type][resource_external_id]) {
-                        var resource_global_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id,
-                            property_global_path =  resource_global_path + property_path,
-                            resource_local_path = 'model.clouds.' + cloud_id + '.' + resource_type + '.' + resource_external_id,
-                            property_local_path = resource_local_path + property_path;
+                        const resource_global_path = `model.${  resource_type  }.${  _this.model.clouds[cloud_id][resource_type][resource_external_id].id}`;
+                            const property_global_path =  resource_global_path + property_path;
+                            const resource_local_path = `model.clouds.${  cloud_id  }.${  resource_type  }.${  resource_external_id}`;
+                            const property_local_path = resource_local_path + property_path;
 
                         if (_this.get(property_global_path) && _this.get(property_global_path) == _this.get(property_local_path)) {
                             _this.notifyPath(property_global_path);
@@ -380,18 +380,18 @@ Polymer({
                         }
 
                         // Check if we need to notify a subpath e.g. when updating records of a zone
-                        var property_sub_path = property_path.split('.');
+                        let property_sub_path = property_path.split('.');
                         property_sub_path.pop();
                         if (property_sub_path.length > 1) {
                             property_sub_path = property_sub_path.join('.');
-                            property_sub_path = 'model.' + resource_type + '.' + _this.model.clouds[cloud_id][resource_type][resource_external_id].id + property_sub_path
+                            property_sub_path = `model.${  resource_type  }.${  _this.model.clouds[cloud_id][resource_type][resource_external_id].id  }${property_sub_path}`
                             setTimeout(function() {
                                 _this.notifyPath(property_sub_path);
                             }, 50);
                         }
                     }
-                    _this.notifyPath('model.' + resource_type);
-                    _this.set('model.sections.' + resource_type + '.count', Object.keys(_this.model[resource_type]).length);
+                    _this.notifyPath(`model.${  resource_type}`);
+                    _this.set(`model.sections.${  resource_type  }.count`, Object.keys(_this.model[resource_type]).length);
                 }
             }, {
                 timeout: 500
@@ -399,20 +399,20 @@ Polymer({
         });
     },
 
-    _updateModel: function (section, data, primaryField) {
+    _updateModel (section, data, primaryField) {
         if (this.model) {
-            var changed = false, // we wont update the model if it hasn't changed
-                pending = this.get('model.pending.' + section);
+            let changed = false; // we wont update the model if it hasn't changed
+                const pending = this.get(`model.pending.${  section}`);
 
             // if the received data array has different length than the respective
             // model array, then things must have changed since last update
-            if (data.length != this.get('model.' + section + 'Array.length')) {
+            if (data.length != this.get(`model.${  section  }Array.length`)) {
                 // console.debug('0. length', data.length, this.get('model.' + section + 'Array.length'));
                 changed = true;
             }
             // debugger;
             // For each item in the received data array
-            for (var i = 0; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 // If we know things have changed no need to keep checking
                 if (changed)
                     break;
@@ -423,8 +423,8 @@ Polymer({
                 // Check if item exists in respective model
                 // var item = this.get('model.' + section + '.' + data[i].id);
                 // patch for when data[i].id is of type '127.0.0.1'
-                var path = this.get('model.' + section);
-                var item = path[data[i].id];
+                const path = this.get(`model.${  section}`);
+                const item = path[data[i].id];
                 if (!item) { // If does not exist then model needs to be updated
                     // console.debug('1. data[i].id', data[i], this.get('model.' + section + '.' + data[i].id));
                     changed = true;
@@ -432,10 +432,10 @@ Polymer({
                 }
 
                 // check if all fields of the data item exist in the model item
-                var dataKeys = Object.keys(data[i]),
-                    modelKeys = Object.keys(item);
+                const dataKeys = Object.keys(data[i]);
+                    const modelKeys = Object.keys(item);
 
-                for (var k = 0; k < dataKeys.length; k++) {
+                for (let k = 0; k < dataKeys.length; k++) {
                     // Do not update model just for the last_seen property
                     if (dataKeys[k] == 'last_seen') {
                         continue;
@@ -451,8 +451,8 @@ Polymer({
                         .localeCompare(JSON.stringify(item[dataKeys[k]]))) {
                         // console.debug('localeCompare',JSON.stringify(data[i][dataKeys[k]]).localeCompare(JSON.stringify(item[dataKeys[k]])));
                         console.debug('property ', dataKeys[k], ' changed in ', item);
-                        var oldVal = JSON.stringify(item[dataKeys[k]]),
-                            newVal = JSON.stringify(data[i][dataKeys[k]]);
+                        const oldVal = JSON.stringify(item[dataKeys[k]]);
+                            const newVal = JSON.stringify(data[i][dataKeys[k]]);
                         console.debug('Old value: ', oldVal, oldVal.length);
                         console.debug('New value: ', newVal, newVal.length);
                         changed = true;
@@ -465,22 +465,20 @@ Polymer({
             }
 
             if (changed) {
-                //console.warn('updating', section);
-                this.set('model.' + section, _generateMap(data, primaryField));
-                this.set('model.' + section + 'Array', data);
-            } else {
-                if (DEBUG_SOCKET)
+                // console.warn('updating', section);
+                this.set(`model.${  section}`, _generateMap(data, primaryField));
+                this.set(`model.${  section  }Array`, data);
+            } else if (DEBUG_SOCKET)
                     console.debug('no need to update', section);
-            }
 
             if (this.model.sections[section] && this.model.sections[section].count != (data.length || 0)) {
                 // update section count, necessary for propagating changes to sidebar & dashboard counters
-                this.set('model.sections.' + section + '.count', data.length || 0);
+                this.set(`model.sections.${  section  }.count`, data.length || 0);
                 console.log('update model', section, this.model.sections[section].count);
             }
 
             if (pending) {
-                this.set('model.pending.' + section, false);
+                this.set(`model.pending.${  section}`, false);
             }
 
             return changed;
@@ -488,7 +486,7 @@ Polymer({
         return false;
     },
 
-    _updateClouds: function (data) {
+    _updateClouds (data) {
         // console.log('_updateClouds', data);
         if (data.length && this.get('model.onboarding.hasCloud') != true)
             this.set('model.onboarding.hasCloud', true);
@@ -498,7 +496,7 @@ Polymer({
             this.set('model.onboarding.isLoadingImages', false);
             this.set('model.onboarding.isLoadingNetworks', false);
         }
-        var ret = this._updateModel('clouds', data);
+        const ret = this._updateModel('clouds', data);
         this.set('model.onboarding.isLoadingClouds', false);
 
         if (this.model && this.model.clouds && data) {
@@ -514,10 +512,10 @@ Polymer({
 
         // the case when clouds have loaded but handlers list_machines/list_images/list_networks
         // have never been triggered (ex. all clouds are disabled, list_machines never gets data)
-        var cloudsResources = !(!this.model.machines && !this.model.networks && !this.model.images);
+        let cloudsResources = !(!this.model.machines && !this.model.networks && !this.model.images);
         if (data.length && !cloudsResources && ret)
             cloudsResources = data.map(function (d) {
-                return d.machines || d.images || d.networks ? true : false;
+                return !!(d.machines || d.images || d.networks);
             }).reduce(function (b1, b2) {
                 return b1 || b2;
             });
@@ -529,24 +527,24 @@ Polymer({
         return ret;
     },
 
-    _updateMonitoring: function (data) {
+    _updateMonitoring (data) {
         console.warn('got monitoring', data);
         if (data.length && this.get('model.onboarding.hasMonitoring') != true)
             this.set('model.onboarding.hasMonitoring', true);
-        if (!data) //data is an Object
+        if (!data) // data is an Object
             this.set('model.onboarding.hasMonitoring', false);
         this.set('model.pending.monitoring', false);
         // inform machines that have rules
         if (data.rules) {
-            for (var rule in data.rules) {
+            for (const rule in data.rules) {
                 if (rule.cloud && rule.machine && this.model.clouds[rule.cloud] && this.model.clouds[rule.cloud].machines[rule.machine]) {
-                    if (!this.get('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules')) {
-                        this.set('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules', [
+                    if (!this.get(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`)) {
+                        this.set(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`, [
                             rule
                         ])
                         // console.log('// inform machines that have rules ', rule.cloud, rule.machine, this.model.clouds[rule.cloud].machines[rule.machine].rules);
                     } else
-                        this.push('model.clouds.' + rule.cloud + '.machines.' + rule.machine + '.rules',
+                        this.push(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`,
                             rule)
                 }
             }
@@ -555,7 +553,7 @@ Polymer({
         return this.set('model.monitoring', data);
     },
 
-    _updateUser: function (data) {
+    _updateUser (data) {
         this.set('model.user', data);
         if (data) {
             CSRFToken.value = data.csrf_token;
@@ -563,7 +561,7 @@ Polymer({
         }
     },
 
-    _updateOrg: function (data) {
+    _updateOrg (data) {
         this.set('model.onboarding.isLoadingTeams', false);
         this._updateModel('teams', data.teams);
         this._updateModel('members', data.members);
@@ -571,43 +569,43 @@ Polymer({
         this.set('model.org', data);
     },
 
-    _updateKeys: function (data) {
-        var _this = this;
+    _updateKeys (data) {
+        const _this = this;
         this.set('model.onboarding.isLoadingKeys', false);
         this.fire('update-keys');
         if (data) {
-            for (var i = 0; i < data.length; i++) {
+            for (let i = 0; i < data.length; i++) {
                 var key = data[i];
                 if (this.model.clouds && key.machines) {
                     key.machines.forEach(function (m, index) {
-                        var cloud = m[0],
-                            machine = m[1],
-                            last_used = m[2],
-                            user = m[3],
-                            sudo = m[4],
-                            port = m[5];
+                        const cloud = m[0];
+                            const machine = m[1];
+                            const last_used = m[2];
+                            const user = m[3];
+                            const sudo = m[4];
+                            const port = m[5];
                         if (this.model.clouds && this.model.clouds[cloud] &&
                             this.model.clouds[cloud].machines &&
                             this.model.clouds[cloud].machines[machine]) {
                             // check if machine has this key, if not add
-                            var keyIndex = this.model.clouds[cloud].machines[machine].key_associations
+                            const keyIndex = this.model.clouds[cloud].machines[machine].key_associations
                                 .findIndex(
                                     function (k) {
                                         return k.key == key.id && k.ssh_user == user && k.port ==
                                             port;
                                     });
                             if (keyIndex > -1) {
-                                this.set('model.clouds.' + cloud + '.machines.' + machine +
-                                    '.key_associations.' + keyIndex, {
+                                this.set(`model.clouds.${  cloud  }.machines.${  machine 
+                                    }.key_associations.${  keyIndex}`, {
                                         'key': key.id,
                                         'last_used': last_used,
                                         'port': port,
                                         'ssh_user': user
                                     });
                             } else {
-                                var mid = this.model.clouds[cloud].machines[machine].id;
+                                const mid = this.model.clouds[cloud].machines[machine].id;
                                 this.push(
-                                    'model.machines.' + mid + '.key_associations', {
+                                    `model.machines.${  mid  }.key_associations`, {
                                         'key': key.id,
                                         'last_used': last_used,
                                         'port': port,
@@ -620,11 +618,11 @@ Polymer({
                 }
 
                 // remove disassociated keys from machines
-                var machine_ids = [];
+                let machine_ids = [];
                 if (this.model && this.model.machines)
                     machine_ids = Object.keys(this.model.machines);
                 machine_ids.forEach(function (m, index) {
-                    var associationIndexMachine, associationIndexKey, machine = _this.model.machines[m];
+                    let associationIndexMachine; let associationIndexKey; const machine = _this.model.machines[m];
                     associationIndexMachine = machine && machine.key_associations.findIndex(function (k) {
                         return k.key == key.id;
                     }) || -1;
@@ -647,14 +645,14 @@ Polymer({
         return this._updateModel('keys', data);
     },
 
-    _updateScripts: function (data) {
+    _updateScripts (data) {
         this.set('model.onboarding.isLoadingScripts', false);
         return this._updateModel('scripts', data);
     },
 
-    _updateRules: function (data) {
-        var rulesArray = [];
-        for (var p in data) {
+    _updateRules (data) {
+        const rulesArray = [];
+        for (const p in data) {
             data[p].id = p;
             rulesArray.push(data[p]);
         }
@@ -662,38 +660,38 @@ Polymer({
         // return this._updateModel('rules', data);
     },
 
-    _updateSchedules: function (data) {
+    _updateSchedules (data) {
         this.set('model.onboarding.isLoadingSchedules', false);
         return this._updateModel('schedules', data);
     },
 
-    _updateTemplates: function (data) {
+    _updateTemplates (data) {
         this.set('model.onboarding.isLoadingTemplates', false);
         return this._updateModel('templates', data);
     },
 
-    _updateStacks: function (data) {
+    _updateStacks (data) {
         this.set('model.onboarding.isLoadingStacks', false);
         return this._updateModel('stacks', data);
     },
 
-    _updateSizes: function (data) {
-        return this._updateModel('clouds.' + data.cloud_id + '.sizes', data.sizes);
+    _updateSizes (data) {
+        return this._updateModel(`clouds.${  data.cloud_id  }.sizes`, data.sizes);
     },
 
-    _updateLocations: function (data) {
-        return this._updateModel('clouds.' + data.cloud_id + '.locations', data.locations);
+    _updateLocations (data) {
+        return this._updateModel(`clouds.${  data.cloud_id  }.locations`, data.locations);
     },
 
-    _updateImages: function (data) {
+    _updateImages (data) {
         // console.log('_updateImages');
         this.set('model.onboarding.isLoadingImages', false);
-        var changed = this._updateModel('clouds.' + data.cloud_id + '.images', data.images);
+        const changed = this._updateModel(`clouds.${  data.cloud_id  }.images`, data.images);
         if (!changed)
             return false;
 
-        var self = this;
-        var allImages = [];
+        const self = this;
+        let allImages = [];
         if (this.model != undefined) {
             this.model.cloudsArray.forEach(
                 function (cloud) {
@@ -718,37 +716,37 @@ Polymer({
         this.set('model.sections.images.count', allImages.length);
     },
 
-    _updateMachines: function (data) {
+    _updateMachines (data) {
         this.set('model.onboarding.isLoadingMachines', false);
         this._updateCloudResources(data, 'machines', 'machine_id');
     },
 
-    _updateNetworks: function (data) {
+    _updateNetworks (data) {
         this.set('model.onboarding.isLoadingNetworks', false);
         this._updateCloudResources(data, 'networks', 'network_id');
     },
 
-    _updateVolumes: function (data) {
+    _updateVolumes (data) {
         // console.log('UPDATE VOLUMES', data);
         this._updateCloudResources(data, 'volumes', 'external_id')
     },
 
-    _updateZones: function (data) {
+    _updateZones (data) {
         this.set('model.onboarding.isLoadingNetworks', false);
         this._updateCloudResources(data, 'zones', 'zone_id');
     },
 
-    _updateCloudResources: function (data, section, externalId) {
+    _updateCloudResources (data, section, externalId) {
         if (this.model && this.model.clouds && this.model.clouds[data.cloud_id]) {
             if (this.model.clouds[data.cloud_id][section] == undefined)
                 this.model.clouds[data.cloud_id][section] = {};
-            var old_cloud_resources_external_ids = Object.keys(this.model.clouds[data.cloud_id][section]),
-                old_cloud_resources_ids = old_cloud_resources_external_ids.map(i => this.model.clouds[data.cloud_id][section][i].id),
-                new_cloud_resources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {}),
-                new_cloud_resources_external_ids = Object.keys(new_cloud_resources),
-                new_cloud_resources_ids = new_cloud_resources_external_ids.map(i => new_cloud_resources[i].id); 
+            const old_cloud_resources_external_ids = Object.keys(this.model.clouds[data.cloud_id][section]);
+                const old_cloud_resources_ids = old_cloud_resources_external_ids.map(i => this.model.clouds[data.cloud_id][section][i].id);
+                const new_cloud_resources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {});
+                const new_cloud_resources_external_ids = Object.keys(new_cloud_resources);
+                const new_cloud_resources_ids = new_cloud_resources_external_ids.map(i => new_cloud_resources[i].id); 
 
-            this.set('model.clouds.' + data.cloud_id + '.' + section, new_cloud_resources);
+            this.set(`model.clouds.${  data.cloud_id  }.${  section}`, new_cloud_resources);
 
             for (var i=0; i<old_cloud_resources_ids.length; i++) {
                 if (old_cloud_resources_ids[i].indexOf(new_cloud_resources_ids) == -1) {
@@ -758,56 +756,56 @@ Polymer({
 
             for (var i=0; i < new_cloud_resources_ids.length; i++) {
                 if (this.model[section][new_cloud_resources_ids[i]] == undefined) {
-                    this.set('model.' + section + '.' + new_cloud_resources_ids[i], this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
-                    this.linkPaths('model.'+ section + '.' + new_cloud_resources_ids[i], 'this.model.clouds.' + data.cloud_id + '.' + section + '.' + new_cloud_resources_external_ids[i]);
+                    this.set(`model.${  section  }.${  new_cloud_resources_ids[i]}`, this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
+                    this.linkPaths(`model.${ section  }.${  new_cloud_resources_ids[i]}`, `this.model.clouds.${  data.cloud_id  }.${  section  }.${  new_cloud_resources_external_ids[i]}`);
                 }
             }
-            this.set('model.sections.' + section + '.count', Object.keys(this.model[section]).length);
+            this.set(`model.sections.${  section  }.count`, Object.keys(this.model[section]).length);
         }
     },        
 
-    _updateTunnels: function (data) {
+    _updateTunnels (data) {
         this.set('model.onboarding.isLoadingTunnels', false);
         return this._updateModel('tunnels', data);
     },
 
-    _updateIncidents: function (data) {
+    _updateIncidents (data) {
         this.set('model.onboarding.isLoadingIncidents', false);
         this.set('model.incidentsArray', data);
         return this.set('model.incidents', _generateMap(data, 'incident_id'));
     },
 
-    _updateProjects: function (data) {
-        this.set('model.clouds.' + data.cloud_id + '.projects', _generateMap(data.projects));
-        this.set('model.clouds.' + data.cloud_id + '.projectsArray', data.projects);
+    _updateProjects (data) {
+        this.set(`model.clouds.${  data.cloud_id  }.projects`, _generateMap(data.projects));
+        this.set(`model.clouds.${  data.cloud_id  }.projectsArray`, data.projects);
     },
 
-    _updateResourceGroups: function (data) {
-        this.set('model.clouds.' + data.cloud_id + '.resourceGroups', _generateMap(data.resource_groups));
-        this.set('model.clouds.' + data.cloud_id + '.resourceGroupsArray', data.resource_groups);
+    _updateResourceGroups (data) {
+        this.set(`model.clouds.${  data.cloud_id  }.resourceGroups`, _generateMap(data.resource_groups));
+        this.set(`model.clouds.${  data.cloud_id  }.resourceGroupsArray`, data.resource_groups);
     },
 
-    _updateStorageAccounts: function (data) {
-        this.set('model.clouds.' + data.cloud_id + '.storageAccounts', _generateMap(data.storage_accounts));
-        this.set('model.clouds.' + data.cloud_id + '.storageAccountsArray', data.storage_accounts);
+    _updateStorageAccounts (data) {
+        this.set(`model.clouds.${  data.cloud_id  }.storageAccounts`, _generateMap(data.storage_accounts));
+        this.set(`model.clouds.${  data.cloud_id  }.storageAccountsArray`, data.storage_accounts);
     },
 
-    _updateTags: function (data) {
+    _updateTags (data) {
         if (Object.keys(data).length)
             console.warn('_updateTags not implemented. Got data', data);
     },
 
-    _loadNotifications: function (data) {
+    _loadNotifications (data) {
         // Reverse the array here to display more recent first
         this.set('model.notificationsArray', data.reverse());
     },
 
-    _patchNotifications: function (data) {
-        var _this = this;
+    _patchNotifications (data) {
+        const _this = this;
 
         // TODO: Do not replace the entire array. Also take care
         // of reversing the array in a more elegant way.
-        var newArray = _this.model.notificationsArray.slice().reverse();
+        const newArray = _this.model.notificationsArray.slice().reverse();
         data.patch.forEach(function (operation) {
             // apply patch to model
             jsonpatch.applyOperation(newArray, operation, true);
@@ -819,10 +817,10 @@ Polymer({
                     duration: 3000
                 } }));
 
-                var url;
+                let url;
                 if (operation.value.resource) {
-                    url = '/' + operation.value.resource._ref.$ref + '/' + operation.value.resource
-                        ._ref.$id;
+                    url = `/${  operation.value.resource._ref.$ref  }/${  operation.value.resource
+                        ._ref.$id}`;
                 }
                 _this.dispatchEvent(new CustomEvent('desktop-notification', { bubbles: true, composed: true, detail: {
                     "title": operation.value.summary,
@@ -835,12 +833,12 @@ Polymer({
         _this.set('model.notificationsArray', newArray.reverse());
     },
 
-    _patchStories: function (data) {
-        var _this = this;
+    _patchStories (data) {
+        const _this = this;
 
         // TODO: Do not replace the entire array. Also take care
         // of reversing the array in a more elegant way.
-        var target = {
+        const target = {
             incidents: this.model.incidents,
             sessions: this.model.sessions,
             jobs: this.model.jobs,
@@ -853,10 +851,10 @@ Polymer({
         this.set('model.incidentsArray', Object.values(target.incidents || {}));
         this.notifyPath('model.incidentsArray');
     },
-    _machineKeys: function (machineID, cloudID) {
+    _machineKeys (machineID, cloudID) {
         // console.log('Update _machineKeys',cloudID,machineID);
         if (machineID && cloudID) {
-            var keys = this.model.keysArray.filter(function (k) {
+            const keys = this.model.keysArray.filter(function (k) {
                 return k.machines.find(function (m) {
                     return m[1] == machineID && m[0] == cloudID;
                 })
@@ -865,18 +863,18 @@ Polymer({
         }
     },
 
-    _machineRules: function (machineID, cloudID) {
+    _machineRules (machineID, cloudID) {
         // if something has not initiaised
         if (!machineID || !cloudID || !this.model || !this.model.monitoring || !this.model.monitoring.rules ||
             !this.model.clouds || !this.model.clouds[cloudID] || !this.model.clouds[cloudID].machines ||
             !this.model.clouds[cloudID].machines[machineID]) {
             return [];
-        } else {
-            var rules = [];
+        } 
+            const rules = [];
             for (var rule in this.model.monitoring.rules) {
                 if (this.model.monitoring.rules[rule].machine == machineID && this.model.monitoring.rules[
                         rule].cloud == cloudID) {
-                    //add rule only if it's not already added in the machine
+                    // add rule only if it's not already added in the machine
                     var ruleExists = false;
                     if (this.model.clouds[cloudID].machines[machineID].rules) {
                         var ruleExists = this.model.clouds[cloudID].machines[machineID].rules.find(
@@ -890,12 +888,12 @@ Polymer({
                 }
             }
             return rules;
-        }
+        
     },
 
-    cleanUpResources: function (cloud_id) {
-        var newImagesArray = [],
-            _this = this;
+    cleanUpResources (cloud_id) {
+        let newImagesArray = [];
+            const _this = this;
         if (cloud_id && this.model && this.model.imagesArray) {
             // images
             newImagesArray = this.model.imagesArray.filter(function (im) {
@@ -915,12 +913,12 @@ Polymer({
         this.cleanUpCloudResources(cloud_id, 'zones', 'zone_id');
     },
 
-    cleanUpCloudResources: function(cloud_id, section, externalId) {
-        var _this = this;
-        var sectionItems = Object.keys(this.model[section]);
+    cleanUpCloudResources(cloud_id, section, externalId) {
+        const _this = this;
+        const sectionItems = Object.keys(this.model[section]);
         if (this.model && this.model[section]) {
             sectionItems.forEach(function(resource_id) {
-                var resource = _this.model[section][resource_id];
+                const resource = _this.model[section][resource_id];
                 if (!cloud_id || resource.cloud == cloud_id) {
                     if (_this.model.clouds[resource.cloud] && _this.model.clouds[resource.cloud][section] && _this.model.clouds[resource.cloud][section][resource[externalId]])
                         delete _this.model.clouds[resource.cloud][section][resource[externalId]];
@@ -928,7 +926,7 @@ Polymer({
                         delete _this.model[section][resource_id];
                 }
             });
-            this.set('model.sections.' + section + '.count', sectionItems.length);
+            this.set(`model.sections.${  section  }.count`, sectionItems.length);
         }
     }
 });

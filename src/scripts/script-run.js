@@ -116,9 +116,9 @@ Polymer({
       'iron-select': '_fieldsChanged'
   },
 
-  ready: function(){
-      var arr = this.machinesOptions || [];
-      var fields = [{
+  ready(){
+      const arr = this.machinesOptions || [];
+      const fields = [{
               name: "machine_uuid",
               label: "Select Machine *",
               type: "mist_dropdown",
@@ -159,65 +159,65 @@ Polymer({
       this.set('fields', fields);
   },
 
-  _computeMachinesOptions: function(clouds) {
+  _computeMachinesOptions(clouds) {
       return Object.values(this.model.machines).filter(function(cloud) {
               return cloud.enabled;
           });
   },
 
-  _computeHasMachines: function(machinesOptions) {
+  _computeHasMachines(machinesOptions) {
       return machinesOptions.base.length > 0;
   },
 
-  _computeFieldType: function(field, value, show) {
+  _computeFieldType(field, value, show) {
       if (!(field.showIf && !field.show)) {
           return field.type == value;
       }
   },
 
-  _computeCardTitleText: function(name, machine) {
-      return machine ? 'Run Script "' + name + '" on "' + machine.name + '"' : 'Run Script "' + name + '"';
+  _computeCardTitleText(name, machine) {
+      return machine ? `Run Script "${  name  }" on "${  machine.name  }"` : `Run Script "${  name  }"`;
   },
 
-  _fieldsChanged: function() {
-      var machine = this.fields.find(function(f){
+  _fieldsChanged() {
+      const machine = this.fields.find(function(f){
           return f.name.startsWith("machine");
       });
-      var cloud = this.fields.find(function(f, index){
+      const cloud = this.fields.find(function(f, index){
           return f.name.startsWith("cloud");
       });
       if (machine && machine.value) {
-          var machineId = machine.value;
+          const machineId = machine.value;
           this.set("machine", this.model.machines[machineId]);
           this.set('fields.1.value', this.model.machines[machineId].cloud);
       };
 
   },
 
-  _machineChanged: function(machine){
-      return machine.key_associations && machine.key_associations.length > 0 ? true : false;
+  _machineChanged(machine){
+      return !!(machine.key_associations && machine.key_associations.length > 0);
   },
 
-  _cloudsChanged: function(fieldsLength, clouds, machines, keys) {
+  _cloudsChanged(fieldsLength, clouds, machines, keys) {
 
       this.set('fields.0.options', Object.values(this.model.machines));
 
       if (this.fields && this.fields[0] && this.fields[0].options) {
           this.fields[0].options.forEach(function (o, index){
               if (o && o.key_associations && o.key_associations.length > 0){
-                  this.set('fields.0.options.'+index+'.icon', 'communication:vpn-key');
+                  this.set(`fields.0.options.${index}.icon`, 'communication:vpn-key');
               } else {
-                  this.set('fields.0.options.'+index+'.icon', 'nokey');
+                  this.set(`fields.0.options.${index}.icon`, 'nokey');
               }
           }, this);
       }
   },
 
-  _runScriptResponse: function(e) {
+  _runScriptResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Run script request was successfull. Redirecting to script...',duration:3000} }));
 
       this.async(function(){
-          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts/'+this.script.id} }));
+          this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${this.script.id}`} }));
       }, 3300)
   }
 });

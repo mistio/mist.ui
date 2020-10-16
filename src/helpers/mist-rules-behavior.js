@@ -6,8 +6,8 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  */
 export const mistRulesBehavior = {
     properties: {},
-    _rulesApplyOnResource: function(rules, resource, resourceTags, type) {
-        var that = this;
+    _rulesApplyOnResource(rules, resource, resourceTags, type) {
+        const that = this;
         if (!resource || !this.model || !this.model.rules)
             return
         return Object.values(this.model.rules).filter(function(r) {
@@ -15,13 +15,13 @@ export const mistRulesBehavior = {
                 // applies on all resources
                 (!r.selectors || !r.selectors.length ||
                 // applies on this resource
-                r.selectors.filter(function(s){return s.type == type+'s'}).map(x=>x.ids).join().indexOf(resource.id) >- 1 ||
+                r.selectors.filter(function(s){return s.type == `${type}s`}).map(x=>x.ids).join().indexOf(resource.id) >- 1 ||
                 // applies on tags
                 that.resourceHasTags(resource,r.resourceTags));
         });
     },
 
-    resourceHasTags: function(resource,selectors) {
+    resourceHasTags(resource,selectors) {
         // CAUTION: Selectors' format is as follows
         //      selectors = [{type:'tags',tags:{test:null,xtest:true}}, {type:'volumes',ids:[]}]
         // whereas volume tags are in the format
@@ -31,10 +31,10 @@ export const mistRulesBehavior = {
         // The following returns true if the volume has at least one of the selectors tags
         if (!resource || !selectors)
             return false;
-        var bool =  selectors.filter(function(t){return t.type == 'tags'})
+        const bool =  selectors.filter(function(t){return t.type == 'tags'})
                         .map(x=>x.tags)
                         .findIndex(function(s){
-                            for (var p in s ) {
+                            for (const p in s ) {
                                 if (resource.tags[p] === s[p] || (resource.tags[p] === "" && s[p]=== null)) {
                                     return true;
                                 }

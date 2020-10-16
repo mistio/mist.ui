@@ -84,9 +84,9 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  _computeNewTeam: function(team) {
+  _computeNewTeam(team) {
       if (team) {
-          var newTeam = {
+          const newTeam = {
               name: this.team.name,
               description: this.team.description || "",
               visible: this.team.visible
@@ -95,27 +95,27 @@ Polymer({
       }
   },
 
-  _computeFormReady: function(name, desc, visible, sendingData) {
-      var formReady = true;
+  _computeFormReady(name, desc, visible, sendingData) {
+      let formReady = true;
       if (!name || !name.length || (name == this.team.name && desc == this.team.description && visible == this.team.visible) || sendingData) {
           formReady = false;
       }
       this.set('formReady', formReady);
   },
 
-  _openEditTeamModal: function(e) {
+  _openEditTeamModal(e) {
       this.$.editTeamModal.opened = true;
   },
 
-  _closeEditTeamModal: function(e) {
+  _closeEditTeamModal(e) {
       this.$.editTeamModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.teamEditAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.teamEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.teamEditAjaxRequest.body = {
@@ -128,22 +128,22 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _formReset: function() {
-      var newTeam = {};
-      for (var p in this.team) {
-          if (typeof this.team[p] == 'string') {
-              var initial = this.team[p];
-              var str = initial.slice(0);
+  _formReset() {
+      const newTeam = {};
+      for (const p in this.team) {
+          if (typeof this.team[p] === 'string') {
+              const initial = this.team[p];
+              const str = initial.slice(0);
               newTeam[p] = str;
           }
-          if (typeof this.team[p] == 'boolean') {
-              newTeam[p] = this.team[p] ? true : false;
+          if (typeof this.team[p] === 'boolean') {
+              newTeam[p] = !!this.team[p];
           }
       }
       this.set('newTeam', newTeam);
   },
 
-  _handleTeamEditAjaxResponse: function(e) {
+  _handleTeamEditAjaxResponse(e) {
       this.set('sendingData', false);
       this._closeEditTeamModal();
   }

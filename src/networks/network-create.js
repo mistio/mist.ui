@@ -6,7 +6,8 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-var NETWORK_CREATE_FIELDS = []
+
+const NETWORK_CREATE_FIELDS = []
 
 // OPENSTACK
 NETWORK_CREATE_FIELDS.push({
@@ -466,17 +467,17 @@ Polymer({
       },
       form: {
           type: Object,
-          value: function () {
+          value () {
               return {}
           }
       },
       fields: {
           type: Array,
-          value: function () { return [] }
+          value () { return [] }
       },
       networksFields: {
           type: Array,
-          value: function () {
+          value () {
               return NETWORK_CREATE_FIELDS;
           }
       },
@@ -499,27 +500,27 @@ Polymer({
       'format-payload': 'updatePayload'
   },
 
-  _cloudsChanged: function (clouds) {
-      var networkClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged (clouds) {
+      const networkClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
           return ['openstack', 'gce', 'ec2', 'lxd', 'gig_g8'].indexOf(cloud.provider) > -1;
       });
       this.set('providers', networkClouds);
-      this.set('hasCloudsWithNetworks', networkClouds && networkClouds.length > 0 ? true : false);
+      this.set('hasCloudsWithNetworks', !!(networkClouds && networkClouds.length > 0));
   },
 
-  _computeProviderLogo: function (className) {
-      var identifier = className.replace('_', '');
-      return 'assets/providers/provider-' + identifier + '.png';
+  _computeProviderLogo (className) {
+      const identifier = className.replace('_', '');
+      return `assets/providers/provider-${  identifier  }.png`;
   },
 
-  _isOnline: function (cloud, state, clouds) {
+  _isOnline (cloud, state, clouds) {
       return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
   },
 
-  _cloudChanged: function (selectedCloud) {
+  _cloudChanged (selectedCloud) {
       // clear to reset
       this.set('machineFields', []);
-      var networkFields = [];
+      let networkFields = [];
       if (this.selectedCloud) {
           var cloudName = this.model.clouds[selectedCloud].provider;
           networkFields = this.networksFields.find(function (c) {
@@ -534,9 +535,9 @@ Polymer({
       if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
           var fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
           if (cloudName == "ec2")
-              this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', this.model.clouds[selectedCloud].locationsArray);
+              this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, this.model.clouds[selectedCloud].locationsArray);
           if (cloudName == "gce") {
-              var regionsArr = [], regions = [];
+              const regionsArr = []; const regions = [];
               if (this.model.clouds[selectedCloud].locationsArray)
                   this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
                       if (!regionsArr.includes(l.extra.region)) {
@@ -544,15 +545,15 @@ Polymer({
                           regions.push({name:l.extra.region, id:l.extra.region});
                       }
                   });
-              this.set('fields.'+this.fieldIndexByName(fieldName)+'.options', regions);
+              this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, regions);
           }
   },
 
-  updatePayload: function () {
+  updatePayload () {
       if (this.fields.length) {
-          var payload = {},
-              provider = this.model.clouds[this.selectedCloud].provider;
-          payload['network'] = {};
+          const payload = {};
+              const {provider} = this.model.clouds[this.selectedCloud];
+          payload.network = {};
           // create network
           for (var i = 0; i < this.fields.length; i++) {
               if (this.fields[i].inPayloadGroup == "network")
@@ -568,8 +569,8 @@ Polymer({
               }
               // parse and format allocation pools if they exist
               if (this.fieldIndexByName('allocation_pools') > -1 && this.fields[this.fieldIndexByName('allocation_pools')].value) {
-                  var allocationPools = [], 
-                      lines = this.fields[this.fieldIndexByName('allocation_pools')].value.split('\n');
+                  const allocationPools = []; 
+                      const lines = this.fields[this.fieldIndexByName('allocation_pools')].value.split('\n');
                   lines.forEach(function (l) {
                       if (l && l.indexOf('-') > 0)
                           allocationPools.push({
@@ -580,12 +581,12 @@ Polymer({
                           allocationPools.push(l);
                   })
                   if (allocationPools.length){
-                      payload.subnet['allocation_pools'] = allocationPools;
+                      payload.subnet.allocation_pools = allocationPools;
                   }
               }
 
               if (this.fieldIndexByName('disableGateway') > -1 && this.fields[this.fieldIndexByName('disableGateway')].value == true) {
-                  delete payload.subnet['gateway_ip'];
+                  delete payload.subnet.gateway_ip;
               }
           }
 
@@ -593,27 +594,27 @@ Polymer({
       }
   },
 
-  fieldIndexByName: function (name) {
-      var field = this.fields.findIndex(function (f) {
+  fieldIndexByName (name) {
+      const field = this.fields.findIndex(function (f) {
           return f.name == name;
       });
       return field;
   },
 
-  _handleCreateNetworkResponse: function (e) {
-      var response = JSON.parse(e.detail.xhr.response);
+  _handleCreateNetworkResponse (e) {
+      const response = JSON.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/networks'
       } }));
 
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
       console.log(e);
       this.set('formError', true);
   },
 
-  _goBack: function () {
+  _goBack () {
       history.back();
   }
 });

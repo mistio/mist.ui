@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">
@@ -66,7 +67,7 @@ Polymer({
       },
       script: {
           type: Object,
-          value: function () {
+          value () {
               return {
                   name: '',
                   script: '',
@@ -84,7 +85,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function(){ return [{
+          value(){ return [{
               name: "name",
               label: "Script Name *",
               type: "text",
@@ -221,42 +222,42 @@ Polymer({
       '_execTypeChanged(script.exec_type)'
   ],
 
-  ready: function () {
+  ready () {
       if ( document.querySelector('mist-app').shadowRoot.querySelector('app-location')) {
           this.set('origin', document.querySelector('mist-app').shadowRoot.querySelector('app-location').queryParams.origin);
       }
       if (!this.docs)
-          for (var i=0; i < this.fields.length; i++)
+          for (let i=0; i < this.fields.length; i++)
               this.fields[i].helpHref = '';
   },
 
-  _fieldIndexByName: function(name) {
+  _fieldIndexByName(name) {
       return this.fields.findIndex(function(f) {
           return f.name == name;
       });
   },
 
-  _execTypeChanged: function (type) {
-      var placeholder = "";
+  _execTypeChanged (type) {
+      let placeholder = "";
       if (type == "executable") {
           placeholder = "#!/bin/bash\necho 'hello world'";
       } else if (type == "ansible") {
           placeholder =
               "- name: Dummy ansible playbook\n  hosts: localhost\n  tasks:\n    - name: Dummy task\n      debug:\n        msg: 'Hello World'\n"
       }
-      var index = this._fieldIndexByName('script_inline')
-      this.set('fields.' + index + '.value', placeholder);
+      const index = this._fieldIndexByName('script_inline')
+      this.set(`fields.${  index  }.value`, placeholder);
   },
 
-  _addScriptAjaxResponse: function (e) {
-      var response = JSON.parse(e.detail.xhr.response);
+  _addScriptAjaxResponse (e) {
+      const response = JSON.parse(e.detail.xhr.response);
       if (!this.origin) {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
-              url: '/scripts/' + response.id
+              url: `/scripts/${  response.id}`
           } }));
 
       } else {
-          var goToPath = this.origin;
+          const goToPath = this.origin;
           this.dispatchEvent(new CustomEvent('update-scripts', { bubbles: true, composed: true, detail: {
               script: response.id
           } }));

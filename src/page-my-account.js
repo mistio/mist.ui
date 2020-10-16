@@ -13,6 +13,7 @@ import './account/notifications-settings.js';
 import './account/metering-graphs.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -92,12 +93,12 @@ Polymer({
         },
         data: {
             type: Object,
-            value: function() {
+            value() {
                 return { page: 'profile' };
             }
         }
     },
-    _showBilling: function(is_owner, has_billing) {
+    _showBilling(is_owner, has_billing) {
         return is_owner && has_billing;
     }
 });

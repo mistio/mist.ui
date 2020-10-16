@@ -64,50 +64,50 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  _openEditScheduleModal: function(e) {
+  _openEditScheduleModal(e) {
       if (this.schedule) {
           this.set('newMaxRunCount', this.schedule.max_run_count);
           this.$.editMrcScheduleModal.opened = true;
       }
   },
 
-  _closeEditScheduleModal: function(e) {
+  _closeEditScheduleModal(e) {
       this.$.editMrcScheduleModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.editSchedule.body = {max_run_count: this.newMaxRunCount};
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
       this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.editSchedule.generateRequest();
   },
 
-  _formReset: function() {
+  _formReset() {
       if (this.schedule) {
           this.set('newMaxRunCount', this.schedule.max_run_count);
       }
   },
 
-  _handleScheduleEditResponse: function(e) {
+  _handleScheduleEditResponse(e) {
       this._closeEditScheduleModal();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Updating max run count.', duration: 5000 } }));
 
   },
 
-  _handleScheduleEditError: function(e) {
-      var message = e.detail.error;
+  _handleScheduleEditError(e) {
+      let message = e.detail.error;
       if (e.detail.request.statusText)
-          message += " "+e.detail.request.statusText;
+          message += ` ${e.detail.request.statusText}`;
 
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: message, duration: 5000 } }));
 
   },
 
-  _updateformReady: function(schedule, newMaxRunCount, sendingData) {
+  _updateformReady(schedule, newMaxRunCount, sendingData) {
       // console.log(parseInt(this.newMaxRunCount), this.newMaxRunCount,  this.schedule.max_run_count)
       if (this.sendingData) {
           this.set('formReady', false);

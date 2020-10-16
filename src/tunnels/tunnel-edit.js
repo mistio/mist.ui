@@ -75,19 +75,19 @@ Polymer({
       'input': '_editing'
   },
 
-  _computeNewTunnel: function(tunnel) {
+  _computeNewTunnel(tunnel) {
       if (tunnel) {
-          var cidrs = this.tunnel.cidrs.join('\n');
+          const cidrs = this.tunnel.cidrs.join('\n');
           return {
               name: tunnel.name,
               description: tunnel.description,
-              cidrs: cidrs
+              cidrs
           };
       }
   },
 
-  _computeFormReady: function(name, cidrs, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, cidrs, sendingData) {
+      let formReady = false;
 
       if (name && cidrs) {
           formReady = true;
@@ -100,21 +100,21 @@ Polymer({
       return formReady;
   },
 
-  _openEditTunnelModal: function(e) {
+  _openEditTunnelModal(e) {
       this.$.editTunnelModal.open();
       this._formReset();
   },
 
-  _closeEditTunnelModal: function(e) {
+  _closeEditTunnelModal(e) {
       this.$.editTunnelModal.close();
       this._formReset();
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       // var val = this.$.cidrs
       // if (typeof(this.$.cidrs.value) == 'array'){
       //     var cidrs = this.$.cidrs.value;
@@ -137,12 +137,12 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _editing: function(){
+  _editing(){
       this.set("fail", false);
       this.set('sendingData', false);
   },
 
-  _formReset: function() {
+  _formReset() {
       this.set('tunnel', {
           name: this.tunnel.name,
           id: this.tunnel.id,
@@ -153,17 +153,17 @@ Polymer({
       this.set("fail", false);
   },
 
-  _handleTunnelEditAjaxResponse: function(e) {
+  _handleTunnelEditAjaxResponse(e) {
       this.set('sendingData', false);
       this._closeEditTunnelModal();
   },
 
-  _handleTunnelEditAjaxError: function(e){
-      var msg404;
+  _handleTunnelEditAjaxError(e){
+      let msg404;
       if (e.detail.error.message.indexOf('404')> -1){
           msg404 = 'Tunnel seems deleted';
       }
-      this.$.errormsg.textContent = e.detail.error.message+' '+msg404;
+      this.$.errormsg.textContent = `${e.detail.error.message} ${msg404}`;
       this.set('sendingData', true);
       this.set("fail", true);
   }

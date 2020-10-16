@@ -15,6 +15,7 @@ import { CSRFToken, intersection } from '../helpers/utils.js';
 import { VOLUME_CREATE_FIELDS } from './volume-create.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const VOLUME_ACTIONS = {
   'tag': {
     'name': 'tag',
@@ -76,19 +77,19 @@ Polymer({
   properties: {
     items: {
       type: Array,
-      value: function () { return []; },
+      value () { return []; },
     },
     machines: {
       type: Array,
-      value: function () { return []; },
+      value () { return []; },
     },
     machinesToAttachTo: {
       type: Array,
-      value: function () { return []; },
+      value () { return []; },
     },
     actions: {
       type: Array,
-      value: function () { return []; },
+      value () { return []; },
       notify: true
     },
     provider: String,
@@ -121,16 +122,16 @@ Polymer({
     'transfer-ownership': 'transferOwnership'
   },
 
-  ready: function () {},
+  ready () {},
 
-  attached: function () {
+  attached () {
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
   },
 
-  itemActions: function (volume) {
-    var arr = [];
+  itemActions (volume) {
+    const arr = [];
     if (volume) {
       if (volume.actions.tag) {
         arr.push('tag');
@@ -153,17 +154,17 @@ Polymer({
     return arr;
   },
 
-  actionDetails: function (actions) {
-    var ret = [];
-    for (var i = 0; i < actions.length; i++) {
+  actionDetails (actions) {
+    const ret = [];
+    for (let i = 0; i < actions.length; i++) {
       ret.push(VOLUME_ACTIONS[actions[i]]);
     }
     return ret;
   },
 
-  _otherMembers: function (members,items) {
+  _otherMembers (members,items) {
     if (this.items && members) {
-      var owners = this.items.map(function(i){return i.owned_by;})
+      const owners = this.items.map(function(i){return i.owned_by;})
                         .filter(function(value,index,self){return self.indexOf(value) === index;});
       // filter out pending users and the single owner of the item-set if that is the case
       return members.filter(function(m) {
@@ -172,53 +173,53 @@ Polymer({
     }
   },
 
-  _delete: function () {
-    //set up iron ajax
+  _delete () {
+    // set up iron ajax
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
 
-    for (var i = 0; i < this.items.length; i++) {
-      this.$.request.url = "/api/v1/clouds/" + this.items[i].cloud + "/volumes/" + this.items[i].external_id;
+    for (let i = 0; i < this.items.length; i++) {
+      this.$.request.url = `/api/v1/clouds/${  this.items[i].cloud  }/volumes/${  this.items[i].external_id}`;
       this.$.request.generateRequest();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-        msg: 'Deleting ' + this.items[i].name,
+        msg: `Deleting ${  this.items[i].name}`,
         duration: 1000
       } }))
     }
   },
 
-  _showDialog: function (info) {
-    var dialog = this.shadowRoot.querySelector('dialog-element');
-    for (var i in info) {
+  _showDialog (info) {
+    const dialog = this.shadowRoot.querySelector('dialog-element');
+    for (const i in info) {
       dialog[i] = info[i];
     }
     dialog._openDialog();
   },
 
-  confirmAction: function (e) {
+  confirmAction (e) {
     if (e.detail.confirmed)
       this.performAction(this.action, this.items);
   },
 
-  selectAction: function (e) {
+  selectAction (e) {
     if (this.items.length) {
-      var action = e.detail.action;
+      const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (action.confirm && action.name != 'tag') {
-        var property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain",
-          plural = this.items.length == 1 ? '' : 's',
-          count = this.items.length > 1 ? this.items.length + ' ' : '';
-        //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
+          const plural = this.items.length == 1 ? '' : 's';
+          const count = this.items.length > 1 ? `${this.items.length  } ` : '';
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
-          title: this.action.name + ' ' + count + this.type + plural + '?',
-          body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type +
-            plural + ".",
+          title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
+          body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type 
+            }${plural  }.`,
           list: this._makeList(this.items, property),
           action: action.name,
           danger: true,
-          reason: this.type + "." + this.action.name
+          reason: `${this.type  }.${  this.action.name}`
         });
       } else if (action.name == 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
@@ -234,9 +235,9 @@ Polymer({
     }
   },
 
-  transferOwnership: function (e) {
-    var payload = {
-      user_id: e.detail.user_id, //new owner
+  transferOwnership (e) {
+    const payload = {
+      user_id: e.detail.user_id, // new owner
       resources: {}
     };
     payload.resources[this.type] = this.items.map(function(i){return i.id});
@@ -249,17 +250,17 @@ Polymer({
     this.$.request.generateRequest();
   },
 
-  performAction: function (action, items) {
+  performAction (action, items) {
     if (action.name == 'delete') {
       this._delete();
     }
   },
 
-  handleResponse: function (e) {
+  handleResponse (e) {
     // console.log('on-response', e, this.$.request, this.$.request.body)
     if (this.$.request && this.$.request.body && this.$.request.body.action) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-        msg: 'Action: ' + this.$.request.body.action + ' successfull',
+        msg: `Action: ${  this.$.request.body.action  } successfull`,
         duration: 3000
       } }))
     }
@@ -278,18 +279,18 @@ Polymer({
     }
   },
 
-  _mapPolicyToActions: function (items,org,user) {
+  _mapPolicyToActions (items,org,user) {
     // recompute the actions array property as the intersection
     // of the available actions of the selected items
     if (items && org && user) {
       this.set('actions', []);
-      var actions = new Set(),
-        isection = new Set();
+      let actions = new Set();
+        let isection = new Set();
 
       if (this.items.length > 0) {
         actions= new Set(this.itemActions(this.items[0]) || []);
 
-        for (var i = 1; i < this.items.length; i++) {
+        for (let i = 1; i < this.items.length; i++) {
           isection = intersection(actions, this.itemActions(this.items[i]));
           actions = new Set(isection);
         }
@@ -309,10 +310,10 @@ Polymer({
     }
   },
 
-  handleError: function (e) {
+  handleError (e) {
     // console.log(e.detail.request.xhr.statusText);
     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-      msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
+      msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`,
       duration: 5000
     } }));
 
@@ -321,7 +322,7 @@ Polymer({
     }
   },
 
-  _makeList: function (items, property) {
+  _makeList (items, property) {
     if (items && items.length)
       return items.map(function (item) {
         return item[property];

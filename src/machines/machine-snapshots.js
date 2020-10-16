@@ -12,6 +12,7 @@ import '../../node_modules/@polymer/paper-item/paper-item-body.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -131,7 +132,7 @@ Polymer({
       },
       snapshots: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       snapshotName: {
           type: String,
@@ -182,31 +183,31 @@ Polymer({
       '_preselectSnapshot(snapshots, isCreate)'
   ],
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.clearError();
       this._preselectSnapshot();
       this.$.createSnapshotModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.createSnapshotModal.close();
       this.clearError();
       this.set('action', "");
   },
 
-  _computeIsCreate: function(action) {
+  _computeIsCreate(action) {
       return this.action == 'create snapshot';
   },
 
-  _computeIsRemove: function(action) {
+  _computeIsRemove(action) {
       return this.action == 'remove snapshot';
   },
 
-  _computeIsRevertTo: function(action) {
+  _computeIsRevertTo(action) {
       return this.action == 'revert to snapshot';
   },
 
-  _preselectSnapshot: function() {
+  _preselectSnapshot() {
       if (!this.isCreate && this.snapshots && this.snapshots.length) {
           this.set('snapshotName', this.snapshots[this.snapshots.length - 1].name);
       } else {
@@ -214,9 +215,9 @@ Polymer({
       }
   },
 
-  createSnapshot: function(e) {
-      var request = this.$.snapshotRequest;
-      request.url = "/api/v1/machines/" + this.machine.id;
+  createSnapshot(e) {
+      const request = this.$.snapshotRequest;
+      request.url = `/api/v1/machines/${  this.machine.id}`;
       request.headers["Content-Type"] = 'application/json';
       request.headers["Csrf-Token"] = CSRFToken.value;
       if (this.isCreate) {
@@ -241,14 +242,14 @@ Polymer({
       request.generateRequest();
   },
 
-  _snapshotRequest: function() {
+  _snapshotRequest() {
       this.clearError();
-      var logMessage = 'Sending request to ' + this.action + '.';
+      const logMessage = `Sending request to ${  this.action  }.`;
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _snapshotResponse: function(e) {
+  _snapshotResponse(e) {
       console.log(e, e.detail);
       this._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -257,22 +258,22 @@ Polymer({
 
   },
 
-  _snapshotError: function(e) {
+  _snapshotError(e) {
       console.log(e, e.detail);
-      var message = e.detail.request.xhr.response || e.detail.error.message;
+      const message = e.detail.request.xhr.response || e.detail.error.message;
       this.$.errormsg.textContent = message;
       this.set('formError', true);
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
 
   },
 
-  clearError: function() {
+  clearError() {
       this.set('formError', false);
       this.$.errormsg.textContent = '';
       this.$.createSnapshotModal.refit();
   },
 
-  _getClass: function(action) {
+  _getClass(action) {
       return action == "remove snapshot" ? "red" : "blue";
   }
 });

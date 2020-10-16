@@ -80,16 +80,16 @@ Polymer({
       }
   },
 
-  _resources: function(stack){
-      var res = "";
+  _resources(stack){
+      let res = "";
       if (stack.machines) {
-          res += stack.machines.lenght +" machines"
+          res += `${stack.machines.lenght } machines`
       }
       if (stack.networks) {
-          res += stack.networks.lenght +" networks"
+          res += `${stack.networks.lenght } networks`
       }
       if (stack.keys) {
-          res += stack.keys.lenght +" keys"
+          res += `${stack.keys.lenght } keys`
       }
       return res;
   }

@@ -4,6 +4,7 @@ import '../app-form/app-form.js';
 import PROVIDERS from '../helpers/providers.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -36,37 +37,37 @@ Polymer({
       '_fillInCreds(cloud)'
   ],
 
-  _computeFields: function (cloud) {
-      var providerFields = PROVIDERS.filter(function (fields) { // FIXME: Don't depend on global var
+  _computeFields (cloud) {
+      const providerFields = PROVIDERS.filter(function (fields) { // FIXME: Don't depend on global var
           if (this.cloud && this.cloud.provider)
               return fields.val == this.cloud.provider;
       }, this);
       // don't allow title and region in the fields
-      var fields = [];
+      let fields = [];
       if (providerFields[0] && providerFields[0].options) {
           fields = providerFields[0].options.filter(function (f) {
               return f.name != 'title' && f.name != 'region' && f.name != 'dns_enabled'
           });
 
-          for (var i = 0; i < fields.length; i++) {
-              var name = fields[i].name;
+          for (let i = 0; i < fields.length; i++) {
+              const {name} = fields[i];
               if (this.cloud[name]) {
-                  this.set('fields.' + i + '.value', this.cloud[name]);
+                  this.set(`fields.${  i  }.value`, this.cloud[name]);
               }
-              //if docker_host, search for clouds host
-              if (name == 'docker_host' && this.cloud['host']) {
-                  fields[i].value = this.cloud['host']
+              // if docker_host, search for clouds host
+              if (name == 'docker_host' && this.cloud.host) {
+                  fields[i].value = this.cloud.host
               }
-              //if docker_port, search for clouds host
-              else if (name == 'docker_port' && this.cloud['port']) {
-                  fields[i].value = this.cloud['port']
+              // if docker_port, search for clouds host
+              else if (name == 'docker_port' && this.cloud.port) {
+                  fields[i].value = this.cloud.port
               }
-              //if there is a key
+              // if there is a key
               else if (fields[i].type == 'ssh_key') {
                   fields[i].options = this.keys;
               } else if (fields[i].type == 'list') {
-                  var field = fields[i];
-                  for (var j = 0; j < field.options.length; j++) {
+                  const field = fields[i];
+                  for (let j = 0; j < field.options.length; j++) {
                       if (field.options[j].type == 'ssh_key') {
                           field.options[j].options = this.keys;
                       }
@@ -77,21 +78,21 @@ Polymer({
       return fields;
   },
 
-  _fillInCreds: function (cloud) {
+  _fillInCreds (cloud) {
       if (cloud) {
-          //reset form 
+          // reset form 
           if (this.shadowRoot.querySelector('app-form')) {
               this.shadowRoot.querySelector('app-form').form = {};
           }
           // if there is an apikey we can fill in
-          var apikey = this.cloud.apikey;
-          var index = this._fieldIndexByName('apikey', this.fields);
+          const {apikey} = this.cloud;
+          const index = this._fieldIndexByName('apikey', this.fields);
           if (apikey && index > -1) {
-              this.set('fields.' + index + '.value', apikey);
+              this.set(`fields.${  index  }.value`, apikey);
               // if there is apikey and an apisecret we can 'getsecretfromdb'
-              var indexp = this._fieldIndexByName('apisecret');
+              const indexp = this._fieldIndexByName('apisecret');
               if (indexp != undefined) {
-                  this.set('fields.' + indexp + '.value', 'getsecretfromdb');
+                  this.set(`fields.${  indexp  }.value`, 'getsecretfromdb');
               }
           }
 
@@ -124,40 +125,40 @@ Polymer({
       }
   },
 
-  _fillInHosts: function (machines) {
-      var lindex = this._fieldIndexByName('machines');
-      this.set('fields.' + lindex + '.items', []);
+  _fillInHosts (machines) {
+      const lindex = this._fieldIndexByName('machines');
+      this.set(`fields.${  lindex  }.items`, []);
 
-      for (var i = 0; i < machines.length; i++) {
-          var opts = this.fields[lindex].options.slice(0);
+      for (let i = 0; i < machines.length; i++) {
+          const opts = this.fields[lindex].options.slice(0);
 
-          this.push('fields.' + lindex + '.items', opts);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 0 + '.value', machines[i].hostname);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 1 + '.value', machines[i].name);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 2 + '.value', machines[i].os_type);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 3 + '.value', machines[i].key_associations[
+          this.push(`fields.${  lindex  }.items`, opts);
+          this.set(`fields.${  lindex  }.items.${  i  }.${  0  }.value`, machines[i].hostname);
+          this.set(`fields.${  lindex  }.items.${  i  }.${  1  }.value`, machines[i].name);
+          this.set(`fields.${  lindex  }.items.${  i  }.${  2  }.value`, machines[i].os_type);
+          this.set(`fields.${  lindex  }.items.${  i  }.${  3  }.value`, machines[i].key_associations[
               0].key);
 
-          this.set('fields.' + lindex + '.items.' + i + '.' + 4 + '.value', machines[i].key_associations[
+          this.set(`fields.${  lindex  }.items.${  i  }.${  4  }.value`, machines[i].key_associations[
               0].ssh_user);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 5 + '.value', machines[i].key_associations[
+          this.set(`fields.${  lindex  }.items.${  i  }.${  5  }.value`, machines[i].key_associations[
               0].port);
-          this.set('fields.' + lindex + '.items.' + i + '.' + 6 + '.value', machines[i].rdp_port);
+          this.set(`fields.${  lindex  }.items.${  i  }.${  6  }.value`, machines[i].rdp_port);
 
       }
   },
 
-  _fillIn: function (cloudProperty, fieldName) {
-      var index = this._fieldIndexByName(fieldName, this.fields);
+  _fillIn (cloudProperty, fieldName) {
+      const index = this._fieldIndexByName(fieldName, this.fields);
       if (this.cloud[cloudProperty] && index != undefined) {
-          this.set('fields.' + index + '.value', this.cloud[cloudProperty]);
+          this.set(`fields.${  index  }.value`, this.cloud[cloudProperty]);
       }
   },
 
-  _fieldIndexByName: function (name, fields) {
-      var index;
+  _fieldIndexByName (name, fields) {
+      let index;
       if (this.fields) {
-          var passField = this.fields.find(function (f, ind) {
+          const passField = this.fields.find(function (f, ind) {
               if (f.name == name)
                   index = ind;
               return f.name == name;
@@ -166,9 +167,9 @@ Polymer({
       return index;
   },
 
-  fieldsOfType: function (data, type) {
-      var typeIndexes = [];
-      var fieldsOfType = data.filter(function (f, ind) {
+  fieldsOfType (data, type) {
+      const typeIndexes = [];
+      const fieldsOfType = data.filter(function (f, ind) {
           if (f.type == type)
               typeIndexes.push(ind);
           return f.type == type;
@@ -176,13 +177,13 @@ Polymer({
       return typeIndexes;
   },
 
-  updateKeys: function (e) {
-      var keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
+  updateKeys (e) {
+      const keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
       console.log('updateKeys', keyFieldsIndexes);
       this.async(function () {
-          for (var i = 0; i < keyFieldsIndexes.length; i++) {
-              this.set('fields.' + keyFieldsIndexes[i] + '.options', this.keys);
-              this.set('fields.' + keyFieldsIndexes[i] + '.value', e.detail.key);
+          for (let i = 0; i < keyFieldsIndexes.length; i++) {
+              this.set(`fields.${  keyFieldsIndexes[i]  }.options`, this.keys);
+              this.set(`fields.${  keyFieldsIndexes[i]  }.value`, e.detail.key);
           }
           if (this.fieldsOfType(this.fields, 'list')) {
               this.updateKeysInLists(e, this.fieldsOfType(this.fields, 'list'));
@@ -190,22 +191,22 @@ Polymer({
       }.bind(this), 1000);
   },
 
-  updateKeysInLists: function (e, lists) {
-      for (var j = 0; j < lists.length; j++) {
+  updateKeysInLists (e, lists) {
+      for (let j = 0; j < lists.length; j++) {
           var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options, 'ssh_key');
           console.log('updateKeys', this.fields[lists[i]].options);
 
           this.async(function () {
-              for (var i = 0; i < keyFieldsIndexes.length; i++) {
-                  this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
-                      '.options', this.keys);
-                  this.set('fields.' + lists[i] + '.options.' + keyFieldsIndexes[i] +
-                      '.value', e.detail.key);
+              for (let i = 0; i < keyFieldsIndexes.length; i++) {
+                  this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
+                      }.options`, this.keys);
+                  this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
+                      }.value`, e.detail.key);
               }
           }.bind(this), 500);
       }
   },
 
-  _editCloudRequest: function () {},
-  _editCloudsResponse: function () {}
+  _editCloudRequest () {},
+  _editCloudsResponse () {}
 });

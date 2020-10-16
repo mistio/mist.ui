@@ -69,8 +69,8 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  _computeFormReady: function(id, sendingData) {
-      var formReady = false;
+  _computeFormReady(id, sendingData) {
+      let formReady = false;
 
       if (id) {
           formReady = true;
@@ -83,40 +83,40 @@ Polymer({
       return formReady;
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.$.editMachineModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.editMachineModal.close();
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       e.stopImmediatePropagation();
-      var item = this.items[0],
-          action = {
+      const item = this.items[0];
+          const action = {
               'name': 'rename',
               'icon': 'editor:mode-edit',
               'confirm': true,
               'multi': false
-          },
-          itemName = this.shadowRoot.querySelector('#item' + item.id).value;
-      this.dispatchEvent(new CustomEvent('rename-machine', { bubbles: true, composed: true, detail: { action: action, name: itemName } }));
+          };
+          const itemName = this.shadowRoot.querySelector(`#item${  item.id}`).value;
+      this.dispatchEvent(new CustomEvent('rename-machine', { bubbles: true, composed: true, detail: { action, name: itemName } }));
 
       this._closeDialog();
   },
 
-  _formReset: function() {
+  _formReset() {
       this.set('machine.id', '');
   },
 
-  //from https://github.com/PolymerElements/paper-dialog/issues/7
-  _computeLabel: function(itemname) {
-      var l = itemname.slice(0);
+  // from https://github.com/PolymerElements/paper-dialog/issues/7
+  _computeLabel(itemname) {
+      const l = itemname.slice(0);
       return l;
   }
 });

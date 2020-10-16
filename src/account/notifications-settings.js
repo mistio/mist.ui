@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-card/paper-card.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="lists shared-styles forms">
@@ -229,12 +230,12 @@ Polymer({
       }
   },
 
-  _computeAllowed: function(override) {
+  _computeAllowed(override) {
       return override.value == "ALLOW";
   },
 
-  _computeOverrideLabel: function(override, machines) {
-      var channel = override.channel.toLowerCase();
+  _computeOverrideLabel(override, machines) {
+      const channel = override.channel.toLowerCase();
       if (channel.includes("inapp")) {
           if (channel.includes("recommendation")) {
               if (override.machine) {
@@ -244,93 +245,93 @@ Polymer({
                   } else {
                       machineName = override.machine._ref.$id;
                   }
-                  return "Recommendations for machine " + machineName;
-              } else if (override.cloud) {
-                  return "Recommendations for cloud " + override.cloud._ref.$id;
-              } else if (override.tag) {
-                  return "Recommendations for tag " + override.tag._ref.$id;
-              } else {
+                  return `Recommendations for machine ${  machineName}`;
+              } if (override.cloud) {
+                  return `Recommendations for cloud ${  override.cloud._ref.$id}`;
+              } if (override.tag) {
+                  return `Recommendations for tag ${  override.tag._ref.$id}`;
+              } 
                   return "In-App Recommendations";
-              }
-          } else {
+              
+          } 
               if (override.machine) {
                   if (machines && machines[override.machine._ref.$id]) {
                       machineName = machines[override.machine._ref.$id].name;
                   } else {
                       machineName = override.machine._ref.$id;
                   }
-                  return "Notifications for machine " + machineName;
-              } else if (override.cloud) {
-                  return "Notifications for cloud " + override.machine._ref.$id;
-              } else if (override.machine) {
-                  return "Notifications for tag " + override.tag._ref.$id;
-              } else {
+                  return `Notifications for machine ${  machineName}`;
+              } if (override.cloud) {
+                  return `Notifications for cloud ${  override.machine._ref.$id}`;
+              } if (override.machine) {
+                  return `Notifications for tag ${  override.tag._ref.$id}`;
+              } 
                   return "In-App Notifications";
-              }
-          }
-      } else if (channel.includes("emailalert")) {
+              
+          
+      } if (channel.includes("emailalert")) {
           if (override.rtype) {
-              return "Email Alerts for rule " + override.rid;
-          } else {
+              return `Email Alerts for rule ${  override.rid}`;
+          } 
               return "Email Alerts";
-          }
-      } else if (channel.includes("emailreport")) {
+          
+      } if (channel.includes("emailreport")) {
           return "Email Reports";
       }
   },
 
-  _computeOverrideStateLabel: function(override, machines) {
-      var valueString = override.value.toLowerCase();
+  _computeOverrideStateLabel(override, machines) {
+      const valueString = override.value.toLowerCase();
       return valueString.charAt(0).toUpperCase() + valueString.slice(1);
   },
 
-  _computeHasOverrides: function(length) {
+  _computeHasOverrides(length) {
       return length > 0;
   },
 
-  _overrideChanged: function(e) {
-      var checked = e.target.checked;
-      var index = e.target.index;
-      var newOverride = JSON.parse(JSON.stringify(this.notificationOverrides[index]));
+  _overrideChanged(e) {
+      const {checked} = e.target;
+      const {index} = e.target;
+      const newOverride = JSON.parse(JSON.stringify(this.notificationOverrides[index]));
       newOverride.value = checked ? "ALLOW" : "BLOCK";
       this.splice('notificationOverrides', index, 1, newOverride);
   },
 
-  _getOverrides: function(e, user) {
+  _getOverrides(e, user) {
       this.$.getNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
       this.$.getNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.getNotificationOverridesRequest.generateRequest();
   },
 
-  _handleGetOverridesError: function() {
+  _handleGetOverridesError() {
       this.set('overridesError', true);
   },
 
-  _deleteOverrideTapped: function(e) {
-      var override_id = e.model.override._id.$oid;
+  _deleteOverrideTapped(e) {
+      const override_id = e.model.override._id.$oid;
       this.$.deleteNotificationOverrideRequest.headers["Content-Type"] = 'application/json';
       this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.deleteNotificationOverrideRequest.url = '/api/v1/notification-overrides/' + override_id;
+      this.$.deleteNotificationOverrideRequest.url = `/api/v1/notification-overrides/${  override_id}`;
       this.$.deleteNotificationOverrideRequest.generateRequest();
   },
 
-  _handleDeleteOverrideResponse: function(e) {
+  _handleDeleteOverrideResponse(e) {
       this.$.getNotificationOverridesRequest.generateRequest();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Notification override deleted succesfully!",duration:3000} }));
 
   },
 
-  _handleDeleteOverrideError: function() {
+  _handleDeleteOverrideError() {
       this.set('overridesError', true);
       this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  _handleSetOverridesResponse: function(e) {
+  _handleSetOverridesResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Changes saved succesfully!",duration:3000} }));
 
   },
 
-  _handleSetOverridesError: function() {
+  _handleSetOverridesError() {
       this.set('overridesError', true);
       this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
   }

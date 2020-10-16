@@ -118,7 +118,7 @@ Polymer({
       }
   },
 
-  _getCloud: function(machine) {
+  _getCloud(machine) {
       return this.model && this.model.clouds[machine.cloud]
   }
 });

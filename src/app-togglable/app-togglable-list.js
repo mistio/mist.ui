@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import './app-togglable.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -57,9 +58,9 @@ Polymer({
       }
   },
 
-  _toggle: function (e) {
+  _toggle (e) {
       this.open = !this.open;
-      var els = this.shadowRoot.querySelectorAll('app-togglable');
+      const els = this.shadowRoot.querySelectorAll('app-togglable');
       [].forEach.call(els, function (el, index) {
           el.open = this.open;
           if (this.open)

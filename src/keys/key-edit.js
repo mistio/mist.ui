@@ -6,6 +6,7 @@ import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mi
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -73,7 +74,7 @@ Polymer({
       // 'iron-overlay-closed': '_modalClosed'
   },
 
-  _computeNewKey: function(key) {
+  _computeNewKey(key) {
       if (key) {
           return {
               name: key.name
@@ -81,8 +82,8 @@ Polymer({
       }
   },
 
-  _computeFormReady: function(name, newName, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, newName, sendingData) {
+      let formReady = false;
 
       if (newName && name != newName) {
           formReady = true;
@@ -95,19 +96,19 @@ Polymer({
       return formReady;
   },
 
-  _openEditKeyModal: function(e) {
+  _openEditKeyModal(e) {
       this.$.editKeyModal.opened = true;
   },
 
-  _closeEditKeyModal: function(e) {
+  _closeEditKeyModal(e) {
       this.$.editKeyModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       // this.dispatchEvent(new CustomEvent('updateSelectedKey', { bubbles: true, composed: true, detail: {
       //     key: this.key
       // } }));
@@ -121,11 +122,11 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _formReset: function() {
+  _formReset() {
       //   this.set('key.name', '');
   },
 
-  _handleKeyEditAjaxResponse: function(e) {
+  _handleKeyEditAjaxResponse(e) {
       this.set('sendingData', false);
       this._closeEditKeyModal();
   }

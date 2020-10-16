@@ -162,31 +162,31 @@ Polymer({
         'card-response': '_gotCardResponse',
         'refit': '_refit'
     },
-    attached: function() {
+    attached() {
     },
-    _refit: function(e){
+    _refit(e){
         this.$.ccRequired.refit();
     },
-    open: function() {
+    open() {
         this._clearErrors();
         this.$.ccRequired.open();
     },
-    close: function() {
+    close() {
         this.$.ccRequired.close();
         this.shadowRoot.querySelector('card-form#inAddCloud').reset();
         this._clearErrors();
     },
-    _submitCard: function(e){
+    _submitCard(e){
         this._clearErrors();
         if (this.cardValid) {
             this.shadowRoot.querySelector('card-form#inAddCloud').verify();
         }
     },
-    _gotCardResponse: function(e){
+    _gotCardResponse(e){
         if (this.cardValid) {
-            var card = this.shadowRoot.querySelector('card-form#inAddCloud');
+            const card = this.shadowRoot.querySelector('card-form#inAddCloud');
             if (e.detail.token) {
-                var payload = {token: e.detail.token};
+                const payload = {token: e.detail.token};
                 if (this.plan)
                     payload.plan = this.plan;
                 this.$.addCard.headers["Content-Type"] = 'application/json';
@@ -204,40 +204,40 @@ Polymer({
         }
         this.$.ccRequired.refit();
     },
-    _handleCardResponse: function(e){
+    _handleCardResponse(e){
         this.dispatchEvent(new CustomEvent('close-cc-required'));
 
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Successfull subscription. Welcome onboard!', duration: 3000} }));
 
     },
-    _handleCardError: function(e){;
+    _handleCardError(e){;
         this.set('cardErrors', e.detail.request.xhr.responseText);
         this.set('formError', true);
     },
-    _computeShowProgress: function(formError,loading){
+    _computeShowProgress(formError,loading){
         return this.formError || this.loading;
     },
-    _clearErrors: function(){
+    _clearErrors(){
         this.set('formError', false);
         this.set('cardErrors', '');
     },
-    _cloudAddAjaxResponse: function(response) {
+    _cloudAddAjaxResponse(response) {
         this._unsetProvider();
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/'} }));
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Cloud added successfully!',duration:3000} }));
 
     },
-    _cloudAddAjaxError: function(response) {
+    _cloudAddAjaxError(response) {
         console.error('add-cloud error', response);
     },
-    _computePlanObject: function(plan){
+    _computePlanObject(plan){
         if (!plan)
             return {};
-        else {
+        
             // TODO get plan object from org
-        }
+        
     },
-    _goBack: function(e) {
+    _goBack(e) {
         e.stopImmediatePropagation();
         if (history)
             history.back();
@@ -245,7 +245,7 @@ Polymer({
             this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
 
     },
-    _cancel: function(e) {
+    _cancel(e) {
         this.close();
     }
 });

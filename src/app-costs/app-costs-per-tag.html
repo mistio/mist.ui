@@ -124,6 +124,7 @@ import '../../../../@polymer/paper-card/paper-card.js';
 import '../../../../@polymer/paper-icon-button/paper-icon-button.js';
 import '../../../../@polymer/iron-icons/iron-icons.js';
 import { Polymer } from '../../../../@polymer/polymer/lib/legacy/polymer-fn.js';
+
 Polymer({
     is: 'app-costs-per-tag',
     properties: {
@@ -135,28 +136,28 @@ Polymer({
             computed: '_computeTags(model.cloudsArray.*, model.machines.*)'
         }
     },
-    attached: function() {
-        var rows = this.parentNode.querySelectorAll('block');
-        var index = Array.prototype.indexOf.call(rows, this);
+    attached() {
+        const rows = this.parentNode.querySelectorAll('block');
+        const index = Array.prototype.indexOf.call(rows, this);
         setTimeout(function() {
             this.classList.add('active');
         }.bind(this), (index + 1) * 50);
     },
-    _computeTags: function(clouds, machines) {
-        var tagsArray = [];
+    _computeTags(clouds, machines) {
+        const tagsArray = [];
         if (Object.keys(this.model.machines).length > 0) {
             Object.values(this.model.machines).forEach(function(m){
-                var mcost = m.cost ? m.cost.monthly : false;
+                const mcost = m.cost ? m.cost.monthly : false;
                 if (m.tags && m.tags.length  && mcost){
                     m.tags.forEach(function(t){
-                        var tagExists = tagsArray.find(function(prevt, index){
+                        const tagExists = tagsArray.find(function(prevt, index){
                             return prevt.key == t.key && prevt.value == t.value;
                         });
                         if (tagExists){
                             tagExists.count ++;
-                            tagExists.cost = tagExists.cost + Math.round(parseInt(mcost));
+                            tagExists.cost += Math.round(parseInt(mcost));
                         } else {
-                            var tag = t;
+                            const tag = t;
                             tag.cost = Math.round(parseInt(mcost));
                             tag.count = 1;
                             tagsArray.push(tag);

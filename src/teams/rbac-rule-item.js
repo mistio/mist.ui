@@ -2,12 +2,13 @@ import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../node_modules/@polymer/paper-item/paper-item.js';
+
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './rbac-rule-identifier.js';
 import './rbac-rule-constraints.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels">
@@ -267,33 +268,33 @@ Polymer({
 
   listeners: {},
 
-  _computeToggle: function(operator) {
-      return operator == 'ALLOW' ? true : false;
+  _computeToggle(operator) {
+      return operator == 'ALLOW';
   },
 
-  _getResources: function() {
-      var ret = [];
+  _getResources() {
+      const ret = [];
       ret.push("ALL");
-      for (var perm in this.model.permissions) {
+      for (const perm in this.model.permissions) {
           ret.push(perm.toUpperCase());
       }
       return ret;
   },
 
-  _changeOperator: function(e) {
-      var newOp = this.rule.operator == "DENY" ? 'ALLOW' : "DENY";
+  _changeOperator(e) {
+      const newOp = this.rule.operator == "DENY" ? 'ALLOW' : "DENY";
       // this.set('rule.operator', newOp)
       this.dispatchEvent(new CustomEvent('update-operator', { bubbles: true, composed: true, detail:  { index: this.index, operator: newOp } }));
   },
 
-  _computeSelectedType: function(type) {
+  _computeSelectedType(type) {
       // console.log('_computeSelectedType', type.toLowerCase() || 'all')
       return type && type.toUpperCase() || 'ALL';
   },
 
-  _computeActions: function(index, rtype, modelpermissions) {
-      var type = rtype && rtype.toLowerCase(),
-          perm = [];
+  _computeActions(index, rtype, modelpermissions) {
+      const type = rtype && rtype.toLowerCase();
+          let perm = [];
 
       if (type != '' && type != 'all' && type != 'ALL') {
           perm = ['ALL'].concat(this.model.permissions[type]);
@@ -304,38 +305,37 @@ Polymer({
       this._checkIfActionValid(perm);
   },
 
-  _checkIfActionValid: function(perm) {
+  _checkIfActionValid(perm) {
       if (this.rule && this.rule.action && this.rule.action.length && perm.indexOf(this.rule.action) == -1) {
           this.set('rule.action', '');
       }
   },
 
-  _computeSelectedAction: function(raction) {
+  _computeSelectedAction(raction) {
       // console.log('Selected Action', raction)
       return raction && raction.replace(/ /g, '_').toLowerCase() || 'ALL';
   },
 
-  pretify: function(item) {
+  pretify(item) {
       if (item)
           return item.replace(/_/g, ' ').toUpperCase();
-      else
-          return item;
+      return item;
   },
 
-  _deleteRule: function(e) {
+  _deleteRule(e) {
       this.dispatchEvent(new CustomEvent('delete-rule', { bubbles: true, composed: true, detail:  { index: this.index, rule: this.rule } }));
   },
 
-  selectType: function(e) {
-      var t = e.detail.item.value.toLowerCase();
+  selectType(e) {
+      const t = e.detail.item.value.toLowerCase();
       if (this.rule.rtype != t && this.rule.rid != '') {
           this.set('rule.rid', '')
       }
       this.dispatchEvent(new CustomEvent('update-rtype', { bubbles: true, composed: true, detail: { index: this.index, type: t != 'all' ? t : '' } }));
   },
 
-  selectAction: function(e) {
-      var a = e.detail.item.value.toLowerCase();
+  selectAction(e) {
+      const a = e.detail.item.value.toLowerCase();
       this.dispatchEvent(new CustomEvent('update-raction', { bubbles: true, composed: true, detail: { index: this.index, action: a != 'all' ? a : '' } }));
   }
 });

@@ -2,11 +2,12 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-input/paper-input.js';
-//import '../../node_modules/juicy-jsoneditor/juicy-jsoneditor.js';
+// import '../../node_modules/juicy-jsoneditor/juicy-jsoneditor.js';
 import '../element-for-in/element-for-in.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 const RBAC_CONSTRAINTS_FIELDS = [{
         name: 'constraints',
         label: 'Constraints in JSON',
@@ -105,7 +106,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function(){
+          value(){
               return RBAC_CONSTRAINTS_FIELDS;
           }
       },
@@ -132,12 +133,12 @@ Polymer({
       'confirmation': '_updateRuleConstraints'
   },
 
-  _computeShowConstraints: function(rule) {
+  _computeShowConstraints(rule) {
       // emty strings for ALL
       return ["machine", ""].indexOf(this.rule.rtype) > -1 && ["create","edit","resize",""].indexOf(this.rule.action)>-1;
   },
 
-  hotkeys: function(e) {
+  hotkeys(e) {
       // if 'enter'
       if (e.keyCode === 13) {
           this.$.inputField.blur();
@@ -145,10 +146,10 @@ Polymer({
   },
 
   hasConstraints(constraints){
-      return constraints && Object.keys(constraints).length ? true : false;
+      return !!(constraints && Object.keys(constraints).length);
   },
 
-  editConstraints: function(e) {
+  editConstraints(e) {
       this.error = "";
       this._mapValuesToFields();
       this._showDialog({
@@ -160,30 +161,30 @@ Polymer({
       });
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element#editConstraints');
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element#editConstraints');
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _updateRuleConstraints: function(e) {
+  _updateRuleConstraints(e) {
       // update rule.constraints
-      var reason = e.detail.reason,
-          response = e.detail.response;
+      const {reason} = e.detail;
+          const {response} = e.detail;
       if (response == 'confirm' && reason == "edit.constraints") {
-          var newConstraints = this.fields[0].value;
+          const newConstraints = this.fields[0].value;
           this.dispatchEvent(new CustomEvent('update-constraints', 
               { bubbles: true, composed: true, detail: { index: this.index, constraints: newConstraints}}));
       }
   },
 
-  _mapValuesToFields: function() {
+  _mapValuesToFields() {
       // fill in fields with constraints corresponding values
-      var constraints = JSON.stringify(this.rule.constraints);
+      const constraints = JSON.stringify(this.rule.constraints);
       this.set('fields.0.value', JSON.parse(constraints) || {});
   }
 });

@@ -6,16 +6,17 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/echarts/dist/echarts.common.min.js';
+
 BALANCE_GRAPH_OPTIONS = {
     tooltip: {
         trigger: 'axis',
         extraCssText: 'text-align: left',
-        formatter: function (params, ticket, callback) {
-            var title = (params[0].data[1] ? ('<strong>$' + params[0].data[1].formatMoney(2,'.',',') + ' on ' ) : ' ') + moment(params[0].data[0]).format('DD MMM')+ '</strong><br />',
-                vcpus = params[0].data[2] ? params[0].data[2].formatMoney(0,'.',',') + ' vcpus<br />' : '',
-                datapoints = params[0].data[3] ? params[0].data[3].formatMoney(0,'.',',') + ' datapoints<br />' : '',
-                checks = params[0].data[4] ? params[0].data[4].formatMoney(0,'.',',') + ' rule checks<br />' : '';
-                //requests = params[0].data[5] + ' requests';
+        formatter (params, ticket, callback) {
+            const title = `${(params[0].data[1] ? (`<strong>$${  params[0].data[1].formatMoney(2,'.',',')  } on ` ) : ' ') + moment(params[0].data[0]).format('DD MMM') }</strong><br />`;
+                const vcpus = params[0].data[2] ? `${params[0].data[2].formatMoney(0,'.',',')  } vcpus<br />` : '';
+                const datapoints = params[0].data[3] ? `${params[0].data[3].formatMoney(0,'.',',')  } datapoints<br />` : '';
+                const checks = params[0].data[4] ? `${params[0].data[4].formatMoney(0,'.',',')  } rule checks<br />` : '';
+                // requests = params[0].data[5] + ' requests';
             return title + vcpus + datapoints + checks; // + requests;
         }
     },
@@ -134,7 +135,7 @@ Polymer({
       },
       balanceGraphOptions: {
           type: Object,
-          value: function() {
+          value() {
               return BALANCE_GRAPH_OPTIONS;
           }
       },
@@ -175,11 +176,11 @@ Polymer({
       'iron-resize': 'updateChartWidth'
   },
 
-  attached: function(){
+  attached(){
   },
 
-  initCharts: function() {
-      var colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
+  initCharts() {
+      const colorPalette = ['#607D8B', '#d96557', '#3F51B5', '#009688', '#795548', '#8c76d1', '#795548', '#0277BD', '#0099cc', '#424242', '#D48900', '#43A047', '#2F2F3E'];
       echarts.registerTheme('balance', {
           color: colorPalette,
           backgroundColor: 'transparent',
@@ -193,8 +194,8 @@ Polymer({
       console.log('initialized charts');
   },
 
-  updateChartWidth: function() {
-      var parentWidth = this.parentNode.offsetWidth;
+  updateChartWidth() {
+      const parentWidth = this.parentNode.offsetWidth;
       if (parentWidth) {
           console.log('updateChartWidth',parentWidth);
           this.set('balanceGraphWidth', parentWidth);
@@ -202,22 +203,22 @@ Polymer({
       }
   },
 
-  resizeGraph: function() {
+  resizeGraph() {
       console.log('resizeGraph');
       if (this.balanceGraph) {
           this.balanceGraph.resize();
       }
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
       console.error('Cannot get billing data',e);
   },
 
-  _handleResponse: function(e) {
+  _handleResponse(e) {
       this.set('amountDue', e.detail.response.amount_due);
       if (e.detail.response.period_start && e.detail.response.period_end) {
-          var start = new Date(e.detail.response.period_start*1000),
-              end = new Date(e.detail.response.period_end*1000);
+          const start = new Date(e.detail.response.period_start*1000);
+              const end = new Date(e.detail.response.period_end*1000);
           this.set('periodStart', start.toISOString().slice(-19, -14));
           this.set('periodEnd', end.toISOString().slice(-19, -14));
       }
@@ -242,13 +243,13 @@ Polymer({
       this.set('usageLoaded', true);
   },
 
-  _formatMoney: function(i) {
+  _formatMoney(i) {
       if (i)
           return i.formatMoney(2, '.', ',');
       return i;
   },
 
-  _isWithinPlan: function(paygRate) {
+  _isWithinPlan(paygRate) {
       if (paygRate == 0 && this.plan != undefined)
           return true;
       return false;

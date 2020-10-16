@@ -1,4 +1,4 @@
-//import '../../node_modules/@polymer/iron-timeago/iron-timeago.js';
+// import '../../node_modules/@polymer/iron-timeago/iron-timeago.js';
 import '../../node_modules/@polymer/paper-card/paper-card.js';
 import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
@@ -7,6 +7,7 @@ import '../section-tile/section-tile.js';
 import { getResourceFromIncidentBehavior } from '../helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles headings"></style>
@@ -269,79 +270,77 @@ Polymer({
       '_openIncidentsChanged(openIncidents.*)'
   ],
 
-  attached: function () {
-      var rows = this.parentNode.querySelectorAll('block');
-      var index = Array.prototype.indexOf.call(rows, this);
+  attached () {
+      const rows = this.parentNode.querySelectorAll('block');
+      const index = Array.prototype.indexOf.call(rows, this);
       setTimeout(function () {
           this.classList.add('active');
       }.bind(this), (index + 1) * 50);
   },
 
-  computeHasIncidents: function(incidents) {
+  computeHasIncidents(incidents) {
       console.log('incidents',incidents);
-      return this.openIncidents && this.openIncidents.length ? true : false;
+      return !!(this.openIncidents && this.openIncidents.length);
   },
 
-  _computeOpenIncidents: function (incidents) {
-      var all = Object.values(this.model.incidents);
+  _computeOpenIncidents (incidents) {
+      const all = Object.values(this.model.incidents);
       return all.filter(function (incident) {
           return !incident.finished_at && incident.logs.length && incident.logs[0].condition;
       }, this);
   },
 
-  _openIncidentsChanged: function(incidents) {
+  _openIncidentsChanged(incidents) {
       this.set('enhancedIncidents', this._getResources(this.openIncidents));
   },
 
-  _getResources: function(incidents) {
+  _getResources(incidents) {
       if (incidents)
           return this.openIncidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
-      else
-          return [];
+      return [];
   },
 
-  _computeResolvedIncidentCount: function (incidents) {
-      var all = Object.values(this.model.incidents);
-      var resolved = all.filter(function (incident) {
+  _computeResolvedIncidentCount (incidents) {
+      const all = Object.values(this.model.incidents);
+      const resolved = all.filter(function (incident) {
           return incident.finished_at;
       }, this);
       return resolved.length;
   },
 
-  _incidentColor: function(item, model) {
+  _incidentColor(item, model) {
       return item && item.resource && item.resource.id ? 'red' : 'grey';
   },
 
-  _computeIncidentIcon: function(item, model) {
+  _computeIncidentIcon(item, model) {
       if (item.resource.type != 'organization')
-          return this.model.sections[item.resource.type + 's'].icon;
-      else
-          return 'social:domain';
+          return this.model.sections[`${item.resource.type  }s`].icon;
+      return 'social:domain';
   },
 
-  _computeIncidentTitle: function (item, model) {
+  _computeIncidentTitle (item, model) {
       if (!item.logs[0].rule_arbitrary) {
           if (item.resource && item.resource.id)
-              return item.resource.type + ' ' + (item.resource.name || item.resource.title || item.resource.domain);
+              return `${item.resource.type  } ${  item.resource.name || item.resource.title || item.resource.domain}`;
           if (!item.resource || !item.resource.id)
-              return item.logs[0].machine_name || item.resource.type +' is missing';
+              return item.logs[0].machine_name || `${item.resource.type } is missing`;
       } else {
           return 'Organization';
       }
   },
 
-  _computeResourceUri: function (item, model) {
+  _computeResourceUri (item, model) {
       // give resource url only if resource exists
       return item.resource && item.resource.uri ? item.resource.uri : false;
   },
 
-  _getLogQuery: function(condition) {
+  _getLogQuery(condition) {
       // return log query
       return condition.replace(/^.+?\(([^\)]+)\).+$/,'$1');
   },
 
-  _computeIncidentCondition: function (item) {
-      var condition = item.logs.length && item.logs[0].condition || '';
+  _computeIncidentCondition (item) {
+      let condition = item.logs.length && item.logs[0].condition || '';
       // transform log condition
       if (condition.length && item.logs[0].rule_data_type == 'logs') {
           condition = condition.replace('COUNT(','')
@@ -351,17 +350,17 @@ Polymer({
       return condition;
   },
 
-  _computeIncidentDuration: function (item) {
+  _computeIncidentDuration (item) {
       if (!item.finished_at)
           return new Date(item.started_at * 1000)
       return new Date(item.started_at * 1000)
-      //return Date.now()-(item.finished_at-item.started_at)*1000;
+      // return Date.now()-(item.finished_at-item.started_at)*1000;
   },
 
-  deleteIncident: function (e) {
+  deleteIncident (e) {
       console.log('delete', e.model.item.incident_id);
       this.$.deleteIncidentAjax.headers["Content-Type"] = 'application/json';
-      this.$.deleteIncidentAjax.url = "/api/v1/stories/" + e.model.item.incident_id;
+      this.$.deleteIncidentAjax.url = `/api/v1/stories/${  e.model.item.incident_id}`;
       this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.deleteIncidentAjax.generateRequest();
   }

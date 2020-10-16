@@ -3,6 +3,7 @@ import '../node_modules/@mistio/mist-list/mist-list.js';
 import './teams/member-page.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -36,17 +37,17 @@ Polymer({
     listeners: {
         'action-finished': 'clearListSelection'
     },
-    clearListSelection: function() {
+    clearListSelection() {
         this.set('selectedItems', []);
     },
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
-    _getVisibleColumns: function() {
+    _getVisibleColumns() {
         return ['name']
     },
 
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['email']
     },
 });

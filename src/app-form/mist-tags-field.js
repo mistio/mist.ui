@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../tags/tag-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -72,33 +73,33 @@ Polymer({
       'tag-delete': '_tagDeleteHandler'
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _addTag: function() {
-      var newTag = {
+  _addTag() {
+      const newTag = {
           key: '',
           value: ''
       };
       this.push('tags', newTag);
   },
 
-  _tagsChanged: function(tags) {
-      var formattedTags = this.tags.filter(function(m){
+  _tagsChanged(tags) {
+      const formattedTags = this.tags.filter(function(m){
           return m.key.length;
       }).map(function(t){
           console.log('t',t);
-          var tag = {};
+          const tag = {};
           tag[t.key] = t.value || null;
           return tag;
       });
       this.set('field.value', formattedTags);
   },
 
-  _tagDeleteHandler: function(e) {
-      var tag = e.detail.tag,
-          index = this.tags.indexOf(tag);
+  _tagDeleteHandler(e) {
+      const {tag} = e.detail;
+          const index = this.tags.indexOf(tag);
       this.splice('tags', index, 1);
   }
 });

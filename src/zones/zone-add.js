@@ -7,6 +7,7 @@ import '../helpers/dialog-element.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">
@@ -100,11 +101,11 @@ Polymer({
       },
       dnsCloudsArray: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       zone: {
           type: Object,
-          value: function () {
+          value () {
               return {
                   domain: '',
                   type: '',
@@ -114,7 +115,7 @@ Polymer({
       },
       fields: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       cloudSpecificFields: {
           type: Object,
@@ -439,15 +440,15 @@ Polymer({
       'iron-select': 'updateUrl'
   },
 
-  _cloudsChanged: function (clouds) {
-      var dnsClouds = this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged (clouds) {
+      const dnsClouds = this.model.cloudsArray.filter(function (cloud) {
           return (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer',
               'vultr'
           ].indexOf(cloud.provider) > -1) && cloud.enabled && cloud.dns_enabled;
       });
       if (dnsClouds.length > 0) {
           this.set('hasdnsClouds', true);
-          var dnsCloudsArray = [];
+          const dnsCloudsArray = [];
           dnsClouds.forEach(function (dnsCloud) {
               dnsCloudsArray.push(dnsCloud);
           })
@@ -457,40 +458,40 @@ Polymer({
       }
   },
 
-  _cloudSelected: function (selectedCloud) {
+  _cloudSelected (selectedCloud) {
       if (selectedCloud) {
           if (selectedCloud.provider == "gce") {
-              this.set('fields', this.cloudSpecificFields["Google"]);
+              this.set('fields', this.cloudSpecificFields.Google);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "ec2") {
-              this.set('fields', this.cloudSpecificFields["Route53"]);
+              this.set('fields', this.cloudSpecificFields.Route53);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "digitalocean") {
-              this.set('fields', this.cloudSpecificFields["DigitalOcean"]);
+              this.set('fields', this.cloudSpecificFields.DigitalOcean);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "linode") {
-              this.set('fields', this.cloudSpecificFields["Linode"]);
+              this.set('fields', this.cloudSpecificFields.Linode);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "rackspace") {
-              this.set('fields', this.cloudSpecificFields["RackSpace"]);
+              this.set('fields', this.cloudSpecificFields.RackSpace);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "softlayer") {
-              this.set('fields', this.cloudSpecificFields["SoftLayer"]);
+              this.set('fields', this.cloudSpecificFields.SoftLayer);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
           } else if (selectedCloud.provider == "vultr") {
-              this.set('fields', this.cloudSpecificFields["Vultr"]);
+              this.set('fields', this.cloudSpecificFields.Vultr);
               this.cloud = this.model.cloudsArray.filter(function (clouda) {
                   return (clouda.id == selectedCloud.id)
               })[0];
@@ -499,15 +500,15 @@ Polymer({
       // this.updatePayload();
   },
 
-  updateFields: function (e) {
+  updateFields (e) {
       this.set('formError', false);
       this.updatePayload();
   },
 
-  updateUrl: function (e) {
-      //update url when cloud is selected
+  updateUrl (e) {
+      // update url when cloud is selected
       if (e.target.id == "cloud") {
-          var cloud = this.fields.findIndex(function (field) {
+          const cloud = this.fields.findIndex(function (field) {
               return field.name == "cloud";
           }, this);
           this.set('cloud', this.fields[cloud].value)
@@ -515,15 +516,15 @@ Polymer({
       this.updatePayload();
   },
 
-  updatePayload: function () {
+  updatePayload () {
       if (this.fields.length) {
           // update payload
-          var payload = {};
+          const payload = {};
 
-          var domain = this.fields.findIndex(function (field) {
+          const domain = this.fields.findIndex(function (field) {
               return field.name == "domain";
           }, this);
-          payload['domain'] = this.fields[domain].value;
+          payload.domain = this.fields[domain].value;
           if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
               this.selectedCloud.provider == "digitalocean" || this.selectedCloud.provider ==
               "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider ==
@@ -531,7 +532,7 @@ Polymer({
               var type = this.fields.findIndex(function (field) {
                   return field.name == "type";
               }, this);
-              payload['type'] = this.fields[type].value;
+              payload.type = this.fields[type].value;
           }
           if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
               this.selectedCloud.provider == "linode" || this.selectedCloud.provider ==
@@ -540,72 +541,72 @@ Polymer({
               var type = this.fields.findIndex(function (field) {
                   return field.name == "type";
               }, this);
-              payload['type'] = this.fields[type].value;
+              payload.type = this.fields[type].value;
           }
           if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
               this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider ==
               "vultr") {
-              var ttl = this.fields.findIndex(function (field) {
+              const ttl = this.fields.findIndex(function (field) {
                   return field.name == "ttl";
               }, this);
-              payload['ttl'] = this.fields[ttl].value;
+              payload.ttl = this.fields[ttl].value;
           }
           if (this.selectedCloud.provider == "linode") {
-              if (payload['type'] == "master") {
-                  var soa = this.fields.findIndex(function (field) {
+              if (payload.type == "master") {
+                  const soa = this.fields.findIndex(function (field) {
                       return field.name == "SOA_email";
                   }, this);
-                  delete payload['master_ips'];
-                  payload['SOA_Email'] = this.fields[soa].value;
+                  delete payload.master_ips;
+                  payload.SOA_Email = this.fields[soa].value;
               } else {
-                  var master_ips = this.fields.findIndex(function (field) {
+                  const master_ips = this.fields.findIndex(function (field) {
                       return field.name == "master_ips";
                   }, this);
-                  delete payload['SOA_Email'];
-                  payload['master_ips'] = this.fields[master_ips].value;
+                  delete payload.SOA_Email;
+                  payload.master_ips = this.fields[master_ips].value;
               }
           }
           if (this.selectedCloud.provider == "vultr") {
-              var ip = this.fields.findIndex(function (field) {
+              const ip = this.fields.findIndex(function (field) {
                   return field.name == "ip";
               }, this);
               if (this.fields[ip].value != "") {
-                  payload['ip'] = this.fields[ip].value;
+                  payload.ip = this.fields[ip].value;
               }
           }
           if (this.selectedCloud.provider == "rackspace") {
-              var email = this.fields.findIndex(function (field) {
+              const email = this.fields.findIndex(function (field) {
                   return field.name == "email";
               }, this);
               if (this.fields[email].value != "") {
-                  payload['email'] = this.fields[email].value;
+                  payload.email = this.fields[email].value;
               }
           }
 
           this.set('zone', payload);
-          console.warn('Update Payload:' + payload)
+          console.warn(`Update Payload:${  payload}`)
       }
   },
 
-  _handleAddZoneResponse: function (e) {
-      var response = JSON.parse(e.detail.xhr.response);
+  _handleAddZoneResponse (e) {
+      const response = JSON.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Zone was created successfully.',
           duration: 3000
       } }));
 
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
-          url: '/zones/' + response.id
+          url: `/zones/${  response.id}`
       } }))
   },
 
-  _handleError: function (e) {
+  _handleError (e) {
       console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },
 
-  _goBack: function () {
+  _goBack () {
       history.back();
   }
 });

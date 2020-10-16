@@ -9,6 +9,7 @@ import '../teams/team-add.js';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -246,38 +247,38 @@ Polymer({
       'input': 'resetError'
   },
 
-  attached: function(){
+  attached(){
 
   },
 
-  _computeHasOrg: function (name) {
+  _computeHasOrg (name) {
       if (name.value == '') {
           return false;
-      } else {
+      } 
           return true;
-      }
+      
   },
 
-  _computeProposedOrgName: function() {
+  _computeProposedOrgName() {
       if (this.model.org && this.model.org.name)
           return this.model.org.name;
       if (this.model.user && this.model.user.first_name)
-          return this.model.user.first_name + ".org";
+          return `${this.model.user.first_name  }.org`;
       if (this.model.user && this.model.user.email)
-          return this.model.user.email.split('@')[0] + ".org";
+          return `${this.model.user.email.split('@')[0]  }.org`;
       if (this.model.user && this.model.user.username)
-          return this.model.user.username + ".org";
+          return `${this.model.user.username  }.org`;
   },
 
-  _orgInputKeyUp: function(event) {
+  _orgInputKeyUp(event) {
       console.warn('keyup', event);
       if (event.keyCode === 13)
           this.saveOrg();
   },
 
-  saveOrg: function(){
-      var new_name = this.shadowRoot.querySelector("#orginput").value;
-      this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'Save org ' + new_name }));
+  saveOrg(){
+      const new_name = this.shadowRoot.querySelector("#orginput").value;
+      this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: `Save org ${  new_name}` }));
 
       this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
       this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -285,42 +286,42 @@ Polymer({
       this.$.saveOrgRequest.generateRequest();
   },
 
-  saveOrgResponse: function(event) {
+  saveOrgResponse(event) {
       this.$.addFirstCloudBtn.focus();
   },
 
-  goToAddCloud: function(){
+  goToAddCloud(){
       this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add cloud click' }));
 
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/clouds/+add'} }));
 
   },
 
-  showInviteForm: function(){
+  showInviteForm(){
       this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'invite people click' }));
 
-      var addform = this.shadowRoot.querySelector("#cloud-or-invite-form"),
-          inviteform = this.shadowRoot.querySelector("#invite-form"),
-          container = this.shadowRoot.querySelector("#onboarding-area");
+      const addform = this.shadowRoot.querySelector("#cloud-or-invite-form");
+          const inviteform = this.shadowRoot.querySelector("#invite-form");
+          const container = this.shadowRoot.querySelector("#onboarding-area");
       addform.setAttribute('closed', true);
       inviteform.removeAttribute('closed');
       container.setAttribute('higher', true);
   },
 
-  hideInviteForm: function(){
+  hideInviteForm(){
       this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'cancel click' }));
 
-      var addform = this.shadowRoot.querySelector("#cloud-or-invite-form"),
-          inviteform = this.shadowRoot.querySelector("#invite-form"),
-          container = this.shadowRoot.querySelector("#onboarding-area");
+      const addform = this.shadowRoot.querySelector("#cloud-or-invite-form");
+          const inviteform = this.shadowRoot.querySelector("#invite-form");
+          const container = this.shadowRoot.querySelector("#onboarding-area");
       addform.removeAttribute('closed');
       inviteform.setAttribute('closed', true);
       container.removeAttribute('higher');
   },
 
-  invitePeople: function(){
+  invitePeople(){
       this.showProgress = true;
-      var emails = this.shadowRoot.querySelector('#membersemails').value;
+      const emails = this.shadowRoot.querySelector('#membersemails').value;
       if (emails){
           this.$.invitePeopleRequest.headers["Content-Type"] = 'application/json';
           this.$.invitePeopleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
@@ -331,8 +332,8 @@ Polymer({
       }
   },
 
-  invitePeopleResponse: function(){
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/teams/' + this.selectedTeamId} }));
+  invitePeopleResponse(){
+      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/teams/${  this.selectedTeamId}`} }));
 
       this.set('showProgress', false);
       this.async(function(){
@@ -340,7 +341,7 @@ Polymer({
       },100, this)
   },
 
-  invitePeopleError: function(e){
+  invitePeopleError(e){
       this.set('showProgress', false);
       this.set('hasError', true);
       if (e) {
@@ -350,30 +351,30 @@ Polymer({
       }
   },
 
-  updateSelectTeamId: function(e){
+  updateSelectTeamId(e){
       if (this.hasError){
           this.set('hasError', false);
       }
       if ( e.detail.item.id == 'teamoption') {
-          var teamId = e.detail.item.value;
+          const teamId = e.detail.item.value;
           this.set('selectedTeamId', teamId);
       }
   },
 
-  resetError: function (){
+  resetError (){
       if (this.hasError){
           this.set('hasError', false);
       }
   },
 
-  _addTeam: function(e) {
+  _addTeam(e) {
       this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add team click' }));
 
-      var dialog = this.shadowRoot.querySelector('team-add');
+      const dialog = this.shadowRoot.querySelector('team-add');
       dialog.openDialog();
   },
 
-  updateToNewTeam: function(newTeam) {
+  updateToNewTeam(newTeam) {
       // would be nice to update dropdown to new team
   }
 });

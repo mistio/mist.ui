@@ -3,6 +3,7 @@ import '../../node_modules/@advanced-rest-client/json-viewer/json-viewer';
 import '../../node_modules/@advanced-rest-client/xml-viewer/xml-viewer.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles info-table-style">
@@ -47,10 +48,10 @@ Polymer({
       }
   },
 
-  _contentChanged: function(newValue, oldValue) {
-      var newObj = [],
-          el,
-          obj = newValue;
+  _contentChanged(newValue, oldValue) {
+      const newObj = [];
+          let el;
+          const obj = newValue;
 
       // check if not empty the container object
       if (obj && Object.keys(obj).length > 0) {
@@ -70,20 +71,20 @@ Polymer({
       this.$.infobody.innerHTML = this.createTpl(newObj);
   },
 
-  sortArr: function(array) {
+  sortArr(array) {
       array.sort(function(a, b) {
-          var x = a.key;
-          var y = b.key;
+          const x = a.key;
+          const y = b.key;
           return ((x < y) ? -1 : ((x > y) ? 1 : 0));
       });
   },
 
-  createTpl: function(content) {
+  createTpl(content) {
       function replaceURLWithHTMLLinks(text) {
           // console.log('createTpl',text);
           if (!text.replace)
               return text;
-          var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
+          const exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
           return text.replace(exp, "<a href='$1' target='new'>$1</a>");
       }
       function unescapeHtml(unsafe) {
@@ -94,21 +95,21 @@ Polymer({
               .replace(/&quot;/g, "\"")
               .replace(/&#039;/g, "'");
       }
-      var tpl = '';
+      let tpl = '';
 
-      for (var i = 0, len = content.length; i < len; i++) {
+      for (let i = 0, len = content.length; i < len; i++) {
           if (this.ignore && content[i].key.indexOf(this.ignore) > -1) {
               continue;
           }
           tpl += "<div class='info-item flex-horizontal-with-ratios'>";
-          tpl += "<div class='flexchild key'>" + this.processKeys(content[i].key) + "</div>";
+          tpl += `<div class='flexchild key'>${  this.processKeys(content[i].key)  }</div>`;
           // if value is an array
           if (content[i].value instanceof Object || content[i].value instanceof Array) {
-              tpl += "<div class='flexchild' style='width: 70%'><json-viewer json='" + JSON.stringify(content[i].value) + "'></json-viewer></div>";
+              tpl += `<div class='flexchild' style='width: 70%'><json-viewer json='${  JSON.stringify(content[i].value)  }'></json-viewer></div>`;
           }
           // if key is password
           else if (content[i].key.indexOf("password") > -1) {
-              tpl += "<div class='flexchild'>" + content[i].value.replace('<', '&lt;').replace('>', '&gt;') + "</div>";
+              tpl += `<div class='flexchild'>${  content[i].value.replace('<', '&lt;').replace('>', '&gt;')  }</div>`;
           }
           // if key is state
           else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1) {
@@ -116,16 +117,16 @@ Polymer({
           }
           else {
               try {
-                  var parserOutputType = new window.DOMParser().parseFromString(unescapeHtml(content[i].value), "text/xml").documentElement.nodeName;
+                  const parserOutputType = new window.DOMParser().parseFromString(unescapeHtml(content[i].value), "text/xml").documentElement.nodeName;
                   if (parserOutputType == 'html') {
-                      tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
+                      tpl += `<div class='flexchild'>${  replaceURLWithHTMLLinks(content[i].value)  }</div>`;
                   } else if (parserOutputType != 'parsererror'){
-                      tpl += "<div class='flexchild'><xml-viewer xml='" + content[i].value.replace(/'/g, '"') + "'></xml-viewer></div>";
+                      tpl += `<div class='flexchild'><xml-viewer xml='${  content[i].value.replace(/'/g, '"')  }'></xml-viewer></div>`;
                   } else {
-                      tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";    
+                      tpl += `<div class='flexchild'>${  replaceURLWithHTMLLinks(content[i].value)  }</div>`;    
                   }
               } catch (e) {
-                  tpl += "<div class='flexchild'>" + replaceURLWithHTMLLinks(content[i].value) + "</div>";
+                  tpl += `<div class='flexchild'>${  replaceURLWithHTMLLinks(content[i].value)  }</div>`;
               }
           }
           tpl += "</div>";
@@ -134,22 +135,22 @@ Polymer({
       return tpl;
   },
 
-  createObjTpl: function(obj) {
-      var tpl = '';
+  createObjTpl(obj) {
+      let tpl = '';
       // console.log(obj)
       if (obj) {
-          for (var p in obj) {
-              tpl += "<div class='info-item'><pre><code>" + YAML.dump(obj[p]) + "</code></pre></div>";
+          for (const p in obj) {
+              tpl += `<div class='info-item'><pre><code>${  YAML.dump(obj[p])  }</code></pre></div>`;
           }
       }
       return tpl;
   },
 
-  processKeys: function(str) {
-      var words = str.split('_'),
-          result = '',
-          gap, word;
-      for (var i = 0, len = words.length; i < len; i++) {
+  processKeys(str) {
+      const words = str.split('_');
+          let result = '';
+          let gap; let word;
+      for (let i = 0, len = words.length; i < len; i++) {
           gap = i == 0 ? '' : ' ';
           word = this.toTitleCase(words[i]);
           result += gap.concat(word);
@@ -157,7 +158,7 @@ Polymer({
       return result;
   },
 
-  toTitleCase: function(str) {
+  toTitleCase(str) {
       return str.replace(/\w\S*/g, function(txt) {
           return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });

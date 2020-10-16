@@ -103,7 +103,7 @@ Polymer({
       }
   },
 
-  _computeman: function(index) {
+  _computeman(index) {
       return index+1;
   }
 });

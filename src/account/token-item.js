@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../element-for-in/element-for-in.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -101,12 +102,12 @@ Polymer({
       }
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeZebraClasses: function(index, count) {
-      var classes = [];
+  _computeZebraClasses(index, count) {
+      const classes = [];
       classes.push(
           (index + 1) % 2 == 0 ? 'even' : 'odd',
           index + 1 == count ? 'last' : null
@@ -114,19 +115,19 @@ Polymer({
       return classes.join(' ');
   },
 
-  _computeDateFromNow: function(time) {
-      var date = new Date(time * 1000);
+  _computeDateFromNow(time) {
+      const date = new Date(time * 1000);
       return moment(time *1000).fromNow();
 
   },
 
-  _computeAbsoluteDateText: function(time) {
-      var date = new Date(time * 1000);
+  _computeAbsoluteDateText(time) {
+      const date = new Date(time * 1000);
       return moment.utc(time).format("MMMM D YYYY");
 
   },
 
-  toggleInfo: function(e){
+  toggleInfo(e){
       if (this.$.moreinfo.hasAttribute("opened")) {
           this.$.moreinfo.removeAttribute("opened")
       }
@@ -135,8 +136,8 @@ Polymer({
       }
   },
 
-  revokeToken: function(e){
-      var payload = {
+  revokeToken(e){
+      const payload = {
           id: this.token.id
       }
       this.$.revokeTokenAjax.headers["Content-Type"] = 'application/json';
@@ -145,15 +146,15 @@ Polymer({
       this.$.revokeTokenAjax.generateRequest();
   },
 
-  revokeTokenRequest: function(e){
+  revokeTokenRequest(e){
       this.$.spinner.setAttribute('active', true);
   },
 
-  revokeTokenResponse: function(e){
+  revokeTokenResponse(e){
       this.dispatchEvent(new CustomEvent('token-revoked', { bubbles: true, composed: true }));
   },
 
-  revokeTokenError: function(e){
+  revokeTokenError(e){
       this.dispatchEvent(new CustomEvent('token-revoking-error', { bubbles: true, composed: true, detail: {'event': e} }));
 
   }

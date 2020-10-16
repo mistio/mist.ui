@@ -22,7 +22,8 @@ import './expose-ports.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-var VOLUME_CREATE_FIELDS = []
+
+const VOLUME_CREATE_FIELDS = []
 
 // cloud:
 //   in: path
@@ -514,7 +515,7 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
-    var minimumSize = (p.provider == 'packet' && 10) ||
+    const minimumSize = (p.provider == 'packet' && 10) ||
                       (p.provider == 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
@@ -523,7 +524,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         min: minimumSize,
         value: minimumSize,
         defaultValue: minimumSize,
-        helptext: 'A minimum of '+minimumSize+' GB is required.',
+        helptext: `A minimum of ${minimumSize} GB is required.`,
         suffix: ' GB',
         show: true,
         required: true,
@@ -755,13 +756,13 @@ Polymer({
       },
       items: {
           type: Array,
-          value: function() {
+          value() {
               return []
           }
       },
       actions: {
           type: Array,
-          value: function() {
+          value() {
               return []
           },
           notify: true
@@ -776,7 +777,7 @@ Polymer({
       },
       providersWithVolumes: {
           type: Array,
-          value: function() {
+          value() {
               return VOLUME_CREATE_FIELDS.map(i => i.provider);
           }
       },
@@ -790,30 +791,30 @@ Polymer({
       'select-action': 'selectAction',
   },
 
-  ready: function() {},
+  ready() {},
 
-  attached: function() {
+  attached() {
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
-  getProviders: function(machines) {
-      var providers = []
-      for (var i=0; i < machines.length; i++) {
+  getProviders(machines) {
+      const providers = []
+      for (let i=0; i < machines.length; i++) {
           providers.push(this.getProvider(machines[i]));
       }
       return providers;
   },
 
-  getProvider: function(machine) {
+  getProvider(machine) {
       if (machine && this.model && this.model.clouds && this.model.clouds[machine.cloud]) {
           return this.model.clouds[machine.cloud].provider;
       }
   },
 
-  computeItemActions: function(machine) {
-      var arr = [];
+  computeItemActions(machine) {
+      const arr = [];
       if (this.model && this.model.clouds && ['vsphere', 'openstack', 'libvirt'].indexOf(this.model.clouds[machine.cloud].provider) > -1){
           if(machine.state == "running" && (this.model.clouds[machine.cloud].provider != 'libvirt' || machine.parent)) {
               arr.push('console');
@@ -829,7 +830,7 @@ Polymer({
           }
       }
       if (machine && machine.actions) {
-          for (var action in machine.actions) {
+          for (const action in machine.actions) {
               if (machine.actions[action])
                   arr.push(action);
           }
@@ -843,8 +844,8 @@ Polymer({
       return arr.sort(this._sortActions.bind(this));
   },
 
-  _sortActions: function(a, b) {
-      var sortOrder = [
+  _sortActions(a, b) {
+      const sortOrder = [
           'console',
           'shell',
           'webconfig',
@@ -880,9 +881,9 @@ Polymer({
       return 0;
   },
 
-  _otherMembers: function(members, items) {
+  _otherMembers(members, items) {
       if (this.items && members) {
-          var owners = this.items.map(function(i) { return i.owned_by; })
+          const owners = this.items.map(function(i) { return i.owned_by; })
               .filter(function(value, index, self) { return self.indexOf(value) === index; });
           // filter out pending users and the single owner of the item-set if that is the case
           return members.filter(function(m) {
@@ -891,69 +892,68 @@ Polymer({
       }
   },
 
-  _getMachine: function(length) {
+  _getMachine(length) {
       if (this.items.length)
           return this.get('items.0');
-      else
-          return undefined;
+      return undefined;
   },
 
-  computeActionListDetails: function(actions) {
-      var ret = [];
-      for (var i = 0; i < actions.length; i++) {
+  computeActionListDetails(actions) {
+      const ret = [];
+      for (let i = 0; i < actions.length; i++) {
           ret.push(MACHINE_ACTIONS[actions[i]]);
       }
       return ret;
   },
 
-  _delete: function(items) {
-      //set up iron ajax
+  _delete(items) {
+      // set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
-      for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/machines/" + this.items[i].id
+      for (let i = 0; i < this.items.length; i++) {
+          this.$.request.url = `/api/v1/machines/${  this.items[i].id}`
           this.$.request.generateRequest();
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-              msg: 'Deleting ' + this.items[i].name,
+              msg: `Deleting ${  this.items[i].name}`,
               duration: 1000
           } }))
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  selectAction: function(e) {
+  selectAction(e) {
       console.log('selectAction machine-actions');
       if (this.items.length) {
-          var action = e.detail.action;
+          const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && ['tag', 'rename', 'expose', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
               -1) {
-              var plural = this.items.length == 1 ? '' : 's',
-                  count = this.items.length > 1 ? this.items.length + ' ' : '';
+              const plural = this.items.length == 1 ? '' : 's';
+                  const count = this.items.length > 1 ? `${this.items.length  } ` : '';
               if (action.name == "clone" && this.action.fields) {
-                  this.set('action.fields.0.value', this.items[0].value || this.items[0].name + "-clone");
+                  this.set('action.fields.0.value', this.items[0].value || `${this.items[0].name  }-clone`);
               }
               this._showDialog({
-                  title: this.action.name + ' ' + count + 'machine' + plural + '?',
-                  body: "You are about to " + this.action.name + " " + this.items.length + " machine" +
-                      plural + ".",
+                  title: `${this.action.name  } ${  count  }machine${  plural  }?`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } machine${ 
+                      plural  }.`,
                   list: this._makeList(this.items, "name"),
                   action: action.name,
                   danger: true,
-                  hideText: this.action.fields ? true : false,
-                  reason: "machine." + this.action.name
+                  hideText: !!this.action.fields,
+                  reason: `machine.${  this.action.name}`
               });
           } else if (action.name == 'delete') {
               this._delete(this.items);
@@ -966,54 +966,54 @@ Polymer({
           } else if (action.name == 'transfer ownership') {
               this.$.ownershipdialog._openDialog();
           } else if (action.name == 'create snapshot') {
-              this.$['snapshotdialog'].action = action.name;
-              this.$['snapshotdialog']._openDialog();
+              this.$.snapshotdialog.action = action.name;
+              this.$.snapshotdialog._openDialog();
           } else if (action.name == 'remove snapshot') {
-              this.$['snapshotdialog'].snapshots = this.items[0].extra.snapshots;
-              this.$['snapshotdialog'].action = action.name;
-              this.$['snapshotdialog']._openDialog();
+              this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
+              this.$.snapshotdialog.action = action.name;
+              this.$.snapshotdialog._openDialog();
           } else if (action.name == 'revert to snapshot') {
-              this.$['snapshotdialog'].snapshots = this.items[0].extra.snapshots;
-              this.$['snapshotdialog'].action = action.name;
-              this.$['snapshotdialog']._openDialog();
+              this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
+              this.$.snapshotdialog.action = action.name;
+              this.$.snapshotdialog._openDialog();
           } else if (action.name == 'rename') {
-              this.$['renamedialog']._openDialog();
+              this.$.renamedialog._openDialog();
           } else if (action.name == 'webconfig') {
               this._openWebconfig(this.items);
           } else if (action.name == 'run script') {
-              this.$['runscriptdialog']._openDialog();
+              this.$.runscriptdialog._openDialog();
           } else if (action.name == 'associate key') {
-              this.$['associatekeydialog']._openDialog();
+              this.$.associatekeydialog._openDialog();
           } else if (action.name == 'expose') {
-              this.$['exposePortsdialog']._openDialog();
+              this.$.exposePortsdialog._openDialog();
           } else if (!action.confirm) {
               this.performMachineAction(action, this.items);
           }
       }
   },
 
-  _openWebconfig: function(items) {
-      var machine = this.items[0];
-      var url = 'https://' + machine.hostname + ':81';
+  _openWebconfig(items) {
+      const machine = this.items[0];
+      const url = `https://${  machine.hostname  }:81`;
       window.open(url, "view");
   },
 
-  confirmAction: function(e) {
+  confirmAction(e) {
       if (e.detail.confirmed)
           this.performMachineAction(this.action, this.items);
   },
 
-  renameAction: function(e) {
+  renameAction(e) {
       console.log('renameAction', e.detail);
       this.performMachineAction(e.detail.action, this.items, e.detail.name);
   },
 
-  transferOwnership: function(e) {
-      var payload = {
-          user_id: e.detail.user_id, //new owner
+  transferOwnership(e) {
+      const payload = {
+          user_id: e.detail.user_id, // new owner
           resources: {}
       };
-      payload.resources['machine'] = this.items.map(function(i) { return i.id });
+      payload.resources.machine = this.items.map(function(i) { return i.id });
       console.log('transferOwnership', e.detail, payload);
       this.$.request.url = '/api/v1/ownership';
       this.$.request.headers["Content-Type"] = 'application/json';
@@ -1023,20 +1023,20 @@ Polymer({
       this.$.request.generateRequest();
   },
 
-  performMachineAction: function(action, items, name) {
-      var runitems = items.slice();
+  performMachineAction(action, items, name) {
+      const runitems = items.slice();
       // console.log('perform action machine',items);
       var run = function(el) {
-          var uri, payload, item = runitems.shift(),
-              method = 'POST';
+          let uri; let payload; const item = runitems.shift();
+              const method = 'POST';
           // console.log('renameAction', item.name, action.name, name);
-          //machines
+          // machines
           if (action.name == 'shell') {
               console.warn('opening shell');
               // load page import on demand.
               // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
               // remove existing terminals from DOM
-              var xterm = document.querySelector("xterm-dialog");
+              let xterm = document.querySelector("xterm-dialog");
               if (xterm) {
                   xterm.remove();
                   // console.log('xterm removed', this.items);
@@ -1046,43 +1046,43 @@ Polymer({
               if (!xterm) {
                   xterm = document.createElement("xterm-dialog");
                   xterm.target = item;
-                  var app = document.querySelector('mist-app');
+                  const app = document.querySelector('mist-app');
                   app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
               }
               // console.log('perform action shell', item);
               return;
-          } else if (['reboot', 'start', 'stop', 'suspend', 'resume', 'undefine', 'destroy', 'remove'].indexOf(action.name) >
+          } if (['reboot', 'start', 'stop', 'suspend', 'resume', 'undefine', 'destroy', 'remove'].indexOf(action.name) >
               -1) {
-              uri = '/api/v1/machines/' + item.id;
+              uri = `/api/v1/machines/${  item.id}`;
               payload = {
                   'action': action.name
               };
           } else if (action.name == 'rename') {
-              uri = '/api/v1/machines/' + item.id;
+              uri = `/api/v1/machines/${  item.id}`;
               payload = {
                   'action': action.name,
                   'name': name
               };
           } else if (action.name == 'clone') {
-              uri = '/api/v1/machines/' + item.id;
+              uri = `/api/v1/machines/${  item.id}`;
               payload = {
                   'action': action.name,
                   'name': action.fields[0].value
               };
           } else if (action.name == 'probe') {
-              uri = '/api/v1/machines/' + item.id + '/probe';
+              uri = `/api/v1/machines/${  item.id  }/probe`;
               payload = {
                   'host': item.public_ips[0],
                   'key': item.key_associations[0]
               };
           } else if (action.name == 'console') {
-              uri = '/api/v1/machines/' + item.id + '/console';
-              //window.open(uri, 'view');
-              var form = document.createElement("form");
+              uri = `/api/v1/machines/${  item.id  }/console`;
+              // window.open(uri, 'view');
+              const form = document.createElement("form");
               form.setAttribute("method", "post");
               form.setAttribute("action", uri);
               form.setAttribute("target", "view");
-              var hiddenField = document.createElement("input");
+              const hiddenField = document.createElement("input");
               hiddenField.setAttribute("type", "hidden");
               hiddenField.setAttribute("name", "Csrf-Token");
               hiddenField.setAttribute("value", CSRFToken.value);
@@ -1100,19 +1100,19 @@ Polymer({
               return;
           }
 
-          var xhr = new XMLHttpRequest();
+          const xhr = new XMLHttpRequest();
           xhr.onreadystatechange = function() {
               if (xhr.readyState == XMLHttpRequest.DONE) {
-                  var message = '';
+                  let message = '';
                   if (xhr.status == 200) {
                       console.log(action, 'success');
-                      message = 'Successfully ' + this.inPast(action.name) + ' machine. Updating...';
+                      message = `Successfully ${  this.inPast(action.name)  } machine. Updating...`;
                       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
                           success: true
                       } }));
 
                       // for machines destroy only and only if in machine page
-                      var app_location = document.querySelector('app-location');
+                      const app_location = document.querySelector('app-location');
                       if (["destroy","remove"].indexOf(action.name) > -1 && document.location.pathname && document.location.pathname.split(
                               '/machines/')[1] == item.id) {
                           // kvm machines
@@ -1133,8 +1133,8 @@ Polymer({
                   } else {
                       console.error(action, 'failed');
                       console.log(xhr);
-                      var responsetext = xhr.responseText ? xhr.responseText : '';
-                      message = action.name.toUpperCase() + ' failed.' + responsetext;
+                      const responsetext = xhr.responseText ? xhr.responseText : '';
+                      message = `${action.name.toUpperCase()  } failed.${  responsetext}`;
                       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
                           success: false
                       } }));
@@ -1161,8 +1161,8 @@ Polymer({
           xhr.setRequestHeader("Csrf-Token", CSRFToken.value);
           xhr.send(JSON.stringify(payload));
 
-          var logMessage = 'Performing action ' + action.name.toUpperCase() + ' on machine ' + this.model.machines[
-              item.id].name;
+          const logMessage = `Performing action ${  action.name.toUpperCase()  } on machine ${  this.model.machines[
+              item.id].name}`;
           this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: {
               log: logMessage
           } }));
@@ -1172,11 +1172,11 @@ Polymer({
       run(this);
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
       console.log('handle response', e, this.$.request.body);
       if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-              msg: 'Action: ' + (this.$.request.body.action || 'ownership transfer') + ' successfull',
+              msg: `Action: ${  this.$.request.body.action || 'ownership transfer'  } successfull`,
               duration: 3000
           } }));
 
@@ -1196,10 +1196,10 @@ Polymer({
       }
   },
 
-  handleError: function(e) {
+  handleError(e) {
       // console.log(e.detail.request.xhr.statusText);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-          msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText,
+          msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`,
           duration: 5000
       } }));
 
@@ -1208,65 +1208,64 @@ Polymer({
       }
   },
 
-  _makeList: function(items, property) {
+  _makeList(items, property) {
       if (items && items.length)
           return items.map(function(item) {
               return item[property];
           });
   },
 
-  inPast: function(action) {
+  inPast(action) {
       if (action == 'shell')
           return 'opened shell'
-      else if (action == 'expose')
+      if (action == 'expose')
           return 'exposed'
-      else if (action == 'tag')
+      if (action == 'tag')
           return 'tagged'
-      else if (action == 'associate key')
+      if (action == 'associate key')
           return 'associated key'
-      else if (action == 'run-script')
+      if (action == 'run-script')
           return 'run script'
-      else if (action == 'reboot')
+      if (action == 'reboot')
           return 'rebooted'
-      else if (action == 'start')
+      if (action == 'start')
           return 'started'
-      else if (action == 'stop')
+      if (action == 'stop')
           return 'stopped'
-      else if (action == 'suspend')
+      if (action == 'suspend')
           return 'suspended'
-      else if (action == 'rename')
+      if (action == 'rename')
           return 'renamed'
-      else if (action == 'resume')
+      if (action == 'resume')
           return 'resumed'
-      else if (action == 'clone')
+      if (action == 'clone')
           return 'cloned'
-      else if (action == 'undefine')
+      if (action == 'undefine')
           return 'undefined'
-      else if (action == 'suspend')
+      if (action == 'suspend')
           return 'suspended'
-      else if (action == 'destroy')
+      if (action == 'destroy')
           return 'destroyed'
-      else if (action == 'remove')
+      if (action == 'remove')
           return 'removed'
-      else if (action == 'star')
+      if (action == 'star')
           return 'starred'
-      else if (action == 'unstar')
+      if (action == 'unstar')
           return 'unstarred'
-      else if (action == 'destroy')
+      if (action == 'destroy')
           return 'destroyed'
-      else if (action == 'make default')
+      if (action == 'make default')
           return 'made default'
-      else if (action == 'run')
+      if (action == 'run')
           return 'run'
-      else if (action == 'enable')
+      if (action == 'enable')
           return 'enabled'
-      else if (action == 'disable')
+      if (action == 'disable')
           return 'disabled'
-      else if (action == 'disable')
+      if (action == 'disable')
           return 'disabled'
-      else if (action == 'delete')
+      if (action == 'delete')
           return 'deleted'
-      else
-          return ''
+      return ''
   }
 });

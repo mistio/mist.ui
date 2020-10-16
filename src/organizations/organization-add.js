@@ -102,8 +102,8 @@ Polymer({
       }
   },
 
-  _computeFormReady: function(name, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, sendingData) {
+      let formReady = false;
 
       if (name) {
           formReady = true;
@@ -116,25 +116,25 @@ Polymer({
       return formReady;
   },
 
-  _computeType: function(type, value) {
+  _computeType(type, value) {
       return type == value;
   },
 
-  _computeDanger: function(danger) {
+  _computeDanger(danger) {
       return danger;
   },
 
-  openDialog: function(e) {
+  openDialog(e) {
       this.shadowRoot.querySelector('vaadin-dialog').opened = true;
       this._formReset();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       document.querySelector('vaadin-dialog-overlay').opened = false;
       this._formReset();
   },
 
-  _submitForm: function() {
+  _submitForm() {
       this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.organizationAddAjaxRequest.body = {
@@ -146,36 +146,36 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _submitOnEnter: function (e) {
+  _submitOnEnter (e) {
       // check if 'enter' was pressed
       if (e.keyCode === 13) {
           this._submitForm();
       }
   },
 
-  _handleOrganizationAddAjaxResponse: function(e) {
+  _handleOrganizationAddAjaxResponse(e) {
       this.set('sendingData', false);
       this._formReset();
       this.set('newOrgId',e.detail.xhr.response.id);
       this.set('success', true);
   },
 
-  _switchOrg: function(){
-      window.location.href = this.newOrgId ? '/switch_context/' + this.newOrgId : '/switch_context';
+  _switchOrg(){
+      window.location.href = this.newOrgId ? `/switch_context/${  this.newOrgId}` : '/switch_context';
   },
 
-  _handleOrganizationAddAjaxError: function(e){
+  _handleOrganizationAddAjaxError(e){
       this.set("fail", true);
       this.set('sendingData', false);
       // TODO: should be e.detail.request.xhr.responseText which is more descriptive
       // but only if handle-as="xml" which does not return newOrg id
-      var msg = e.detail.error.message;
+      let msg = e.detail.error.message;
       if (msg.indexOf('409')> -1)
           msg = 'Name must be unique';
       this.set('errorMessage', msg);
   },
 
-  _formReset: function() {
+  _formReset() {
       this.set('newOrganization.name', '');
       this.set('newOrganization.super_org', false);
       this.set('success', false);

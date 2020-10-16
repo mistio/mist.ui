@@ -7,6 +7,7 @@ import '../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -131,15 +132,15 @@ Polymer({
       '_computepluginId(metric.name)'
   ],
 
-  computeFormReady: function(metric) {
+  computeFormReady(metric) {
       return metric.base.name != '' && metric.base.name != null && typeof metric.base.name !== "undefined" && metric.base.script != '' && typeof metric.base.script !== "undefined";
   },
 
-  toggle: function(e) {
+  toggle(e) {
       this.shadowRoot.querySelector('iron-collapse').toggle();
   },
 
-  _customgraphResponse: function(data) {
+  _customgraphResponse(data) {
       this.set('sendingData', false);
       this.set('formError', false);
       console.log("CUSTOM GRAPH", data.detail.response);
@@ -147,9 +148,9 @@ Polymer({
       document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
   },
 
-  _computepluginId: function(name) {
+  _computepluginId(name) {
       if (!this.metric.name) return;
-      var newPluginId = this.metric.name
+      const newPluginId = this.metric.name
           .toLowerCase() // Remove upper case letters
           .replace(/[^\w]/g, '_') // keep only alphanumeric and _ chars
           .replace(/__*/g, '_') // don't allow double underscores
@@ -159,15 +160,15 @@ Polymer({
       this.set('metric.name', name);
       if (this.metric.script) {
           this.debounce('_updateMetricScript', function() {
-              var lines = this.metric.script.trim().split('\n');
-              lines[lines.length] = 'print "' + this.metric.name + ' value=%s" % read()';
+              const lines = this.metric.script.trim().split('\n');
+              lines[lines.length] = `print "${  this.metric.name  } value=%s" % read()`;
               this.set('metric.script', lines.join('\n'));
           }, 500);
       }
   },
 
-  _computeUrl: function(machineId, pluginId) {
-      this.uri = '/api/v1/machines/' + machineId + '/plugins/' + pluginId;
+  _computeUrl(machineId, pluginId) {
+      this.uri = `/api/v1/machines/${  machineId  }/plugins/${  pluginId}`;
   },
 
   _generateCustomgraphrequest() {
@@ -179,7 +180,7 @@ Polymer({
       } else {
           this.metric.type = "gauge"
       }
-      var payload = {
+      const payload = {
           "plugin_type": "python",
           "name": this.metric.name,
           "unit": this.metric.unit,
@@ -194,15 +195,15 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _handleError: function(e, d) {
+  _handleError(e, d) {
       this.set('sendingData', false);
       this.set('formError', true);
       console.log('error', e, e.detail)
-      var errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
+      const errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
       this.shadowRoot.querySelector("#errormsg").textContent = errorMessage;
   },
 
-  _closeDialog: function () {
+  _closeDialog () {
       document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
   }
 });

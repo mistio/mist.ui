@@ -1,5 +1,6 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+
 Polymer({
     is: 'file-upload',
 
@@ -8,7 +9,7 @@ Polymer({
             type: {
                 type: Object
             },
-            value: function() {
+            value() {
                 return {
                     type: '',
                     value: ''
@@ -16,14 +17,14 @@ Polymer({
             }
         }
     },
-    upload: function(args) {
-        var that = this,
-            e = args.e,
-            reader = new FileReader(),
-            file = e.currentTarget.files[0];
+    upload(args) {
+        const that = this;
+            const {e} = args;
+            const reader = new FileReader();
+            const file = e.currentTarget.files[0];
 
         reader.onloadend = function(e) {
-            var fileValue;
+            let fileValue;
             if (e.currentTarget.readyState == FileReader.DONE) {
                 fileValue = e.currentTarget.result;
             } else {

@@ -225,64 +225,64 @@ Polymer({
     '_changed(image)'
   ],
 
-  ready: function() {
+  ready() {
   },
 
-  _displayUser: function (id, members) {
+  _displayUser (id, members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _changed: function(image){
+  _changed(image){
       if (image)
           this.set('itemArray', [this.image]);
   },
 
-  _getHeaderStyle: function(section) {
-      return 'background-color: ' + section.color + '; color: #fff;';
+  _getHeaderStyle(section) {
+      return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _computeImageName: function(name) {
+  _computeImageName(name) {
       return name == "<none>:<none>" ? this.image.id : name;
   },
 
-  _editTags: function() {
-      var el = this.shadowRoot.querySelector('tags-list'),
-      items = [];
+  _editTags() {
+      const el = this.shadowRoot.querySelector('tags-list');
+      const items = [];
       items.push(itemUid(this.image, this.section));
       el.items = items;
       el._openDialog();
   },
 
-  _starImage: function(e) {
+  _starImage(e) {
       this.$.imageStarAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.imageStarAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.imageStarAjaxRequest.body = {};
       this.$.imageStarAjaxRequest.generateRequest();
   },
 
-  _handleImageStarAjaxResponse: function(e) {
-      var starred = !this.image.star;
-      var message = starred ? 'Updating image as starred. It will now appear on top when creating machines' :
+  _handleImageStarAjaxResponse(e) {
+      const starred = !this.image.star;
+      const message = starred ? 'Updating image as starred. It will now appear on top when creating machines' :
       'Updating image as unstarred. It will no longer appear on top when creating machines';
       // this.set('image.star', starred);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:message,duration:5000} }));
 
   },
 
-  _handleImageStarAjaxError: function(e) {
+  _handleImageStarAjaxError(e) {
       // TODO: Show a toast after request response. Toast text:
       // "There was a problem starring image IMAGE_NAME. It can not yet appear as an option when creating machines"
       // or
       // "There was a problem unstarring image IMAGE_NAME. It will still appear as an option when creating machines"
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'There was a problem unstarring image ' + this.image.name + '. It will still appear as an option when creating machines',duration:5000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:`There was a problem unstarring image ${  this.image.name  }. It will still appear as an option when creating machines`,duration:5000} }));
 
   },
 
-  _computeIsloading: function(image) {
-      return !this.image ? true : false;
+  _computeIsloading(image) {
+      return !this.image;
   },
 
-  _isEmpty: function(arr) {
+  _isEmpty(arr) {
       return !arr || arr.length == 0;
   }
 });

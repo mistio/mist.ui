@@ -11,6 +11,7 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -137,53 +138,53 @@ Polymer({
       // 'open-and-select' : 'openAndSelect'
   },
 
-  attached: function() {
+  attached() {
       if (this.shadowRoot.querySelector("iron-dropdown")) {
           this.shadowRoot.querySelector("iron-dropdown").setAttribute("vertical-offset", 55);
       }
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.$.dialogModal.opened = true;
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.dialogModal.opened = false;
   },
 
-  openAndSelect: function(e) {
+  openAndSelect(e) {
       console.log('openAndSelect', e);
-      //select
+      // select
       this.set('selected', e.detail.key);
       this.set('selectedKeyId', e.detail.key);
 
       this.$.dialogModal.opened = true;
   },
 
-  _addKey: function(e) {
+  _addKey(e) {
       this.$.dialogModal.opened = false;
-      //set attribute origin
-      var origin = window.location.pathname;
-      var qParams = {
+      // set attribute origin
+      const origin = window.location.pathname;
+      const qParams = {
           'origin': origin
       }
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/keys/+add', params: qParams } }));
   },
 
-  associateKey: function(e) {
-      var user = this.user || 'root',
-          port = this.port || '22',
-          request = this.$.associateKeyRequest,
-          keyId = this.selectedKeyId;
+  associateKey(e) {
+      const user = this.user || 'root';
+          const port = this.port || '22';
+          const request = this.$.associateKeyRequest;
+          const keyId = this.selectedKeyId;
 
-      var items = this.items.slice(0);
+      const items = this.items.slice(0);
       console.log('associateKey', this.items);
 
       var run = function(el, model) {
-          var item = items.shift(),
-              itemType,
-              itemCloud,
-              itemId;
+          const item = items.shift();
+              let itemType;
+              let itemCloud;
+              let itemId;
           if (item.length) {
               itemType = item.split(':')[0];
               itemCloud = item.split(':')[1];
@@ -192,15 +193,15 @@ Polymer({
               itemCloud = item.cloud.id;
               itemId = item.id
           }
-          var machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '',
-              uri = "/api/v1/machines/" + itemId + "/keys/" + keyId;
+          const machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '';
+              const uri = `/api/v1/machines/${  itemId  }/keys/${  keyId}`;
 
           // console.log('machineHost', machineHost, model.machines[itemId]);
 
           request.url = uri;
           request.headers["Content-Type"] = 'application/json';
           request.headers["Csrf-Token"] = CSRFToken.value;
-          request.body = { host: machineHost, user: user, port: port };
+          request.body = { host: machineHost, user, port };
           request.generateRequest();
 
           if (items.length) {
@@ -212,41 +213,41 @@ Polymer({
       e.stopImmediatePropagation();
   },
 
-  _associateKeyRequest: function() {
-      var logMessage = 'Sending request to associate key with machine.';
+  _associateKeyRequest() {
+      const logMessage = 'Sending request to associate key with machine.';
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _associateKeyResponse: function() {
+  _associateKeyResponse() {
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Key association request sent successfully', duration: 3000 } }));
   },
 
-  _associateKeyError: function(e) {
+  _associateKeyError(e) {
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: e.detail.request.xhr.responseText, duration: 5000 } }));
   },
 
-  updateInputs: function(e) {
-      var target = e.target.id;
+  updateInputs(e) {
+      const target = e.target.id;
   },
 
-  computeKeys: function(model) {
+  computeKeys(model) {
       return (this.model && this.model.keysArray) ? this.model.keysArray : [];
   },
 
-  computeModel: function() {
+  computeModel() {
       return document.querySelector("app-main") ? document.querySelector("app-main").model : document.querySelector("mist-app").model;
   },
 
-  itemsHaveThisKey: function(key, items, model) {
+  itemsHaveThisKey(key, items, model) {
       // test if all items have this key and if so disable
-      var count = 0;
-      var model = this.model;
-      for (var i = 0; i < this.items.length; i++) {
-          var itemCloud,
-              itemId;
+      let count = 0;
+      var {model} = this;
+      for (let i = 0; i < this.items.length; i++) {
+          var itemCloud;
+              var itemId;
           if (this.items[i].length) {
               itemCloud = this.items[i].split(':')[1];
               itemId = this.items[i].split(':')[2];
@@ -254,7 +255,7 @@ Polymer({
               itemCloud = this.items[i].cloud.id;
               itemId = this.items[i].machine_id;
           }
-          for (var j = 0; j < model.keys[key].machines.length; j++) {
+          for (let j = 0; j < model.keys[key].machines.length; j++) {
               if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId) {
                   count++;
               }
@@ -262,8 +263,8 @@ Polymer({
       }
       if (count == this.items.length){
           return true;
-      } else {
+      } 
           return false;
-      }
+      
   }
 });

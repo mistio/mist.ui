@@ -100,11 +100,11 @@ Polymer({
       }
   },
 
-  _isDefaultText: function(key){
+  _isDefaultText(key){
       return key.isDefault ? "Default Key" : "";
   },
 
-  _machinesText: function(key) {
-      return (key.machines.length > 0 ? key.machines.length+" machines use this key" : "no machines use this key");
+  _machinesText(key) {
+      return (key.machines.length > 0 ? `${key.machines.length} machines use this key` : "no machines use this key");
   }
 });

@@ -9,7 +9,7 @@ export const mistListsBehavior = {
     listeners: {
         'action-finished': 'clearListSelection'
     },
-    clearListSelection: function(){
+    clearListSelection(){
         this.set('selectedItems', []);
     },
 };

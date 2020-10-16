@@ -9,10 +9,11 @@ import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './template-edit.js';
+import { setSanitizeDOMValue } from '@polymer/polymer/lib/utils/settings';
 import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { setSanitizeDOMValue } from '@polymer/polymer/lib/utils/settings';
+
 const TEMPLATE_ACTIONS = {
     'create': {
         'name': 'create stack',
@@ -105,19 +106,19 @@ Polymer({
       'select-action': 'selectAction'
   },
 
-  attached: function() {
+  attached() {
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "POST";
   },
 
-  _updateVisibleActions: function() {
+  _updateVisibleActions() {
       this.$.actions._updateVisibleActions();
   },
 
-  itemActions: function(template) {
+  itemActions(template) {
       // single template actions
-      var arr = [];
+      const arr = [];
       if (template) {
           if (this.inSingleView)
               arr.push('create');
@@ -131,17 +132,17 @@ Polymer({
       return arr;
   },
 
-  actionDetails: function(actions) {
-      var ret = [];
-      for (var i = 0; i < actions.length; i++) {
+  actionDetails(actions) {
+      const ret = [];
+      for (let i = 0; i < actions.length; i++) {
           ret.push(TEMPLATE_ACTIONS[actions[i]]);
       }
       return ret;
   },
 
-  _otherMembers: function(members, items) {
+  _otherMembers(members, items) {
       if (this.items && this.members) {
-          var owners = this.items.map(function(i) { return i.owned_by; })
+          const owners = this.items.map(function(i) { return i.owned_by; })
               .filter(function(value, index, self) { return self.indexOf(value) === index; });
           // filter out pending users and the single owner of the item-set if that is the case
           return this.members.filter(function(m) {
@@ -150,49 +151,49 @@ Polymer({
       }
   },
 
-  _delete: function() {
-      //set up iron ajax
+  _delete() {
+      // set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
       this.$.request.method = "DELETE";
 
-      for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/templates/" + this.items[i].id
+      for (let i = 0; i < this.items.length; i++) {
+          this.$.request.url = `/api/v1/templates/${  this.items[i].id}`
           this.$.request.generateRequest();
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Deleting ' + this.items[i].name, duration: 1000 } }))
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Deleting ${  this.items[i].name}`, duration: 1000 } }))
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  confirmAction: function(e) {
+  confirmAction(e) {
       if (e.detail.confirmed)
           this.performAction(this.action, this.items);
   },
 
-  selectAction: function(e) {
+  selectAction(e) {
       if (this.items.length) {
-          var action = e.detail.action;
+          const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name != 'tag') {
-              var property = "name",
-                  plural = this.items.length == 1 ? '' : 's',
-                  count = this.items.length > 1 ? this.items.length + ' ' : '';
-              //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+              const property = "name";
+                  const plural = this.items.length == 1 ? '' : 's';
+                  const count = this.items.length > 1 ? `${this.items.length  } ` : '';
+              // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
               this._showDialog({
-                  title: this.action.name + ' ' + count + this.type + plural + '?',
-                  body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural + ".",
+                  title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural  }.`,
                   list: this._makeList(this.items, property),
                   action: action.name,
                   danger: true,
-                  reason: this.type + "." + this.action.name
+                  reason: `${this.type  }.${  this.action.name}`
               });
           } else if (action.name == "tag") {
               this.$.tagsdialog._openDialog();
@@ -206,9 +207,9 @@ Polymer({
       }
   },
 
-  transferOwnership: function(e) {
-      var payload = {
-          user_id: e.detail.user_id, //new owner
+  transferOwnership(e) {
+      const payload = {
+          user_id: e.detail.user_id, // new owner
           resources: {}
       };
       payload.resources[this.type] = this.items.map(function(i) { return i.id });
@@ -221,7 +222,7 @@ Polymer({
       this.$.request.generateRequest();
   },
 
-  performAction: function(action, items) {
+  performAction(action, items) {
       if (action.name == 'delete') {
           this._delete();
       } else if (action.name == 'create stack') {
@@ -229,13 +230,13 @@ Polymer({
       }
   },
 
-  _createStack: function(e) {
+  _createStack(e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.items[0]._id}} }))
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
       if (this.$.request && this.$.request.body && this.$.request.body.action) {
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 } }))
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Action: ${  this.$.request.body.action  } successfull`, duration: 3000 } }))
       } else if (this.$.request && this.$.request.method == "DELETE") {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/templates'} }));
       } else if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
@@ -248,7 +249,7 @@ Polymer({
       }
   },
 
-  _mapPolicyToActions: function(items) {
+  _mapPolicyToActions(items) {
       // recompute the actions array property as the intersection
       // of the available actions of the selected items
       this.set('actions', []);
@@ -256,13 +257,13 @@ Polymer({
       let isection = new Set();
 
       if (this.items.length > 0) {
-          //actions.addItems(this.itemActions(this.items[0]) || []);
+          // actions.addItems(this.itemActions(this.items[0]) || []);
           actions = union(actions,this.itemActions(this.items[0]) || []);
-          for (var i = 1; i < this.items.length; i++) {
+          for (let i = 1; i < this.items.length; i++) {
               isection = new Set();
-              //isection.addItems(actions.intersection(this.itemActions(this.items[i])));
+              // isection.addItems(actions.intersection(this.itemActions(this.items[i])));
               isection = intersection(actions, this.itemActions(this.items[i]));
-              //actions.addItems(isection.items());
+              // actions.addItems(isection.items());
               actions = new Set(isection);
           }
 
@@ -279,16 +280,16 @@ Polymer({
       this.set('actions', multiActions);
   },
 
-  handleError: function(e) {
+  handleError(e) {
       // console.log(e.detail.request.xhr.statusText);
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 } }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`, duration: 5000 } }));
 
       if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
       }
   },
 
-  _makeList: function(items, property) {
+  _makeList(items, property) {
       if (items && items.length)
           return items.map(function(item) {
               return item[property];

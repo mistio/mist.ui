@@ -4,8 +4,9 @@ import '../section-symbol/section-symbol.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
-var sharedActionMenu = null;
-var activeCard = null;
+
+let sharedActionMenu = null;
+let activeCard = null;
 
 function mouseEnter() {
     if (activeCard) {
@@ -184,7 +185,7 @@ Polymer({
       '_updateSection(_item)'
   ],
 
-  attached: function() {
+  attached() {
       this.style.opacity = 0;
 
       this.async(function() {
@@ -192,7 +193,7 @@ Polymer({
       }, 1);
   },
 
-  detached: function() {
+  detached() {
       if (activeCard === this) {
           activeCard = null;
           if (sharedActionMenu) {
@@ -202,7 +203,7 @@ Polymer({
       }
   },
 
-  _tagClicked: function(e) {
+  _tagClicked(e) {
       e.stopPropagation();
       this.dispatchEvent(new CustomEvent('update-params', { bubbles: true, composed: true, detail: {
           tag: e.currentTarget.name
@@ -210,30 +211,30 @@ Polymer({
 
   },
 
-  _computeStyle: function(color) {
-      return 'background-color:' + color;
+  _computeStyle(color) {
+      return `background-color:${  color}`;
   },
 
-  _getItemLink: function(id) {
-      return './' + id;
+  _getItemLink(id) {
+      return `./${  id}`;
   },
 
-  _getImageSrc: function(src) {
-      return src && src.length ? src : '../../assets/hero/random-' + Math.ceil(Math.random() * 4) + '.svg';
+  _getImageSrc(src) {
+      return src && src.length ? src : `../../assets/hero/random-${  Math.ceil(Math.random() * 4)  }.svg`;
   },
 
-  _getSectionLink: function(sectionName) {
-      return '/browse?section=' + sectionName + '&view=cards';
+  _getSectionLink(sectionName) {
+      return `/browse?section=${  sectionName  }&view=cards`;
   },
 
-  _getTagLink: function(sectionName, tag) {
-      return '/browse?tag=' + tag + '&view=cards';
+  _getTagLink(sectionName, tag) {
+      return `/browse?tag=${  tag  }&view=cards`;
   },
 
-  showActions: function() {
-      var top = this.$.hero.offsetTop;
-      var left = this.$.hero.offsetLeft;
-      var width = this.$.hero.offsetWidth;
+  showActions() {
+      let top = this.$.hero.offsetTop;
+      const left = this.$.hero.offsetLeft;
+      const width = this.$.hero.offsetWidth;
 
       if (!sharedActionMenu) {
           sharedActionMenu = document.createElement('item-action-menu');
@@ -249,9 +250,9 @@ Polymer({
       top += this.$.hero.offsetHeight - sharedActionMenu.offsetHeight;
 
       sharedActionMenu.element = this.item.name;
-      sharedActionMenu.style.top = top + 'px';
-      sharedActionMenu.style.left = left + 'px';
-      sharedActionMenu.style.width = width + 'px';
+      sharedActionMenu.style.top = `${top  }px`;
+      sharedActionMenu.style.left = `${left  }px`;
+      sharedActionMenu.style.width = `${width  }px`;
 
       this._layoutIfNeeded(sharedActionMenu);
       sharedActionMenu.classList.remove('hidden');
@@ -259,7 +260,7 @@ Polymer({
       sharedActionMenu.cancelDebouncer('hide');
   },
 
-  hideActions: function() {
+  hideActions() {
       if (sharedActionMenu && sharedActionMenu.element == this.item.name) {
           sharedActionMenu.debounce('hide', function() {
               sharedActionMenu.classList.add('hidden');
@@ -268,16 +269,16 @@ Polymer({
       }
   },
 
-  _mouseEnter: function() {
+  _mouseEnter() {
       activeCard = this;
       mouseEnter();
   },
 
-  _mouseLeave: function(e) {
+  _mouseLeave(e) {
       mouseLeave();
   },
 
-  _layoutIfNeeded: function(el) {
+  _layoutIfNeeded(el) {
       return el.offsetTop;
   }
 });

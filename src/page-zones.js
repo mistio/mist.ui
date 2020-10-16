@@ -9,6 +9,7 @@ import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -73,41 +74,41 @@ Polymer({
 
     listeners: {},
 
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('zone-page'))
             this.shadowRoot.querySelector('zone-page').updateState();
         return path && path != '/+add';
     },
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
-    _getZone: function(id) {
+    _getZone(id) {
         if (this.model.zones)
             return this.model.zones[id];
     },
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.zones.add
         } }));
 
     },
-    _getFrozenColumn: function() {
+    _getFrozenColumn() {
         return ['domain'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['provider', 'type', 'created_by', 'id', 'ttl', 'records', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['provider', 'type', 'created_by', 'id', 'ttl', 'records', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers: function(zones) {
-        var _this = this,
-            providerMap = {
+    _getRenderers(zones) {
+        const _this = this;
+            const providerMap = {
                 'gce': 'Google',
                 'ec2': 'Route53',
                 'digitalocean': 'DigitalOcean',
@@ -118,21 +119,21 @@ Polymer({
         return {
             'domain': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
                 'body': function(item, row) {
                     if (!_this.model.clouds[row.cloud])
                         return '';
-                    return './assets/providers/provider-' + _this.model.clouds[row.cloud].provider.replace("_", "")
-                        .replace(" ", "") + '.png';
+                    return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
+                        .replace(" ", "")  }.png`;
                 }
             },
             'provider': {
                 'body': function(item, row) {
                     if (_this.model.clouds && _this.model.clouds[row.cloud]) {
-                        var provider = _this.model.clouds[row.cloud].provider;
+                        const {provider} = _this.model.clouds[row.cloud];
                         return providerMap[provider] || provider;
                     }
                     return '';
@@ -140,7 +141,7 @@ Polymer({
             },
             'records': {
                 'body': function(item, row) {
-                    var ids = item ? Object.keys(item) : [];
+                    const ids = item ? Object.keys(item) : [];
                     return ids.length;
                 }
             },
@@ -162,12 +163,12 @@ Polymer({
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;

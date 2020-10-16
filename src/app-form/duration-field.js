@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -121,70 +122,68 @@ Polymer({
 
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _optionalChanged: function(optional){
+  _optionalChanged(optional){
       this.set('optional',optional);
   },
 
-  _maxChanged: function(fieldMax){
+  _maxChanged(fieldMax){
       if (!fieldMax)
           return;
       if (fieldMax) {
-          var max = this._secondsToDuration(this._computeMax(fieldMax)),
-              unitsArr = ['seconds','minutes','hours','days','weeks','months','years'],
-              threshold = unitsArr.indexOf(max.unit);
+          const max = this._secondsToDuration(this._computeMax(fieldMax));
+              const unitsArr = ['seconds','minutes','hours','days','weeks','months','years'];
+              const threshold = unitsArr.indexOf(max.unit);
           if (unitsArr.indexOf(this.unit) < threshold)
               return;
           if (unitsArr.indexOf(this.unit) > threshold) {
               if (this.span < max.span) {
                   this.set('unit', max.unit)
-              } else {
-                  if (threshold > 0)
+              } else if (threshold > 0)
                       this.set('unit', unitsArr[threshold-1])
                   else {
                       this.span(1);
                   }
-              }
           }
       }
   },
 
-  _computeOptionDisabled: function(fieldMax, option) {
+  _computeOptionDisabled(fieldMax, option) {
       if (!fieldMax) 
           return false;
       if (fieldMax) {
           // allow max to also be a date
-          var max = this._secondsToDuration(this._computeMax(fieldMax)),
-              unitsArr = ['seconds','minutes','hours','days','weeks','months','years'];
+          const max = this._secondsToDuration(this._computeMax(fieldMax));
+              const unitsArr = ['seconds','minutes','hours','days','weeks','months','years'];
           // allow only smaller options than the maximum unit
-          var threshold = unitsArr.indexOf(max.unit);
+          const threshold = unitsArr.indexOf(max.unit);
           return threshold < unitsArr.indexOf(option.val);
       }
   },
 
-  _computeMax: function(fieldMax,unit) {
+  _computeMax(fieldMax,unit) {
       if (!fieldMax) return;
       if (!unit) var unit = 'seconds';
       // compute the max number allowed for each unit 
-      if (typeof(fieldMax) == 'number') {
+      if (typeof(fieldMax) === 'number') {
           return this._secondsToUnitDuration(fieldMax, unit);
-      } else if (typeof(fieldMax) == 'string' && moment(fieldMax).isValid()){
+      } if (typeof(fieldMax) === 'string' && moment(fieldMax).isValid()){
           // TODO: compute and set value if max is a date
           return this._secondsToUnitDuration(moment.utc(fieldMax).diff(moment(), 'seconds'),unit);
-      } else {
-          var duration = this._valueIsRelativeDuration(fieldMax);
+      } 
+          const duration = this._valueIsRelativeDuration(fieldMax);
           if (duration) {
-              var durSpan = duration.span;
-              var durUnit = duration.unit;
+              const durSpan = duration.span;
+              const durUnit = duration.unit;
               return this._secondsToUnitDuration(this._durationToSeconds(durSpan,durUnit),unit);
           }
-      }
+      
   },
 
-  _checkedChanged: function(defaultCheck){
+  _checkedChanged(defaultCheck){
       // console.log('_checkedChanged',defaultCheck);
       if (defaultCheck) {
           this.set('field.disabled', false);
@@ -194,19 +193,19 @@ Polymer({
       this._durationChanged();
   },
 
-  _initialise: function(field) {
+  _initialise(field) {
       // if default value exists, apply
       if (field.defaultValue) {
-          var span, unit;
-          if (typeof(field.defaultValue) == 'number') {
+          let span; let unit;
+          if (typeof(field.defaultValue) === 'number') {
               // is seconds
               span = this._secondsToDuration(field.defaultValue).span;
               unit = this._secondsToDuration(field.defaultValue).unit;
-          } else if (typeof(field.defaultValue) == 'object') {
+          } else if (typeof(field.defaultValue) === 'object') {
               // is period
               span = field.defaultValue.every;
               unit = field.defaultValue.period;
-          } else if (typeof(field.defaultValue) == 'string') {
+          } else if (typeof(field.defaultValue) === 'string') {
               if (moment(field.defaultValue).isValid()) {
                   // is date
                   // TODO: compute and set value if default is a date
@@ -214,7 +213,7 @@ Polymer({
                   unit = this._secondsToDuration(moment.utc(field.defaultValue).diff(moment(), 'seconds')).unit;
               } else {
                   // is relative duration
-                  var duration = this._valueIsRelativeDuration(field.defaultValue);
+                  const duration = this._valueIsRelativeDuration(field.defaultValue);
                   if (duration){
                       span = duration.span;
                       unit = duration.unit;
@@ -227,9 +226,9 @@ Polymer({
       this._durationChanged();
   },
 
-  _valueIsRelativeDuration: function(value) {
-      var span, unit;
-      var durationRegex = /([0-9]+)([mohdwy]{1,2})/;
+  _valueIsRelativeDuration(value) {
+      let span; let unit;
+      const durationRegex = /([0-9]+)([mohdwy]{1,2})/;
       if (durationRegex.exec(value).length == 3) {
           span = durationRegex.exec(value)[1];
           unit = durationRegex.exec(value)[2];
@@ -241,21 +240,21 @@ Polymer({
           if (unit == 'mo') unit = 'months';
           if (unit == 'y') unit = 'years';
 
-          return {span:span,unit:unit};
+          return {span,unit};
 
       }
       return false;
   },
 
-  _durationChanged: function(span,unit,type) {
+  _durationChanged(span,unit,type) {
       this.shadowRoot.querySelector('paper-input').validate();
       // this._computePlurals(span);
-      var emptyValue = this.field.optional && !this.field.defaultCheck;
+      const emptyValue = this.field.optional && !this.field.defaultCheck;
       if (this.span && this.unit && this.field.valueType) {
-          var newValue,
-              span = span || this.span,
-              unit = unit || this.unit,
-              type = type || this.field.valueType;
+          let newValue;
+              var span = span || this.span;
+              var unit = unit || this.unit;
+              var type = type || this.field.valueType;
           if (type == 'secs') {
               newValue = emptyValue ? 0 : this._durationToSeconds(span,unit);
           } else if (type == 'period')  {
@@ -263,8 +262,8 @@ Polymer({
           } else if (type == 'date')  {
               newValue = emptyValue ? '' : moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
           } else if (type == 'relative') {
-              var relativeUnit = ['mo'].indexOf(unit) >= -1 ? unit.substring(0,2) : unit.substring(0,1);
-              newValue = emptyValue ? '' : span+''+relativeUnit;
+              const relativeUnit = ['mo'].indexOf(unit) >= -1 ? unit.substring(0,2) : unit.substring(0,1);
+              newValue = emptyValue ? '' : `${span}${relativeUnit}`;
           }
           this.set('field.value', newValue);
           this.notifyPath('field.value');
@@ -278,17 +277,17 @@ Polymer({
       }
   },
 
-  validate: function() {
-      var valid = !this.shadowRoot.querySelector('paper-input').invalid;
+  validate() {
+      const valid = !this.shadowRoot.querySelector('paper-input').invalid;
       this.set('field.valid', valid);
   },
 
-  _durationToSeconds: function(span,unit) {
-      var step = 1;
+  _durationToSeconds(span,unit) {
+      let step = 1;
       if (unit=='months'){
-          //special case
+          // special case
           return moment().add(span,unit).diff(moment(), 'seconds');
-      } else if (unit=='minutes'){
+      } if (unit=='minutes'){
           step = 60;
       } else if (unit=='hours'){
           step = 3600;
@@ -300,11 +299,11 @@ Polymer({
       return span*step;
   },
 
-  _secondsToDuration: function(seconds) {
+  _secondsToDuration(seconds) {
       // turn seconds to duration
       // TODO: duration in seconds is always a product of 60 (*60 (*24 (*7))) for minutes hours days and weeks,
       // but ammount of months in secs is not directly tracable because of differentiations in month days.
-      var span, unit;
+      let span; let unit;
       if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
           if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);
           if (seconds % (3600*24*29) == 0) span = seconds / (3600*24*29);
@@ -344,13 +343,13 @@ Polymer({
               unit = 'seconds';
           }
       }
-      return { span:span, unit:unit };
+      return { span, unit };
   },
 
-  _secondsToUnitDuration: function(seconds, unit) {
+  _secondsToUnitDuration(seconds, unit) {
       // turn seconds to amount of set units (months, weeks, days, hours, minutes)
       // TODO: as above, amount of seconds depends on monthdays, which differentiate accross months
-      var span, step;
+      let span; let step;
       if (unit == 'months') {
           step = 3600*24 * moment().daysInMonth();
       } else if (unit == 'weeks') {
@@ -368,17 +367,17 @@ Polymer({
       return span;
   },
 
-  _computePlurals: function(valueSpan) {
+  _computePlurals(valueSpan) {
       if ((valueSpan == 1 && this.showPlural) || (valueSpan > 1 && !this.showPlural)) {
           this.set('showPlural', valueSpan > 1);
           this._updateOptionTitles(this.showPlural);
       }
   },
 
-  _updateOptionTitles: function(plurals) {
-      var newOptions = [], newTitle;
-      for (var i=0;i<this.field.options.length; i++) {
-          var option = this.field.options[i];
+  _updateOptionTitles(plurals) {
+      const newOptions = []; let newTitle;
+      for (let i=0;i<this.field.options.length; i++) {
+          const option = this.field.options[i];
           if (plurals) {
               newTitle = option.val;
           } else {

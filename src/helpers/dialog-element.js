@@ -148,20 +148,20 @@ Polymer({
       }
   },
 
-  _computeType: function(type, value) {
+  _computeType(type, value) {
       return type == value;
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.$.dialogModal.opened = true;
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.dialogModal.opened = false;
       this._modalClosed(e);
   },
 
-  _modalClosed: function(e) {
+  _modalClosed(e) {
       // var normalizedEvent = Polymer.dom(e);
       // if (e.target.id == 'dialogModal') {
           // console.log(this.$.dialogModal.closingReason);
@@ -173,7 +173,7 @@ Polymer({
       // }
   },
 
-  _calcDisplayButtons: function() {
+  _calcDisplayButtons() {
       return false;
   }
 });

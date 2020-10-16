@@ -8,6 +8,7 @@ import './plan-item.js';
 import './plan-purchase.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -201,7 +202,7 @@ Polymer({
       },
       org: {
           type: Object,
-          value: function() {return {}}
+          value() {return {}}
       },
       plans: {
           type: Array,
@@ -220,7 +221,7 @@ Polymer({
       'update-payment-method': 'addCard'
   },
 
-  _computePlans: function(org) {
+  _computePlans(org) {
       if (!this.org.available_plans)
           return [];
       return this.org.available_plans.filter(function(p){
@@ -232,7 +233,7 @@ Polymer({
       }.bind(this));
   },
 
-  purchasePlan: function(e) {
+  purchasePlan(e) {
       console.log('purchasePlan',e.detail.plan);
       if (e.detail.plan && e.detail.plan.title) {
           this.shadowRoot.querySelector('plan-purchase#purchasePlan').plan = e.detail.plan;
@@ -242,20 +243,20 @@ Polymer({
       this.shadowRoot.querySelector('plan-purchase#purchasePlan').open();
   },
 
-  addCard: function(e) {
+  addCard(e) {
       console.log('_updatePaymentMethod', e, this.shadowRoot.querySelector('plan-purchase#addCard'));
       this.shadowRoot.querySelector('plan-purchase#addCard').open();
   },
 
-  openRates: function(){
+  openRates(){
       this.shadowRoot.querySelector('#paygRatesDialog').open();
   },
 
-  computeStartChargingDay: function(days) {
+  computeStartChargingDay(days) {
       return moment().add(days,'days').format("dddd MMMM Do");
   },
 
-  _computeHasCard: function(org) {
+  _computeHasCard(org) {
       if (this.org && this.org.card && this.org.card.length)
           return true;
       return false;

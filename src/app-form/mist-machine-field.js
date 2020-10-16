@@ -13,7 +13,8 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './mist-size-field.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-let DEBUG_FORM = false;
+
+const DEBUG_FORM = false;
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -212,35 +213,35 @@ Polymer({
       },
       clouds: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       cloud: {
           type: Object,
-          value: function () { return {};}
+          value () { return {};}
       },
       machines: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       images: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       sizes: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       locations: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       keys: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       networks: {
           type: Array,
-          value: function () { return [];}
+          value () { return [];}
       },
       hideFloatingIp: {
           type: Boolean,
@@ -293,7 +294,7 @@ Polymer({
       },
       fieldSize: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   name: 'fieldSize',
                   label: 'size',
@@ -319,32 +320,32 @@ Polymer({
       '_updateFieldValue(associateFloatingIp,useExistingMachine, field.cloud, field.machine, field.machinesList, field.image, field.size, field.location, field.networks, field.key, field.quantity)'
   ],
 
-  ready: function() {
+  ready() {
       this.initializeValues();
   },
 
-  initializeValues: function(cr) {},
+  initializeValues(cr) {},
 
-  computeUseExistingMachine: function(radioValue) {
+  computeUseExistingMachine(radioValue) {
       return  this.radioValue == 'existing';
   },
 
-  _fieldChanged: function(field) {
-      this.set('fieldSize.name', this.field.name + 'Size');
-      this.set('fieldSize.label', this.field.label + ' size');
+  _fieldChanged(field) {
+      this.set('fieldSize.name', `${this.field.name  }Size`);
+      this.set('fieldSize.label', `${this.field.label  } size`);
       this.set('multi', this.field.multi || false);
   },
 
-  _fieldCloudsChanged: function(clouds) {
+  _fieldCloudsChanged(clouds) {
       this.set('clouds', this._objectToArray(this.field.clouds));
       this.$.cloudsDomRepeat.render();
   },
 
-  _fieldSizeChanged: function(fieldSizeValue) {
+  _fieldSizeChanged(fieldSizeValue) {
       this.set('field.size', this.fieldSize.value == "custom" ? this.fieldSize.customValue : this.fieldSize.value);
   },
 
-  _fieldKeysChanged: function(keys) {
+  _fieldKeysChanged(keys) {
       console.log('field Keys Changed');
       this.set('keys', this._objectToArray(this.field.keys));
       this.async(function(){
@@ -352,13 +353,13 @@ Polymer({
       }.bind(this), 200);
   },
 
-  _selectedCloudChanged: function(cloud) {
+  _selectedCloudChanged(cloud) {
       this._fieldKeysChanged(this.field.keys);
       if (this.field.cloud) {
           // clear field.value
           this._clearField();
 
-          var selectedCloud = this.field.clouds[this.field.cloud];
+          const selectedCloud = this.field.clouds[this.field.cloud];
           this.set('cloud', selectedCloud);
           this.set('machines', this._objectToArray(selectedCloud.machines));
           this.set('images', this._objectToArray(selectedCloud.images));
@@ -379,8 +380,8 @@ Polymer({
           // update field consumed by mist-size-field
           this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
           if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
-              var provider = selectedCloud.provider,
-                  fields = MACHINE_CREATE_FIELDS.find(function(p) { return p.provider == provider }).fields;
+              const {provider} = selectedCloud;
+                  const {fields} = MACHINE_CREATE_FIELDS.find(function(p) { return p.provider == provider });
               this.set('fieldSize.custom', true)
               this.set('fieldSize.value', "custom")
               this.set('fieldSize.customSizeFields', fields.find(function(f) { return f.type == "mist_size" }).customSizeFields);
@@ -395,20 +396,20 @@ Polymer({
       }
   },
 
-  _clearField: function() {
-      var fieldValues = ['key', 'image', 'size', 'location', 'networks', 'quantity'];
-      for (var i = 0; i < fieldValues.length; i ++ ) {
+  _clearField() {
+      const fieldValues = ['key', 'image', 'size', 'location', 'networks', 'quantity'];
+      for (let i = 0; i < fieldValues.length; i ++ ) {
           if (this.field[fieldValues[i]]) {
               // this.set('field.'+[fieldValues[i]], null);
-              var typeOfVal = typeof this.field[fieldValues[i]];
+              const typeOfVal = typeof this.field[fieldValues[i]];
               if (typeOfVal == 'string') {
-                  this.set('field.'+[fieldValues[i]], "");
+                  this.set(`field.${[fieldValues[i]]}`, "");
               } else if (typeOfVal == 'array') {
-                  this.set('field.'+[fieldValues[i]],[]);
+                  this.set(`field.${[fieldValues[i]]}`,[]);
               } else if (typeOfVal == 'object') {
-                  this.set('field.'+[fieldValues[i]], null);
+                  this.set(`field.${[fieldValues[i]]}`, null);
               } else if (typeOfVal == 'number') {
-                  this.set('field.'+[fieldValues[i]], 1);
+                  this.set(`field.${[fieldValues[i]]}`, 1);
               }
           }
           this.set('field.value', {});
@@ -424,7 +425,7 @@ Polymer({
       this.set('hideSize', false);
   },
 
-  _updateFieldValue: function(associateFloatingIp,useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
+  _updateFieldValue(associateFloatingIp,useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
       // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
       if (this.useExistingMachine) {
           if (this.multi) {
@@ -432,8 +433,7 @@ Polymer({
           } else {
               this.set('field.value', { cloud_id: this.field.cloud, machine_id: this.field.machine })
           }
-      } else {
-          if (this.multi) {
+      } else if (this.multi) {
               this.set('field.value', [{
                   cloud_id: this.field.cloud,
                   key_id: this.field.key,
@@ -459,12 +459,11 @@ Polymer({
                   this.set('field.value.associate_floating_ip', this.associateFloatingIp);
               }
           }
-      }
       this.set('field.valid', this.validateValue());
       this.dispatchEvent(new CustomEvent('field-value-changed'));
   },
 
-  validateValue: function() {
+  validateValue() {
       if (this.useExistingMachine) {
           if (this.multi) {
               if (!this.field.value.length) {
@@ -561,38 +560,38 @@ Polymer({
       return true;
   },
 
-  _noOptions: function(options) {
+  _noOptions(options) {
       return !options || options.length == 0;
   },
 
-  _showOption: function(option) {
+  _showOption(option) {
       if (option.name) {
           return option.name;
-      } else if (option.title) {
+      } if (option.title) {
           return option.title;
-      } else if (option.id) {
+      } if (option.id) {
           return option.id;
       }
   },
 
-  _filter: function(options, search) {
+  _filter(options, search) {
       return options.filter(function(op) {
           return op.name.toLowerCase().indexOf(search.toLowerCase()) > -1;
       });
   },
 
-  _objectToArray: function(obj) {
-      var arr = [];
+  _objectToArray(obj) {
+      const arr = [];
       if (obj) {
-          for (var p in obj) {
+          for (const p in obj) {
               arr.push(obj[p]);
           }
       }
       return arr;
   },
 
-  _updateCheckboxesField: function(e) {
-      var fieldNetworks = this.get('field.networks') || [];
+  _updateCheckboxesField(e) {
+      const fieldNetworks = this.get('field.networks') || [];
       if (e.target.checked && fieldNetworks.indexOf(e.model.option.id) == -1) {
           fieldNetworks.push(e.model.option.id);
       } else if (!e.target.checked && fieldNetworks.indexOf(e.model.option.id) > -1) {
@@ -601,12 +600,12 @@ Polymer({
       this.set('field.networks', fieldNetworks);
   },
 
-  _computeMachinesNames: function(machinesList, machines) {
+  _computeMachinesNames(machinesList, machines) {
       return !machinesList ? 'select' : machinesList.map(function(m) { return this._getName(m.value, machines); }.bind(this))
   },
 
-  _getName: function(m, machines) {
-      var machine = this.machines && this.machines.find(function(item) { return item.machine_id == m });
+  _getName(m, machines) {
+      const machine = this.machines && this.machines.find(function(item) { return item.machine_id == m });
       return machine ? machine.name : 'not found';
   }
 });

@@ -62,11 +62,11 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  ready: function() {
+  ready() {
 
   },
 
-  _computeNewTemplate: function(template) {
+  _computeNewTemplate(template) {
       if (template){
           return {
               name: template.name,
@@ -75,8 +75,8 @@ Polymer({
       }
   },
 
-  _computeFormReady: function(name, sendingData) {
-      var formReady = false;
+  _computeFormReady(name, sendingData) {
+      let formReady = false;
 
       if (name && name != "") {
           formReady = true;
@@ -89,19 +89,19 @@ Polymer({
       return formReady;
   },
 
-  _openEditTemplateModal: function(e) {
+  _openEditTemplateModal(e) {
       this.$.editTemplateModal.opened = true;
   },
 
-  _closeEditTemplateModal: function(e) {
+  _closeEditTemplateModal(e) {
       this.$.editTemplateModal.opened = false;
   },
 
-  _modalClosed: function() {
+  _modalClosed() {
       this._formReset();
   },
 
-  _submitForm: function(e) {
+  _submitForm(e) {
       this.$.editTemplateAjax.headers["Content-Type"] = 'application/json';
       this.$.editTemplateAjax.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.editTemplateAjax.body = {                     
@@ -112,19 +112,19 @@ Polymer({
       this._closeEditTemplateModal();
   },
 
-  _formReset: function() {
+  _formReset() {
       this._computeNewTemplate(this.template);
   },
 
-  _editTemplateAjax: function(e) {
+  _editTemplateAjax(e) {
       console.log('edit', this.$.editTemplateAjax);
   },
 
-  _editTemplateRequest: function() {
+  _editTemplateRequest() {
       this.set('sendingData', true);
   },
 
-  _editTemplateResponse: function(e) {
+  _editTemplateResponse(e) {
       this.set('sendingData', false);
   }
 });

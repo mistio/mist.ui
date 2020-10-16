@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style>
@@ -80,7 +81,7 @@ Polymer({
       },
       value: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       _value: {
           type: Array,
@@ -96,16 +97,16 @@ Polymer({
       }
   },
 
-  attached: function() {
+  attached() {
       this.init();
   },
 
-  init: function() {
+  init() {
       if (this.value && this.selections) {
           this.set('_value', this.value.map(function (item) {
-              var selectedItem = this.selections.find(function (s) {
+              const selectedItem = this.selections.find(function (s) {
                   return s.id == item
-              }.bind(this));
+              });
               return selectedItem ? selectedItem.name : '';
           }.bind(this)));
 
@@ -114,7 +115,7 @@ Polymer({
       }
   },
 
-  clear: function() {
+  clear() {
       console.log('clear');
       this.set('value', [])
       this.set('_value', []);
@@ -125,30 +126,30 @@ Polymer({
       this.$.selected.selected = null;
   },
 
-  setDisplayValue: function(arr) {
+  setDisplayValue(arr) {
       if (arr && arr.length)
-          var str = arr.length <= this.maxDisplay ? arr.join(', ') : arr.length + " selected";
+          var str = arr.length <= this.maxDisplay ? arr.join(', ') : `${arr.length  } selected`;
       this.set('displayValue', str || '');
   },
 
-  _selectionChanged: function() {
+  _selectionChanged() {
       this.init();
   },
 
-  _openingWindow: function() {
+  _openingWindow() {
       this.$.selected.selected = null;
   },
 
-  _closingWindow: function() {
+  _closingWindow() {
       this.setDisplayValue(this._value);
       this.$.selected.selected = '0';
       this.dispatchEvent(new CustomEvent('value-changed', { bubbles: true, composed: true, detail: this.value }));
       this.dispatchEvent(new CustomEvent('change',  { bubbles: true, composed: true}));
   },
 
-  _updateValue: function(e) {
-      var that = this;
-      var val = [];
+  _updateValue(e) {
+      const that = this;
+      const val = [];
       this.shadowRoot.querySelectorAll('paper-checkbox').forEach(function(item) {
           if (item.checked) {
               val.push(item.textContent.trim())
@@ -159,11 +160,11 @@ Polymer({
       this.set('value', this._value.map(function(item) {
           return this.selections.find(function(s) {
               return s.name == item
-          }.bind(this)).id;
+          }).id;
       }.bind(this)));
   },
 
-  computeChecked: function(id) {
+  computeChecked(id) {
       return this.value ? this.value.indexOf(id) > -1 : false;
   }
 });

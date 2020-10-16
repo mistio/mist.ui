@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -101,49 +102,49 @@ Polymer({
       'inputsArrayChanged(inputsArray)'
   ],
 
-  inputsArrayChanged: function(inputsArray){
+  inputsArrayChanged(inputsArray){
       // console.log('inputsArray',inputsArray);
   },
 
-  addInput: function(e){
-      var obj = {};
+  addInput(e){
+      const obj = {};
       obj[this.inputLabel] = '';
       if (this.withDescription)
-          obj['description'] = '';
+          obj.description = '';
       this.push('inputsArray', obj);
   },
 
-  removeInput: function(e){
+  removeInput(e){
       // console.log('removeInput',e.model.index);
-      var inputValue = this.get('inputsArray.'+e.model.index+'.'+this.inputLabel);
+      const inputValue = this.get(`inputsArray.${e.model.index}.${this.inputLabel}`);
       if (this.withConfirmRemove != true || inputValue == '') {
           this.splice('inputsArray', e.model.index, 1);
       }
       else {
           this.set('toRemove', e.model.index);
           this._showDialog({
-              title: 'Remove '+this.inputLabel,
-              body: "This cannot be undone. You will need to manually re-add "+ inputValue +" if you need so." ,
+              title: `Remove ${this.inputLabel}`,
+              body: `This cannot be undone. You will need to manually re-add ${ inputValue } if you need so.` ,
               reason: "input.remove",
-              action: "Remove "+this.inputLabel
+              action: `Remove ${this.inputLabel}`
           });
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector("#confirmRemove");
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector("#confirmRemove");
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _confirmRemove: function(e){
+  _confirmRemove(e){
       // console.log('_confirmRemove',e);
-      var reason = e.detail.reason,
-          response = e.detail.response;
+      const {reason} = e.detail;
+          const {response} = e.detail;
 
       if (response.confirmed == 'confirm' && reason == "input.remove") {
           this.splice('inputsArray', this.toRemove, 1);
@@ -151,11 +152,11 @@ Polymer({
       }
   },
 
-  saveInputs: function(e){
+  saveInputs(e){
       this.dispatchEvent(new CustomEvent(this.eventName, { bubbles: true, composed: true, detail:  {inputs: this.inputsArray} }));
   },
 
-  addCurrentIP: function(e){
+  addCurrentIP(e){
       this.dispatchEvent(new CustomEvent('add-current', { bubbles: true, composed: true}));
   }
 });

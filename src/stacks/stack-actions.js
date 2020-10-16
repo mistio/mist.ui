@@ -10,6 +10,7 @@ import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 STACK_ACTIONS = {
     'deploy': {
         'name': 'deploy now',
@@ -107,14 +108,14 @@ Polymer({
       'transfer-ownership': 'transferOwnership'
   },
 
-  attached: function() {
+  attached() {
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.request.method = "POST";
   },
 
-  itemActions: function(stack, user) {
-      var arr = [];
+  itemActions(stack, user) {
+      const arr = [];
       if (stack) {
           if (this.inSingleView) {
               if (this.deployNow) {
@@ -133,9 +134,9 @@ Polymer({
       return arr;
   },
 
-  transferOwnership: function(e) {
-      var payload = {
-          user_id: e.detail.user_id, //new owner
+  transferOwnership(e) {
+      const payload = {
+          user_id: e.detail.user_id, // new owner
           resources: {}
       };
       payload.resources[this.type] = this.items.map(function(i) { return i.id });
@@ -148,8 +149,8 @@ Polymer({
       this.$.request.generateRequest();
   },
 
-  actionDetails: function(actions) {
-      var ret = [];
+  actionDetails(actions) {
+      const ret = [];
       if (this.workflows) {
           for (var i = 0; i < this.workflows.length; i++) {
               ret.push({
@@ -167,9 +168,9 @@ Polymer({
       return ret;
   },
 
-  _otherMembers: function(members, items) {
+  _otherMembers(members, items) {
       if (this.items && members) {
-          var owners = this.items.map(function(i) { return i.owned_by; })
+          const owners = this.items.map(function(i) { return i.owned_by; })
               .filter(function(value, index, self) { return self.indexOf(value) === index; });
           // filter out pending users and the single owner of the item-set if that is the case
           return members.filter(function(m) {
@@ -178,49 +179,49 @@ Polymer({
       }
   },
 
-  _delete: function() {
-      //set up iron ajax
+  _delete() {
+      // set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.request.method = "DELETE";
 
-      for (var i = 0; i < this.items.length; i++) {
-          this.$.request.url = "/api/v1/stacks/" + this.items[i].id
+      for (let i = 0; i < this.items.length; i++) {
+          this.$.request.url = `/api/v1/stacks/${  this.items[i].id}`
           this.$.request.generateRequest();
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Deleting ' + this.items[i].name, duration: 1000 } }));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Deleting ${  this.items[i].name}`, duration: 1000 } }));
       }
   },
 
-  _showDialog: function(info) {
-      var dialog = this.shadowRoot.querySelector('dialog-element');
-      for (var i in info) {
+  _showDialog(info) {
+      const dialog = this.shadowRoot.querySelector('dialog-element');
+      for (const i in info) {
           dialog[i] = info[i];
       }
       dialog._openDialog();
   },
 
-  confirmAction: function(e) {
+  confirmAction(e) {
       if (e.detail.confirmed)
           this.performAction(this.action, this.items);
   },
 
-  selectAction: function(e) {
+  selectAction(e) {
       if (this.items.length) {
-          var action = e.detail.action;
+          const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
           if (action.confirm && action.name != 'tag') {
-              var property = "name",
-                  plural = this.items.length == 1 ? '' : 's',
-                  count = this.items.length > 1 ? this.items.length + ' ' : '';
-              //this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+              const property = "name";
+                  const plural = this.items.length == 1 ? '' : 's';
+                  const count = this.items.length > 1 ? `${this.items.length  } ` : '';
+              // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
               this._showDialog({
-                  title: this.action.name + ' ' + count + this.type + plural + '?',
-                  body: "You are about to " + this.action.name + " " + this.items.length + " " + this.type + plural + ".",
+                  title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural  }.`,
                   list: this._makeList(this.items, property),
                   action: action.name,
                   danger: true,
-                  reason: this.type + "." + this.action.name
+                  reason: `${this.type  }.${  this.action.name}`
               });
           } else if (action.name == "tag") {
               this.$.tagsdialog._openDialog();
@@ -232,7 +233,7 @@ Polymer({
       }
   },
 
-  performAction: function(action, items) {
+  performAction(action, items) {
       if (action.name == 'delete') {
           this._delete();
       } else if (action.name == 'workflows panel') {
@@ -244,9 +245,9 @@ Polymer({
       }
   },
 
-  handleResponse: function(e) {
+  handleResponse(e) {
       if (this.$.request && this.$.request.body && this.$.request.body.action)
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: 'Action: ' + this.$.request.body.action + ' successfull', duration: 3000 } }));
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Action: ${  this.$.request.body.action  } successfull`, duration: 3000 } }));
       if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
@@ -258,17 +259,17 @@ Polymer({
       }
   },
 
-  _mapPolicyToActions: function(items, user) {
+  _mapPolicyToActions(items, user) {
       // recompute the actions array property as the intersection
       // of the available actions of the selected items
       this.set('actions', []);
-      var actions = new swiftSet.Set(),
-          isection = new swiftSet.Set();
+      const actions = new swiftSet.Set();
+          const isection = new swiftSet.Set();
 
       if (this.items.length > 0) {
           actions.addItems(this.itemActions(this.items[0]) || [], this.user);
 
-          for (var i = 1; i < this.items.length; i++) {
+          for (let i = 1; i < this.items.length; i++) {
               isection.clear()
               isection.addItems(actions.intersection(this.itemActions(this.items[i]), this.user));
               actions.clear();
@@ -288,16 +289,16 @@ Polymer({
       this.set('actions', multiActions);
   },
 
-  handleError: function(e) {
+  handleError(e) {
       console.log(e);
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Error: ' + e.detail.request.xhr.status + " " + e.detail.request.xhr.statusText, duration: 5000 } }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `Error: ${  e.detail.request.xhr.status  } ${  e.detail.request.xhr.statusText}`, duration: 5000 } }));
 
       if (e.detail.request.xhr.responseURL.endsWith("api/v1/ownership")) {
           this.$.ownershipdialog._closeDialog();
       }
   },
 
-  _makeList: function(items, property) {
+  _makeList(items, property) {
       if (items && items.length)
           return items.map(function(item) {
               return item[property];

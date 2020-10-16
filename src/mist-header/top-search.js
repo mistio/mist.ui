@@ -9,6 +9,7 @@ import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizabl
 import './search-suggestions.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -197,7 +198,7 @@ Polymer({
       },
       userSavedFilters: {
           type: Array,
-          value: function() {
+          value() {
               return [];
           }
       },
@@ -222,22 +223,22 @@ Polymer({
       'iron-resize': 'updateWidth'
   },
 
-  attached: function() {
+  attached() {
 
   },
 
-  updateWidth: function() {
+  updateWidth() {
       this.debounce('windowResize', function() {
           this.set('width', this.getBoundingClientRect().width)
       }, 100);
   },
 
-  _updateSearch: function(userFilter, title) {
+  _updateSearch(userFilter, title) {
       console.log('filter _updateSearch', this.userFilter, title);
       this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: {q: this.userFilter, page: title} }));
   },
 
-  hotkeys: function(e) {
+  hotkeys(e) {
       console.log('hotkeys', e);
       // ESC
       if (e.type === 'escape-pressed' || e.keyCode === 27) {
@@ -248,39 +249,39 @@ Polymer({
       if (e.keyCode === 13 && e.path && e.path.indexOf(this) > -1 && this.userFilter.length) {}
   },
 
-  revealSearch: function(e) {
+  revealSearch(e) {
       this.set('overflow', true);
       this.set('showClear', true);
   },
 
-  overflowChanged: function(overflow) {
+  overflowChanged(overflow) {
       if (overflow) {
           this.updateWidth();
       }
       this.set('showClear', this.overflow);
   },
 
-  _computeFilterPlaceholder: function (title) {
+  _computeFilterPlaceholder (title) {
       if (!title) return '';
       if (['clouds', 'stacks', 'machines', 'volumes', 'networks',
            'zones', 'keys', 'images', 'scripts', 'schedules', 'templates',
            'tunnels', 'teams'].indexOf(title) > -1) {
-           return 'All ' + title;
-      } else return 'All resources';
+           return `All ${  title}`;
+      } return 'All resources';
 
   },
 
-  _computePresetFilters: function(title) {
-      var resource_type;
+  _computePresetFilters(title) {
+      let resource_type;
       if (!title) {
           return;
-      } else if (['clouds', 'stacks', 'machines', 'volumes', 'networks',
+      } if (['clouds', 'stacks', 'machines', 'volumes', 'networks',
            'zones',' keys', 'images', 'scripts', 'schedules',
            'teams'].indexOf(title) > -1 ){
           resource_type = title;
       } else {
           resource_type = 'resources';
       }
-      return [{name:'Your ' + resource_type, filter: 'owner:$me', default:true}]
+      return [{name:`Your ${  resource_type}`, filter: 'owner:$me', default:true}]
   }
 });

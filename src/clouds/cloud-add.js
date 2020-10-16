@@ -9,6 +9,7 @@ import '../account/plan-purchase.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms single-page">
@@ -256,16 +257,16 @@ Polymer({
       'close-cc-required': '_closeCcRequired'
   },
 
-  ready: function () {
+  ready () {
 
   },
 
-  attached: function() {
+  attached() {
       if (this.disableAddCloud)
           this._openCcRequired();
   },
 
-  _hiddenChanged: function(hidden) {
+  _hiddenChanged(hidden) {
       if (this.disableAddCloud) {
           if (!hidden)
               this.$.ccRequired.open();
@@ -274,16 +275,16 @@ Polymer({
       }
   },
 
-  _computeCategories: function(providers){
-      var categories = [
+  _computeCategories(providers){
+      const categories = [
           {name: 'Public clouds', type: 'public', class:"xs12 s12 m6 l6", providers: []},
           {name: 'Private clouds', type: 'private', class:"", providers: []},
           {name: 'Hypervisors', type: 'hypervisor', class:"", providers: []},
           {name: 'Containers', type: 'containers', class:"", providers: []},
           {name: 'Other', type: 'baremetal', class:"", providers: []}
       ]
-      for (var i = 0; i < providers.length; i++) {
-          var provider = providers[i];
+      for (let i = 0; i < providers.length; i++) {
+          const provider = providers[i];
           if (['azure_arm','digitalocean','ec2','gce','linode','packet','rackspace','softlayer','aliyun_ecs','vultr', 'maxihost'].indexOf(provider.val) > -1){
               categories[0].providers.push(provider);
           }
@@ -300,7 +301,7 @@ Polymer({
               categories[4].providers.push(provider);
           }
       }
-      var cols = [
+      const cols = [
           {categories:[],class:'xs12 s12 m12 l12'},
           {categories:[],class:'xs12 s12 m12 l3'},
           {categories:[],class:'xs12 s12 m12 l3'},
@@ -317,20 +318,20 @@ Polymer({
       return cols;
   },
 
-  _computeDisableAddCloud: function (enableBilling, org) {
+  _computeDisableAddCloud (enableBilling, org) {
       return enableBilling && this.org && !this.org.card && !this.org.current_plan;
   },
 
-  _openCcRequired: function() {
+  _openCcRequired() {
       // e.target.parentNode.insertBefore(e.target.backdropElement, e.target);
       this.$.ccRequired.open();
   },
 
-  _closeCcRequired: function() {
+  _closeCcRequired() {
       this.$.ccRequired.close();
   },
 
-  _cloudAddAjaxResponse: function (response) {
+  _cloudAddAjaxResponse (response) {
       this._unsetProvider();
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
           url: '/'
@@ -342,15 +343,15 @@ Polymer({
 
   },
 
-  _cloudAddAjaxError: function (response) {
+  _cloudAddAjaxError (response) {
       console.error('add-cloud error', response);
   },
 
-  _computeProviderLogo: function (className) {
-      return 'assets/providers/' + className + '.png';
+  _computeProviderLogo (className) {
+      return `assets/providers/${  className  }.png`;
   },
 
-  _computeTitle: function (selectedProvider) {
+  _computeTitle (selectedProvider) {
       if (this.providers)
           var p = this.providers.find(function (p) {
               return p.val == selectedProvider
@@ -358,16 +359,16 @@ Polymer({
       return p ? p.title : '';
   },
 
-  _providerChanged: function (selectedProvider, providers) {
+  _providerChanged (selectedProvider, providers) {
       if (selectedProvider)
-          this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'select provider ' + selectedProvider }));
+          this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: `select provider ${  selectedProvider}` }));
 
       this._resetForm();
-      var selectedProviderDetails = providers.
+      const selectedProviderDetails = providers.
       filter(function (fields) {
           return fields.val == selectedProvider;
       });
-      var providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift()
+      const providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift()
           .options : [];
       this.set('providerFields', [{
           name: "provider",
@@ -380,23 +381,23 @@ Polymer({
       // while reseting the other fields
       this.providerFields.forEach(function (el, index) {
           if (el.name != "provider") {
-              this.set('providerFields.' + index + '.show', el.show);
+              this.set(`providerFields.${  index  }.show`, el.show);
               this._resetField(el, index);
           }
       }, this);
 
       if (selectedProvider && !this.enableMonitoring) {
-          var indexm = this.fieldIndexByName('monitoring');
+          const indexm = this.fieldIndexByName('monitoring');
           if (indexm) {
-              this.set('providerFields.' + indexm + '.show', false);
+              this.set(`providerFields.${  indexm  }.show`, false);
           }
       }
 
       this.fillInKnownData(selectedProvider, this.clouds);
   },
 
-  _providerFieldsChanged: function (fields) {
-      var that = this;
+  _providerFieldsChanged (fields) {
+      const that = this;
       // Scroll down to #cloudFields
       if (this.selectedProvider && fields) {
           this.async(function(){
@@ -405,36 +406,36 @@ Polymer({
       }
   },
 
-  _keysChanged: function (keys, providerFields) {
+  _keysChanged (keys, providerFields) {
       // Set list of keys in providerFields when model keys change
-      var indexSshKey = this.providerFields.findIndex(function (field) {
+      const indexSshKey = this.providerFields.findIndex(function (field) {
           return field.type == "ssh_key";
       }, this);
 
       if (indexSshKey)
-          this.set('providerFields.' + indexSshKey + '.options', this.keys);
+          this.set(`providerFields.${  indexSshKey  }.options`, this.keys);
 
       // Check for nested subforms and update ssh_key fields
       this.providerFields.forEach(function (field, index) {
           if (field.type == 'list') {
               field.options.forEach(function (subfield, subindex) {
                   if (subfield.type == "ssh_key") {
-                      this.set('providerFields.'+index+'.options.'+subindex+'.options',this.keys);
+                      this.set(`providerFields.${index}.options.${subindex}.options`,this.keys);
                   }
               }.bind(this));
           }
       }.bind(this));
   },
 
-  _unsetProvider: function () {
+  _unsetProvider () {
       this.set('selectedProvider', false);
   },
 
-  _resetForm: function (e) {
+  _resetForm (e) {
       // Reset Form Fields
       this.providerFields.forEach(function (el, index) {
           if (el.showIf) {
-              this.set('providerFields.' + index + '.show', false);
+              this.set(`providerFields.${  index  }.show`, false);
           }
 
           // Reset Form Fields Validation
@@ -442,74 +443,74 @@ Polymer({
       }, this);
   },
 
-  _resetField: function (el, index) {
-      this.set('providerFields.' + index + '.value', el.defaultValue);
+  _resetField (el, index) {
+      this.set(`providerFields.${  index  }.value`, el.defaultValue);
 
-      var input = this.shadowRoot.querySelector('#' + el.name);
+      const input = this.shadowRoot.querySelector(`#${  el.name}`);
       if (input) {
           input.invalid = false;
       }
   },
 
-  _goBack: function () {
+  _goBack () {
       history.back();
   },
 
-  _updateCloudTitle: function (e) {
-      var form = this.shadowRoot.querySelector('app-form');
+  _updateCloudTitle (e) {
+      const form = this.shadowRoot.querySelector('app-form');
       // console.log('_updateCloudTitle',e);
       if (e.target.id.startsWith('app-form-') && e.target.id.endsWith('-region')) {
-          var region = e.detail.item.textContent.trim();
-          var index;
-          var title = '';
-          var titleField = this.providerFields.find(function (f, ind) {
+          const region = e.detail.item.textContent.trim();
+          let index;
+          let title = '';
+          const titleField = this.providerFields.find(function (f, ind) {
               index = ind;
               return f.name == "title";
           });
           title = titleField.defaultValue;
-          this.set('providerFields.' + index + '.value', title + ' ' + region);
+          this.set(`providerFields.${  index  }.value`, `${title  } ${  region}`);
       }
 
   },
 
-  fillInKnownData: function (provider, clouds) {
+  fillInKnownData (provider, clouds) {
       if (provider) {
-          var cloudInSameProvider = this.clouds.find(function (c) {
+          const cloudInSameProvider = this.clouds.find(function (c) {
               return c.provider == provider
           });
           if (cloudInSameProvider) {
               // if there is an apikey we can fill in
-              var apikey = cloudInSameProvider.apikey;
-              var index = this.fieldIndexByName('apikey');
+              const {apikey} = cloudInSameProvider;
+              const index = this.fieldIndexByName('apikey');
               if (apikey && index) {
-                  this.set('providerFields.' + index + '.value', apikey);
+                  this.set(`providerFields.${  index  }.value`, apikey);
                   // if there is apikey and an apisecret we can 'getsecretfromdb'
-                  var indexp = this.fieldIndexByName('apisecret');
+                  const indexp = this.fieldIndexByName('apisecret');
                   if (indexp) {
-                      this.set('providerFields.' + indexp + '.value', 'getsecretfromdb');
+                      this.set(`providerFields.${  indexp  }.value`, 'getsecretfromdb');
                   }
               }
           }
       }
   },
 
-  _resetProvider: function () {
-      var indexp = this.fieldIndexByName('provider');
+  _resetProvider () {
+      const indexp = this.fieldIndexByName('provider');
       if (indexp != undefined) {
-          this.set('providerFields.' + indexp + '.value', this.selectedProvider);
+          this.set(`providerFields.${  indexp  }.value`, this.selectedProvider);
       }
   },
 
-  fieldIndexByName: function (name) {
-      var passField = this.providerFields.findIndex(function (f) {
+  fieldIndexByName (name) {
+      const passField = this.providerFields.findIndex(function (f) {
           return f.name == name;
       });
       return passField;
   },
 
-  fieldsOfType: function (data, type) {
-      var typeIndexes = [];
-      var fieldsOfType = data.filter(function (f, ind) {
+  fieldsOfType (data, type) {
+      const typeIndexes = [];
+      const fieldsOfType = data.filter(function (f, ind) {
           if (f.type == type)
               typeIndexes.push(ind);
           return f.type == type;
@@ -517,13 +518,13 @@ Polymer({
       return typeIndexes;
   },
 
-  updateKeys: function (e) {
-      var keyFieldsIndexes = this.fieldsOfType(this.providerFields, 'ssh_key');
+  updateKeys (e) {
+      const keyFieldsIndexes = this.fieldsOfType(this.providerFields, 'ssh_key');
       this.async(function () {
-          for (var i = 0; i < keyFieldsIndexes.length; i++) {
-              this.set('providerFields.' + keyFieldsIndexes[i] + '.options', this
+          for (let i = 0; i < keyFieldsIndexes.length; i++) {
+              this.set(`providerFields.${  keyFieldsIndexes[i]  }.options`, this
                   .keys);
-              this.set('providerFields.' + keyFieldsIndexes[i] + '.value', e.detail
+              this.set(`providerFields.${  keyFieldsIndexes[i]  }.value`, e.detail
                   .key);
           }
           if (this.fieldsOfType(this.providerFields, 'list')) {
@@ -533,17 +534,17 @@ Polymer({
       }.bind(this), 500);
   },
 
-  updateKeysInLists: function (e, lists) {
-      for (var j = 0; j < lists.length; j++) {
+  updateKeysInLists (e, lists) {
+      for (let j = 0; j < lists.length; j++) {
           var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,
               'ssh_key');
 
           this.async(function () {
-              for (var i = 0; i < keyFieldsIndexes.length; i++) {
-                  this.set('providerFields.' + lists[i] + '.options.' +
-                      keyFieldsIndexes[i] + '.options', this.keys);
-                  this.set('providerFields.' + lists[i] + '.options.' +
-                      keyFieldsIndexes[i] + '.value', e.detail.key);
+              for (let i = 0; i < keyFieldsIndexes.length; i++) {
+                  this.set(`providerFields.${  lists[i]  }.options.${ 
+                      keyFieldsIndexes[i]  }.options`, this.keys);
+                  this.set(`providerFields.${  lists[i]  }.options.${ 
+                      keyFieldsIndexes[i]  }.value`, e.detail.key);
               }
           }.bind(this), 10);
       }

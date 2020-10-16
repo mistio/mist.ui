@@ -7,6 +7,7 @@ import './images/image-provider-search.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
         <style include="shared-styles">
@@ -78,44 +79,43 @@ Polymer({
         }
     },
     listeners: {},
-    _isDetailsPageActive: function (path) {
+    _isDetailsPageActive (path) {
         if (path && this.$.imagePage)
             this.$.imagePage.updateState();
         return path;
     },
-    _isListActive: function (path) {
+    _isListActive (path) {
         return !path;
     },
-    _getImage: function (route) {
+    _getImage (route) {
         // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
         if (this.model.images)
             return this.model.images[route.path.slice(1, route.path.length)];
     },
-    _getImageId: function (route) {
+    _getImageId (route) {
         if (route.path.slice(1, route.path.length) && this.shadowRoot && this.shadowRoot.querySelector('image-page')) {
             this.shadowRoot.querySelector('image-page').updateState();
         }
         return route.path.slice(1, route.path.length);
     },
-    _addResource: function (e) {
+    _addResource (e) {
         this.searchOnProviders();
     },
-    _getFrozenColumn: function () {
+    _getFrozenColumn () {
         return ['name'];
     },
-    _getVisibleColumns: function () {
-        return ['starred', 'cloud', 'created_by', 'id'/*, 'tags'*/];
+    _getVisibleColumns () {
+        return ['starred', 'cloud', 'created_by', 'id'/* , 'tags' */];
     },
-    _getRenderers: function (keys) {
-        var _this = this;
+    _getRenderers (keys) {
+        const _this = this;
         return {
             'name': {
                 'body': function (item, row) {
-                    var name = item == "<none>:<none>" ? row.id : item;
+                    const name = item == "<none>:<none>" ? row.id : item;
                     if (row.star)
-                        return '<strong class="name starred">' + name + '</strong>';
-                    else
-                        return '<strong class="name unstarred">' + name + '</strong>';
+                        return `<strong class="name starred">${  name  }</strong>`;
+                    return `<strong class="name unstarred">${  name  }</strong>`;
                 }
             },
             'cloud': {
@@ -149,12 +149,12 @@ Polymer({
             },
             'tags': {
                 'body': function (item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;
@@ -162,14 +162,14 @@ Polymer({
             }
         }
     },
-    searchableClouds: function (clouds) {
+    searchableClouds (clouds) {
         return clouds.filter(function (c) {
             return ['ec2', 'docker'].indexOf(c.provider) > -1;
         });
     },
-    sortedImages: function (images) {
+    sortedImages (images) {
         return this.model.imagesArray.sort(function (a, b) {
-            //if both properties exist
+            // if both properties exist
             if (a.star > b.star) {
                 return -1;
             }
@@ -177,10 +177,10 @@ Polymer({
                 return 1;
             }
             return 0;
-        }.bind(this));
+        });
     },
 
-    searchOnProviders: function () {
+    searchOnProviders () {
         if (this.$.imageprovidersearch) {
             this.$.imageprovidersearch._openDialog();
         }

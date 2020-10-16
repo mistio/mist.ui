@@ -6,9 +6,10 @@ import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-item/paper-item-body.js';
 import '../../node_modules/@polymer/paper-badge/paper-badge.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../node_modules/@polymer/paper-item/paper-item-body.js';
+
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles tags-and-labels info-table-style single-page">
@@ -119,37 +120,37 @@ Polymer({
       }
   },
 
-  _computeR12nIcon: function(item) {
+  _computeR12nIcon(item) {
       if (item._cls == "Notification.InAppNotification.InAppRecommendation" &&
           item.model_id == "autoscale_v1") {
           if (item.model_output.direction == "up") {
               return "icons:arrow-upward";
-          } else if (item.model_output.direction == "down") {
+          } if (item.model_output.direction == "down") {
               return "icons:arrow-downward";
           }
       }
   },
 
-  _resizeTap: function(e) {
-      var action = {
+  _resizeTap(e) {
+      const action = {
           'name': 'resize',
           'icon': 'device:signal-cellular-2-bar',
           'confirm': true,
           'multi': false
       }
-      this.dispatchEvent(new CustomEvent('select-action', { bubbles: true, composed: true, detail:  { action: action } }));
+      this.dispatchEvent(new CustomEvent('select-action', { bubbles: true, composed: true, detail:  { action } }));
       // TODO: dismiss notification on success?
       // TODO: resize to what?
   },
 
-  _dismiss: function(e) {
-      this.$.requestDismiss.url = "/api/v1/notifications/" + event.model.item._id;
+  _dismiss(e) {
+      this.$.requestDismiss.url = `/api/v1/notifications/${  event.model.item._id}`;
       this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.requestDismiss.generateRequest();
       event.stopPropagation();
   },
 
-  handleDismissResponse: function(event) {
+  handleDismissResponse(event) {
       console.log("Machine R12ns: Received dismiss response");
   }
 });

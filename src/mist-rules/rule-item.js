@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms tags-and-labels">
@@ -281,44 +282,43 @@ Polymer({
       }
   },
 
-  ready: function () {},
+  ready () {},
 
-  _computeIsNoData: function (rule) {
+  _computeIsNoData (rule) {
       return rule.title == 'NoData';
   },
 
-  _computeIsLogData: function (rule) {
+  _computeIsLogData (rule) {
       return rule.data_type == 'logs';
   },
 
-  _computeCanEdit: function (rule, resource) {
-      var that = this;
+  _computeCanEdit (rule, resource) {
+      const that = this;
       if (resource) {
-          var ruleExist = this.rule ? true : false,
-              ruleIsNoData = this.rule.title == "NoData",
-              ruleSelectors = this.rule.selectors && this.rule.selectors.length ? true : false,
-              ruleAppliesOnAllResources = !this.rule.selectors || !this.rule.selectors.length,
-              ruleAppliesOnLogs = this.rule.data_type == 'logs',
-              ruleAppliesOnTags = this.rule.selectors && this.rule.selectors.filter(function (c) {
+          const ruleExist = !!this.rule;
+              const ruleIsNoData = this.rule.title == "NoData";
+              const ruleSelectors = !!(this.rule.selectors && this.rule.selectors.length);
+              const ruleAppliesOnAllResources = !this.rule.selectors || !this.rule.selectors.length;
+              const ruleAppliesOnLogs = this.rule.data_type == 'logs';
+              const ruleAppliesOnTags = this.rule.selectors && this.rule.selectors.filter(function (c) {
                                       return c.type == "tags"
                                   }).length > 0;
           // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllResources, !ruleAppliesOnTags);
           this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllResources);
           return !ruleIsNoData && ruleExist && !ruleAppliesOnAllResources && !ruleAppliesOnTags;
       }
-      else 
-          return true;
+      return true;
   },
 
-  _computeUnit: function (metric, availableMetrics) {
-      var ref;
+  _computeUnit (metric, availableMetrics) {
+      let ref;
       if (this.availableMetrics)
           ref = this.availableMetrics[metric];
       return ref && ref.unit ? ref.unit : '';
   },
 
-  _computeTargetName: function (metric, availableMetrics) {
-      var ref;
+  _computeTargetName (metric, availableMetrics) {
+      let ref;
       if (this.availableMetrics)
           ref = this.availableMetrics.find(function (i) {
               return i.id == metric
@@ -326,7 +326,7 @@ Polymer({
       return ref && ref.name ? ref.name : metric;
   },
 
-  _computeOperator: function (op) {
+  _computeOperator (op) {
       if (op == "gt")
           return ">";
       if (op == "lt")
@@ -337,37 +337,36 @@ Polymer({
           return "≠";
   },
 
-  _computeAggregation: function (aggr) {
+  _computeAggregation (aggr) {
       if (aggr == "all")
           return "every";
-      else
-          return aggr || "any";
+      return aggr || "any";
   },
 
-  _computeTeam: function (team) {
+  _computeTeam (team) {
       return this.teams.find(function (i) {
           return i.id == team;
       }).name;
   },
 
-  _computeUser: function (user) {
-      var u = this.users.find(function (i) {
+  _computeUser (user) {
+      const u = this.users.find(function (i) {
           return i.id == user;
       });
       return u && u.name;
   },
 
-  _computeTagSelectors: function () {
-      var ret = [];
+  _computeTagSelectors () {
+      const ret = [];
       if (this.rule && this.rule.selectors) {
-          for (var i = 0; i < this.rule.selectors.length; i++) {
+          for (let i = 0; i < this.rule.selectors.length; i++) {
               if (this.rule.selectors[i].type == 'tags') {
-                  var keys = Object.keys(this.rule.selectors[i].include);
-                  for (var j = 0; j < keys.length; j++) {
-                      var key = keys[j],
-                          value = this.rule.selectors[i].include[key];
+                  const keys = Object.keys(this.rule.selectors[i].include);
+                  for (let j = 0; j < keys.length; j++) {
+                      const key = keys[j];
+                          const value = this.rule.selectors[i].include[key];
                       if (value)
-                          ret.push(key + ': ' + value);
+                          ret.push(`${key  }: ${  value}`);
                       else
                           ret.push(key);
                   }
@@ -377,14 +376,14 @@ Polymer({
       return ret;
   },
 
-  _hasWindow: function (aggregation) {
+  _hasWindow (aggregation) {
       if (!aggregation || aggregation == "any")
           return false;
       return true;
   },
 
-  _phrase: function (action) {
-      var verb;
+  _phrase (action) {
+      let verb;
       if (action == 'notification')
           verb = 'alert';
       else if (action == 'machine_action')
@@ -398,23 +397,23 @@ Polymer({
       return verb;
   },
 
-  deleteRule: function (e) {
-      var ruleid = this.rule.id;
-      this.$.deleteRuleRequest.url = '/api/v1/rules/' + ruleid;
+  deleteRule (e) {
+      const ruleid = this.rule.id;
+      this.$.deleteRuleRequest.url = `/api/v1/rules/${  ruleid}`;
       this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.deleteRuleRequest.generateRequest();
   },
 
-  _showCommandTextarea: function (action) {
+  _showCommandTextarea (action) {
       return action == "command";
   },
 
-  _joinEmails: function (emails) {
+  _joinEmails (emails) {
       if (emails)
-          return typeof (emails) == 'array' ? emails.join(', ') : emails;
+          return typeof (emails) === 'array' ? emails.join(', ') : emails;
   },
 
-  _isPlural: function (i) {
+  _isPlural (i) {
       return i > 1;
   }
 });

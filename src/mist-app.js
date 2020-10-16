@@ -21,12 +21,12 @@ import '../node_modules/@polymer/iron-selector/iron-selector.js';
 import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../node_modules/@polymer/paper-toast/paper-toast.js';
-//import '../../../app-notifications/app-notifications.js';
+// import '../../../app-notifications/app-notifications.js';
 import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import '../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
 import '../node_modules/@mistio/mist-list/mist-list.js';
-//import '../../../web-animations-js/web-animations-next.min.js';
+// import '../../../web-animations-js/web-animations-next.min.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';
 import './mist-sidebar.js';
@@ -41,8 +41,8 @@ import { _generateMap } from './helpers/utils.js'
 import { setPassiveTouchGestures } from '../node_modules/@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
-//import '../../../swiftSet/swiftSet.js';
-//import '../../../fingerprintjs2/fingerprint2.js';
+// import '../../../swiftSet/swiftSet.js';
+// import '../../../fingerprintjs2/fingerprint2.js';
 const $_documentContainer = document.createElement('template');
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
     <!-- styles/app-theme  -->
@@ -239,7 +239,7 @@ setPassiveTouchGestures(true);
 Polymer({
     is: 'mist-app',
     behaviors: [
-        IronResizableBehavior //, rbacBehavior
+        IronResizableBehavior // , rbacBehavior
     ],
 
     properties: {
@@ -302,7 +302,7 @@ Polymer({
         },
         config: {
             type: Object,
-            value: function () { return {} }
+            value () { return {} }
         },
         userMenuOpened: {
             type: Boolean
@@ -322,7 +322,7 @@ Polymer({
         },
         streamingTargets: {
             type: Array,
-            value: function () { return [] }
+            value () { return [] }
         }
     },
 
@@ -366,16 +366,16 @@ Polymer({
         // '_qChanged(q)' // disable sections count updates
     ],
 
-    _cleanUpModelFromCloudResources: function(e) {
+    _cleanUpModelFromCloudResources(e) {
         if (this.shadowRoot.querySelector('mist-socket') && e.detail.cloud)
             this.shadowRoot.querySelector('mist-socket').cleanUpResources(e.detail.cloud)
     },
 
-    _listAttached: function(e) {
+    _listAttached(e) {
         if (e.detail && e.detail.id) {
-            var key = e.detail.id.replace("List", "");
+            const key = e.detail.id.replace("List", "");
             if (this.model.sections[key]) {
-                var local = localStorage.getItem('mist-filter#topFilter/all-'+key+'/userFilter');
+                let local = localStorage.getItem(`mist-filter#topFilter/all-${key}/userFilter`);
                 if (!local) {
                     local = localStorage.getItem('mist-filter#topFilter/all-resources/userFilter');
                 }
@@ -385,47 +385,47 @@ Polymer({
                 if (!local) {
                     local = '';
                 }
-                this.set('model.sections.'+key+'.q', local+' ');
+                this.set(`model.sections.${key}.q`, `${local} `);
             }
         }
     },
 
-    attached: function() {
+    attached() {
         if (this.ccRequired) {
             this._ccDismissed();
         }
     },
 
-    _observeKeys: function(keysSplices) {
+    _observeKeys(keysSplices) {
         this.fire('update-keys');
     },
 
-    _observeScripts: function(scriptsSplices) {
+    _observeScripts(scriptsSplices) {
         this.fire('update-scripts');
     },
 
-    _forwardEvent: function (e) {
+    _forwardEvent (e) {
         this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire('update-dashboard');
     },
 
-    mistSidebarToggle: function () {
+    mistSidebarToggle () {
         if (this.shadowRoot.querySelector('mist-sidebar')) {
             this.shadowRoot.querySelector('mist-sidebar').toggleSidebar(); // update classes
         }  
     },
 
-    _computeCcRequired: function(org, clouds) {
+    _computeCcRequired(org, clouds) {
         if (!this.config || !this.config.features || !this.config.features.billing || !this.model.org || this.model.org.card || this.model.org.current_plan)
             return false;
-        return this.model.cloudsArray.length ? true : false;
+        return !!this.model.cloudsArray.length;
     },
 
-    _ccRequiredChanged: function(required) {
+    _ccRequiredChanged(required) {
         if (required)
             this.$.mistAppCcRequired.open();
     },
 
-    _ccDismissed: function() {
+    _ccDismissed() {
         if (this.ccRequired)
             this.async(function() {
                 if (this.ccRequired)
@@ -433,7 +433,7 @@ Polymer({
             }.bind(this), 1000 * 60);
     },
 
-    _sizeChanged: function(smallscreen) {
+    _sizeChanged(smallscreen) {
         if (this.$.sidebar) {
             if (this.smallscreen) {
                 this.$.sidebar.closeSidebar();
@@ -443,20 +443,20 @@ Polymer({
         }
     },
 
-    _computeCenterContent: function(sidebarIsClosed, smallscreen) {
+    _computeCenterContent(sidebarIsClosed, smallscreen) {
         return this.sidebarIsClosed || this.smallscreen;
     },
 
-    setHeaderCount: function(e) {
+    setHeaderCount(e) {
         if (!this._isPage('dashboard') && !this._isPage('my-account') && !this._isPage('insights')) {
             this.set('count', e.detail.length);
         } else {
             this.set('count', '');
         }
-        this.set('model.sections.'+this.page+'.count', e.detail.length);
+        this.set(`model.sections.${this.page}.count`, e.detail.length);
     },
 
-    setLocationPath: function(e) {
+    setLocationPath(e) {
         if (e.detail.url && this.$.appLocation) {
             this.$.appLocation.set('path', e.detail.url);
             if (e.detail.params) {
@@ -473,8 +473,8 @@ Polymer({
         }
     },
 
-    showDesktopNotification: function(e) {
-        var notifier = document.getElementById('desktop-notifier');
+    showDesktopNotification(e) {
+        const notifier = document.getElementById('desktop-notifier');
         notifier.show(e.detail.title, {
             "body": e.detail.body,
             "data": {
@@ -483,7 +483,7 @@ Polymer({
         });
     },
 
-    handleDesktopNotificationClick: function(e) {
+    handleDesktopNotificationClick(e) {
         if (e.detail.data.url) {
             window.history.pushState({}, null, e.detail.data.url);
             window.dispatchEvent(new CustomEvent('location-changed'));
@@ -491,16 +491,16 @@ Polymer({
         }
     },
 
-    showToast: function(e) {
-        var toast = this.shadowRoot.querySelector('paper-toast#mist-toast')
+    showToast(e) {
+        const toast = this.shadowRoot.querySelector('paper-toast#mist-toast')
         toast.show({
             text: e.detail.msg,
             duration: e.detail.duration
         });
     },
 
-    addImages: function(e) {
-        var images = e.detail.images;
+    addImages(e) {
+        const {images} = e.detail;
         for (let i = 0; i < images.length; i++) {
             images[i].cloud = {
                 'id': e.detail.cloud.id,
@@ -512,21 +512,21 @@ Polymer({
         }
     },
 
-    openAndSelect: function(e) {
+    openAndSelect(e) {
         document.addEventListener('open-and-select', function(e) {
             this.shadowRoot.querySelector('machine-page machine-actions associate-key').openAndSelect(
                 e);
         }.bind(this), {passive: true});
     },
 
-    openCloudEdit: function(e) {
+    openCloudEdit(e) {
         document.addEventListener('cloud-edit-key', function(e) {
             this.shadowRoot.querySelector('cloud-page cloud-actions').openEditDialog(e);
         }.bind(this), {passive: true});
     },
 
-    updateKeys: function(e) {
-        var pagesElement = this.shadowRoot.querySelector('app-header-layout').querySelector('iron-pages');
+    updateKeys(e) {
+        const pagesElement = this.shadowRoot.querySelector('app-header-layout').querySelector('iron-pages');
         if (pagesElement.querySelector('page-stacks') && pagesElement.querySelector('page-stacks').shadowRoot &&
             pagesElement.querySelector('page-stacks').shadowRoot.querySelector('stack-create')) {
             pagesElement.querySelector('page-stacks').shadowRoot.querySelector('stack-create').updateKeys(e);
@@ -549,8 +549,8 @@ Polymer({
         }
     },
 
-    updateScripts: function(e) {
-        var pagesElement = this.shadowRoot.querySelector('app-header-layout').querySelector('iron-pages');
+    updateScripts(e) {
+        const pagesElement = this.shadowRoot.querySelector('app-header-layout').querySelector('iron-pages');
         if (pagesElement.querySelector('page-machines') && pagesElement.querySelector('page-machines').shadowRoot &&
             pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create')) {
             pagesElement.querySelector('page-machines').shadowRoot.querySelector('machine-create').updateScripts(e);
@@ -561,7 +561,7 @@ Polymer({
         }
     },
 
-    _routePageChanged: function(page, subpath) {
+    _routePageChanged(page, subpath) {
         this.set('count','');
         if (this.smallscreen) {
             this.$.sidebar.closeSidebar();
@@ -572,74 +572,74 @@ Polymer({
         this.set('visibleSuggestions', false);
     },
 
-    clearSearch: function() {
+    clearSearch() {
         document.querySelector('top-search').clearSearch();
         this.set('q', '');
         if (this.model && this.model.sections) {
-            for (let sec in this.model.sections) {
-                this.set('model.sections.' + sec + '.q', '');
+            for (const sec in this.model.sections) {
+                this.set(`model.sections.${  sec  }.q`, '');
             }
         }
     },
 
-    clearSearchPreservingFilters: function(e) {
-        var q = this.q || '',
-            filterOwner = q.indexOf('owner:') > -1,
-            ownerRegex = /owner:(\S*)\s?/,
-            owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+    clearSearchPreservingFilters(e) {
+        let q = this.q || '';
+            const filterOwner = q.indexOf('owner:') > -1;
+            const ownerRegex = /owner:(\S*)\s?/;
+            const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
 
         if (filterOwner && owner && owner.length) {
-            q = q.replace('owner:', '').replace(owner + '', '');
+            q = q.replace('owner:', '').replace(`${owner  }`, '');
         }
         this.set('q', this.q.replace(q, ''));
         if (this.model && this.model.sections) {
-            for (let sec in this.model.sections) {
-                this.set('model.sections.' + sec + '.q', this.q.replace(q, ''));
+            for (const sec in this.model.sections) {
+                this.set(`model.sections.${  sec  }.q`, this.q.replace(q, ''));
             }
         }
         this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail:  this.q.replace(q, '') }));
     },
 
-    _pageChanged: function(page) {
+    _pageChanged(page) {
         this.set('count','');
         this.set('loading', true);
         // Load page import on demand. Show 404 page if fails
         // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
         // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
-        console.log("LOADING PAGE "+page);
-        import('./page-' + page + '.js').then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason);});
+        console.log(`LOADING PAGE ${page}`);
+        import(`./page-${  page  }.js`).then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason);});
         // import('./page-' + page + '.js').then(()=>{console.log("SUCCESS");},(reason)=>{console.log("FAILURE!! ", reason);});
         //  import('./page-' + page + '.js').then(this._hideLoader.bind(this), this._showPage404.bind(this));
     },
 
-    _hideLoader: function() {
+    _hideLoader() {
         console.log("success");
         this.set('loading', false);
         this.$['iron-pages'].selected = this.page;
     },
 
-    _showPage404: function() {
+    _showPage404() {
         // this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
         // this.page = 'not-found';
         import('./page-not-found.js').then(null);
     },
 
-    _isPage: function(page) {
+    _isPage(page) {
         return this.page == page;
     },
 
-    updateSearchQuery: function(e) {
+    updateSearchQuery(e) {
         if (e.detail != undefined && e.detail.q != undefined) {
             console.log('search: update Search Query', e.detail);
             if (e.detail.page && this.page == e.detail.page) {
-                this.set('model.sections.' + this.page + '.q', e.detail.q || '');
+                this.set(`model.sections.${  this.page  }.q`, e.detail.q || '');
             }
             this.set('q', e.detail.q);
         }
     },
 
-    ready: function() {
-        var model = {
+    ready() {
+        const model = {
             machines: {},
             clouds: {},
             cloudsArray: [],
@@ -818,33 +818,33 @@ Polymer({
         this.set('model', model);
     },
 
-    _configUpdated: function(config) {
+    _configUpdated(config) {
         if (!Object.keys(config).length) return;
-        var orchestration = this.config && this.config.features && this.config.features.orchestration ? this.config.features.orchestration : false;
-        var tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false;
-        var insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false;
-        var currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency : {sign: '$', rate: 1};
+        const orchestration = this.config && this.config.features && this.config.features.orchestration ? this.config.features.orchestration : false;
+        const tunnels = this.config && this.config.features && this.config.features.tunnels ? this.config.features.tunnels : false;
+        const insights = this.config && this.config.features && this.config.features.insights ? this.config.features.insights : false;
+        const currency = this.config && this.config.features && this.config.features.currency ? this.config.features.currency : {sign: '$', rate: 1};
             // currency =  {sign: '$', rate: 1}; 
             // test {sign: '₹', rate:0.014}
             // currency = {sign:'Rp', rate: 68.73};
 
-        var cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0;
-        var stacksCount = this.model.stacks ? Object.keys(this.model.stacks).length : 0;
-        var machinesCount = this.model.machines ? Object.keys(this.model.machines).length : 0;
-        var volumesCount = this.model.volumes ? Object.keys(this.model.volumes).length : 0;
-        var networksCount = this.model.networks ? Object.keys(this.model.networks).length : 0;
-        var zonesCount = this.model.zones ? Object.keys(this.model.zones).length : 0;
-        var keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0;
-        var imagesCount = this.model.images ? Object.keys(this.model.images).length : 0;
-        var scriptsCount = this.model.scripts ? Object.keys(this.model.scripts).length : 0;
-        var templatesCount = this.model.templates ? Object.keys(this.model.templates).length : 0;
-        var tunnelsCount = this.model.tunnels ? Object.keys(this.model.tunnels).length : 0;
-        var schedulesCount = this.model.schedules ? Object.keys(this.model.schedules).length : 0;
-        var rulesCount = this.model.rules ? Object.keys(this.model.rules).length : 0;
-        var teamsCount = this.model.teams ? Object.keys(this.model.teams).length : 0;
-        var membersCount = this.model.members ? Object.keys(this.model.members).length : 0;
+        const cloudsCount = this.model.clouds ? Object.keys(this.model.clouds).length : 0;
+        const stacksCount = this.model.stacks ? Object.keys(this.model.stacks).length : 0;
+        const machinesCount = this.model.machines ? Object.keys(this.model.machines).length : 0;
+        const volumesCount = this.model.volumes ? Object.keys(this.model.volumes).length : 0;
+        const networksCount = this.model.networks ? Object.keys(this.model.networks).length : 0;
+        const zonesCount = this.model.zones ? Object.keys(this.model.zones).length : 0;
+        const keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0;
+        const imagesCount = this.model.images ? Object.keys(this.model.images).length : 0;
+        const scriptsCount = this.model.scripts ? Object.keys(this.model.scripts).length : 0;
+        const templatesCount = this.model.templates ? Object.keys(this.model.templates).length : 0;
+        const tunnelsCount = this.model.tunnels ? Object.keys(this.model.tunnels).length : 0;
+        const schedulesCount = this.model.schedules ? Object.keys(this.model.schedules).length : 0;
+        const rulesCount = this.model.rules ? Object.keys(this.model.rules).length : 0;
+        const teamsCount = this.model.teams ? Object.keys(this.model.teams).length : 0;
+        const membersCount = this.model.members ? Object.keys(this.model.members).length : 0;
 
-        var sectionsArray = [{
+        const sectionsArray = [{
             id: 'dashboard',
             icon: 'icons:dashboard',
             color: '#424242',
@@ -1012,26 +1012,26 @@ Polymer({
         }
     },
 
-    _onUserAction: function(event) {
+    _onUserAction(event) {
         // console.log('user-action', event);
-        if (typeof gtag == 'function') {
+        if (typeof gtag === 'function') {
             gtag('event', event.detail, {
                 'event_category': 'ui'
             });
         }
         if (!this.config || !this.config.features || !this.config.features.ab)
             return;
-        var xhr = new XMLHttpRequest();
+        const xhr = new XMLHttpRequest();
         if (!this.fingerprint) {
-            var that = this;
+            const that = this;
             new Fingerprint2().get(function(result, components) {
                 // this will use all available fingerprinting sources
                 that.fingerprint = result;
-                var componentMap = {};
+                const componentMap = {};
                 components.forEach(function(e) {
                     componentMap[e.key] = e.value
                 });
-                var payload = {
+                const payload = {
                     'action': event.detail,
                     'fingerprint': result,
                     'resolution': componentMap.resolution,
@@ -1040,26 +1040,26 @@ Polymer({
                     'tz': componentMap.timezone_offset
                 };
                 if (document.referrer)
-                    payload['referrer'] = document.referrer;
-                xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+                    payload.referrer = document.referrer;
+                xhr.open('GET', `/api/v1/logs/ui?b=${  btoa(JSON.stringify(payload))}`);
                 xhr.send();
             });
         } else {
-            var payload = {
+            const payload = {
                 'action': event.detail,
                 'fingerprint': this.fingerprint
             };
-            xhr.open('GET', '/api/v1/logs/ui?b=' + btoa(JSON.stringify(payload)));
+            xhr.open('GET', `/api/v1/logs/ui?b=${  btoa(JSON.stringify(payload))}`);
             xhr.send();
         }
     },
 
-    _getBrowser: function() {
-        var userAgent = navigator.userAgent.toLowerCase();
-        var productSub = navigator.productSub;
+    _getBrowser() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const {productSub} = navigator;
 
-        //we extract the browser from the user agent (respect the order of the tests)
-        var browser;
+        // we extract the browser from the user agent (respect the order of the tests)
+        let browser;
         if (userAgent.indexOf("firefox") >= 0) {
             browser = "Firefox";
         } else if (userAgent.indexOf("opera") >= 0 || userAgent.indexOf("opr") >= 0) {
@@ -1076,12 +1076,12 @@ Polymer({
         return browser;
     },
 
-    _computeViewingList: function(subroute) {
+    _computeViewingList(subroute) {
         return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 &&
             subroute.path == "";
     },
 
-    _exportCsvMessage: function(e) {
+    _exportCsvMessage(e) {
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
             msg: e.detail.message,
             duration: 3000
@@ -1089,54 +1089,54 @@ Polymer({
 
     },
 
-    _addOrg: function() {
-        var dialog = this.$.organizationAdd; //shadowRoot.querySelector('organization-add');
+    _addOrg() {
+        const dialog = this.$.organizationAdd; // shadowRoot.querySelector('organization-add');
         console.log('dialog',dialog);
         dialog.openDialog();
     },
 
-    closeIfClickedElsewhere: function(e) {
+    closeIfClickedElsewhere(e) {
         if (this.visibleSuggestions && e.path.indexOf(this.shadowRoot.querySelector('mist-header')) == -1)
             this.set('visibleSuggestions', false);
     },
 
-    _observeModel: function(oldmodel, newmodel) {
+    _observeModel(oldmodel, newmodel) {
         console.log('model Changes', oldmodel, newmodel);
     },
 
-    enterFullscreen: function () {
+    enterFullscreen () {
         this.fullscreen = true;
     },
 
-    exitFullscreen: function () {
+    exitFullscreen () {
         this.fullscreen = false;
     },
 
-    _registerStreamingTarget: function (e) {
+    _registerStreamingTarget (e) {
         if (this.streamingTargets.indexOf(e.detail) == -1) {
             this.streamingTargets.push(e.detail);
         }
     },
 
-    _unregisterStreamingTarget: function (e) {
-        var i = this.streamingTargets.indexOf(e.detail);
+    _unregisterStreamingTarget (e) {
+        const i = this.streamingTargets.indexOf(e.detail);
         if (i > -1) {
             this.streamingTargets.splice(i, 1);
         }
     },
 
-    _logReceived: function (e) {
+    _logReceived (e) {
         this.streamingTargets.forEach(function (stream) {
             stream.fire('receive-log', e.detail);
         });
     },
 
-    panelAdded: function(e) {
+    panelAdded(e) {
         console.log('panelAdded', e);
     },
 
-    _importScript: function (e) {
-        var script = document.createElement('script');
+    _importScript (e) {
+        const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = e.detail.url;
         script.async = false;
@@ -1144,7 +1144,7 @@ Polymer({
         script.onload = e.detail.cb;
         document.body.appendChild(script);
     },
-    _qChanged: function(q) {
+    _qChanged(q) {
         if (this._isPage('dashboard')) {
             if (!q || !q.trim || !q.trim()) {
                 // restore section counts
@@ -1158,41 +1158,41 @@ Polymer({
             // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
         }
     },
-    _restoreSectionsCounts: function() {
-        var that = this;
-        for (let prop in this.model) {
+    _restoreSectionsCounts() {
+        const that = this;
+        for (const prop in this.model) {
             if (this.model.sections[prop] && this.model[prop]) {
                 // set counts to full model resources length
-                this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).length);
+                this.set(`model.sections.${prop}.count`, Object.values(this.model[prop]).length);
             }
         }
     },
-    _updateSectionsCounts: function(q) {
-        var that = this;
-        for (var prop in this.model) {
+    _updateSectionsCounts(q) {
+        const that = this;
+        for (const prop in this.model) {
             if (this.model.sections[prop] && this.model[prop]) {
                 // set counts to filtered model resources length
-                this.set('model.sections.'+prop+'.count', Object.values(this.model[prop]).filter(function(r){
+                this.set(`model.sections.${prop}.count`, Object.values(this.model[prop]).filter(function(r){
                     return that._filterModel(r, q);
                 }).length);
             }
         }
     },
-    _filterModel: function(item,q) {
-        var q = q || '',
-            filterOwner = q.indexOf('owner:') > -1,
-            ownerRegex = /owner:(\S*)\s?/,
-            owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1],
-            queryTerms, str;
+    _filterModel(item,q) {
+        var q = q || '';
+            const filterOwner = q.indexOf('owner:') > -1;
+            const ownerRegex = /owner:(\S*)\s?/;
+            const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+            let queryTerms; let str;
 
         if (filterOwner && owner && owner.length) {
-            q = q.replace('owner:', '').replace(owner + '', '');
+            q = q.replace('owner:', '').replace(`${owner  }`, '');
 
             if (owner == "$me") {
                 if (!item.owned_by || item.owned_by != this.model.user.id)
                     return false;
             } else {
-                var ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+                const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
                     return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
                 });
                 if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
@@ -1203,7 +1203,7 @@ Polymer({
         queryTerms = q.split(' ');
         str = JSON.stringify(item);
         if (this.model && this.model.clouds && item && item.cloud && this.model.clouds[item.cloud]) {
-            str += this.model.clouds[item.cloud].provider + '' + this.model.clouds[item.cloud].title;
+            str += `${this.model.clouds[item.cloud].provider  }${  this.model.clouds[item.cloud].title}`;
         }
 
         if (q && q.trim().length > 0) {
@@ -1218,25 +1218,25 @@ Polymer({
         return true;
     },
 
-    _stopPropagation: function(e) {
+    _stopPropagation(e) {
         e.stopPropagation();
     }
 });
 
 Number.prototype.formatMoney = function(c, d, t) {
-    var n = this,
-        c = isNaN(c = Math.abs(c)) ? 2 : c,
-        d = d == undefined ? "." : d,
-        t = t == undefined ? "," : t,
-        s = n < 0 ? "-" : "",
-        i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
-        j = (j = i.length) > 3 ? j % 3 : 0;
-    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d +
+    let n = this;
+        var c = isNaN(c = Math.abs(c)) ? 2 : c;
+        var d = d == undefined ? "." : d;
+        var t = t == undefined ? "," : t;
+        const s = n < 0 ? "-" : "";
+        const i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c)));
+        var j = (j = i.length) > 3 ? j % 3 : 0;
+    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, `$1${  t}`) + (c ? d +
         Math.abs(n - i).toFixed(c).slice(2) : "");
 };
 
 document.addEventListener('iron-overlay-opened', function moveBackdrop(event) {
-  var dialog = dom(event).rootTarget;
+  const dialog = dom(event).rootTarget;
   if (dialog.withBackdrop) {
     dialog.parentNode.insertBefore(dialog.backdropElement, dialog);
   }

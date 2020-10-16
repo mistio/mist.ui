@@ -9,6 +9,7 @@ import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
     _template: html`
     <template>
@@ -74,42 +75,42 @@ Polymer({
     listeners: {
         'select-action': 'selectAction',
     },
-    _isAddPageActive: function(path) {
+    _isAddPageActive(path) {
         return path == '/+add';
     },
-    _isDetailsPageActive: function(path) {
+    _isDetailsPageActive(path) {
         if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
             this.shadowRoot.querySelector('tunnel-page').updateState();
         return path && path != '/+add';
     },
-    _isListActive: function(path) {
+    _isListActive(path) {
         return !path;
     },
-    _getTunnel: function(id) {
+    _getTunnel(id) {
         if (this.model.tunnels)
             return this.model.tunnels[id];
     },
-    _addResource: function(e) {
+    _addResource(e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.tunnels.add
         } }));
     },
-    _getFrozenLogColumn: function() {
+    _getFrozenLogColumn() {
         return ['name'];
     },
 
-    _getVisibleColumns: function() {
-        var ret = ['cidrs', 'created_by', 'id', 'tags'];
+    _getVisibleColumns() {
+        const ret = ['cidrs', 'created_by', 'id', 'tags'];
         if (this.model.org && this.model.org.ownership_enabled == true)
             ret.push('owned_by');
         return ret;
     },
-    _getRenderers: function(tunnels) {
-        var _this = this;
+    _getRenderers(tunnels) {
+        const _this = this;
         return {
             'name': {
                 'body': function(item, row) {
-                    return '<strong class="name">' + item + '</strong>';
+                    return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'cidrs': {
@@ -136,12 +137,12 @@ Polymer({
             },
             'tags': {
                 'body': function(item, row) {
-                    var tags = item,
-                        display = "";
+                    const tags = item;
+                        let display = "";
                     for (key in tags) {
-                        display += "<span class='tag'>" + key;
+                        display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
-                            display += "=" + tags[key];
+                            display += `=${  tags[key]}`;
                         display += "</span>";
                     }
                     return display;
@@ -150,7 +151,7 @@ Polymer({
         }
     },
 
-    selectAction: function(e) {
+    selectAction(e) {
         e.stopImmediatePropagation();
         if (this.shadowRoot.querySelector('#tunnelsList')) {
             this.shadowRoot.querySelector('#tunnelsList').shadowRoot.querySelector('#actions').selectAction(e);

@@ -144,7 +144,7 @@ Polymer({
       },
       newToken: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   name: '',
                   ttl: '',
@@ -173,65 +173,65 @@ Polymer({
       '_orgUserChanged(org, user)'
   ],
 
-  createToken: function(e) {
+  createToken(e) {
       this.$.createTokenDialog.opened = true;
   },
 
-  createTokenSubmit: function(e) {
-      var payload = this.newToken;
+  createTokenSubmit(e) {
+      const payload = this.newToken;
       this.$.createTokenAjax.headers["Content-Type"] = 'application/json';
       this.$.createTokenAjax.headers["Csrf-Token"] = CSRF_TOKEN;
       this.$.createTokenAjax.body = payload;
       this.$.createTokenAjax.generateRequest();
   },
 
-  createTokenResponse: function(e) {
+  createTokenResponse(e) {
       this.$.createTokenDialog.opened = false;
-      var res = JSON.parse(e.detail.xhr.response);
+      const res = JSON.parse(e.detail.xhr.response);
       this.set('tokenValue', res.token);
       this.getTokensAgain(e);
       this.$.copyToken.opened = true;
   },
 
-  createTokenError: function(e) {
+  createTokenError(e) {
       this.set("hasError", true);
       this.$.error.textContent = e.detail.request.xhr.responseText;
       this.$.createTokenDialog.opened = false;
       this.reset();
   },
 
-  getTokens: function(e) {
+  getTokens(e) {
       this.set('tokens', e.detail.response);
   },
 
-  getTokensError: function(e) {
+  getTokensError(e) {
       this.set("hasError", true);
       this.$.error.textContent = e.detail.error;
       this.$.createTokenDialog.opened = false;
   },
 
-  getTokensAgain: function(e) {
-      var that = this;
+  getTokensAgain(e) {
+      const that = this;
       this.async(function() {
           that.$.getTokensAjax.generateRequest();
       }, 100)
   },
 
-  reset: function() {
+  reset() {
       this.set('newToken.name', '');
       this.set('newToken.ttl', '');
       this.set('newToken.password', '');
       this.set('tokenValue', '');
   },
 
-  copied: function() {
+  copied() {
       this.$.copyToken.opened = false;
       this.reset();
   },
 
-  showError: function(e) {
+  showError(e) {
       this.set("hasError", true);
-      var error = e.detail.request.xhr.responseText;
+      let error = e.detail.request.xhr.responseText;
       if (!error) {
           error = e.detail.error;
       }
@@ -241,11 +241,11 @@ Polymer({
       // document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
   },
 
-  hideErrors: function() {
+  hideErrors() {
       this.set('hasError', false);
   },
 
-  _orgUserChanged: function(org, user) {
+  _orgUserChanged(org, user) {
       if (org) {
           this.set('newToken.org_id', this.org.id);
       }

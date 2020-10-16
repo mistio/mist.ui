@@ -15,6 +15,7 @@ import './metric-menu.js';
 import './custom-graph.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -168,7 +169,7 @@ Polymer({
       },
       machineKeys: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       sshKeyExists: {
           type: Boolean,
@@ -180,7 +181,7 @@ Polymer({
       },
       metric: {
           type: Object,
-          value: function() {
+          value() {
               return {
                   name: null,
                   unit: null,
@@ -201,30 +202,30 @@ Polymer({
       'panel-added': '_associateMetric'
   },
 
-  _scriptValue: function (e) {
+  _scriptValue (e) {
       if (e.target.id == "juicyScript") {
           this.set("metric.script", e.target.value.trim());
       }
   },
 
-  _computeMetricsUri: function(machineId) {
-      return "/api/v1/machines/" + machineId + "/metrics";
+  _computeMetricsUri(machineId) {
+      return `/api/v1/machines/${  machineId  }/metrics`;
   },
 
-  openDialog: function() {
+  openDialog() {
       if (!this.responseMetrics) {
           this.shadowRoot.querySelector("#metrics").generateRequest();
       }
       this.shadowRoot.querySelector("#selectTarget").opened = true;
   },
 
-  _handleMetricResponse: function(data) {
+  _handleMetricResponse(data) {
       console.log('_handleMetricResponse', data);
-      var output = {};
+      const output = {};
       Object.keys(data.detail.response).forEach(function(i) {
-          var res = output;
-          var splitArray = i.split(".")
-          for (var p = 0; p < splitArray.length; p++) {
+          let res = output;
+          const splitArray = i.split(".")
+          for (let p = 0; p < splitArray.length; p++) {
               if (!res[splitArray[p]]) {
                   res[splitArray[p]] = {};
               }
@@ -238,13 +239,13 @@ Polymer({
       this.set('responseMetricsArray', this._makeArray(output));
   },
 
-  _makeArray: function(output) {
-      var arr = [];
+  _makeArray(output) {
+      const arr = [];
       if (output) {
-          if (output && typeof(output) == 'object') {
-              var obj = {};
-              for (var p in output) {
-                  if (typeof(output[p]) == 'object') {
+          if (output && typeof(output) === 'object') {
+              let obj = {};
+              for (const p in output) {
+                  if (typeof(output[p]) === 'object') {
                       obj = { name: p, options: this._makeArray(output[p]) };
                   } else {
                       obj = { name: output[p], options: [] };
@@ -256,21 +257,21 @@ Polymer({
       return arr;
   },
 
-  _showCustomGraphDialog: function() {
+  _showCustomGraphDialog() {
       this.$.customOptions.opened = true;
   },
 
-  computeSshKeyExists: function(keys) {
+  computeSshKeyExists(keys) {
       return keys.length > 0;
   },
 
-  _openAddKeyPanel: function() {
+  _openAddKeyPanel() {
       document.querySelector('#customOptions').opened = false;
       document.querySelector('#selectTarget').opened = false;
       this.dispatchEvent(new CustomEvent('open-and-select', {bubbles: true, composed: true}));
   },
 
-  _metricScriptChanged: function(m) {
+  _metricScriptChanged(m) {
       // make sure long scripts don't push buttons out of the screen
       this.$.customOptions.refit();
   }

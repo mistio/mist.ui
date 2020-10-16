@@ -1,5 +1,6 @@
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style>
@@ -36,7 +37,7 @@ Polymer({
       }
   },
 
-  convert: function() {
+  convert() {
       if (typeof this.name === 'object') {
           this.name = this.name.valueOf();
       }

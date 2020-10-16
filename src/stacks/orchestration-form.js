@@ -3,6 +3,7 @@ import '../helpers/stack-forms-behavior.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles forms">
@@ -57,22 +58,22 @@ Polymer({
       'iron-select': '_updateFields',
   },
 
-  ready: function() {
-      var yaml_inputs = '';
+  ready() {
+      let yaml_inputs = '';
       this.fields.forEach(function(inp) {
-          yaml_inputs += inp.name + ': ';
-          var val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
-          yaml_inputs += val + '\n';
+          yaml_inputs += `${inp.name  }: `;
+          const val = inp.value = !undefined ? inp.value : inp.defaultValue || inp.default;
+          yaml_inputs += `${val  }\n`;
       }, this);
       this.set('yaml_inputs', yaml_inputs);
   },
 
-  attached: function() {
+  attached() {
       // prepare mist machine
-      var inps = this.fields.filter(function(f) {return f.name.startsWith("mist_machine")})
+      const inps = this.fields.filter(function(f) {return f.name.startsWith("mist_machine")})
       if (inps && inps.length) {
-          for (var i = 0; i < inps.length; i++) {
-              var inp = inps[i];
+          for (let i = 0; i < inps.length; i++) {
+              const inp = inps[i];
               inp.label = inp.name.split("mist_machine_")[1] || "";
               inp.required = true;
               inp.valid = false;
@@ -102,14 +103,14 @@ Polymer({
       }
   },
 
-  _cloudChanged: function(changeRecord) {
+  _cloudChanged(changeRecord) {
       if (!this.fields || !changeRecord || !changeRecord.path || !changeRecord.path.endsWith('value')) {
-          return;
+          
       } else {
-          var field = this.get(changeRecord.path.replace('.value', ''))
+          const field = this.get(changeRecord.path.replace('.value', ''))
           if (field && field.name.startsWith('mist_cloud') && this.model.clouds[changeRecord.value]) {
               function copy(o) { // deep copy an array of objects
-                  var output, v, key;
+                  let output; let v; let key;
                   output = Array.isArray(o) ? [] : {};
                   for (key in o) {
                       v = o[key];
@@ -118,7 +119,7 @@ Polymer({
                   return output;
               }
               // reset fields if cloud changed
-              var fields = copy(this.fields);
+              const fields = copy(this.fields);
               this.set('fields', []);
               this.set('fields', fields);
               this._updateFields();
@@ -126,8 +127,8 @@ Polymer({
       }
   },
 
-  _updateFields: function(e) {
-      var changeInYaml = e && e.path.indexOf(this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#app-form-stack_" + this.workflow + "-stackinputs")) > -1;
+  _updateFields(e) {
+      const changeInYaml = e && e.path.indexOf(this.shadowRoot.querySelector('app-form').shadowRoot.querySelector(`paper-textarea#app-form-stack_${  this.workflow  }-stackinputs`)) > -1;
       this.fields.forEach(function(inp) {
           if (inp.name != 'yaml_or_form' && inp.name != 'stackinputs') {
 
@@ -162,7 +163,7 @@ Polymer({
                   inp.type = 'mist_dropdown';
                   inp.helptext = 'Select image';
                   inp.showIf = {
-                      fieldName: "mist_cloud" + xid,
+                      fieldName: `mist_cloud${  xid}`,
                       fieldExists: true
                   }
               }
@@ -174,7 +175,7 @@ Polymer({
                   inp.type = 'mist_dropdown';
                   inp.helptext = 'Select location';
                   inp.showIf = {
-                      fieldName: "mist_cloud" + xid,
+                      fieldName: `mist_cloud${  xid}`,
                       fieldExists: true
                   }
               }
@@ -186,7 +187,7 @@ Polymer({
                   inp.type = 'mist_dropdown';
                   inp.helptext = 'Select network';
                   inp.showIf = {
-                      fieldName: "mist_cloud" + xid,
+                      fieldName: `mist_cloud${  xid}`,
                       fieldExists: true
                   }
               }
@@ -198,7 +199,7 @@ Polymer({
                   inp.type = 'mist_size';
                   inp.helptext = 'Machine size';
                   inp.showIf = {
-                      fieldName: "mist_cloud" + xid,
+                      fieldName: `mist_cloud${  xid}`,
                       fieldExists: true
                   }
               }
@@ -233,13 +234,13 @@ Polymer({
       }, this);
 
       if (changeInYaml) {
-          var yaml = this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#stackinputs").value;
+          const yaml = this.shadowRoot.querySelector('app-form').shadowRoot.querySelector("paper-textarea#stackinputs").value;
           console.log('yaml', yaml);
-          var yaml_array = yaml.split('\n');
-          var inputs = [];
+          const yaml_array = yaml.split('\n');
+          const inputs = [];
           yaml_array.forEach(function(line) {
-              var name = line.split(':')[0].trim();
-              var value = line.split(':')[1];
+              const name = line.split(':')[0].trim();
+              let value = line.split(':')[1];
               if (value)
                   value = value.trim();
               inputs[name] = JSON.parse(value);
@@ -247,28 +248,28 @@ Polymer({
 
           this.fields.forEach(function(f, index) {
               if (inputs[f.name])
-                  this.set('fields.' + index + '.value', inputs[f.name])
+                  this.set(`fields.${  index  }.value`, inputs[f.name])
           }, this)
       } else {
-          var cloud = this.fields.find(function(f) {
+          const cloud = this.fields.find(function(f) {
               return f.name.startsWith("mist_cloud");
           });
-          var yaml_inputs = '';
-          var machines = this.model.machines;
+          let yaml_inputs = '';
+          const {machines} = this.model;
           this.fields.forEach(function(inp) {
-              var fieldCloud;
+              let fieldCloud;
 
               if (['yaml_or_form', 'stackinputs'].indexOf(inp.name) == -1) {
-                  yaml_inputs += inp.name + ': ';
-                  var preformatedValue = inp.preformatPayloadValue ? inp.preformatPayloadValue.apply(inp.value) : inp.value;
-                  var val = preformatedValue ? JSON.stringify(preformatedValue) : inp.defaultValue;
-                  yaml_inputs += val + '\n';
+                  yaml_inputs += `${inp.name  }: `;
+                  const preformatedValue = inp.preformatPayloadValue ? inp.preformatPayloadValue.apply(inp.value) : inp.value;
+                  const val = preformatedValue ? JSON.stringify(preformatedValue) : inp.defaultValue;
+                  yaml_inputs += `${val  }\n`;
               }
               if (cloud && cloud.value) {
                   if (inp.name.startsWith("mist_location")) {
                       var xid = inp.name.split("mist_location")[0];
                       fieldCloud = this.fields.find(function(f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       var cloudId = fieldCloud.value;
                       if (cloudId)
@@ -277,7 +278,7 @@ Polymer({
                   if (inp.name.startsWith("mist_image")) {
                       var xid = inp.name.split("mist_image")[0];
                       fieldCloud = this.fields.find(function(f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       var cloudId = fieldCloud.value;
                       if (this.model && cloudId)
@@ -286,11 +287,11 @@ Polymer({
                   if (inp.name.startsWith("mist_networks")) {
                       var xid = inp.name.split("mist_networks")[0];
                       fieldCloud = this.fields.find(function(f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       cloudId = fieldCloud.value;
                       if (this.model && cloudId)
-                          inp['options'] = Object.values(this.model.clouds[cloudId].networks) || [];
+                          inp.options = Object.values(this.model.clouds[cloudId].networks) || [];
                   }
                   // mist-machine contains its own cloud value
                   if (inp.name.startsWith("mist_machine")) {
@@ -302,7 +303,7 @@ Polymer({
                   if (inp.name.startsWith("mist_size")) {
                       var xid = inp.name.split("mist_size")[0];
                       fieldCloud = this.fields.find(function(f) {
-                          return f.name.startsWith("mist_cloud" + xid);
+                          return f.name.startsWith(`mist_cloud${  xid}`);
                       }) || cloud;
                       var cloudId = fieldCloud.value;
                       if (cloudId) {
@@ -428,15 +429,15 @@ Polymer({
       }
   },
 
-  _computeProviderLogo: function(provider) {
-      return 'assets/providers/provider-' + provider + '.png';
+  _computeProviderLogo(provider) {
+      return `assets/providers/provider-${  provider  }.png`;
   },
 
-  _updateStackInputsValue: function() {
-      var stackinputsIndex = this.fields.findIndex(function(f) {
+  _updateStackInputsValue() {
+      const stackinputsIndex = this.fields.findIndex(function(f) {
           return f.name == "stackinputs";
       });
       if (stackinputsIndex && stackinputsIndex > -1)
-          this.set('fields.' + stackinputsIndex + '.value', this.yaml_inputs);
+          this.set(`fields.${  stackinputsIndex  }.value`, this.yaml_inputs);
   }
 });

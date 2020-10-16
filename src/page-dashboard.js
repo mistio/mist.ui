@@ -1,4 +1,4 @@
-//import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
+// import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-button/paper-button.js';
 import '../node_modules/@polymer/paper-input/paper-input.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
@@ -459,31 +459,31 @@ Polymer({
     listeners: {
         'close-cloud-info': '_closeCloudChips'
     },
-    ready: function() {
+    ready() {
         console.log('ready dashboard');
     },
-    attached: function() {
+    attached() {
         // initialise chips position matrix
-        var that = this;
+        const that = this;
         this.async(function() {
             that.cloudLayoutMatrix(that.model.clouds, that.sidebarIsOpen);
         }, 50);
     },
-    isOnline: function(cloud) {
+    isOnline(cloud) {
         return cloud.state == 'online' && 'online';
     },
-    isOffline: function(cloud) {
+    isOffline(cloud) {
         return cloud.state == 'offline' && 'offline';
     },
-    _computeHasIncidents: function(incidents) {
+    _computeHasIncidents(incidents) {
         // incidents must be unresolved to count
-        return this.model.incidents && Object.values(
+        return !!(this.model.incidents && Object.values(
             this.model.incidents).filter(function(incident) {
             return !incident.finished_at;
-        }, this).length ? true : false;
+        }, this).length);
     },
-    _computeshowDashboard: function(cloudslength, isLoadingClouds) {
-        var show;
+    _computeshowDashboard(cloudslength, isLoadingClouds) {
+        let show;
         if (cloudslength > 0 && isLoadingClouds == false) {
             show = true;
         } else {
@@ -493,49 +493,49 @@ Polymer({
         }
         return show;
     },
-    hideSidebar: function() {
+    hideSidebar() {
         // if we are on boarding, close sidebar for focus
         window.setTimeout(function() {
-            var sidebar = document.querySelector('mist-sidebar'),
-                content = document.querySelector('iron-pages');
+            const sidebar = document.querySelector('mist-sidebar');
+                const content = document.querySelector('iron-pages');
             sidebar.classList.add('close');
             content.classList.add('center');
         }, 2400);
         this.set('sidebarIsOpen', false);
     },
-    _computeReplaceTargets: function(monitoring) {
-        var ret = {},
-            mIds = Object.keys(this.get('model.monitoring.monitored_machines') || {});
-        for (var i = 0; i < mIds.length; i++) {
-            var mref = this.model.monitoring.monitored_machines[mIds[i]],
-                m;
+    _computeReplaceTargets(monitoring) {
+        const ret = {};
+            const mIds = Object.keys(this.get('model.monitoring.monitored_machines') || {});
+        for (let i = 0; i < mIds.length; i++) {
+            const mref = this.model.monitoring.monitored_machines[mIds[i]];
+                var m;
             if (this.model.clouds && this.model.clouds[mref.cloud_id] && this.model.clouds[mref.cloud_id].machines && this.model.clouds[mref.cloud_id].machines[mref.machine_id])
                 m = mref && this.model.clouds[mref.cloud_id].machines[mref.machine_id];
             ret[mIds[i]] = m ? m.name : 'unknown';
         }
         return ret;
     },
-    _closeCloudChips: function() {
-        var cloudChips = this.shadowRoot.querySelectorAll('cloud-chip');
+    _closeCloudChips() {
+        const cloudChips = this.shadowRoot.querySelectorAll('cloud-chip');
         [].forEach.call(cloudChips, function(el, index) {
             el.removeAttribute('opened');
         });
         this.set('openedCloud', '');
     },
-    showSidebar: function() {
-        //show sidebar for navigation
+    showSidebar() {
+        // show sidebar for navigation
         window.setTimeout(function() {
-            var sidebar = document.querySelector('mist-sidebar'),
-                content = document.querySelector('iron-pages');
+            const sidebar = document.querySelector('mist-sidebar');
+                const content = document.querySelector('iron-pages');
             sidebar.classList.remove('close');
             content.classList.remove('center');
         }, 200);
         this.set('sidebarIsOpen', true);
     },
-    cloudLayoutMatrix: function(clouds, sidebarOpen) {
-        //construct a reference matrix of the chips offsetTops
-        var chips = document.querySelectorAll('cloud-chip');
-        var matrix = [];
+    cloudLayoutMatrix(clouds, sidebarOpen) {
+        // construct a reference matrix of the chips offsetTops
+        const chips = document.querySelectorAll('cloud-chip');
+        const matrix = [];
         if (chips) {
             [].forEach.call(chips, function(c) {
                 matrix.push(c.offsetTop);
@@ -543,11 +543,11 @@ Polymer({
             this.set('matrix', matrix);
         }
     },
-    indexOfLast: function(index) {
-        //calculate the index of the first chip of the next row
-        var ref = this.matrix[index];
-        var targetIndex;
-        var nextInd = this.matrix.find(function(n, index) {
+    indexOfLast(index) {
+        // calculate the index of the first chip of the next row
+        const ref = this.matrix[index];
+        let targetIndex;
+        const nextInd = this.matrix.find(function(n, index) {
             targetIndex = index;
             return n > ref;
         }, this);
@@ -557,11 +557,11 @@ Polymer({
         }
         return targetIndex;
     },
-    showLoadOnAll: function(machines) {
-        //show load on all if at least one machine has activated monitoring
-        var show = false;
+    showLoadOnAll(machines) {
+        // show load on all if at least one machine has activated monitoring
+        let show = false;
         if (machines) {
-            for (var p in machines) {
+            for (const p in machines) {
                 if (machines[p].installation_status.activated_at) {
                     show = true;
                 }
@@ -569,10 +569,10 @@ Polymer({
         }
         return show;
     },
-    _computeHasMissingMonitored: function(machines, monitoring) {
-        var hasNonExisting = [];
+    _computeHasMissingMonitored(machines, monitoring) {
+        const hasNonExisting = [];
         if (this.model && this.model.clouds && this.model.monitoring && this.model.monitoring.monitored_machines) {
-            for (var p in this.model.monitoring.monitored_machines) {
+            for (const p in this.model.monitoring.monitored_machines) {
                 if (!this.model.machines[p]) {
                     hasNonExisting.push([this.model.monitoring.monitored_machines[p].cloud_id, this.model.monitoring.monitored_machines[p].machine_id]);
                 }
@@ -580,42 +580,42 @@ Polymer({
         }
         return hasNonExisting;
     },
-    _disableMonitoringOnNonExisting: function(e) {
-        for (var p in this.model.monitoring.monitored_machines) {
+    _disableMonitoringOnNonExisting(e) {
+        for (const p in this.model.monitoring.monitored_machines) {
             if (!this.model.machines[p]) {
                 console.log('not existing');
                 this._disableMonitoring([this.model.monitoring.monitored_machines[p].cloud_id, p]);
             }
         }
     },
-    _disableMonitoring: function(m) {
-        var payload = {};
+    _disableMonitoring(m) {
+        const payload = {};
         payload.action = "disable";
         this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-        this.$.monitoringRequest.url = "/api/v1/machines/" + m[1] + "/monitoring"
+        this.$.monitoringRequest.url = `/api/v1/machines/${  m[1]  }/monitoring`
         this.$.monitoringRequest.params = payload;
         this.$.monitoringRequest.generateRequest();
     },
-    _computeName: function(item) {
+    _computeName(item) {
         if (this.model && this.model.clouds && this.model.clouds[item])
             return this.model.clouds[item].title;
         return item;
     },
-    _fabTap: function() {
+    _fabTap() {
         this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add cloud fab click' }));
 
     },
-    _isHidden: function(item, count) {
+    _isHidden(item, count) {
         if (item.hideTileIfZero && item.count == 0)
             return true;
         return false;
     },
-    _getLogRenderers: function() {
-        var _this = this;
+    _getLogRenderers() {
+        const _this = this;
         return {
             'time': {
                 'body': function(item, row) {
-                    var ret = '<span title="' + moment(item * 1000).format() + '">' + moment(item * 1000).fromNow() + '</span>';
+                    let ret = `<span title="${  moment(item * 1000).format()  }">${  moment(item * 1000).fromNow()  }</span>`;
                     if (row.error)
                         ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
                     return ret;
@@ -625,15 +625,15 @@ Polymer({
                 'title': 'user',
                 'body': function(item) {
                     if (_this.model && _this.model.members && item in _this.model.members && _this.model.members[item]) {
-                        var name = '',
-                            m = _this.model.members[item];
+                        let name = '';
+                            const m = _this.model.members[item];
                         if (m.first_name)
                             name += m.first_name;
                         if (m.last_name)
-                            name += ' ' + m.last_name;
+                            name += ` ${  m.last_name}`;
                         if (!name.length)
                             name += m.email || m.username;
-                        return '<a href="/members/' + item + '">' + name + '</a>';
+                        return `<a href="/members/${  item  }">${  name  }</a>`;
                     }
                     if (item)
                         return item;
@@ -643,27 +643,27 @@ Polymer({
         };
     },
 
-    _getVisibleLogColumns: function() {
+    _getVisibleLogColumns() {
         return ['type', 'action', 'user_id']
     },
 
-    _getFrozenLogColumn: function() {
+    _getFrozenLogColumn() {
         return ['time']
     },
 
-    clearSearch: function(e) {
+    clearSearch(e) {
         this.dispatchEvent(new CustomEvent('clear-search-on-nav', {bubbles:true, composed:true}));
     },
 
-    _toArray: function(x, z) {
+    _toArray(x, z) {
         if (x) {
             return Object.keys(x).map(y => x[y])
         }
         return [];
     },
 
-    _getFilteredResources: function(resources, q) {
-        var owned;
+    _getFilteredResources(resources, q) {
+        let owned;
         if (q == "owner:$me" && this.model && resources) {
             owned = Object.values(resources).filter(function(item){
                 return item.owned_by == this.model.user.id;
@@ -672,8 +672,8 @@ Polymer({
         return owned != undefined ? owned : Object.values(resources);
     },
 
-    _getSectionCount: function(name, sections, q) {
-        var count;
+    _getSectionCount(name, sections, q) {
+        let count;
         if (q == "owner:$me" && this.model && this.model[name]) {
             count = Object.values(this.model[name]).filter(function(item){
                 return item.owned_by == this.model.user.id;

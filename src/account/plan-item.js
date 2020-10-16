@@ -1,12 +1,13 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
+
 import '../../node_modules/@polymer/paper-spinner/paper-spinner-lite.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles">
@@ -432,60 +433,60 @@ Polymer({
       'confirmation': '_cancelPlanConfirmed',
   },
 
-  _computeBgClass: function(plan) {
+  _computeBgClass(plan) {
       if (this.current == true)
           return "title";
       if (plan.title == "Small")
           return "title bg-1";
-      else if (plan.title == "Medium")
+      if (plan.title == "Medium")
           return "title bg-2";
-      else if (plan.title == "Large")
+      if (plan.title == "Large")
           return "title bg-3";
   },
 
-  _computePriceText: function(price) {
-      return price != null ? '$' + price + '/mo' : '';
+  _computePriceText(price) {
+      return price != null ? `$${  price  }/mo` : '';
   },
 
-  _computeDescriptionText: function(plan) {
+  _computeDescriptionText(plan) {
       if (!this.plan)
           return '';
-      var monitoringFor = '';
+      let monitoringFor = '';
       if (this.plan && this.plan.monitor_limit) {
-          monitoringFor = ", up to " + this.plan.monitor_limit + " monitored";
+          monitoringFor = `, up to ${  this.plan.monitor_limit  } monitored`;
       }
-      return !this.plan.description || this.plan.description == "" ? 'up to ' + this.plan.machine_limit + '  machines' + monitoringFor : this.plan.description;
+      return !this.plan.description || this.plan.description == "" ? `up to ${  this.plan.machine_limit  }  machines${  monitoringFor}` : this.plan.description;
   },
 
-  _computeDiscountedPriceText: function(promo) {
+  _computeDiscountedPriceText(promo) {
       if (promo) {
-          var newPrice = Math.round(price * (1 - (promo.discount / 100)));
-          return '$' + newPrice + '/mo';
+          const newPrice = Math.round(price * (1 - (promo.discount / 100)));
+          return `$${  newPrice  }/mo`;
       }
       return '';
   },
 
-  _computeReadableDate: function(date) {
+  _computeReadableDate(date) {
       return date ? moment.utc(date * 1000).format("MMMM Do YYYY") : date;
   },
 
-  _selectPlan: function(e) {
+  _selectPlan(e) {
       this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
   },
 
-  _triggerInfo: function() {
+  _triggerInfo() {
       console.log('info popup');
   },
 
-  _computeIsEnterprise: function(title) {
+  _computeIsEnterprise(title) {
       return this.plan && this.plan.title == "Enterprise";
   },
 
-  _addCard: function(e) {
+  _addCard(e) {
       this.dispatchEvent(new CustomEvent('add-card', {bubbles: true, composed: true}));
   },
 
-  _purchasePlan: function(e) {
+  _purchasePlan(e) {
       console.log('purchasePlan', this.plan)
       if (this.plan && !this.plan.price) {
           this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
@@ -494,7 +495,7 @@ Polymer({
       }
   },
 
-  _cancelPlan: function() {
+  _cancelPlan() {
       this._showDialog({
           title: 'Cancel current plan',
           body: 'Your plan will expire at the end of your monthly subscription.',
@@ -505,24 +506,24 @@ Polymer({
       });
   },
 
-  _updatePaymentMethod: function(e) {
+  _updatePaymentMethod(e) {
       this.dispatchEvent(new CustomEvent('update-payment-method', {bubbles: true, composed: true}));
   },
 
-  _showDialog: function(info) {
-      var dialog = this.$.plancancel;
+  _showDialog(info) {
+      const dialog = this.$.plancancel;
       if (info) {
-          for (var i in info) {
+          for (const i in info) {
               dialog[i] = info[i];
           }
       }
       dialog._openDialog();
   },
 
-  _cancelPlanConfirmed: function(e) {
+  _cancelPlanConfirmed(e) {
       console.log('_cancelPlanConfirmed', e);
-      var reason = e.detail.reason,
-          response = e.detail.response;
+      const {reason} = e.detail;
+          const {response} = e.detail;
 
       if (response == 'confirm' && reason == "plan.cancel") {
           this.$.cancelPlanAjaxRequest.headers["Content-Type"] = 'application/json';
@@ -531,29 +532,29 @@ Polymer({
       }
   },
 
-  _handleCancelAjaxResponse: function(e) {
+  _handleCancelAjaxResponse(e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'You cancelled your plan. ', duration: 3000 } }));
   },
 
-  _handleCancelAjaxError: function(e) {
+  _handleCancelAjaxError(e) {
       this.dispatchEvent(new CustomEvent('error-on-cancel-plan', { bubbles: true, composed: true, detail:  { error: e.detail.request.xhr.responseText } }));
   },
 
-  showCancel: function(plan, current) {
+  showCancel(plan, current) {
       return this.current && this.plan.title && !this.plan.expiration;
   },
 
-  showPurchase: function(plan, current) {
+  showPurchase(plan, current) {
       return !this.current || !this.plan || this.plan.expiration;
   },
 
-  displayInt: function(int){
+  displayInt(int){
       return int.toString().split('').reverse().join('')
               .replace('000000000','B').replace('000000','M').replace('000','k')
               .split('').reverse().join('');
   },
 
-  _formatMoney: function(int) {
+  _formatMoney(int) {
       if (int)
           return int.formatMoney(0,'.',',');
       return int;

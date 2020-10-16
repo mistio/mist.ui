@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 Polymer({
   _template: html`
         <style include="shared-styles dialogs">
@@ -148,7 +149,7 @@ Polymer({
       },
       machines: {
           type: Array,
-          value: function () { return []; }
+          value () { return []; }
       },
       loading: {
           type: Boolean,
@@ -160,45 +161,45 @@ Polymer({
       }
   },
 
-  ready: function() {},
+  ready() {},
 
-  computedSelectedMachineId: function(selected) {
+  computedSelectedMachineId(selected) {
       this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _computeHideDeviceInput: function(provider) {
+  _computeHideDeviceInput(provider) {
       return this && this.provider != "ec2";
   },
 
-  _computeHidePathInput: function(provider) {
+  _computeHidePathInput(provider) {
       return this && this.provider != "lxd";
   },
 
-  _openDialog: function(e) {
+  _openDialog(e) {
       this.clearError();
       this.set('selectedMachineId', false);
       this.set('device', '/dev/xvda');
       this.$.attachDialogModal.open();
   },
 
-  _closeDialog: function(e) {
+  _closeDialog(e) {
       this.$.attachDialogModal.close();
       this.clearError();
   },
 
-  attachVolume: function(e) {
-      var request = this.$.attachVolumeRequest;
+  attachVolume(e) {
+      const request = this.$.attachVolumeRequest;
       if (this.items) {
-          var items = this.items.slice(0),
-              selectedMachineId = this.selectedMachineId,
-              device = this.device,
-              path = this.path,
-              hideDeviceInput = this.hideDeviceInput,
-              hidePathInput = this.hidePathInput;
+          const items = this.items.slice(0);
+              const {selectedMachineId} = this;
+              const {device} = this;
+              const {path} = this;
+              const {hideDeviceInput} = this;
+              const {hidePathInput} = this;
           var run = function(el) {
-              var item = items.shift(),
-                  itemType,
-                  itemId;
+              const item = items.shift();
+                  let itemType;
+                  let itemId;
               if (item.length) {
                   chunks = item.split(':'),
                       itemId = chunks[2],
@@ -207,7 +208,7 @@ Polymer({
                   itemId = item.external_id;
                   cloudId = item.cloud;
               }
-              request.url = "/api/v1/clouds/" + cloudId + "/volumes/" + itemId;
+              request.url = `/api/v1/clouds/${  cloudId  }/volumes/${  itemId}`;
               request.body = { action: 'attach', machine: selectedMachineId };
               if (!hideDeviceInput) {
                   request.body.device = device;
@@ -227,14 +228,14 @@ Polymer({
       }
   },
 
-  _attachVolumeRequest: function() {
+  _attachVolumeRequest() {
       this.clearError();
-      var logMessage = 'Sending request to attach volume on machine.';
+      const logMessage = 'Sending request to attach volume on machine.';
       this.dispatchEvent(new CustomEvent('performing-action', { bubbles: true, composed: true, detail: { log: logMessage } }));
 
   },
 
-  _attachVolumeResponse: function(e) {
+  _attachVolumeResponse(e) {
       console.log(e, e.detail);
       this._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -243,16 +244,16 @@ Polymer({
 
   },
 
-  _attachVolumeError: function(e) {
+  _attachVolumeError(e) {
       console.log(e, e.detail);
-      var message = e.detail.request.xhr.response || e.detail.error.message;
+      const message = e.detail.request.xhr.response || e.detail.error.message;
       this.$.errormsg.textContent = message;
       this.set('formError', true);
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: false } }));
 
   },
 
-  clearError: function() {
+  clearError() {
       this.set('formError', false);
       this.$.errormsg.textContent = '';
       this.$.attachDialogModal.refit();
