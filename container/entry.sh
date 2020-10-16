@@ -7,6 +7,5 @@ if ! diff -q package.json /package.json; then
     npm install
 fi
 
-polymer serve --npm -H 0.0.0.0 -p 8000 --compile=always &
-
+es-dev-server --host 0.0.0.0 --port 8000 --event-stream false --node-resolve --compatibility none &
 exec nginx

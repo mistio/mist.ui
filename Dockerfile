@@ -7,11 +7,10 @@ COPY . /ui
 WORKDIR /ui
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
-#RUN node /usr/local/bin/polymer build && ln -s /landing/build/ /landing/build/landing
+RUN npm install && npm run build && cd build/bundled && ln -s /ui/assets && cd -
 COPY ./container/entry.sh /entry.sh
-RUN cp package.json / && \
-    mkdir -p /ui/build && \
-    #cd /ui/build && ln -s /ui/assets/ /ui/build/bundled/ && \
-    ln -s /ui/assets/ /ui/build/
+RUN cp package.json /
 
-EXPOSE 80
+EXPOSE 80 8000
+
+ENTRYPOINT [ "/entry.sh" ]
