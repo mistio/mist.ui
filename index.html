@@ -7,11 +7,9 @@
     <link rel="manifest" href="/ui/manifest.json">
     <!-- <script src="/ui/bower_components/sockjs-client/dist/sockjs.min.js"></script>
     <script src="/ui/bower_components/fast-json-patch/dist/fast-json-patch.min.js"></script> -->
-    <base tal:attributes="href string:/ui/${build_path}">
-    </base>
-    <title>
-        <tal tal:replace="portal_name|nothing">mist.io</tal> :: hybrid cloud management platform
-    </title>
+    <base tal:attributes="href string:/ui/${build_path}" tal:condition="build_path"></base>
+    <base tal:attributes="href string:/ui-dev/" tal:condition="not: build_path"></base>
+    <title tal:content="portal_name|nothing">Mist :: multi cloud management platform</title>
     <link tal:condition="theme|nothing" rel="shortcut icon" sizes="32x32" tal:attributes="href string:/static/${theme}-favicon.ico">
     <link tal:condition="not theme" rel="shortcut icon" sizes="32x32" tal:attributes="href string:assets/app-icon-32.png">
     <meta name="theme-color" content="#fff">
@@ -19,6 +17,7 @@
     <script async tal:condition="google_analytics_id" src="https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}"></script>
     <script type="module">
 import './src/mist-app.js';
+
 window.dataLayer = window.dataLayer || [];
 
 function gtag() { dataLayer.push(arguments); }
@@ -30,51 +29,30 @@ gtag('config', '${google_analytics_id}', {
 gtag('set', { 'content_group1': 'ui' });
 </script>
  <script tal:content="string: var BUILD_PATH='${build_path}'">
-    var BUILD_PATH = '';
+    const BUILD_PATH = '';
 </script>
 <script tal:content="string: var True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}}">
-    var CONFIG = false;
+    const CONFIG = false;
 </script>
 
-    <script type="module">
-import './src/mist-app.js';
-</script>
-
-    <script type="module">
-import './src/mist-app.js';
-/**
- * Behavior that enables the check-permissions function for users.
- *
- * @polymerBehavior
- */
-// Can't use globals in ES6, made rbac-behavior.js for now
-// var rbacBehavior = {
-//     properties: {},
-//     check_perm: function() {
-//         console.log('dummy check perm');
-//         return true;
-//     }
-// };
-</script>
     <!-- <link rel="import" href="/ui/bower_components/shadycss/apply-shim.html">
     <link rel="import" href="/ui/bower_components/polymer/lib/elements/custom-style.html"> -->
     <!-- <link rel="import" href="src/styles/app-theme.html"> DEFAULT THEME-->
     <link tal:condition="theme|nothing" rel="import" tal:attributes="href string:/static/ui/${theme}-theme.html">
     <script tal:condition="not theme" type="module" tal:attributes="src string:/ui/src/styles/app-theme.js"></script>
-    <!-- <link tal:condition="features['rbac']" rel="import" tal:attributes="href string:/static/ui/mist-rbac-behavior/mist-rbac-behavior.html"> -->
-    <script type="module" src="./src/mist-app.js"></script>
 </head>
 
 <body>
     <mist-app unresolved>
     </mist-app>
-    <script src="./node_modules/@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
     <script type="module">
-import './src/mist-app.js';
-if (CONFIG) {
-    document.querySelector('mist-app').config = CONFIG;
-}
-</script>
+    import './src/mist-app.js';
+
+    if (CONFIG) {
+        document.querySelector('mist-app').config = CONFIG;
+    }
+    </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 </body>
 
 </html>
