@@ -1,18 +1,17 @@
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-menu-button/paper-menu-button.js';
-import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../node_modules/@polymer/iron-icon/iron-icon.js';
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../node_modules/@mistio/mist-list/mist-list.js';
-import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import '../helpers/dialog-element.js';
-import { mistLogsBehavior } from '../mist-rules/mist-rules.js';
+import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
-import '../helpers/mist-logs-behavior.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

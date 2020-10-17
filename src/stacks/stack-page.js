@@ -1,11 +1,11 @@
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-progress/paper-progress.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-tabs/paper-tabs.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../node_modules/@mistio/mist-list/mist-list.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-progress/paper-progress.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-tabs/paper-tabs.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@mistio/mist-list/mist-list.js';
 import '../helpers/dialog-element.js';
 import '../mist-rules/mist-rules.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
@@ -22,9 +22,9 @@ import './stack-machine-item.js';
 import './stack-network-item.js';
 import './stack-key-item.js';
 import './orchestration-form.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../../node_modules/anchorme.js/dist-browser/anchorme.min.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import 'anchorme/dist/browser/anchorme.min.js';
 
 Polymer({
   _template: html`

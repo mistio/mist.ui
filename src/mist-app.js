@@ -4,28 +4,28 @@
   from HTML and may be out of place here. Review them and
   then delete this comment!
 */
-import '../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../node_modules/@polymer/app-route/app-location.js';
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@polymer/app-layout/app-layout.js';
-import '../node_modules/@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
-import '../node_modules/@polymer/app-layout/app-drawer/app-drawer.js';
-import '../node_modules/@polymer/app-layout/app-header/app-header.js';
-import '../node_modules/@polymer/app-layout/app-toolbar/app-toolbar.js';
-import '../node_modules/@polymer/app-layout/app-header-layout/app-header-layout.js';
-import '../node_modules/@polymer/paper-material/paper-material.js';
-import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../node_modules/@polymer/iron-pages/iron-pages.js';
-import '../node_modules/@polymer/iron-selector/iron-selector.js';
-import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@polymer/paper-toast/paper-toast.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/app-route/app-location.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/app-layout/app-layout.js';
+import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
+import '@polymer/app-layout/app-drawer/app-drawer.js';
+import '@polymer/app-layout/app-header/app-header.js';
+import '@polymer/app-layout/app-toolbar/app-toolbar.js';
+import '@polymer/app-layout/app-header-layout/app-header-layout.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-pages/iron-pages.js';
+import '@polymer/iron-selector/iron-selector.js';
+import '@polymer/iron-media-query/iron-media-query.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-toast/paper-toast.js';
 // import '../../../app-notifications/app-notifications.js';
-import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
+import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@mistio/mist-list/mist-list.js';
 // import '../../../web-animations-js/web-animations-next.min.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';
@@ -38,17 +38,13 @@ import './organizations/organization-add.js';
 import './account/plan-purchase.js';
 import PROVIDERS from './helpers/providers.js';
 import { _generateMap } from './helpers/utils.js'
-import { setPassiveTouchGestures } from '../node_modules/@polymer/polymer/lib/utils/settings.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
+import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 // import '../../../swiftSet/swiftSet.js';
 // import '../../../fingerprintjs2/fingerprint2.js';
 const $_documentContainer = document.createElement('template');
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
-    <!-- styles/app-theme  -->
-    <!-- <slot name="theme">
-        <link rel="import" href="styles/app-theme.html">
-    </slot> -->
     <template>
         <style include="custom-style">
         :host [hidden] {
@@ -226,10 +222,6 @@ $_documentContainer.innerHTML = `<dom-module id="mist-app">
 
 document.head.appendChild($_documentContainer.content);
 
-/* styles/app-theme  */
-/* <slot name="theme">
-        <link rel="import" href="styles/app-theme.html">
-    </slot> */
 /*
   FIXME(polymer-modulizer): the above comments were extracted
   from HTML and may be out of place here. Review them and
@@ -393,6 +385,11 @@ Polymer({
     attached() {
         if (this.ccRequired) {
             this._ccDismissed();
+        }
+        if (!this.config.theme) {
+            import('./styles/app-theme.js').then(
+                console.log('Loaded default theme')
+            );
         }
     },
 
@@ -604,12 +601,8 @@ Polymer({
         this.set('count','');
         this.set('loading', true);
         // Load page import on demand. Show 404 page if fails
-        // var resolvedPageUrl = this.resolveUrl('page-' + page + '.html');
-        // this.importHref(resolvedPageUrl, this._hideLoader, this._showPage404, true);
         console.log(`LOADING PAGE ${page}`);
-        import(`./page-${  page  }.js`).then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason);});
-        // import('./page-' + page + '.js').then(()=>{console.log("SUCCESS");},(reason)=>{console.log("FAILURE!! ", reason);});
-        //  import('./page-' + page + '.js').then(this._hideLoader.bind(this), this._showPage404.bind(this));
+        import(`./page-${page}.js`).then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason); this._showPage404();});
     },
 
     _hideLoader() {

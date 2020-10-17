@@ -1,8 +1,7 @@
-import '../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../node_modules/sockjs-client/dist/sockjs.min.js';
-import * as jsonpatch from '../node_modules/fast-json-patch/index.mjs';
+import '@polymer/polymer/polymer-legacy.js';
+import 'sockjs-client/dist/sockjs.min.js';
 import { _generateMap , CSRFToken } from './helpers/utils.js'
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 
 const DEBUG_SOCKET = false;
 let STRIPE_PUBLIC_APIKEY = ''

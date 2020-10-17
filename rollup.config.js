@@ -5,6 +5,7 @@ import { createSpaConfig } from '@open-wc/building-rollup';
 
 // use createBasicConfig to do regular JS to JS bundling
 // import { createBasicConfig } from '@open-wc/building-rollup';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 
 const baseConfig = createSpaConfig({
   // use the outputdir option to modify where files are output
@@ -35,4 +36,9 @@ export default merge(baseConfig, {
     sourcemap: true,
     format: 'esm',
   },
+  plugins: [
+    dynamicImportVars({
+      // options
+    })
+  ]
 });

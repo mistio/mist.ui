@@ -5,8 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <link rel="manifest" href="/ui/manifest.json">
-    <!-- <script src="/ui/bower_components/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="/ui/bower_components/fast-json-patch/dist/fast-json-patch.min.js"></script> -->
     <base tal:attributes="href string:/ui/${build_path}" tal:condition="build_path"></base>
     <base tal:attributes="href string:/ui-dev/" tal:condition="not: build_path"></base>
     <title tal:content="portal_name|nothing">Mist :: multi cloud management platform</title>
@@ -16,43 +14,27 @@
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async tal:condition="google_analytics_id" src="https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}"></script>
     <script type="module">
-import './src/mist-app.js';
-
-window.dataLayer = window.dataLayer || [];
-
-function gtag() { dataLayer.push(arguments); }
-gtag('js', new Date());
-
-gtag('config', '${google_analytics_id}', {
-    'custom_map': { 'app': 'ui' }
-});
-gtag('set', { 'content_group1': 'ui' });
-</script>
- <script tal:content="string: var BUILD_PATH='${build_path}'">
-    const BUILD_PATH = '';
-</script>
-<script tal:content="string: var True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}}">
-    const CONFIG = false;
-</script>
-
-    <!-- <link rel="import" href="/ui/bower_components/shadycss/apply-shim.html">
-    <link rel="import" href="/ui/bower_components/polymer/lib/elements/custom-style.html"> -->
-    <!-- <link rel="import" href="src/styles/app-theme.html"> DEFAULT THEME-->
-    <link tal:condition="theme|nothing" rel="import" tal:attributes="href string:/static/ui/${theme}-theme.html">
-    <script tal:condition="not theme" type="module" tal:attributes="src string:/ui/src/styles/app-theme.js"></script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', '${google_analytics_id}', {
+            'custom_map': { 'app': 'ui' }
+        });
+        gtag('set', { 'content_group1': 'ui' });
+    </script>
+    <script tal:content="string: var True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}, 'theme': '${theme}'};">
+        const CONFIG = false;
+    </script>
 </head>
-
 <body>
     <mist-app unresolved>
     </mist-app>
     <script type="module">
     import './src/mist-app.js';
-
     if (CONFIG) {
         document.querySelector('mist-app').config = CONFIG;
     }
     </script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
 </body>
-
 </html>

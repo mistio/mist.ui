@@ -1,4 +1,3 @@
-// import '../../node_modules/numeral/src/numeral.js';
 
 function ratedCost(cost, rate) {
     const c = parseFloat(cost || 0);
