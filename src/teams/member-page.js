@@ -8,10 +8,10 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '../helpers/dialog-element.js';
-import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
-import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
+import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 
 Polymer({
   _template: html`

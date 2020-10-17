@@ -36,11 +36,11 @@ import './mist-notice.js';
 import './mist-icons.js';
 import './organizations/organization-add.js';
 import './account/plan-purchase.js';
-import PROVIDERS from './helpers/providers.js';
-import { _generateMap } from './helpers/utils.js'
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import { _generateMap } from './helpers/utils.js'
+import PROVIDERS from './helpers/providers.js';
 // import '../../../swiftSet/swiftSet.js';
 // import '../../../fingerprintjs2/fingerprint2.js';
 const $_documentContainer = document.createElement('template');

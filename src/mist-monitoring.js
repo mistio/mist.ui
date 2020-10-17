@@ -4,7 +4,7 @@ import '../node_modules/@polymer/paper-material/paper-material.js';
 import '../node_modules/@polymer/paper-button/paper-button.js';
 import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-// import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
+import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
