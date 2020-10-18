@@ -127,7 +127,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -168,7 +168,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -209,7 +209,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -239,7 +239,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -295,7 +295,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -325,7 +325,6 @@ Polymer({
                   defaultValue: "",
                   placeholder: "",
                   helptext: "Rackspace requires an email when creating a DNS zone.",
-                  required: true,
                   show: true,
                   required: true,
               }],
@@ -336,7 +335,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -377,7 +376,7 @@ Polymer({
                   value: "",
                   defaultValue: "",
                   placeholder: "",
-                  pattern: "([a-zA-Z0-9\-]{2,64}[\.]{1})+[a-zA-Z]{2,64}[\.]{0,1}",
+                  pattern: "([a-zA-Z0-9-]{2,64}[.]{1})+[a-zA-Z]{2,64}[.]{0,1}",
                   errorMessage: "Please enter zone's domain",
                   helptext: "Please provide the domain for the DNS zone you want to create (e.g. example.com ).",
                   show: true,
@@ -440,8 +439,8 @@ Polymer({
       'iron-select': 'updateUrl'
   },
 
-  _cloudsChanged (clouds) {
-      const dnsClouds = this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged () {
+      const dnsClouds = this.model.cloudsArray.filter((cloud) => {
           return (['ec2', 'gce', 'digitalocean', 'linode', 'rackspace', 'softlayer',
               'vultr'
           ].indexOf(cloud.provider) > -1) && cloud.enabled && cloud.dns_enabled;
@@ -449,7 +448,7 @@ Polymer({
       if (dnsClouds.length > 0) {
           this.set('hasdnsClouds', true);
           const dnsCloudsArray = [];
-          dnsClouds.forEach(function (dnsCloud) {
+          dnsClouds.forEach((dnsCloud) => {
               dnsCloudsArray.push(dnsCloud);
           })
           this.set('dnsCloudsArray', dnsCloudsArray);
@@ -460,56 +459,56 @@ Polymer({
 
   _cloudSelected (selectedCloud) {
       if (selectedCloud) {
-          if (selectedCloud.provider == "gce") {
+          if (selectedCloud.provider ==="gce") {
               this.set('fields', this.cloudSpecificFields.Google);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "ec2") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "ec2") {
               this.set('fields', this.cloudSpecificFields.Route53);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "digitalocean") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) =>{
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "digitalocean") {
               this.set('fields', this.cloudSpecificFields.DigitalOcean);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "linode") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "linode") {
               this.set('fields', this.cloudSpecificFields.Linode);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "rackspace") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "rackspace") {
               this.set('fields', this.cloudSpecificFields.RackSpace);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "softlayer") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "softlayer") {
               this.set('fields', this.cloudSpecificFields.SoftLayer);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
-          } else if (selectedCloud.provider == "vultr") {
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
+          } else if (selectedCloud.provider === "vultr") {
               this.set('fields', this.cloudSpecificFields.Vultr);
-              this.cloud = this.model.cloudsArray.filter(function (clouda) {
-                  return (clouda.id == selectedCloud.id)
-              })[0];
+              [this.cloud] = this.model.cloudsArray.filter((clouda) => {
+                  return (clouda.id === selectedCloud.id)
+              });
           }
       }
       // this.updatePayload();
   },
 
-  updateFields (e) {
+  updateFields () {
       this.set('formError', false);
       this.updatePayload();
   },
 
   updateUrl (e) {
       // update url when cloud is selected
-      if (e.target.id == "cloud") {
-          const cloud = this.fields.findIndex(function (field) {
-              return field.name == "cloud";
+      if (e.target.id === "cloud") {
+          const cloud = this.fields.findIndex((field) => {
+              return field.name === "cloud";
           }, this);
           this.set('cloud', this.fields[cloud].value)
       }
@@ -521,70 +520,70 @@ Polymer({
           // update payload
           const payload = {};
 
-          const domain = this.fields.findIndex(function (field) {
-              return field.name == "domain";
+          const domain = this.fields.findIndex((field) => {
+              return field.name === "domain";
           }, this);
           payload.domain = this.fields[domain].value;
-          if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
-              this.selectedCloud.provider == "digitalocean" || this.selectedCloud.provider ==
-              "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider ==
+          if (this.selectedCloud.provider === "ec2" || this.selectedCloud.provider === "gce" ||
+              this.selectedCloud.provider === "digitalocean" || this.selectedCloud.provider ===
+              "rackspace" || this.selectedCloud.provider === "softlayer" || this.selectedCloud.provider ===
               "vultr") {
-              var type = this.fields.findIndex(function (field) {
-                  return field.name == "type";
+              const type = this.fields.findIndex((field) => {
+                  return field.name === "type";
               }, this);
               payload.type = this.fields[type].value;
           }
-          if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
-              this.selectedCloud.provider == "linode" || this.selectedCloud.provider ==
-              "rackspace" || this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider ==
+          if (this.selectedCloud.provider === "ec2" || this.selectedCloud.provider === "gce" ||
+              this.selectedCloud.provider === "linode" || this.selectedCloud.provider ===
+              "rackspace" || this.selectedCloud.provider === "softlayer" || this.selectedCloud.provider ===
               "vultr") {
-              var type = this.fields.findIndex(function (field) {
-                  return field.name == "type";
+              const type = this.fields.findIndex((field) => {
+                  return field.name === "type";
               }, this);
               payload.type = this.fields[type].value;
           }
-          if (this.selectedCloud.provider == "ec2" || this.selectedCloud.provider == "gce" ||
-              this.selectedCloud.provider == "softlayer" || this.selectedCloud.provider ==
+          if (this.selectedCloud.provider === "ec2" || this.selectedCloud.provider === "gce" ||
+              this.selectedCloud.provider ==="softlayer" || this.selectedCloud.provider ===
               "vultr") {
-              const ttl = this.fields.findIndex(function (field) {
-                  return field.name == "ttl";
+              const ttl = this.fields.findIndex((field) => {
+                  return field.name === "ttl";
               }, this);
               payload.ttl = this.fields[ttl].value;
           }
-          if (this.selectedCloud.provider == "linode") {
-              if (payload.type == "master") {
-                  const soa = this.fields.findIndex(function (field) {
-                      return field.name == "SOA_email";
+          if (this.selectedCloud.provider === "linode") {
+              if (payload.type === "master") {
+                  const soa = this.fields.findIndex( (field) => {
+                      return field.name === "SOA_email";
                   }, this);
                   delete payload.master_ips;
                   payload.SOA_Email = this.fields[soa].value;
               } else {
-                  const master_ips = this.fields.findIndex(function (field) {
-                      return field.name == "master_ips";
+                  const masterIPs = this.fields.findIndex((field) => {
+                      return field.name === "master_ips";
                   }, this);
                   delete payload.SOA_Email;
-                  payload.master_ips = this.fields[master_ips].value;
+                  payload.masterIPs = this.fields[masterIPs].value;
               }
           }
-          if (this.selectedCloud.provider == "vultr") {
-              const ip = this.fields.findIndex(function (field) {
-                  return field.name == "ip";
+          if (this.selectedCloud.provider === "vultr") {
+              const ip = this.fields.findIndex((field) => {
+                  return field.name === "ip";
               }, this);
-              if (this.fields[ip].value != "") {
+              if (this.fields[ip].value !== "") {
                   payload.ip = this.fields[ip].value;
               }
           }
-          if (this.selectedCloud.provider == "rackspace") {
-              const email = this.fields.findIndex(function (field) {
-                  return field.name == "email";
+          if (this.selectedCloud.provider === "rackspace") {
+              const email = this.fields.findIndex((field) => {
+                  return field.name === "email";
               }, this);
-              if (this.fields[email].value != "") {
+              if (this.fields[email].value !== "") {
                   payload.email = this.fields[email].value;
               }
           }
 
           this.set('zone', payload);
-          console.warn(`Update Payload:${  payload}`)
+          // console.warn(`Update Payload:${  payload}`)
       }
   },
 
@@ -601,7 +600,7 @@ Polymer({
   },
 
   _handleError (e) {
-      console.log(e);
+      // console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },

@@ -119,9 +119,9 @@ Polymer({
 
   _showDialog (info) {
     const dialog = this.shadowRoot.querySelector('dialog-element');
-    for (const i in info) {
+    Object.keys(info).forEach((i) => {
       dialog[i] = info[i];
-    }
+    });
     dialog._openDialog();
   },
 
@@ -135,9 +135,9 @@ Polymer({
       const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
-      if (action.confirm && action.name != 'tag') {
-        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-          const plural = this.items.length == 1 ? '' : 's';
+      if (action.confirm && action.name !== 'tag') {
+        const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
+          const plural = this.items.length === 1 ? '' : 's';
           const count = this.items.length > 1 ? `${this.items.length  } ` : '';
         // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
@@ -149,7 +149,7 @@ Polymer({
           danger: true,
           reason: `${this.type  }.${  this.action.name}`
         });
-      } else if (action.name == "tag") {
+      } else if (action.name === "tag") {
         this.$.tagsdialog._openDialog();
       } else {
         this.performAction(this.action, this.items);
@@ -157,13 +157,13 @@ Polymer({
     }
   },
 
-  performAction (action, items) {
-    if (action.name == 'delete') {
+  performAction (action) {
+    if (action.name === 'delete') {
       this._delete();
     }
   },
 
-  handleResponse (e) {
+  handleResponse () {
     if (this.$.request && this.$.request.body && this.$.request.body.action)
       this.dispatchEvent(new CustomEvent('toast', {
         bubbles: true,
@@ -189,7 +189,7 @@ Polymer({
 
   _makeList (items, property) {
     if (items && items.length)
-      return items.map(function (item) {
+      return items.map((item) => {
         return item[property];
       });
   }

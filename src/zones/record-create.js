@@ -398,7 +398,7 @@ Polymer({
       'change': 'updateFields'
   },
 
-  updateFields(e){
+  updateFields(){
       this.set('formError', false);
       this.updatePayload();            
   },
@@ -410,18 +410,18 @@ Polymer({
           
           payload.type = this.selectedRecordType;
 
-          const name = this.fields.findIndex(function(field) {
-              return field.name == "name";
+          const name = this.fields.findIndex((field) => {
+              return field.name === "name";
           }, this);
           payload.name = `${this.fields[name].value + this.fields[name].suffix  }.`;
 
-          const rdata = this.fields.findIndex(function(field) {
-              return field.name == "rdata";
+          const rdata = this.fields.findIndex((field) => {
+              return field.name === "rdata";
           }, this);
           payload.data = this.fields[rdata].value;
 
-          const ttl = this.fields.findIndex(function(field) {
-              return field.name == "ttl";
+          const ttl = this.fields.findIndex((field) => {
+              return field.name === "ttl";
           }, this);
           payload.ttl = this.fields[ttl].value;
 
@@ -430,43 +430,43 @@ Polymer({
       }
   },
 
-  _zoneChanged(zone_id) {
-      if (this.zone_id != zone_id) {
-          this.zone_id = zone_id;
+  _zoneChanged(zoneId) {
+      if (this.zoneId !== zoneId) {
+          this.zoneId = zoneId;
           this.selectedRecordType = false;
           this.set('fields', []);
           this.updateFields();
       }
   },
 
-  _typeChanged(selectedRecordType, fields) {
-      if (this.selectedRecordType == "A") {
+  _typeChanged() {
+      if (this.selectedRecordType === "A") {
           this.fieldsA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsA);
-      } else if (this.selectedRecordType == "AAAA") {
+      } else if (this.selectedRecordType === "AAAA") {
           this.fieldsAAAA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsAAAA);
-      } else if (this.selectedRecordType == "CNAME") {
+      } else if (this.selectedRecordType === "CNAME") {
           this.fieldsCNAME[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsCNAME);
-      } else if (this.selectedRecordType == "MX") {
+      } else if (this.selectedRecordType === "MX") {
           this.fieldsMX[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsMX);
-      } else if (this.selectedRecordType == "NS") {
+      } else if (this.selectedRecordType === "NS") {
           this.fieldsNS[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsNS);
-      } else if (this.selectedRecordType == "SOA") {
+      } else if (this.selectedRecordType === "SOA") {
           this.fieldsSOA[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsSOA);
-      } else if (this.selectedRecordType == "TXT") {
+      } else if (this.selectedRecordType === "TXT") {
           this.fieldsTXT[0].suffix = `.${  this.zone.domain.slice(0, -1)}`;
           this.set('fields', this.fieldsTXT);
       }
       this.updateFields();
   },
 
-  _handleCreateRecordResponse(e){
-      const response = YAML.parse(e.detail.xhr.response);
+  _handleCreateRecordResponse(){
+      // const response = YAML.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Record was created successfully.',duration:3000} }));
 
       const url = document.location.pathname;
@@ -475,7 +475,7 @@ Polymer({
   },
 
   _handleError(e) {
-      console.log(e);
+      // console.log(e);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
       this.set('formError', true);
   },

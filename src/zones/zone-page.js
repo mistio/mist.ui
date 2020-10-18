@@ -15,6 +15,7 @@ import { mistListsBehavior } from '../helpers/mist-lists-behavior.js';
 import './zone-actions.js';
 import './record-create.js';
 import './record-actions.js';
+import { CSRFToken, itemUid } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -270,7 +271,7 @@ Polymer({
       'action-finished': 'clearListSelection'
   },
 
-  _changed(zone) {
+  _changed() {
       if (this.zone) {
           this.set('itemArray', [this.zone]);
           this.set('renderRecordsList', this.zone.id && this.zone.records)
@@ -282,7 +283,7 @@ Polymer({
   },
 
   attached(){
-      this.async(function(){
+      this.async(() =>{
           if (this.$.recordsList)
               this.$.recordsList.fire('resize');
       },500)
@@ -294,25 +295,28 @@ Polymer({
       return records && Object.keys(records).length;
   },
 
-  _computeZoneCloud(zone, clouds){
+  _computeZoneCloud(zone){
       if (zone)
           return this.model.clouds[this.zone.cloud].title
+      return null
   },
 
-  _computeZoneTags (zone, zoneTags) {
+  _computeZoneTags () {
       if (this.zone) {
           return Object.entries(this.zone.tags).map(([key, value]) => ({key,value}));
       }
+      return null
   },
 
   _computeRecordsLength(records) {
       return records ? Object.keys(records).length : 0
   },
 
-  _computeRecords(records) {
+  _computeRecords() {
       if (this.zone) {
           return Object.values(this.zone.records);
       }
+      return null
   },
 
   _editZone(e) {
@@ -323,6 +327,7 @@ Polymer({
       if (id && members) {
           return this.model && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
       }
+      return null
   },
 
   // _editTags: function() {
@@ -349,7 +354,7 @@ Polymer({
   //         });
   //     }
   // },
-  _fabAction(e) {
+  _fabAction() {
       if (this.zone) {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:`zones/${  this.zone.id  }/+create`} }))
       }
@@ -359,15 +364,15 @@ Polymer({
       const {reason} = e.detail;
           const {response} = e.detail;
 
-      if (response == 'confirm' && reason == "zone.delete") {
+      if (response === 'confirm' && reason === "zone.delete") {
           this.$.zoneDeleteAjaxRequest.body = {};
           this.$.zoneDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
-          this.$.zoneDeleteAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.zoneDeleteAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.zoneDeleteAjaxRequest.generateRequest();
       }
   },
 
-  _handleZoneDeleteAjaxResponse(e) {
+  _handleZoneDeleteAjaxResponse() {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Delete was successful.', duration:3000} }));
 
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url:'/zones'} }))
@@ -378,11 +383,11 @@ Polymer({
 
   },
 
-  _computeTagsExist(zone, tags){
-      if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0].key && this.zone.tags[0].key != "") {
-          return true;
-      } 
-          return false;
+  _computeTagsExist(){
+        if (this.zone && this.zone.tags && this.zone.tags.length > 0 && this.zone.tags[0] && this.zone.tags[0].key && this.zone.tags[0].key !== "") {
+            return true;
+        } 
+        return false;
       
   },
 
@@ -393,9 +398,10 @@ Polymer({
           arr.push(item);
           return arr;
       }
+      return null
   },
 
-  _addResource(e) {
+  _addResource() {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: this.model.sections.zones.add} }));
   },
 
@@ -408,34 +414,33 @@ Polymer({
   },
 
   _getRenderers() {
-      const _this = this;
       return {
           'name': {
-              'body': function(item) {
+              'body': (item) => {
                   return `<strong class="name">${ item  }</strong>`;
               }
         },
         'rdata': {
-            'body': function(item, row){
+            'body': (item) => {
               return item && Array.isArray(item) ? item.join(', ') : item;
             }
         },
         'type': {
             'title': 'record type',
-            'body': function(item, row) {
+            'body': (item) => {
               return item;
             }
         },
         'tags': {
-              'body': function (item, row) {
+              'body': (item) => {
                   const tags = item;
                       let display = "";
-                  for (key in tags) {
+                  Object.keys(tags).forEach( (key) => {
                       display += `<span class='tag'>${  key}`;
-                      if (tags[key] != undefined && tags[key] != "")
+                      if (tags[key] !== undefined && tags[key] !== "")
                           display += `=${  tags[key]}`;
                       display += "</span>";
-                  }
+                  });
                   return display;
               }
           }
@@ -444,13 +449,13 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('.zone-dialog');
-      for (const i in info) {
+        Object.keys(info).forEach( (i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
-  _computeIsloading(zone) {
+  _computeIsloading() {
       return !this.zone;
   },
 

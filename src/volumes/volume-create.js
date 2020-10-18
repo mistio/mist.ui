@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -739,16 +740,18 @@ Polymer({
                       locations = [];
                   }
                   if (this.model.clouds[cloudId].provider == 'packet') {
-                      locations = locations.filter(function(l) {
+                      locations = locations.filter((l) => {
                           if (l.extra.features.indexOf('storage') > -1) {
                               return true;
                           }
+                          return false;
                       });
                   } else if (this.model.clouds[cloudId].provider == 'aliyun_ecs') {
                       locations = locations.filter(function(l) {
                           if (l.extra.available_disk_categories.length) {
                               return true;
                           }
+                          return false
                       });
                   }
                   f.options = locations;
@@ -757,14 +760,14 @@ Polymer({
       }
   },
 
-  _locationChanged (locationId, what) {
+  _locationChanged (locationId) {
       if (!locationId || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
       const {provider} = this.model.clouds[this.selectedCloud];
           const location = this.model.clouds[this.selectedCloud].locations[locationId];
       if (provider == 'aliyun_ecs') {
-          const diskCategoryOptions = this.volumesFields.find(function (cloud) {
-              return cloud.provider == provider;
-          }).fields[3].options.filter(function(option) {
+          const diskCategoryOptions = this.volumesFields.find((cloud) => {
+              return cloud.provider === provider;
+          }).fields[3].options.filter((option) => {
               return location.extra.available_disk_categories.indexOf(option.val) > -1;
           });
           this.set('fields.3.options', diskCategoryOptions);
@@ -774,8 +777,8 @@ Polymer({
   _diskCategoryChanged(diskCategory) {
       if (!diskCategory || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
       const {provider} = this.model.clouds[this.selectedCloud]; let minSize = 1;
-      if (provider == 'aliyun_ecs') {
-          if (diskCategory != 'cloud') {
+      if (provider === 'aliyun_ecs') {
+          if (diskCategory !== 'cloud') {
               minSize = 20;
           } else {
               minSize = 5;
@@ -796,13 +799,13 @@ Polymer({
       }
   },
 
-  _updateResourceGroupValue(cloudId) {
+  _updateResourceGroupValue() {
       const createFieldIndex = this._fieldIndexByName('create_resource_group');
       const existingFieldIndex = this._fieldIndexByName('ex_resource_group');
       const newFieldIndex = this._fieldIndexByName('new_resource_group');
       const resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
 
-      if (this.get(`fields.${ createFieldIndex }.value`) == true ) {
+      if (this.get(`fields.${ createFieldIndex }.value`) === true ) {
           this.set(`fields.${ resourceGroupFieldIndex }.value`, this.get(`fields.${ newFieldIndex }.value`))
       } else {
           this.set(`fields.${ resourceGroupFieldIndex }.value`, this.get(`fields.${ existingFieldIndex }.value`))
@@ -819,12 +822,12 @@ Polymer({
   _getResourceGroups(cloudId, index) {
       this.set("resourceGroupsFieldIndex",index);
       this.$.getResourceGroups.headers["Content-Type"] = 'application/json';
-      this.$.getResourceGroups.headers["Csrf-Token"] = CSRF_TOKEN;                
+      this.$.getResourceGroups.headers["Csrf-Token"] = CSRFToken.value;                
       this.$.getResourceGroups.url = `/api/v1/clouds/${ cloudId }/resource-groups`;
       this.$.getResourceGroups.generateRequest();
   },
 
-  _handleGetResourceGroupsRequest(e) {
+  _handleGetResourceGroupsRequest() {
       this.set(`fields.${  this.resourceGroupsFieldIndex  }.loader`, true);
   },
 
@@ -848,18 +851,18 @@ Polymer({
   _getStorageClasses(cloudId, index) {
       this.set("storageClassesFieldIndex", index)
       this.$.getStorageClasses.headers["Content-Type"] = 'application/json';
-      this.$.getStorageClasses.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getStorageClasses.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getStorageClasses.url = `/api/v1/clouds/${  cloudId  }/storage-classes`;
       this.$.getStorageClasses.generateRequest();
   },
 
-  _handleGetStorageClassesRequest(e) {
+  _handleGetStorageClassesRequest() {
       this.set(`fields.${  this.storageClassesFieldIndex  }.loader`, true);
   },
 
   _handleGetStorageClassesResponse(e){
       const options = []
-      e.detail.response.forEach(function(item, ind){
+      e.detail.response.forEach((item) => {
           options.push({title: item, val: item});
       });
       this.set(`fields.${  this.storageClassesFieldIndex  }.options`, options|| []);
@@ -881,12 +884,12 @@ Polymer({
   _getLXDStoragePools(cloudId, index) {
       this.set("lxdStoragePoolsFieldIndex",index);
       this.$.getLXDStoragePools.headers["Content-Type"] = 'application/json';
-      this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getLXDStoragePools.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getLXDStoragePools.url = `/api/v1/clouds/${ cloudId }/storage-pools`;
       this.$.getLXDStoragePools.generateRequest();
   },
 
-  _handleGetLXDStoragePoolsRequest(e) {
+  _handleGetLXDStoragePoolsRequest() {
       this.set(`fields.${  this.lxdStoragePoolsFieldIndex  }.loader`, true);
   },
 
@@ -901,14 +904,14 @@ Polymer({
   },
 
   _fieldIndexByName (name) {
-      const field = this.fields.findIndex(function (f) {
-          return f.name == name;
+      const field = this.fields.findIndex((f) => {
+          return f.name === name;
       });
       return field;
   },
 
   _handleCreateVolumeResponse (e) {
-      const response = JSON.parse(e.detail.xhr.response);
+      // const response = JSON.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true, composed: true,
           detail: {
