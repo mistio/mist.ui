@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -163,47 +164,45 @@ Polymer({
 
   ready() {},
 
-  computedSelectedMachineId(selected) {
+  computedSelectedMachineId() {
       this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _computeHideDeviceInput(provider) {
-      return this && this.provider != "ec2";
+  _computeHideDeviceInput() {
+      return this && this.provider !== "ec2";
   },
 
-  _computeHidePathInput(provider) {
-      return this && this.provider != "lxd";
+  _computeHidePathInput() {
+      return this && this.provider !== "lxd";
   },
 
-  _openDialog(e) {
+  _openDialog() {
       this.clearError();
       this.set('selectedMachineId', false);
       this.set('device', '/dev/xvda');
       this.$.attachDialogModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog() {
       this.$.attachDialogModal.close();
       this.clearError();
   },
 
-  attachVolume(e) {
+  attachVolume() {
       const request = this.$.attachVolumeRequest;
       if (this.items) {
           const items = this.items.slice(0);
-              const {selectedMachineId} = this;
-              const {device} = this;
-              const {path} = this;
-              const {hideDeviceInput} = this;
-              const {hidePathInput} = this;
-          var run = function(el) {
+          const {selectedMachineId} = this;
+          const {device} = this;
+          const {path} = this;
+          const {hideDeviceInput} = this;
+          const {hidePathInput} = this;
+          const run = (el) => {
               const item = items.shift();
-                  let itemType;
-                  let itemId;
+              let itemId;
+              let cloudId;
               if (item.length) {
-                  chunks = item.split(':'),
-                      itemId = chunks[2],
-                      cloudId = chunks[1];
+                  [ , itemId, cloudId] = item.split(':');
               } else {
                   itemId = item.external_id;
                   cloudId = item.cloud;
@@ -217,7 +216,7 @@ Polymer({
                   request.body.path = path;
               }
               request.headers["Content-Type"] = 'application/json';
-              request.headers["Csrf-Token"] = CSRF_TOKEN;
+              request.headers["Csrf-Token"] = CSRFToken.value;
               request.generateRequest();
 
               if (items.length) {

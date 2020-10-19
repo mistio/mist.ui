@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -124,41 +125,39 @@ Polymer({
 
   ready() {},
 
-  computedSelectedMachineId(selected) {
+  computedSelectedMachineId() {
       // this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _openDialog(e) {
+  _openDialog() {
       this.set('selectedMachineId', false);
       this.set('formError', false);
       this.$.detachDialogModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog() {
       this.set('formError', false);
       this.$.detachDialogModal.close();
   },
 
-  detachVolume(e) {
+  detachVolume() {
       const request = this.$.detachVolumeRequest;
           const items = this.items.slice(0);
           const {selectedMachineId} = this;
-      var run = function(el) {
+      const run = (el) => {
           const item = items.shift();
-              let itemType;
-              let itemId;
+          let itemId;
+          let cloudId; 
           if (item.length) {
-              chunks = item.split(':'),
-                  itemId = chunks[2],
-                  cloudId = chunks[1];
+            [ ,cloudId, itemId] = item.split(':');
           } else {
               itemId = item.external_id;
               cloudId = item.cloud;
           }
-          request.url = `/api/v1/clouds/${  cloudId  }/volumes/${  itemId}`;
+          request.url = `/api/v1/clouds/${  cloudId  }/volumes/${  itemId }`;
           request.body = { action: 'detach', machine: selectedMachineId };
           request.headers["Content-Type"] = 'application/json';
-          request.headers["Csrf-Token"] = CSRF_TOKEN;
+          request.headers["Csrf-Token"] = CSRFToken.value;
           request.generateRequest();
 
           if (items.length) {

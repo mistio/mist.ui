@@ -192,5 +192,6 @@ Polymer({
       return items.map((item) => {
         return item[property];
       });
+    return [];
   }
 });

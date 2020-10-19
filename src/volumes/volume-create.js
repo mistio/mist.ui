@@ -9,7 +9,7 @@ import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
-export var VOLUME_CREATE_FIELDS = [];
+export const VOLUME_CREATE_FIELDS = [];
 
 // cloud:
 //   in: path
@@ -499,10 +499,10 @@ VOLUME_CREATE_FIELDS.push({
 });
 
 
-VOLUME_CREATE_FIELDS.forEach(function(p) {
+VOLUME_CREATE_FIELDS.forEach((p) => {
 // add common machine properties fields
-    const minimumSize = (p.provider == 'packet' && 10) ||
-                      (p.provider == 'aliyun_ecs' && 5) || 1;
+    const minimumSize = (p.provider === 'packet' && 10) ||
+                      (p.provider === 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
         label: 'Size in GB *',
@@ -518,7 +518,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         custom: false
     });
 
-    if (p.provider != 'packet') {
+    if (p.provider !== 'packet') {
         p.fields.splice(0, 0, {
             name: "name",
             label: "Name *",
@@ -531,7 +531,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
             required: true});
     }
 
-    if (p.provider != 'openstack' && p.provider != 'gig_g8') {
+    if (p.provider !== 'openstack' && p.provider !== 'gig_g8') {
         p.fields.splice(1, 0, {
             name: 'location',
             label: 'Location *',
@@ -677,8 +677,8 @@ Polymer({
       '_fieldValuesChanged(fields.*)'
   ],
 
-  _cloudsChanged (clouds) {
-      const volumeClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged () {
+      const volumeClouds = this.model && this.model.cloudsArray.filter((cloud) => {
           return VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1;
       });
       this.set('providers', volumeClouds);
@@ -690,8 +690,8 @@ Polymer({
       return `assets/providers/provider-${  identifier  }.png`;
   },
 
-  _isOnline (cloud, state, clouds) {
-      return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+  _isOnline (cloud) {
+      return this.model.clouds[cloud] && this.model.clouds[cloud].state === 'online';
   },
 
   _cloudChanged (selectedCloud) {
@@ -700,54 +700,54 @@ Polymer({
       let volumeFields = [];
       if (this.selectedCloud) {
           const {provider} = this.model.clouds[selectedCloud];
-          volumeFields = this.volumesFields.find(function (c) {
-              return c.provider == provider;
+          volumeFields = this.volumesFields.find((c) => {
+              return c.provider === provider;
           });
       }
       // add cloud fields
       if (volumeFields.fields)
-          this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields.filter(function(f){
-              return f.onForm == 'volume_add' || !f.onForm;
+          this.set('fields', JSON.parse(JSON.stringify(volumeFields.fields.filter((f) => {
+              return f.onForm === 'volume_add' || !f.onForm;
           }))));
 
       // set values by provider
       this._updateFields(selectedCloud);
   },
 
-  _updateFields(selectedCloud) {
+  _updateFields() {
       if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
               .selectedCloud]) {
           const cloudId = this.selectedCloud;
           // if is azure arm, change required values
-          if (this.model.clouds[cloudId].provider == "azure_arm") {
+          if (this.model.clouds[cloudId].provider === "azure_arm") {
               this._updateResourceGroups(cloudId);
           }
-          if (this.model.clouds[cloudId].provider == "kubevirt"){
+          if (this.model.clouds[cloudId].provider === "kubevirt"){
               this._updateStorageClasses(cloudId);
           }
 
-          if(this.model.clouds[cloudId].provider == "lxd"){
+          if(this.model.clouds[cloudId].provider === "lxd"){
               this._updateLXDStoragePools(cloudId);
           }
 
-          this.fields.forEach(function (f, index) {
+          this.fields.forEach(function (f){
               if (f.name.endsWith("location")) {
                   let locations = this.model.clouds[cloudId].locationsArray.slice();
-                  if (locations.length == 1 && locations[0].name == '') {
+                  if (locations.length === 1 && locations[0].name === '') {
                       // If there's a single location preselect it and hide the field
                       f.value = locations[0].id;
                       f.show = false;
                       locations = [];
                   }
-                  if (this.model.clouds[cloudId].provider == 'packet') {
+                  if (this.model.clouds[cloudId].provider === 'packet') {
                       locations = locations.filter((l) => {
                           if (l.extra.features.indexOf('storage') > -1) {
                               return true;
                           }
                           return false;
                       });
-                  } else if (this.model.clouds[cloudId].provider == 'aliyun_ecs') {
-                      locations = locations.filter(function(l) {
+                  } else if (this.model.clouds[cloudId].provider === 'aliyun_ecs') {
+                      locations = locations.filter((l) => {
                           if (l.extra.available_disk_categories.length) {
                               return true;
                           }
@@ -764,7 +764,7 @@ Polymer({
       if (!locationId || !this.selectedCloud || !this.model.clouds[this.selectedCloud]) return;
       const {provider} = this.model.clouds[this.selectedCloud];
           const location = this.model.clouds[this.selectedCloud].locations[locationId];
-      if (provider == 'aliyun_ecs') {
+      if (provider === 'aliyun_ecs') {
           const diskCategoryOptions = this.volumesFields.find((cloud) => {
               return cloud.provider === provider;
           }).fields[3].options.filter((option) => {
@@ -910,7 +910,7 @@ Polymer({
       return field;
   },
 
-  _handleCreateVolumeResponse (e) {
+  _handleCreateVolumeResponse () {
       // const response = JSON.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true, composed: true,

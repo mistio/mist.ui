@@ -285,7 +285,7 @@ Polymer({
       '_change(volume)'
   ],
 
-  _displayUser(id, members) {
+  _displayUser(id) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
   },
 
@@ -306,14 +306,14 @@ Polymer({
       return '';
   },
 
-  _computeShowVolumeMachines(machines) {
+  _computeShowVolumeMachines() {
       if (this.volume) {
           return this.volume.attached_to && this.volume.attached_to.length > 0;
       }
       return false;
   },
 
-  _computeVolumeMachines(machineIds, machines) {
+  _computeVolumeMachines() {
       if (this.volume) {
           return this.model && this.model.machines && this.volume.attached_to && this.volume.attached_to.length ? this.volume.attached_to.map(i => this.model.machines[i] || { name: 'missing' , id: "#"}) : [];
       }
@@ -327,35 +327,36 @@ Polymer({
       return {};
   },
 
-  _computeVolumeProvider(volume, clouds) {
+  _computeVolumeProvider() {
       if (this.volume) {
           return this.model.clouds[this.volume.cloud].provider;
       }
       return "";
   },
 
-  _computedMachinesVolumeCanAttachTo(provide, machines) {
+  _computedMachinesVolumeCanAttachTo() {
       if (this.volume) {
           const that = this;
               const machinesArray = this._toArray(this.model.clouds[this.volume.cloud].machines);
-          return machinesArray.filter(function(m) {
-              return m.cloud == that.volume.cloud && (!that.volume.location || m.location == that.volume.location) && that.volume.attached_to.indexOf(m.id) == -1
+          return machinesArray.filter((m) => {
+              return m.cloud === that.volume.cloud && (!that.volume.location || m.location === that.volume.location) && that.volume.attached_to.indexOf(m.id) === -1
           });
       }
       return [];
   },
 
-  _computeVolumeTags(volume, volumeTags) {
+  _computeVolumeTags() {
       if (this.volume) {
           return Object.entries(this.volume.tags).map(([key, value]) => ({ key, value }));
       }
+      return null;
   },
 
   _editVolume(e) {
       console.log(e);
   },
 
-  _deleteVolume(e) {
+  _deleteVolume() {
       this._showDialog({
           title: 'Delete Volume?',
           body: `Deleting volumes cannot be undone. You are about to delete volume: '${ 
@@ -365,7 +366,7 @@ Polymer({
       });
   },
 
-  _handleVolumeDeletekAjaxResponse(e) {
+  _handleVolumeDeletekAjaxResponse() {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/volumes'
       } }));
@@ -374,17 +375,17 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      for (const i in info) {
+      Object.keys(info).forEach((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
-  _computeIsloading(volume) {
+  _computeIsloading() {
       return !this.volume;
   },
 
-  _toArray(x, z) {
+  _toArray(x) {
       if (x) {
           return Object.keys(x).map(y => x[y])
       }

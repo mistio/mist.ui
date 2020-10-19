@@ -147,7 +147,7 @@ Polymer({
       if (volume.actions.delete) {
         arr.push('delete');
       }
-      if (this.org.ownership_enabled && (volume.owned_by == this.user || this.org.is_owner)) {
+      if (this.org.ownership_enabled && (volume.owned_by === this.user || this.org.is_owner)) {
         arr.push('transfer-ownership');
       }
     }
@@ -162,15 +162,16 @@ Polymer({
     return ret;
   },
 
-  _otherMembers (members,items) {
+  _otherMembers (members) {
     if (this.items && members) {
-      const owners = this.items.map(function(i){return i.owned_by;})
-                        .filter(function(value,index,self){return self.indexOf(value) === index;});
+      const owners = this.items.map((i) => {return i.owned_by;})
+                        .filter((value,index,self) => {return self.indexOf(value) === index;});
       // filter out pending users and the single owner of the item-set if that is the case
-      return members.filter(function(m) {
-          return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
+      return members.filter((m) => {
+          return owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending;
       });
     }
+    return [];
   },
 
   _delete () {
@@ -191,9 +192,9 @@ Polymer({
 
   _showDialog (info) {
     const dialog = this.shadowRoot.querySelector('dialog-element');
-    for (const i in info) {
+    Object.keys(info).forEach((i) => {
       dialog[i] = info[i];
-    }
+    });
     dialog._openDialog();
   },
 
@@ -207,9 +208,9 @@ Polymer({
       const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
-      if (action.confirm && action.name != 'tag') {
-        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-          const plural = this.items.length == 1 ? '' : 's';
+      if (action.confirm && action.name !== 'tag') {
+        const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
+          const plural = this.items.length === 1 ? '' : 's';
           const count = this.items.length > 1 ? `${this.items.length  } ` : '';
         // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
@@ -221,13 +222,13 @@ Polymer({
           danger: true,
           reason: `${this.type  }.${  this.action.name}`
         });
-      } else if (action.name == 'transfer ownership') {
+      } else if (action.name === 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
-      } else if (action.name == "tag") {
+      } else if (action.name === "tag") {
         this.$.tagsdialog._openDialog();
-      } else if (action.name == "attach") {
+      } else if (action.name === "attach") {
         this.$.attachVolume._openDialog();
-      } else if (action.name == "detach") {
+      } else if (action.name === "detach") {
         this.$.detachVolume._openDialog();
       } else {
         this.performAction(this.action, this.items);
@@ -240,7 +241,7 @@ Polymer({
       user_id: e.detail.user_id, // new owner
       resources: {}
     };
-    payload.resources[this.type] = this.items.map(function(i){return i.id});
+    payload.resources[this.type] = this.items.map((i) => {return i.id});
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers["Content-Type"] = 'application/json';
@@ -250,8 +251,8 @@ Polymer({
     this.$.request.generateRequest();
   },
 
-  performAction (action, items) {
-    if (action.name == 'delete') {
+  performAction (action) {
+    if (action.name === 'delete') {
       this._delete();
     }
   },
@@ -264,11 +265,11 @@ Polymer({
         duration: 3000
       } }))
     }
-    if (e.target && e.target.__data__ && e.target.__data__.method == "DELETE") {
+    if (e.target && e.target.__data__ && e.target.__data__.method === "DELETE") {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url:'/volumes'} }));
 
     }
-    if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
+    if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status === 200 ) {
       this.$.ownershipdialog._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished'));
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
@@ -285,8 +286,8 @@ Polymer({
     if (items && org && user) {
       this.set('actions', []);
       let actions = new Set();
-        let isection = new Set();
-
+      let isection = new Set();
+      let multiActions = [];
       if (this.items.length > 0) {
         actions= new Set(this.itemActions(this.items[0]) || []);
 
@@ -294,11 +295,8 @@ Polymer({
           isection = intersection(actions, this.itemActions(this.items[i]));
           actions = new Set(isection);
         }
-
-        var multiActions;
-
         if (this.items.length > 1) {
-          multiActions = this.actionDetails(Array.from(actions)).filter(function (a) {
+          multiActions = this.actionDetails(Array.from(actions)).filter((a) => {
             return a.multi;
           });
         } else {
@@ -324,8 +322,9 @@ Polymer({
 
   _makeList (items, property) {
     if (items && items.length)
-      return items.map(function (item) {
+      return items.map((item) => {
         return item[property];
       });
+    return [];
   }
 });
