@@ -5,7 +5,7 @@ import '../../node_modules/@polymer/paper-radio-button/paper-radio-button.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
-import { YAML } from '../node_modules/yaml/browser/dist/index.js';
+import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
