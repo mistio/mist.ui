@@ -297,7 +297,7 @@ Polymer({
         }
         if (this.items.length > 1) {
           multiActions = this.actionDetails(Array.from(actions)).filter((a) => {
-            return a.multi;
+          return a.multi;
           });
         } else {
           multiActions = this.actionDetails(Array.from(actions));

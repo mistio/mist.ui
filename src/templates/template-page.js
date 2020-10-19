@@ -13,6 +13,7 @@ import '../app-togglable/app-togglable-list.js';
 import '../tags/tags-list.js';
 import './template-stack-item.js';
 import './template-actions.js';
+import moment from '../../node_modules/moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -455,16 +456,17 @@ Polymer({
       this.vpHeight = `height:${  wh  }px; overflow: auto;`;
   },
 
-  _activated(active) {
+  _activated() {
       this.$.templateActions.fire('update');
   },
 
-  _computeTemplate(id, templates) {
+  _computeTemplate(id) {
       if (this.model.templates)
           return this.model.templates[id];
+      return null;
   },
 
-  _displayUser (id, members) {
+  _displayUser (id) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email : '';
   },
 
@@ -472,7 +474,7 @@ Polymer({
       return moment.utc(date).fromNow();
   },
 
-  _computeHasStacks(stacks) {
+  _computeHasStacks() {
       if (this.stacks) {
           return this.stacks.length > 0;
       } 
@@ -481,13 +483,14 @@ Polymer({
   },
 
   _computeIsInline(source) {
-      return source == 'inline';
+      return source === 'inline';
   },
 
-  _computeTemplateTags (template, templateTags) {
+  _computeTemplateTags () {
       if (this.template) {
           return Object.entries(this.template.tags).map(([key, value]) => ({key,value}));
       }
+      return [];
   },
 
   _class(isinline) {
@@ -499,7 +502,7 @@ Polymer({
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {url: '/stacks/+create', params: {template: this.template._id}} }))
   },
 
-  _handleResponse(e){
+  _handleResponse(){
       // console.log('response',e);
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/templates'} }));
 
@@ -512,29 +515,28 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
           let i;
-      for (i in info) {
+      Object.keys(info).forEach((i) => {
           dialog[i] = info[i];
-      }
+      })
       dialog._openDialog();
   },
 
   _goBack() {
-      history.back();
+      window.history.back();
   },
 
-  toggleAll(e) {
-      const t = e.target;
+  toggleAll() {
       const els = this.shadowRoot.querySelectorAll('app-togglable');
-      [].forEach.call(els, function(el, index) {
+      [].forEach.call(els, (el) => {
           el.open = true;
       });
   },
 
-  _computeIsloading(template) {
+  _computeIsloading() {
       return !this.template;
   },
 
-  _changed(item) {
+  _changed() {
       if (this.template)
           this.set('itemArray', [this.template]);
   }

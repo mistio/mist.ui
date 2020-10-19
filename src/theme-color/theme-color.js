@@ -20,7 +20,7 @@ Polymer({
     observers: [
         'colorContent(color)'
     ],
-    computeTextColor(color) {
+    computeTextColor() {
         return 'rgb(255,255,255)';
         /* if (this.color) {
             var lightness = one.color(this.color).lightness();

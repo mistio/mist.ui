@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
+import { CSRFToken} from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -73,12 +74,13 @@ Polymer({
               description: template.description
           };
       }
+      return {};
   },
 
   _computeFormReady(name, sendingData) {
       let formReady = false;
 
-      if (name && name != "") {
+      if (name && name !== "") {
           formReady = true;
       }
 
@@ -89,11 +91,11 @@ Polymer({
       return formReady;
   },
 
-  _openEditTemplateModal(e) {
+  _openEditTemplateModal() {
       this.$.editTemplateModal.opened = true;
   },
 
-  _closeEditTemplateModal(e) {
+  _closeEditTemplateModal() {
       this.$.editTemplateModal.opened = false;
   },
 
@@ -101,9 +103,9 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm() {
       this.$.editTemplateAjax.headers["Content-Type"] = 'application/json';
-      this.$.editTemplateAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.editTemplateAjax.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editTemplateAjax.body = {                     
           name: this.newTemplate.name,
           description: this.newTemplate.description
@@ -116,7 +118,7 @@ Polymer({
       this._computeNewTemplate(this.template);
   },
 
-  _editTemplateAjax(e) {
+  _editTemplateAjax() {
       console.log('edit', this.$.editTemplateAjax);
   },
 
@@ -124,7 +126,7 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _editTemplateResponse(e) {
+  _editTemplateResponse() {
       this.set('sendingData', false);
   }
 });

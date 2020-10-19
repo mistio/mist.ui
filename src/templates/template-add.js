@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-radio-button/paper-radio-button.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
+import { YAML } from '../node_modules/yaml/browser/dist/index.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -285,14 +286,14 @@ Polymer({
       const response = YAML.parse(e.detail.xhr.response);
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/templates/${  response.id}`} }));
 
-      this.debounce('resetForm', function() {
+      this.debounce('resetForm', () => {
           this._resetForm();
       }, 500);
 
       this.set('sendingData', false);
   },
 
-  _resetForm(e) {
+  _resetForm() {
       // Reset template
       this.set('selected', -1);
       this.set('template.name', '');
@@ -301,7 +302,7 @@ Polymer({
       this.set('template.inline', '');
 
       // Reset Form Fields
-      this.fields.forEach(function(el, index) {
+      this.fields.forEach((el, index) => {
           if (el.showIf) {
               this.set(`fields.${  index  }.show`, false);
           }
@@ -322,7 +323,7 @@ Polymer({
   },
 
   useCatalogueTemplate(selected){
-      this.fields.forEach(function(f, index){
+      this.fields.forEach((f, index) => {
           const key = f.name;
           if (selected > -1 && this.defaultTemplates[selected][key])
               this.set(`fields.${index}.value`, this.defaultTemplates[selected][key]);
@@ -335,7 +336,7 @@ Polymer({
 
   showWarning(fields) {
       // console.log("fields", fields);
-      if (fields.path == "fields.#8.value") {
+      if (fields.path === "fields.#8.value") {
           if (fields.value){
               this.set('fields.#8.warning', 'Allowing the team to run this template as owner');
               this.set('fields.#8.helptext', '');
