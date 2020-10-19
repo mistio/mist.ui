@@ -3,7 +3,7 @@ import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
-import YAML from '../../node_modules/yaml/browser/dist/index.js'
+import { YAML } from '../../node_modules/yaml/browser/dist/index.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
