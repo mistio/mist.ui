@@ -338,10 +338,10 @@ Polymer({
           const {response} = e.detail;
       if (response == 'confirm' && reason == "schedule.delete") {
           this._delete(this.items)
+          window.history.back();
       }
-
-      if (response == 'confirm' && reason == "schedule.run") {
-          this.$.request.url = `/api/v1/schedules/${ this.items[i].id}`
+      if (response == 'confirm' && reason == "schedule.run" && this.items.length === 1) {
+          this.$.request.url = `/api/v1/schedules/${ this.items[0].id}`
           this.$.request.method = "PATCH";
           this.$.request.body = {'run_immediately': true}
           this.$.request.headers["Content-Type"] = 'application/json';

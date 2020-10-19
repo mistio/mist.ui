@@ -434,7 +434,7 @@ Polymer({
                 </template>
             </paper-material>
         </div>
-        <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="xml" url="/api/v1/clouds/[[cloud.id]]" method="POST" on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
+        <iron-ajax id="cloudStateAjaxRequest" loading="{{loading}}" handle-as="json" url="/api/v1/clouds/[[cloud.id]]" method="POST" on-response="_handleCloudStateAjaxResponse" on-error="_handleCloudStateAjaxError"></iron-ajax>
 
         <iron-ajax id="cloudEditDNSAjaxRequest" url="/api/v1/clouds/[[cloud.id]]" handle-as="xml" method="POST" on-response="_handleCloudEditDNSAjaxResponse" on-error="_handleCloudEditDNSAjaxError" loading="{{dnsloading}}"></iron-ajax>
 

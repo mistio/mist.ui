@@ -50,21 +50,24 @@ Polymer({
           this.shadowRoot.querySelector('mist-list').fire('resize');
   },
 
-  _computeMachines (cloud) {
-      if (cloud.provider != "libvirt") {
-          return this.cloud.machines || {};
-      } 
-          // filter kvm hosts and push back to object
-          const ms = Object.values(this.cloud.machines).filter(function(m){
-              return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type == "hypervisor";
-          });
-          const ret = {};
-          for (let i=0; i<ms.length; i++) {
-              ret[ms[i].id] = ms[i];
-          }
-          return ret;
+    _computeMachines (cloud) {
+        if (typeof this.cloud.machines === 'undefined'){
+            return;
+        }
+        if (cloud.provider != "libvirt") {
+            return this.cloud.machines || {};
+        }
+        // filter kvm hosts and push back to object
+        const ms = Object.values(this.cloud.machines).filter((m) => {
+            return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type == "hypervisor";
+        });
+        const ret = {};
+        for (let i=0; i<ms.length; i++) {
+            ret[ms[i].id] = ms[i];
+        }
+        return ret;
       
-  },
+    },
 
   _getFrozenLogColumn(){
       return ['name'];

@@ -3,6 +3,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -84,6 +85,7 @@ Polymer({
               cidrs
           };
       }
+      return {};
   },
 
   _computeFormReady(name, cidrs, sendingData) {
@@ -100,12 +102,12 @@ Polymer({
       return formReady;
   },
 
-  _openEditTunnelModal(e) {
+  _openEditTunnelModal() {
       this.$.editTunnelModal.open();
       this._formReset();
   },
 
-  _closeEditTunnelModal(e) {
+  _closeEditTunnelModal() {
       this.$.editTunnelModal.close();
       this._formReset();
   },
@@ -114,7 +116,7 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm() {
       // var val = this.$.cidrs
       // if (typeof(this.$.cidrs.value) == 'array'){
       //     var cidrs = this.$.cidrs.value;
@@ -123,7 +125,7 @@ Polymer({
       //     var cidrs = this.$.cidrs.value.split('\n');
       // }
       this.$.tunnelEditAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.tunnelEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.tunnelEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.tunnelEditAjaxRequest.body = {
           name: this.newTunnel.name,
           description: this.newTunnel.description,
@@ -153,7 +155,7 @@ Polymer({
       this.set("fail", false);
   },
 
-  _handleTunnelEditAjaxResponse(e) {
+  _handleTunnelEditAjaxResponse() {
       this.set('sendingData', false);
       this._closeEditTunnelModal();
   },

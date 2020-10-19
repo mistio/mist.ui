@@ -926,6 +926,6 @@ Polymer({
   },
 
   _goBack () {
-      history.back();
+      window.history.back();
   }
 });

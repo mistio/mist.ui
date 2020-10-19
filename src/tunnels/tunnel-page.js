@@ -12,6 +12,7 @@ import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
 import './tunnel-edit.js';
 import './tunnel-actions.js';
+import { CSRFToken, itemUid } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -313,7 +314,7 @@ Script:</code></pre>
       'edit': '_editTunnel'
   },
 
-  _clearCommandArea(id){
+  _clearCommandArea(){
       if (this.shadowRoot.querySelector("#tunnelscommand"))
           this.shadowRoot.querySelector("#tunnelscommand").textContent = '';
       if (this.shadowRoot.querySelector("#tunnelscript"))
@@ -329,17 +330,17 @@ Script:</code></pre>
       return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _computeIsInline(location_type) {
-      if (location_type)
-          return location_type == 'inline';
+  _computeIsInline(locationType) {
+      if (locationType)
+          return locationType === 'inline';
       return true;
   },
 
-  _computeTunnelTags (tunnel, tunnelTags) {
+  _computeTunnelTags () {
           return this.tunnel && Object.entries(this.tunnel.tags).map(([key, value]) => ({key,value}));
       },
 
-  _displayUser (id, members) {
+  _displayUser (id) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
@@ -351,7 +352,7 @@ Script:</code></pre>
       el._openDialog();
   },
 
-  _editTunnel(e) {
+  _editTunnel() {
       const el = this.shadowRoot.querySelector('tunnel-edit');
       el._openEditTunnelModal();
   },
@@ -359,27 +360,27 @@ Script:</code></pre>
   _updateScript(e) {
       const {tunnel} = e.detail;
       this.set('tunnel.name', tunnel.name);
-      this.set('script.description', script.description);
+      // this.set('script.description', script.description);
   },
 
   // script
   _requestScript(){
       this.$.scriptAjaxRequest.body = {};
       this.$.scriptAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.scriptAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.scriptAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.scriptAjaxRequest.generateRequest();
   },
 
   _handleScriptAjaxRequest(e){
       console.log(e);
       const {response} = e.detail;
-      if (e.detail.xhr.status == 200){
+      if (e.detail.xhr.status === 200){
           this.$.tunnelscript.textContent = response;
           this.$.copyscript.setAttribute('show', true);
       }
   },
 
-  _handleScriptAjaxError(e){
+  _handleScriptAjaxError(){
 
   },
 
@@ -387,14 +388,14 @@ Script:</code></pre>
   _requestCommand(){
       this.$.commandAjaxRequest.body = {};
       this.$.commandAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.commandAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.commandAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.commandAjaxRequest.generateRequest();
   },
 
   _handleCommandAjaxRequest(e){
       console.log(e);
       const response = e.detail.xhr.responseText;
-      if (e.detail.type != "error"){
+      if (e.detail.type !== "error"){
           this.$.tunnelcommand.textContent = response;
           this.$.copycurl.setAttribute('show', true);
       }
@@ -408,13 +409,13 @@ Script:</code></pre>
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      for (const i in info) {
+      Object.keys(info).forEach((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
-  copyScript(e) {
+  copyScript() {
       this.clearSelection();
       const el = this.$.tunnelscript;
       this.setSelection(el);
@@ -424,7 +425,7 @@ Script:</code></pre>
 
   },
 
-  copyCurl(e) {
+  copyCurl() {
       this.clearSelection();
       const el = this.$.tunnelcommand;
       this.setSelection(el);
@@ -455,18 +456,19 @@ Script:</code></pre>
   },
 
   setSelection(el){
+      let range;
       if (document.selection) {
-          var range = document.body.createTextRange();
-              range.moveToElementText(el);
+          range = document.body.createTextRange();
+          range.moveToElementText(el);
           range.select();
       } else if (window.getSelection) {
-          var range = document.createRange();
+          range = document.createRange();
           range.selectNode(el);
           window.getSelection().addRange(range);
       }
   },
 
-  _computeIsloading(tunnel) {
+  _computeIsloading() {
       return !this.tunnel;
   }
 });

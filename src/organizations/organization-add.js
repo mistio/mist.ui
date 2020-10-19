@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -136,7 +137,7 @@ Polymer({
 
   _submitForm() {
       this.$.organizationAddAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.organizationAddAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.organizationAddAjaxRequest.body = {
           name: this.newOrganization.name,
           super_org: this.newOrganization.super_org
