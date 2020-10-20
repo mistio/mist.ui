@@ -165,15 +165,15 @@ Polymer({
       // case of changing identifier-type 
       if (e.detail.item.attributes.class.nodeValue.indexOf('identifier-type') > -1) {
           const identifierType = e.detail.item.dataset.value.toLowerCase();
-          if (identifierType == 'tags') {
+          if (identifierType === 'tags') {
               this.set('showDropDown', false);
               this.set('showTags', true);
-              if (this.tags.length == 0) {
+              if (this.tags.length === 0) {
                   this.set('showEdit', true);
                   // this.dispatchEvent(new CustomEvent('update-rid', { bubbles: true, composed: true, detail: {'index': this.index, 'rid': ''} }));
 
               }
-          } else if (identifierType == 'id') {
+          } else if (identifierType === 'id') {
               this.set('showDropDown', true);
               this.set('showTags', false);
               // this.dispatchEvent(new CustomEvent('update-rtags', { bubbles: true, composed: true, detail: {'index': this.index, 'rtags': {}} }));
@@ -201,7 +201,7 @@ Polymer({
       }
   },
 
-  _ruleHasTags(rule, tags) {
+  _ruleHasTags(rule, _tags) {
       if (Object.keys(rule.rtags).length > 0)
           this.showTags = true;
       return Object.keys(rule.rtags).length > 0;
@@ -227,13 +227,14 @@ Polymer({
   },
 
   _computeLink(type, id) {
-      if (type && id && type != "cloud") {
+      if (type && id && type !== "cloud") {
           return false;
-      } if (type == "cloud" && id) {
+      } if (type === "cloud" && id) {
           return this.model.clouds[id].title;
-      } if (type == "cloud" && !id) {
+      } if (type === "cloud" && !id) {
           return 'all clouds';
       }
+      return false;
   },
 
   _computeResourceName(type, id) {
@@ -241,35 +242,37 @@ Polymer({
           const mod = this.model[`${type  }s`];
           return mod[id].name;
       }
+      return "";
   },
 
-  _computeSelectedIdentifierType(rule, rtags, rid) {
+  _computeSelectedIdentifierType(_rule, _rtags, _rid) {
       if (this.rule && this.rule.rid && this.rule.rid.length > 0) {
           return 1;
       } if (this.rule && this.rule.rtags) {
           return Object.keys(this.rule.rtags).length > 0 ? 2 : 0;
       }
+      return 0;
   },
 
   _computeRecords() {
       const allRecords = [];
-      Object.values(this.model.zones).forEach(function(zone) {
-          zone.records.forEach(function(record) {
+      Object.values(this.model.zones).forEach((zone) => {
+          zone.records.forEach((record) => {
               allRecords.push(record);
           })
       });
       return allRecords;
   },
 
-  _computeAvailableResourceItems(rtype, model) {
+  _computeAvailableResourceItems(rtype, _model) {
       if (rtype) {
-          if (rtype == 'location') {
+          if (rtype === 'location') {
               let allLocations = []
-              Object.values(this.model.clouds || {}).forEach(function(cloud) {
+              Object.values(this.model.clouds || {}).forEach((cloud) => {
                  allLocations = allLocations.concat(Object.values(cloud.locations || {}));
               });
               return allLocations;
-          } if (rtype == 'record') {
+          } if (rtype === 'record') {
               const records = this._computeRecords();
               this.set('placeholder', records.length ? "" : "no zones found");
               return records;
@@ -278,6 +281,7 @@ Polymer({
               return Object.values(this.model[`${rtype  }s`]);
           }
       }
+      return [];
   },
 
   _toggleShowEdit() {
@@ -287,9 +291,9 @@ Polymer({
   _updateTags() {
       const tagArr = this.$.inputField.value.split(',');
       const newRtags = {};
-      tagArr.forEach(function(t) {
+      tagArr.forEach((t) => {
           const k = t.split("=")[0].replace(' ', '').trim();
-          if (k != '') {
+          if (k !== '') {
               const v = t.split("=")[1] ? t.split("=")[1].trim() : null;
               newRtags[k] = v;
           }
@@ -304,7 +308,7 @@ Polymer({
 
   _deleteTag(e) {
       const tag = e.detail.sourceEvent.path[1].textContent.split('=')[0].trim();
-      const index = e.detail.sourceEvent.path[0].id.split('-')[1];
+      // const index = e.detail.sourceEvent.path[0].id.split('-')[1];
       this.dispatchEvent(new CustomEvent('delete-rtag', { bubbles: true, composed: true, detail: {
           'index': this.index,
           'tag': tag

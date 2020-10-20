@@ -93,10 +93,10 @@ Polymer({
 
   },
 
-  _computeTeam(params, teamsArray) {
+  _computeTeam(params, _teamsArray) {
       if (params) {
-          const team = this.model.teamsArray.find(function(t) {
-              return t.id == params.team
+          const team = this.model.teamsArray.find((t) => {
+              return t.id === params.team
           });
           if (team) {
               return team;
@@ -106,13 +106,14 @@ Polymer({
               };
           
       }
+      return null;
   },
 
   _addMembersRequest() {
       this.set('sendingData', true);
   },
 
-  _addMembersResponse(e) {
+  _addMembersResponse(_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/teams/${  this.team.id}` } }));
 
       this.set('sendingData', false);

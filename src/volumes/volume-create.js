@@ -730,7 +730,7 @@ Polymer({
               this._updateLXDStoragePools(cloudId);
           }
 
-          this.fields.forEach(function (f){
+          this.fields.forEach((f) => {
               if (f.name.endsWith("location")) {
                   let locations = this.model.clouds[cloudId].locationsArray.slice();
                   if (locations.length === 1 && locations[0].name === '') {
@@ -756,7 +756,7 @@ Polymer({
                   }
                   f.options = locations;
               }
-          }.bind(this));
+          }, this);
       }
   },
 

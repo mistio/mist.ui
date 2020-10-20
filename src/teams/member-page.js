@@ -8,6 +8,7 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '../helpers/dialog-element.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
@@ -300,19 +301,20 @@ Polymer({
       'updateSelectedMember': '_updateMember'
   },
 
-  _computeMember(params, members) {
-      return this.model.membersArray.find(function(member) {
-          return params && member.id == params.member;
+  _computeMember(params, _members) {
+      return this.model.membersArray.find((member) => {
+          return params && member.id === params.member;
       }, this);
   },
 
-  _computeTeams(member, teams) {
+  _computeTeams(_member, _teams) {
       if (this.member) {
-          const memberTeams = this.model.teamsArray.filter(function(t, index) {
+          const memberTeams = this.model.teamsArray.filter((t) => {
               return t.members.indexOf(this.member.id) > -1;
           }, this);
           return memberTeams;
       }
+      return [];
   },
 
   _computeResourceFilter(member) {
@@ -322,7 +324,7 @@ Polymer({
       return `user_id:${  member.id}`;
   },
 
-  _addMemberToTeam(e) {
+  _addMemberToTeam(_e) {
       // page.show('/add-member-to-a-team/' + this.member.id);
   },
 
@@ -332,7 +334,7 @@ Polymer({
       this.set('member.description', team.description);
   },
 
-  _deleteMember(e) {
+  _deleteMember(_e) {
       this._showDialog({
           title: `Delete ${  this.member.name  } ?`,
           body: "Deleting a member will also remove the member from all the teams they participate in",
@@ -345,9 +347,9 @@ Polymer({
       const {reason} = e.detail;
           const {response} = e.detail;
 
-      if (response == 'confirm' && reason == "delete_member") {
-          this.memberTeams.forEach(function(t) {
-              this.async(function() {
+      if (response === 'confirm' && reason === "delete_member") {
+          this.memberTeams.forEach((t) => {
+              this.async(() => {
                   this.set('teamId', t.id);
                   this.deleteMemberRequest(t.id);
               }, 50, this)
@@ -359,13 +361,13 @@ Polymer({
       console.log("TEAMS", team)
       this.$.deleteMember.body = {};
       this.$.deleteMember.headers["Content-Type"] = 'application/json';
-      this.$.deleteMember.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.deleteMember.headers["Csrf-Token"] = CSRFToken.value;
       this.$.deleteMember.generateRequest();
   },
 
-  _deleteMemberResponseAjax(e) {
+  _deleteMemberResponseAjax(_e) {
       // if user was in one single team return there, else in teams
-      if (this.memberTeams && this.memberTeams.length == 1) {
+      if (this.memberTeams && this.memberTeams.length === 1) {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/teams/${  this.memberTeams[0].id}` } }));
 
       } else {
@@ -376,10 +378,9 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-          let i;
-      for (i in info) {
+      Object.keys(info || {}).forEach((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 

@@ -269,20 +269,20 @@ Polymer({
   listeners: {},
 
   _computeToggle(operator) {
-      return operator == 'ALLOW';
+      return operator === 'ALLOW';
   },
 
   _getResources() {
       const ret = [];
       ret.push("ALL");
-      for (const perm in this.model.permissions) {
+      Object.keys(this.model.permissions || {}).forEach((perm) => {
           ret.push(perm.toUpperCase());
-      }
+      });
       return ret;
   },
 
-  _changeOperator(e) {
-      const newOp = this.rule.operator == "DENY" ? 'ALLOW' : "DENY";
+  _changeOperator(_e) {
+      const newOp = this.rule.operator === "DENY" ? 'ALLOW' : "DENY";
       // this.set('rule.operator', newOp)
       this.dispatchEvent(new CustomEvent('update-operator', { bubbles: true, composed: true, detail:  { index: this.index, operator: newOp } }));
   },
@@ -292,11 +292,11 @@ Polymer({
       return type && type.toUpperCase() || 'ALL';
   },
 
-  _computeActions(index, rtype, modelpermissions) {
+  _computeActions(_index, rtype, _modelpermissions) {
       const type = rtype && rtype.toLowerCase();
           let perm = [];
 
-      if (type != '' && type != 'all' && type != 'ALL') {
+      if (type !== '' && type !== 'all' && type !== 'ALL') {
           perm = ['ALL'].concat(this.model.permissions[type]);
       } else {
           perm = ['ALL'].concat(this.commonPermissions);
@@ -306,7 +306,7 @@ Polymer({
   },
 
   _checkIfActionValid(perm) {
-      if (this.rule && this.rule.action && this.rule.action.length && perm.indexOf(this.rule.action) == -1) {
+      if (this.rule && this.rule.action && this.rule.action.length && perm.indexOf(this.rule.action) === -1) {
           this.set('rule.action', '');
       }
   },
@@ -322,20 +322,20 @@ Polymer({
       return item;
   },
 
-  _deleteRule(e) {
+  _deleteRule() {
       this.dispatchEvent(new CustomEvent('delete-rule', { bubbles: true, composed: true, detail:  { index: this.index, rule: this.rule } }));
   },
 
   selectType(e) {
       const t = e.detail.item.value.toLowerCase();
-      if (this.rule.rtype != t && this.rule.rid != '') {
+      if (this.rule.rtype !== t && this.rule.rid !== '') {
           this.set('rule.rid', '')
       }
-      this.dispatchEvent(new CustomEvent('update-rtype', { bubbles: true, composed: true, detail: { index: this.index, type: t != 'all' ? t : '' } }));
+      this.dispatchEvent(new CustomEvent('update-rtype', { bubbles: true, composed: true, detail: { index: this.index, type: t !== 'all' ? t : '' } }));
   },
 
   selectAction(e) {
       const a = e.detail.item.value.toLowerCase();
-      this.dispatchEvent(new CustomEvent('update-raction', { bubbles: true, composed: true, detail: { index: this.index, action: a != 'all' ? a : '' } }));
+      this.dispatchEvent(new CustomEvent('update-raction', { bubbles: true, composed: true, detail: { index: this.index, action: a !== 'all' ? a : '' } }));
   }
 });

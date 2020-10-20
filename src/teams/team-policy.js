@@ -384,23 +384,23 @@ Polymer({
           // copy the rules array to a new array by
           // clean copy of items
           const newArr = [];
-          this.team.policy.rules.forEach(function(rule, i) {
+          this.team.policy.rules.forEach((rule, i) => {
               const cleanCopy = {};
               Object.keys(rule || {}).forEach((p) => {
                   cleanCopy[p] = this._cleanCopy(rule[p], p);
               });
               newArr[i] = cleanCopy;
-          }.bind(this));
+          }, this);
           const cleanCopyRules = newArr.slice(0);
           this.set("rules", cleanCopyRules);
 
           this.set('sendingData', true);
           this.$.rulesrepeat.items = [];
 
-          this.async(function() {
+          this.async(() => {
               this.$.rulesrepeat.items = this.rules;
               this.set('sendingData', false);
-          }.bind(this), 10);
+          }, 10, this);
       }
   },
 
@@ -512,13 +512,13 @@ Polymer({
 
   _resetForm() {
       const newArr = [];
-      this.team.policy.rules.forEach(function(rule, i) {
+      this.team.policy.rules.forEach((rule, i) => {
           const cleanCopy = {};
           Object.keys(rule || {}).forEach((p) => {
               cleanCopy[p] = this._cleanCopy(rule[p]);
           });
           newArr[i] = cleanCopy;
-      }.bind(this));
+      }, this);
       const cleanCopyRules = newArr.slice(0);
       this.set("rules", cleanCopyRules);
 
@@ -533,10 +533,10 @@ Polymer({
       this.set('sendingData', true);
       this.$.rulesrepeat.items = [];
 
-      this.async(function() {
+      this.async(() => {
           this.$.rulesrepeat.items = this.rules;
           this.set('sendingData', false);
-      }.bind(this), 10);
+      }, 10, this); 
 
       this._rulesChanged();
   },

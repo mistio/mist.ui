@@ -134,9 +134,10 @@ Polymer({
 
   _computeMember(params, membersArray) {
       if (params && membersArray) {
+          let member;
           if (this.model && this.model.membersArray) {
-              var member = this.model.membersArray.find(function(m){
-                  return m.id == params.id
+              member = this.model.membersArray.find(function(m){
+                  return m.id === params.id
               });
           }
           if (member){
@@ -147,7 +148,8 @@ Polymer({
                   name: "member not found"
               };
           
-      }
+        }
+        return {name: "member not found"};
   },
 
   updateSelectedTeams(e){
@@ -173,10 +175,10 @@ Polymer({
           'emails' : this.member.email
       };
       this.$.formAjax.headers["Content-Type"] = 'application/json';
-      this.$.formAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.formAjax.headers["Csrf-Token"] = CSRFToken.value;
 
-      this.async(function(){
-          this.selectedTeams.forEach(function(t){
+      this.async(() => {
+          this.selectedTeams.forEach((t) => {
               this.set('teamId', t);
               this.$.formAjax.generateRequest();
           }, this);
@@ -184,18 +186,18 @@ Polymer({
 
   },
 
-  _handleResponse(e) {
+  _handleResponse(_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/members/${this.member.id}`} }));
 
       this.set('sendingData', false);
   },
 
-  _handleError(e){
+  _handleError(_e){
       this.set('formError', true);
       console.log('member add in teams error');
   },
 
-  _memberIsInTeam(team, member){
+  _memberIsInTeam(team, _member){
       if (this.member) {
           const index = this.model.teams[team].members.indexOf(this.member.id);
           // console.log(index, team);

@@ -133,7 +133,7 @@ Polymer({
       'confirmation': '_updateRuleConstraints'
   },
 
-  _computeShowConstraints(rule) {
+  _computeShowConstraints(_prule) {
       // emty strings for ALL
       return ["machine", ""].indexOf(this.rule.rtype) > -1 && ["create","edit","resize",""].indexOf(this.rule.action)>-1;
   },
@@ -149,7 +149,7 @@ Polymer({
       return !!(constraints && Object.keys(constraints).length);
   },
 
-  editConstraints(e) {
+  editConstraints(_e) {
       this.error = "";
       this._mapValuesToFields();
       this._showDialog({
@@ -164,9 +164,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element#editConstraints');
       if (info) {
-          for (const i in info) {
+          Object.keys(info || {}).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -175,7 +175,7 @@ Polymer({
       // update rule.constraints
       const {reason} = e.detail;
           const {response} = e.detail;
-      if (response == 'confirm' && reason == "edit.constraints") {
+      if (response === 'confirm' && reason === "edit.constraints") {
           const newConstraints = this.fields[0].value;
           this.dispatchEvent(new CustomEvent('update-constraints', 
               { bubbles: true, composed: true, detail: { index: this.index, constraints: newConstraints}}));
