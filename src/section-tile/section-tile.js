@@ -154,9 +154,9 @@ Polymer({
   attached() {
       const tiles = this.parentNode.querySelectorAll('section-tile');
       const index = Array.prototype.indexOf.call(tiles, this);
-      setTimeout(function() {
+      setTimeout(() => {
           this.classList.add('active');
-      }.bind(this), (index + 1) * 500);
+      }, (index + 1) * 500);
   },
 
   _computeHasIcon (icon) {
