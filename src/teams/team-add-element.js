@@ -140,14 +140,14 @@ Polymer({
   },
 
   _computeType(type, value) {
-      return type == value;
+      return type === value;
   },
 
   _computeDanger(danger) {
       return danger;
   },
 
-  _closeDialog(e) {
+  _closeDialog() {
       this._clearError();
       document.querySelector('vaadin-dialog-overlay').opened = false;
       this._formReset();
@@ -177,7 +177,7 @@ Polymer({
       this.set('sendingData', false);
       document.querySelector('vaadin-dialog-overlay').opened = false;
 
-      if (this.referral && this.referral == "onb") {
+      if (this.referral && this.referral === "onb") {
           this.dispatchEvent(new CustomEvent("new-team-added", { bubbles: true, composed: true, detail:  JSON.parse(e.detail.xhr.response).name }));
       }
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: `New team ${  JSON.parse(e.detail.xhr.response).name  } added succesfully.`, duration: 3000 } }));

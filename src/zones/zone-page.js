@@ -434,13 +434,14 @@ Polymer({
         'tags': {
               'body': (item) => {
                   const tags = item;
-                      let display = "";
+                  let display = "";
+                  if(tags){
                   Object.keys(tags).forEach( (key) => {
                       display += `<span class='tag'>${  key}`;
                       if (tags[key] !== undefined && tags[key] !== "")
                           display += `=${  tags[key]}`;
                       display += "</span>";
-                  });
+                  });}
                   return display;
               }
           }

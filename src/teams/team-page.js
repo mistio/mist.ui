@@ -443,7 +443,7 @@ Polymer({
       this.vpHeight = `height:${  wh  }px; overflow: auto;`;
   },
 
-  _displayUser(id, members) {
+  _displayUser(id) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
@@ -455,17 +455,18 @@ Polymer({
   _getFormattedTimestamp(team) {
       if (this.team) {
           console.log('team.created_at', team.created_at);
-          const timestamp = parseInt(team.created_at);
+          const timestamp = parseInt(team.created_at, 10);
           return Date(timestamp).toLocaleString('en-US', {
               timeZoneName: 'short'
           });
           // return moment(timestamp).isValid() ? moment.utc(timestamp).local().format("MMMM D YYYY HH:mm:ss") : "";
-      } 
+      }
+      return null;
   },
 
   _hasOnlyYou(team) {
-      if (team && team.members && team.members.length == 1 && (team.members[0].email == this.model
-          .user.email || team.members[0].username == this.model.user.username)) {
+      if (team && team.members && team.members.length === 1 && (team.members[0].email === this.model
+          .user.email || team.members[0].username === this.model.user.username)) {
           return true;
       } 
           return false;
@@ -486,13 +487,12 @@ Polymer({
   },
 
   _computeMembers(team, teamMembers, members) {
-      var teamMembers = [];
-          const pendingMembers = [];
-          const confirmedMembers = [];
+      const pendingMembers = [];
+      const confirmedMembers = [];
 
       if (team && team.members && teamMembers && members) {
           // TODO: teamMembers calculate
-          team.members.forEach(function(member) {
+          team.members.forEach((member) => {
               if (members.base[member] && members.base[member].pending) {
                   pendingMembers.push(members.base[member]);
               } else {
@@ -530,7 +530,7 @@ Polymer({
       }))
   },
 
-  _deleteTeam(e) {
+  _deleteTeam() {
       this._showDialog({
           title: 'Delete Team?',
           body: `Deleting teams cannot be undone. You are about to delete team: ${ 
@@ -544,13 +544,13 @@ Polymer({
       const {reason} = e.detail;
           const {response} = e.detail;
 
-      if (response == 'confirm' && reason == "team.delete") {
+      if (response === 'confirm' && reason === "team.delete") {
           this.$.teamDeleteAjaxRequest.body = {};
           this.$.teamDeleteAjaxRequest.headers["Content-Type"] = 'application/json';
           this.$.teamDeleteAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.teamDeleteAjaxRequest.generateRequest();
       }
-      if (response == 'confirm' && reason == "member.delete") {
+      if (response === 'confirm' && reason === "member.delete") {
           this.$.deleteMember.body = {};
           this.$.deleteMember.headers["Content-Type"] = 'application/json';
           this.$.deleteMember.headers["Csrf-Token"] = CSRFToken.value;
@@ -558,7 +558,7 @@ Polymer({
       }
   },
 
-  _handleTeamDeleteAjaxResponse(e) {
+  _handleTeamDeleteAjaxResponse() {
       this.dispatchEvent(new CustomEvent('go-to', {
           bubbles: true,
           composed: true,
@@ -641,27 +641,29 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      for (const i in info) {
+      Object.keys(info || {}).forEach((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
-  _computeIsloading(team) {
+  _computeIsloading() {
       return !this.team;
   },
 
-  _computeIsOwners(team) {
+  _computeIsOwners() {
       if (this.team)
-          return this.team.name == "Owners";
+          return this.team.name === "Owners";
+      return false;
   },
 
   _showMessage(rbac, billing) {
       if (this.team)
           return !rbac && !billing;
+      return false;
   },
 
   isEqual(a,b) {
-      return a == b;
+      return a === b;
   }
 });

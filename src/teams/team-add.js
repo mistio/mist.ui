@@ -38,7 +38,7 @@ Polymer({
       }
   },
 
-  openDialog(e) {
+  openDialog() {
       this.$.teamAddModal.opened = true;
   }
 });

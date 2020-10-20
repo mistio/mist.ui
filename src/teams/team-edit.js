@@ -4,6 +4,7 @@ import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -97,17 +98,17 @@ Polymer({
 
   _computeFormReady(name, desc, visible, sendingData) {
       let formReady = true;
-      if (!name || !name.length || (name == this.team.name && desc == this.team.description && visible == this.team.visible) || sendingData) {
+      if (!name || !name.length || (name === this.team.name && desc === this.team.description && visible === this.team.visible) || sendingData) {
           formReady = false;
       }
       this.set('formReady', formReady);
   },
 
-  _openEditTeamModal(e) {
+  _openEditTeamModal() {
       this.$.editTeamModal.opened = true;
   },
 
-  _closeEditTeamModal(e) {
+  _closeEditTeamModal() {
       this.$.editTeamModal.opened = false;
   },
 
@@ -115,9 +116,9 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm() {
       this.$.teamEditAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.teamEditAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.teamEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.teamEditAjaxRequest.body = {
           'new_name': this.newTeam.name,
           'new_description': this.newTeam.description,
@@ -130,7 +131,7 @@ Polymer({
 
   _formReset() {
       const newTeam = {};
-      for (const p in this.team) {
+      Object.keys(this.team || {}).forEach((p) => {
           if (typeof this.team[p] === 'string') {
               const initial = this.team[p];
               const str = initial.slice(0);
@@ -139,11 +140,11 @@ Polymer({
           if (typeof this.team[p] === 'boolean') {
               newTeam[p] = !!this.team[p];
           }
-      }
+      });
       this.set('newTeam', newTeam);
   },
 
-  _handleTeamEditAjaxResponse(e) {
+  _handleTeamEditAjaxResponse() {
       this.set('sendingData', false);
       this._closeEditTeamModal();
   }

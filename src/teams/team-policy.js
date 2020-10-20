@@ -333,25 +333,18 @@ Polymer({
       'update-operator': '_updateOperator',
       'update-constraints': '_updateConstraints'
   },
-
-  attached() {
-    //   let el = document.getElementById("rules");
-    //   let sortable = Sortable.create(el);
-  },
-
-    _computeCommonPermissions(model) {
+    _computeCommonPermissions() {
         let commonPermissions = this.model.permissions.cloud;
         const that = this;
-        Object.keys(this.model.permissions).forEach(function(t) {
+        Object.keys(this.model.permissions).forEach((t) => {
             const s = new Set(commonPermissions);
             commonPermissions = intersection(s, that.model.permissions[t]);
         });
         return Array.from(commonPermissions);
     },
 
-  _draggingChanged(newDragging, oldDragging) {
+  _draggingChanged(newDragging) {
       if (newDragging === true) {
-          const el = this.$.ruleHead;
           this.$.ruleHead.remove();
           this.ruleHasChanges();
       }
@@ -365,8 +358,8 @@ Polymer({
       console.log('policy finish', event);
       const newOrder = [];
       const elements = this.shadowRoot.querySelector('sortable-list').querySelectorAll('rbac-rule-item');
-          elements.forEach(function(el){
-              newOrder.push(parseInt(el.shadowRoot.querySelector('.index').textContent.trim().replace('.','')));
+          elements.forEach((el) => {
+              newOrder.push(parseInt(el.shadowRoot.querySelector('.index').textContent.trim().replace('.',''), 10));
           });
       this._applyReordering(newOrder);
   },
@@ -381,7 +374,7 @@ Polymer({
       this._submitForm();
   },
 
-  _teamChanged(team, rules, teams) {
+  _teamChanged() {
       // copy default operator to a new string
       if (this.team && this.team.policy) {
           const initialOp = this.team.policy.operator;
@@ -393,9 +386,9 @@ Polymer({
           const newArr = [];
           this.team.policy.rules.forEach(function(rule, i) {
               const cleanCopy = {};
-              for (const p in rule) {
+              Object.keys(rule || {}).forEach((p) => {
                   cleanCopy[p] = this._cleanCopy(rule[p], p);
-              }
+              });
               newArr[i] = cleanCopy;
           }.bind(this));
           const cleanCopyRules = newArr.slice(0);
@@ -426,9 +419,9 @@ Polymer({
               }
           } else {
               newValue = {};
-              for (const q in value) {
+              Object.keys(value || {}).forEach((q) => {
                   newValue[q] = this._cleanCopy(value[q], q);
-              }
+              })
           }
       } else {
           newValue = value;
@@ -436,10 +429,10 @@ Polymer({
       return newValue;
   },
 
-  _rulesChanged(rules, defaultOperator) {
+  _rulesChanged() {
       if (this.team) {
           console.log(this.team.policy.rules, this.rules);
-          if (JSON.stringify(this.team.policy.rules) != JSON.stringify(this.rules) || this.defaultOperator !=
+          if (JSON.stringify(this.team.policy.rules) !== JSON.stringify(this.rules) || this.defaultOperator !==
               this.team.policy.operator) {
               this.set('formReady', true);
           } else {
@@ -449,26 +442,27 @@ Polymer({
   },
 
   _computeToggle(operator) {
-      return operator == 'ALLOW';
+      return operator === 'ALLOW';
   },
 
   _computeDisabled(name) {
-      return name == 'Owners';
+      return name === 'Owners';
   },
 
   _deleteRtag(e) {
       const ind = e.detail.index;
-          const {tag} = e.detail;
+      const {tag} = e.detail;
       // clean copy rules
       const rtags = {};
-      for (const p in this.rules[ind].rtags) {
+      let copy;
+      Object.keys(this.rules[ind].rtags || {})((p) => {
           if (this.rules[ind].rtags[p] && this.rules[ind].rtags[p] != null)
-              var copy = this.rules[ind].rtags[p].slice(0);
+              copy = this.rules[ind].rtags[p].slice(0);
           else {
               copy = null;
           }
           rtags[p] = copy;
-      }
+      });
       delete rtags[tag];
       this.set(`rules.${  ind  }.rtags`, rtags);
       this.ruleHasChanges();
@@ -491,7 +485,7 @@ Polymer({
       this.ruleHasChanges();
   },
 
-  _addRule(e) {
+  _addRule() {
       const emptyRuleObj = {
           action: '',
           operator: 'DENY',
@@ -506,13 +500,12 @@ Polymer({
 
   _deleteRule(e) {
       const {index} = e.detail;
-          const {rule} = e.detail;
       this.splice('rules', index, 1);
       this.ruleHasChanges();
   },
 
-  _changeDefaultOperator(e) {
-      const newOp = this.defaultOperator == "DENY" ? 'ALLOW' : "DENY";
+  _changeDefaultOperator() {
+      const newOp = this.defaultOperator === "DENY" ? 'ALLOW' : "DENY";
       this.set('defaultOperator', newOp);
       this.ruleHasChanges();
   },
@@ -521,9 +514,9 @@ Polymer({
       const newArr = [];
       this.team.policy.rules.forEach(function(rule, i) {
           const cleanCopy = {};
-          for (const p in rule) {
+          Object.keys(rule || {}).forEach((p) => {
               cleanCopy[p] = this._cleanCopy(rule[p]);
-          }
+          });
           newArr[i] = cleanCopy;
       }.bind(this));
       const cleanCopyRules = newArr.slice(0);
@@ -564,7 +557,7 @@ Polymer({
 
   },
 
-  _handleResponse(e) {
+  _handleResponse() {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Team policy updated successfully.',
           duration: 3000
@@ -573,7 +566,7 @@ Polymer({
       this.set('formReady', false);
   },
 
-  _handleError(e, d) {
+  _handleError(e) {
       this.set('formError', true);
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   },

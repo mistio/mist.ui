@@ -6,7 +6,6 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
 import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
-import './team-actions.js';
 import './team-edit.js';
 import './team-policy.js';
 import { CSRFToken, intersection } from '../helpers/utils.js';
@@ -98,7 +97,7 @@ Polymer({
       const arr = [];
       if (team) {
           arr.push('invite');
-          if (team.name != 'Owners') {
+          if (team.name !== 'Owners') {
               arr.push('edit');
               arr.push('delete');
           }
@@ -129,9 +128,9 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      for (const i in info) {
+      Object.keys(info || {})((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
@@ -145,9 +144,9 @@ Polymer({
           const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && action.name != 'tag') {
-              const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-                  const plural = this.items.length == 1 ? '' : 's';
+          if (action.confirm && action.name !== 'tag') {
+              const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
+                  const plural = this.items.length === 1 ? '' : 's';
                   const count = this.items.length > 1 ? `${this.items.length  } ` : '';
               // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
               this._showDialog({
@@ -158,7 +157,7 @@ Polymer({
                   danger: true,
                   reason: `${this.type  }.${  this.action.name}`
               });
-          } else if (action.name == "tag") {
+          } else if (action.name === "tag") {
               this.$.tagsdialog._openDialog();
           } else {
               this.performAction(this.action, this.items);
@@ -166,28 +165,28 @@ Polymer({
       }
   },
 
-  performAction(action, items) {
-      if (action.name == 'delete') {
+  performAction(action) {
+      if (action.name === 'delete') {
           this._delete();
-      } else if (action.name == 'edit') {
+      } else if (action.name === 'edit') {
           this._edit();
-      } else if (action.name == 'invite') {
+      } else if (action.name === 'invite') {
           this._invite();
       }
   },
 
-  handleResponse(e) {
+  handleResponse() {
       if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Action: ${  this.$.request.body.action  } successfull`, duration: 3000 } }));
   },
 
-  _mapPolicyToActions(items) {
+  _mapPolicyToActions() {
       // recompute the actions array property as the intersection
       // of the available actions of the selected items
       this.set('actions', []);
       let actions = new Set();
-          let isection = new Set();
-
+      let isection = new Set();
+      let multiActions = [];
       if (this.items.length > 0) {
           console.log(this.items[0], this.items.length);
           actions = new Set(this.itemActions(this.items[0]) || []);
@@ -197,10 +196,8 @@ Polymer({
               actions = new Set(isection);
           }
 
-          var multiActions;
-
           if (this.items.length > 1) {
-              multiActions = this.actionDetails(Array.from(actions)).filter(function(a) {
+              multiActions = this.actionDetails(Array.from(actions)).filter((a) => {
                   return a.multi;
               });
           } else {
@@ -217,22 +214,23 @@ Polymer({
 
   _makeList(items, property) {
       if (items && items.length)
-          return items.map(function(item) {
+          return items.map((item) => {
               return item[property];
           });
+      return [];
   },
 
-  _invite(e) {
+  _invite() {
       const that = this;
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/teams/${  that.items[0].id  }/+add`} }));
   },
 
-  _edit(e) {
+  _edit() {
       const el = this.shadowRoot.querySelector('team-edit');
       el._openEditTeamModal();
   },
 
-  _computeTeam(items) {
+  _computeTeam() {
       return this.items && this.items[0];
   }
 });
