@@ -188,7 +188,7 @@ Polymer({
     ready(){
     },
 
-    _openDialog(e) {
+    _openDialog(_e) {
         this.shadowRoot.querySelector('vaadin-dialog').opened = true;
     },
 
@@ -196,44 +196,44 @@ Polymer({
         this.shadowRoot.querySelector('vaadin-dialog').opened = false;
     },
 
-    _modalReset(e) {
+    _modalReset(_e) {
         this.set('tagsToDelete', []);
         this.set('showProgress', false);
         this.set('hasError', false);
         this.errormsg = '';
     },
 
-    _computeExistingTags(model) {
+    _computeExistingTags(_model) {
         let existingTags = [];
         if (this.model) {
             // loop in taggable resources
-            for (const resources in this.model) {
+            Object.keys(this.model).forEach((resources) => {
                 if (['machines', 'clouds', 'stacks', 'volumes', 'networks', 'zones', 'keys', 'images', 'scripts', 'templates', 'schedules', 'schedules', 'teams'].indexOf(resources) > -1) {
                     // loop in resources items
-                    for (const id in this.model[resources]) {
+                    Object.keys(this.model[resources] || {}).forEach((id) => {
                         // loop in resources items with tags
                         if (this.model[resources][id] && this.model[resources][id].tags && Object.keys(this.model[resources][id].tags).length > 0) {
                             existingTags = this._addTags(existingTags, this.model[resources][id].tags);
                         }
-                    }
+                    });
                 }
-            }
+            });
         }
         return existingTags;
     },
 
-    _computeExistingTagKeys(existingTags) {
+    _computeExistingTagKeys(_existingTags) {
         if (this.existingTags) {
-            return this.existingTags.map(t=>Object.keys(t).join()).filter(function(v,i,s){
+            return this.existingTags.map(t=>Object.keys(t).join()).filter((v,i,s) => {
                 return s.indexOf(v) === i;
             });
         }
         return [];
     },
 
-    _computeExistingTagValues(existingTags) {
+    _computeExistingTagValues(_existingTags) {
         if (this.existingTags) {
-            return this.existingTags.map(t=>Object.values(t).join()).filter(function(v,i,s){return v && s.indexOf(v) === i;});
+            return this.existingTags.map(t=>Object.values(t).join()).filter((v,i,s) => {return v && s.indexOf(v) === i;});
         }
         return [];
     },
@@ -241,31 +241,32 @@ Polymer({
     _addTags(arr, tags){
         if (arr && tags) {
             const keys = arr.map(tag => Object.keys(tag).join()) || [];
-            for (const p in tags) {
+            Object.keys(tags).forEach((p) => {
                 const index = keys.indexOf(p);
-                if (index == -1 || (index > -1 && this._nonEqualTagValues(arr[index], tags[p])) ) {
+                if (index === -1 || (index > -1 && this._nonEqualTagValues(arr[index], tags[p])) ) {
                     const obj = {};
                     obj[p] = tags[p];
                     arr.push( obj );
                 }
-            }
+            });
         }
         return arr;
     },
 
-    _nonEqualTagValues(val1,val2){
-        var val1 = val1 || ''; var val2 = val2 || '';
-        return val1 != val2;
+    _nonEqualTagValues(val1, val2){
+        const val1_ = val1 || '';
+        const val2_ = val2 || '';
+        return val1_ !== val2_;
     },
 
-    selectedItemsChanged(itemsNew){
+    selectedItemsChanged(_itemsNew){
         // freeze updating of selectedItems when dialog is open
         if (!this.$.tagsModal.opened) {
             this._computeTags();
         }
     },
 
-    _computeShowEmpty(tags, length){
+    _computeShowEmpty(_tags, _length){
         if (this.tags && this.tags.length>0) {
             return false;
         } 
@@ -273,7 +274,7 @@ Polymer({
         
     },
 
-    _computeTags(lengths) {
+    _computeTags(_lengths) {
         let tags = this._computeCommonTags(this.items);
         // console.log('_computeTags',tags.length);
         if (!tags.length) {
@@ -290,15 +291,15 @@ Polymer({
         let isection = new Set();
 
         for (let i = 0; i < items.length; i++) {
-            var item = items[i];
+            const item = items[i];
             if (item && item.tags) {
-                if (i == 0) {
+                if (i === 0) {
                     // console.log('itemObj.tags',item.tags);
-                    tagset = new Set(Object.keys(item.tags).map(function(key){
+                    tagset = new Set(Object.keys(item.tags).map((key) => {
                         return `${key}=${item.tags[key]}`;
                     }));
                 } else {
-                    isection = intersection(tagset, Object.keys(item.tags).map(function(key){
+                    isection = intersection(tagset, Object.keys(item.tags).map((key) => {
                             return `${key}=${item.tags[key]}`;
                         }) || []);
                     tagset = new Set(isection);
@@ -306,7 +307,7 @@ Polymer({
             }
         }
 
-        return Array.from(tagset).map(function(item){
+        return Array.from(tagset).map((item) => {
             return {key: item.split('=')[0],
                     value: item.split('=')[1]};
         }) || [];
@@ -339,15 +340,15 @@ Polymer({
         const {newTag} = e.detail;
 
         // move old tag to tags to delete
-        if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
+        if (oldTag.key && oldTag.key !== newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
             oldTag.op = "-";
             this.push('tagsToDelete', oldTag);
         }
     },
 
-    _inArray(tag, tagstodelete){
-        const tin = this.tagsToDelete.find(function(t){
-            return t.key == tag.key;
+    _inArray(tag, _tagstodelete){
+        const tin = this.tagsToDelete.find((t) => {
+            return t.key === tag.key;
         })
         // console.log('tin', tin);
         return !!tin;
@@ -355,25 +356,25 @@ Polymer({
 
     _saveTags() {
         // console.log('_saveTags', this.items);
-        const newTags = this.tags.filter(function(tag) {
+        const newTags = this.tags.filter((tag) => {
                 return tag.key;
             });
             let payload = [];
             let deltags = [];
 
         if (this.tagsToDelete.length > 0) {
-            deltags = this.tagsToDelete.filter(function(tag){
-                return tag.key != "";
+            deltags = this.tagsToDelete.filter((tag) => {
+                return tag.key !== "";
             });
         }
 
-        payload = this.items.map(function(item) {
+        payload = this.items.map((item) => {
             const itemCloudId = item.cloud ? item.cloud || item.cloud_id : '';
                 const itemId = item.id;
 
             const newItem = {};
 
-            if (this.type == "machine") {
+            if (this.type === "machine") {
                 newItem.resource = {
                     type: this.type,
                     item_id: this.model.machines[itemId].machine_id,
@@ -383,7 +384,7 @@ Polymer({
                 newItem.resource = {
                     type: this.type,
                     item_id: itemId,
-                    cloud_id: ['image', 'network', 'volume', 'zone'].indexOf(this.type) != -1 ? itemCloudId : ''
+                    cloud_id: ['image', 'network', 'volume', 'zone'].indexOf(this.type) !== -1 ? itemCloudId : ''
                 };
             }
             newItem.tags = newTags.concat(deltags);
@@ -399,7 +400,7 @@ Polymer({
         this.set('showProgress', true);
     },
 
-    _handleTagsAjaxResponse(e) {
+    _handleTagsAjaxResponse(_e) {
         console.log('_handleTagsAjaxResponse');
         this._closeDialog();
         this._modalReset();

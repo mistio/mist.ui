@@ -729,7 +729,7 @@ Polymer({
           if(this.model.clouds[cloudId].provider === "lxd"){
               this._updateLXDStoragePools(cloudId);
           }
-
+          /* eslint-disable no-param-reassign */
           this.fields.forEach((f) => {
               if (f.name.endsWith("location")) {
                   let locations = this.model.clouds[cloudId].locationsArray.slice();
@@ -757,6 +757,7 @@ Polymer({
                   f.options = locations;
               }
           }, this);
+          /* eslint-enable no-param-reassign */
       }
   },
 

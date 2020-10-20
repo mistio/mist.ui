@@ -1,6 +1,6 @@
-const $_documentContainer = document.createElement('template');
+const documentContainer = document.createElement('template');
 
-$_documentContainer.innerHTML = `<dom-module id="shared-styles">
+documentContainer.innerHTML = `<dom-module id="shared-styles">
     <template>
         <custom-style>
         <style>
@@ -1600,50 +1600,50 @@ iron-dropdown paper-material {
     <template>
         <style>
         /*loadingResource or missingResource*/
-         :host([class\$="Resource"]) h2,
-         :host([class\$="Resource"]) h2 iron-icon,
-         :host([class\$="Resource"]) iron-icon,
-         :host([class\$="Resource"]) h3,
-         :host([class\$="Resource"]) h4,
-         :host([class\$="Resource"]) a,
-         :host([class\$="Resource"]) .m-info-head,
-         :host([class\$="Resource"]) .n-info-head,
-         :host([class\$="Resource"]) .smaller,
-         :host([class\$="Resource"]) .cost,
-         :host([class\$="Resource"]) .cell > *,
-         :host([class\$="Resource"]) .subtitle,
-         :host([class\$="Resource"]) .resource-description>div,
-         :host([class\$="Resource"]) .info-item {
+         :host([class$="Resource"]) h2,
+         :host([class$="Resource"]) h2 iron-icon,
+         :host([class$="Resource"]) iron-icon,
+         :host([class$="Resource"]) h3,
+         :host([class$="Resource"]) h4,
+         :host([class$="Resource"]) a,
+         :host([class$="Resource"]) .m-info-head,
+         :host([class$="Resource"]) .n-info-head,
+         :host([class$="Resource"]) .smaller,
+         :host([class$="Resource"]) .cost,
+         :host([class$="Resource"]) .cell > *,
+         :host([class$="Resource"]) .subtitle,
+         :host([class$="Resource"]) .resource-description>div,
+         :host([class$="Resource"]) .info-item {
             color: transparent !important;
             font-size: 16px;
         }
 
-         :host([class\$="Resource"]) h2,
-         :host([class\$="Resource"]) h3,
-         :host([class\$="Resource"]) .subtitle>span {
+         :host([class$="Resource"]) h2,
+         :host([class$="Resource"]) h3,
+         :host([class$="Resource"]) .subtitle>span {
             background-color: rgba(255, 255, 255, 0.5);
             min-height: 1em;
             width: 100%;
         }
 
-         :host([class\$="Resource"]) h4,
-         :host([class\$="Resource"]) .m-info-head,
-         :host([class\$="Resource"]) .n-info-head,
-         :host([class\$="Resource"]) .smaller,
-         :host([class\$="Resource"]) .cell > * {
+         :host([class$="Resource"]) h4,
+         :host([class$="Resource"]) .m-info-head,
+         :host([class$="Resource"]) .n-info-head,
+         :host([class$="Resource"]) .smaller,
+         :host([class$="Resource"]) .cell > * {
             background-color: rgba(0, 0, 0, 0.1);
             height: 20px;
             vertical-align: middle;
             margin-right: 4px;
         }
 
-         :host([class\$="Resource"]) paper-button,
-         :host([class\$="Resource"]) paper-toggle-button,
-         :host([class\$="Resource"]) schedule-date,
-         :host([class\$="Resource"]) team-policy,
-         :host([class\$="Resource"]) .flex > span,
-         :host([class\$="Resource"]) .sub, 
-         :host([class\$="Resource"]) .page-block {
+         :host([class$="Resource"]) paper-button,
+         :host([class$="Resource"]) paper-toggle-button,
+         :host([class$="Resource"]) schedule-date,
+         :host([class$="Resource"]) team-policy,
+         :host([class$="Resource"]) .flex > span,
+         :host([class$="Resource"]) .sub, 
+         :host([class$="Resource"]) .page-block {
             display: none !important;
         }
 
@@ -2087,7 +2087,7 @@ iron-dropdown paper-material {
     </template>
 </dom-module>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);
 
 /* shared styles for all elements and index.html */
 /* vaadin-dialog style */

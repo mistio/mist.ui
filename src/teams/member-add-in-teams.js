@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
 import '../app-form/app-form.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -136,7 +137,7 @@ Polymer({
       if (params && membersArray) {
           let member;
           if (this.model && this.model.membersArray) {
-              member = this.model.membersArray.find(function(m){
+              member = this.model.membersArray.find((m) => {
                   return m.id === params.id
               });
           }

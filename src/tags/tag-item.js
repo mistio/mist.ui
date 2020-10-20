@@ -74,7 +74,7 @@ Polymer({
       'change': '_tagChange',
   },
 
-  storeOldTag (tag) {
+  storeOldTag (_tag) {
       // store tag
       const oldTag = {};
       oldTag.key = this.tag.key;
@@ -87,14 +87,14 @@ Polymer({
       return index + 1;
   },
 
-  _deleteTag (e) {
+  _deleteTag (_e) {
       const that = this;
       this.dispatchEvent(new CustomEvent('tag-delete', { bubbles: true, composed: true, detail: {
           tag: that.tag
       } }));
   },
 
-  _tagChange (e) {
+  _tagChange (_e) {
       const that = this;
       this.dispatchEvent(new CustomEvent('tag-change', { bubbles: true, composed: true, detail: {
           'oldTag': that.oldTag,

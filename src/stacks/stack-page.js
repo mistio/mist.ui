@@ -8,9 +8,6 @@ import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@mistio/mist-list/mist-list.js';
 import '../helpers/dialog-element.js';
 import '../mist-rules/mist-rules.js';
-import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
-import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
-import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../app-togglable/app-togglable-list.js';
 import '../app-form/app-form.js';
 import '../app-icons/app-icons.js';
@@ -22,9 +19,15 @@ import './stack-machine-item.js';
 import './stack-network-item.js';
 import './stack-key-item.js';
 import './orchestration-form.js';
+import moment from 'moment/src/moment';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import 'anchorme/dist/browser/anchorme.min.js';
+import anchorme from 'anchorme/dist/browser/anchorme.min.js';
+import { YAML } from 'yaml/browser/dist/index.js';
+import { CSRFToken } from '../helpers/utils.js';
+import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
+import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
+import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 
 Polymer({
   _template: html`
@@ -865,25 +868,25 @@ Polymer({
       console.warn('xterm open', xterm);
   },
 
-  enhanceWorkflowLogs (workflows) {
+  enhanceWorkflowLogs (_workflows) {
       const workflowLogs = this.stack ? this.stack.workflows : [];
       const runitems = this._sortByTimestamp(workflowLogs.slice());
 
-      var run = function (el) {
+      const run = (el) => {
           const item = runitems.shift();
           if (item) {
               const uri = `/api/v1/jobs/${  item.job_id}`;
               const xhr = new XMLHttpRequest();
-              xhr.onreadystatechange = function () {
-                  if (xhr.readyState == XMLHttpRequest.DONE) {
-                      if (xhr.status == 200) {
+              xhr.onreadystatechange = () => {
+                  if (xhr.readyState === XMLHttpRequest.DONE) {
+                      if (xhr.status === 200) {
                           let response = xhr.response ? xhr.response : [];
                           if (response) {
                               response = JSON.parse(response);
-                              console.log(response);
-                              for (const p in response) {
+                              // console.log(response);
+                              Object.keys(response).forEach((p) => {
                                   item[p] = response[p];
-                              }
+                              });
                           }
                           item.response = response;
                       }
@@ -894,7 +897,7 @@ Polymer({
               }
               xhr.open('GET', uri);
               xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-              xhr.setRequestHeader("Csrf-Token", CSRF_TOKEN);
+              xhr.setRequestHeader("Csrf-Token", CSRFToken.value);
               xhr.send();
 
           }
@@ -903,7 +906,7 @@ Polymer({
       run(this);
   },
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
   },
 
@@ -924,7 +927,7 @@ Polymer({
 
   _sortByTimestamp (items) {
       if (items)
-          return items.sort(function (a, b) {
+          return items.sort((a, b) => {
               return a.timestamp < b.timestamp
           });
       return items;
@@ -943,10 +946,9 @@ Polymer({
   },
 
   _getRenderers () {
-      const _this = this;
       return {
           'timestamp': {
-              'body': function (item, row) {
+              'body': (item, row) => {
                   let ret = `<span title="${  moment(item * 1000).format()  }">${ 
                       moment(item * 1000).fromNow()  }</span>`;
                   if (row.error)
@@ -956,30 +958,30 @@ Polymer({
               }
           },
           'name': {
-              'title': function (item, row) {
+              'title': (_item, _row) => {
                   return 'workflow';
               },
-              'body': function (item, row) {
+              'body': (item, _row) => {
                   return item;
               }
           }
       };
   },
 
-  _computeHasResources (machines, networks, keys, nodeInstances) {
+  _computeHasResources (_machines, _networks, _keys, _nodeInstances) {
       return this.listMachines.length || this.networks.length || this.keys.length;
   },
 
   _computeOutputsAreEmpty (stack) {
       if (stack && stack.outputs)
-          for (const p in stack.outputs) {
+          Object.keys(stack.outputs).forEach(() => {
               return false;
-          }
+          });
       return true;
   },
 
   _computeOutputs (outputs) {
-      return Object.keys(outputs).map(function (key) {
+      return Object.keys(outputs).map((key) => {
           return {
               name: key,
               value: outputs[key]
@@ -987,7 +989,7 @@ Polymer({
       });
   },
 
-  _computeStackTags (stack, stackTags) {
+  _computeStackTags (_stack, _stackTags) {
       return this.stack && Object.entries(this.stack.tags).map(([key, value]) => ({key,value}));
   },
 
@@ -997,37 +999,41 @@ Polymer({
       this.set('inWorkflowStartedState', false)
       this.set('inOkState', false)
       if (status) {
-          if (status == 'start_creation')
+          if (status === 'start_creation')
               this.set('inStartCreationState', true);
-          if (status == 'error')
+          if (status === 'error')
               this.set('inErrorState', true);
-          if (status == 'workflow_started')
+          if (status === 'workflow_started')
               this.set('inWorkflowStartedState', true);
-          if (status =='ok')
+          if (status ==='ok')
               this.set('inOkState', true);
       }
   },
 
   _showAll (stack) {
       if (stack)
-          return stack.status == 'ok' || stack.status == 'error';
+          return stack.status === 'ok' || stack.status === 'error';
+      return false;
   },
 
-  _hideWorkflows (status) {
+  _hideWorkflows (_status) {
       if (this.stack)
-          return !this.stack.deploy || this.stack.status == 'workflow_started' || this.stack
-              .status == 'start_creation';
+          return !this.stack.deploy || this.stack.status === 'workflow_started' || this.stack
+              .status === 'start_creation';
+      return false;
   },
 
   _hideDeployNow (stack) {
       if (stack)
-          return stack.deploy || stack.status == 'workflow_started' || stack.status ==
+          return stack.deploy || stack.status === 'workflow_started' || stack.status ===
               'start_creation';
+      return false;
   },
 
   _disabledButtons (stack) {
       if (stack)
-          return stack.status == 'workflow_started' || stack.status == 'start_creation';
+          return stack.status === 'workflow_started' || stack.status === 'start_creation';
+      return false;
   },
 
   _closeworkflows () {
@@ -1035,12 +1041,12 @@ Polymer({
       this.set('workflowsOpen', false)
   },
 
-  openWorkflows (e) {
+  openWorkflows (_e) {
       this.$.workflows.classList.toggle('open');
       this.set('workflowsOpen', !this.workflowsOpen);
       const pages = this.$.workflowsView.children;
-      [].forEach.call(pages, function (p, index) {
-          if (index != 0) {
+      [].forEach.call(pages, (p, index) => {
+          if (index !== 0) {
               p.setAttribute("show", false);
           } else {
               p.setAttribute("show", true);
@@ -1073,23 +1079,24 @@ Polymer({
       return sum > 0;
   },
 
-  _computeTemplate (stacktemplate, templates) {
+  _computeTemplate (_stacktemplate, _templates) {
       if (this.stack && this.model && this.model.templates) {
           return this.model.templates[this.stack.template];
       }
+      return null;
   },
 
   _machines (stack) {
       return stack && stack.machines;
   },
 
-  _computeListMachines (nodeInstances, machines) {
-      var machines = [];
+  _computeListMachines (nodeInstances) {
+      const machines = [];
       if (nodeInstances && nodeInstances.base) {
-          nodeInstances.base.forEach(function (rtpy) {
-              if (rtpy.runtime_properties.mist_type == 'machine') {
-                  const mac = Object.values(this.model.machines).find(function (mach) {
-                      return rtpy.runtime_properties && rtpy.runtime_properties.info != null && mach && mach.id == rtpy.runtime_properties.info.id;
+          nodeInstances.base.forEach((rtpy) => {
+              if (rtpy.runtime_properties.mist_type === 'machine') {
+                  const mac = Object.values(this.model.machines).find((mach) => {
+                      return rtpy.runtime_properties && rtpy.runtime_properties.info !== null && mach && mach.id === rtpy.runtime_properties.info.id;
                   });
 
                   if (mac) {
@@ -1108,16 +1115,16 @@ Polymer({
                       machines.push(deadMachine)
                   }
               }
-          }.bind(this));
+          }, this);
       }
       return machines;
   },
 
-  _computeListNetworks (nodeInstances, networks) {
-      var networks = [];
+  _computeListNetworks (nodeInstances) {
+      const networks = [];
       if (nodeInstances && nodeInstances.base) {
-          nodeInstances.base.forEach(function (rtpy) {
-              if (rtpy.runtime_properties.mist_type == 'network') {
+          nodeInstances.base.forEach((rtpy) => {
+              if (rtpy.runtime_properties.mist_type === 'network') {
                   const net = this.model.networks[rtpy.runtime_properties.info.id];
                   if (net) {
                       networks.push(net);
@@ -1128,27 +1135,26 @@ Polymer({
       return networks;
   },
 
-  _computeListZones (nodeInstances, zones) {
-      var zones = [];
+  _computeListZones (nodeInstances) {
+      const zones = [];
       if (nodeInstances && nodeInstances.base) {
-          nodeInstances.base.forEach(function (rtpy) {
-              if (rtpy.runtime_properties.mist_type == 'zone') {
-                  const zone = this.model.zonesArray.find(function (zone) {
-                      return zone.id == rtpy.runtime_properties.info.id
+          nodeInstances.base.forEach((rtpy) => {
+              if (rtpy.runtime_properties.mist_type === 'zone') {
+                  const zone_ = this.model.zonesArray.find((zone) => {
+                      return zone.id === rtpy.runtime_properties.info.id
                   }, this);
-                  if (zone)
-                      zones.push(zone);
+                  if (zone_)
+                      zones.push(zone_);
               }
           }, this);
       }
       return zones;
   },
 
-  _computeListKeys (nodeInstances, keys) {
-      var keys = [];
-
+  _computeListKeys (nodeInstances) {
+      const keys = [];
       if (nodeInstances && nodeInstances.base) {
-          nodeInstances.base.forEach(function (rtpy) {
+          nodeInstances.base.forEach((rtpy) => {
               if (['keypair', 'key'].indexOf(rtpy.runtime_properties.mist_type) > -1) {
                   const key = this.model.keys[rtpy.runtime_properties.key];
 
@@ -1170,14 +1176,15 @@ Polymer({
       return keys;
   },
 
-  _computeWorkflows (stack,template) {
+  _computeWorkflows (_stack, _template) {
       console.log('_computeWorkflows');
       let workflows = [];
       if (this.template && this.template.workflows) {
-          workflows = this.template.workflows.filter(function (wf) {
-              return wf.name != 'scale' && wf.name != 'execute_operation';
+          workflows = this.template.workflows.filter((wf) => {
+              return wf.name !== 'scale' && wf.name !== 'execute_operation';
           }).slice(0);
       }
+      let yamlInputs = '';
       const param1 = {
           name: "yaml_or_form",
           label: "YAML or form",
@@ -1201,8 +1208,8 @@ Polymer({
           name: "stackinputs",
           label: "Workflow Inputs YAML",
           type: "textarea",
-          value: yaml_inputs,
-          defaultValue: yaml_inputs,
+          value: yamlInputs,
+          defaultValue: yamlInputs,
           placeholder: "",
           helptext: "Enter the stack inputs in yaml format",
           errorMessage: "Please enter stacks's inputs",
@@ -1214,21 +1221,21 @@ Polymer({
           }
       };
       for (let i=0; i<workflows.length; i++) {
-          var yaml_inputs = '';
-              const wf = workflows[i];
-              const radioField = wf.params.findIndex(function(p){ return p.name == "yaml_or_form"});
+          const wf = workflows[i];
+          const radioField = wf.params.findIndex((p) => { return p.name === "yaml_or_form"});
           if (wf.params && wf.params.length > 0 && radioField === -1) {
               for (let j=0; j<wf.params.length; j++) {
                   const workflowField = wf.params[j];
-                  yaml_inputs += `${workflowField.name  }: ${  workflowField.default}\n`;
-                  if (['yaml_or_form','stackinputs'].indexOf(workflowField.name) == -1) {
+                  yamlInputs += `${workflowField.name  }: ${  workflowField.default}\n`;
+                  if (['yaml_or_form','stackinputs'].indexOf(workflowField.name) === -1) {
                       workflowField.show = true;
                       workflowField.showIf = {
                           fieldName: "yaml_or_form",
                           fieldValues: ["form"]
                       }
                       workflowField.label = workflowField.name;
-                      workflowField.value = workflowField.defaultValue = workflowField.default;
+                      workflowField.value = workflowField.default;
+                      workflowField.defaultValue = workflowField.default;
                   }
               }
               if (radioField === -1) {
@@ -1245,11 +1252,10 @@ Polymer({
 
   _showDialog (info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-          let i;
       if (info){
-          for (i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -1258,7 +1264,7 @@ Polymer({
       this.$.workflows.classList.add('open');
       this.set('workflowsOpen', true)
       const pages = this.$.workflowsView.children;
-      [].forEach.call(pages, function (p, index) {
+      [].forEach.call(pages, (p) => {
           p.setAttribute("show", false);
       });
       const page = this.shadowRoot.querySelector(`#${  action  }show`);
@@ -1277,19 +1283,15 @@ Polymer({
       const action = e.target.id;
       this.$.workflows.classList.add('open');
       this.set('workflowsOpen', true)
-
-      const workflow = this.workflows.find(function (workflow) {
-          return workflow.name == action;
-      });
       this.$.workflowRequest.url = `/api/v1/stacks/${  this.stack.id}`;
       this.$.workflowRequest.headers = {
-          "csrf-token": CSRF_TOKEN,
+          "csrf-token": CSRFToken.value,
           "Content-Type": "application/json"
       };
       this.$.workflowRequest.body = {
           "workflow": action
       };
-      if (action == 'install') {
+      if (action === 'install') {
           this.$.deploynow.classList.add('hidden');
           this.$.workflowRequest.body.inputs = this.stack.inputs.install;
       }
@@ -1298,13 +1300,9 @@ Polymer({
 
   deployNowWork () {
       const action = 'install';
-
-      const workflow = this.workflows.find(function (workflow) {
-          return workflow.name == action;
-      });
       this.$.workflowRequest.url = `/api/v1/stacks/${  this.stack.id}`;
       this.$.workflowRequest.headers = {
-          "csrf-token": CSRF_TOKEN,
+          "csrf-token": CSRFToken.value,
           "Content-Type": "application/json"
       };
 
@@ -1318,22 +1316,22 @@ Polymer({
 
   },
 
-  cancelWorkflow (e) {
+  cancelWorkflow (_e) {
       this.$.cancelJob.headers = {
-          "csrf-token": CSRF_TOKEN,
+          "csrf-token": CSRFToken.value,
           "Content-Type": "application/json"
       };
       this.$.cancelJob.generateRequest();
   },
 
-  handleCanceled (e) {},
-  handleWorkflowRequest (e) {},
+  handleCanceled (_e) {},
+  handleWorkflowRequest (_e) {},
 
-  handleWorkflowResponse (e) {
+  handleWorkflowResponse (_e) {
       this._closeworkflows();
   },
 
-  handleWorkflowError (e) {},
+  handleWorkflowError (_e) {},
 
   stackoutputsChanged (outputs) {
       this.$.stackOutputs.innerHTML = this.stack && outputs && this._makeString(outputs).replace(new RegExp('mycontext', 'g'), this.stack.name);
@@ -1343,11 +1341,11 @@ Polymer({
       // console.log(YAML.dump(info));
       // console.log(anchorme.js(YAML.dump(info)));
       if (info)
-          return anchorme(YAML.dump(info).replace(/\'/g, ""));
+          return anchorme(YAML.dump(info).replace(/'/g, ""));
       return '';
   },
 
-  newStackPage (id) {
+  newStackPage (_id) {
       console.log('un setting interval for', this.intervalID);
       window.clearInterval(this.intervalID);
       this.intervalID = null;
@@ -1363,21 +1361,23 @@ Polymer({
       }
   },
 
-  _computeIsloading (stack) {
+  _computeIsloading (_stack) {
       return !this.stack;
   },
 
   getScriptlink (id) {
       if (id && this.model.scripts[id])
           return `/scripts/${  this.model.scripts[id].id}`;
+      return "";
   },
 
   getScriptName (id) {
       if (id && this.model.scripts[id])
           return this.model.scripts[id].name;
+      return "";
   },
 
   isEmpty (arr) {
-      return !arr || arr.length == 0;
+      return !arr || arr.length === 0;
   }
 });

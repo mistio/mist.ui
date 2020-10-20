@@ -29,11 +29,13 @@ Polymer({
             return null;
         } */
     },
+    /* eslint-disable no-param-reassign */
     _color(node, bgColor, color) {
         node.style.color = color;
         node.style.backgroundColor = bgColor;
         if (this.outline) this._outline(node, bgColor);
     },
+
     _colorBorder(node, borderColor) {
         node.style.borderColor = borderColor;
     },
@@ -43,6 +45,7 @@ Polymer({
             node.style.outlineOffset = '-1px';
         }
     },
+    /* eslint-enable no-param-reassign */
     colorContent() {
         if (this.hasAttribute('themed')) this._color(this, this.color, this.textColor);
         if (this.hasAttribute('themed-reverse')) this._color(this, this.textColor, this.color);

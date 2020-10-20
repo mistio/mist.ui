@@ -158,7 +158,7 @@ Polymer({
         this.set('tagsToDelete', []);
     },
 
-    _openDialog(e) {
+    _openDialog(_e) {
         this.shadowRoot.querySelector('paper-dialog').open();
     },
 
@@ -166,27 +166,27 @@ Polymer({
         this.shadowRoot.querySelector('paper-dialog').close();
     },
 
-    _modalClosed(e) {
+    _modalClosed(_e) {
         this.set('tagsToDelete', []);
         this.set('showProgress', false);
         this.set('hasError', false);
         this.$.errormsg.textContent = '';
     },
 
-    selectedItemsChanged(splices){
+    selectedItemsChanged(_splices){
         // console.log('selectedItemsChanged', splices);
         // freeze updating of selectedItems when dialog is open
         if (!this.$.tagsModal.opened)
             this._computeTags(this.items);
     },
 
-    _computeShowEmpty(tags, length){
+    _computeShowEmpty(_tags, _length){
         if (this.tags && this.tags.length>0)
             return false;
         return true;
     },
 
-    _computeTags(lengths) {
+    _computeTags(_lengths) {
         let tags = this._computeCommonTags(this.items);
         // console.log('_computeTags',tags.length);
         if (!tags.length) {
@@ -210,7 +210,7 @@ Polymer({
                 const itemCloudId = item.split(":")[1];
                 const itemId = item.split(":")[2];
                 let itemObj = {};
-            if (['machine', 'image'].indexOf(itemType) != -1 && itemCloudId)
+            if (['machine', 'image'].indexOf(itemType) !== -1 && itemCloudId)
                 itemObj = this.model.clouds[itemCloudId][`${itemType}s`][itemId];
             else {
                 itemObj = this.model[`${itemType}s`][itemId];
@@ -223,20 +223,20 @@ Polymer({
                 // only networks return their tags in such format. Below code patches it.
                 else if (itemObj.tags && typeof(itemObj.tags) === 'object') {
                     const foo = []
-                    for (const p in itemObj.tags) {
+                    Object.keys(itemObj.tags || {}).forEach((p) => {
                         foo.push(itemObj.tags[p])
-                    }
+                    });
                     itemObj.tags = foo;
                 }
 
-                if (i == 0) {
+                if (i === 0) {
                     // console.log('itemObj.tags',itemObj.tags);
-                    tagset = new Set(itemObj.tags.map(function(tag){
+                    tagset = new Set(itemObj.tags.map((tag) => {
                         return `${tag.key}=${tag.value}`;
                     }));
                 }
                 else {
-                    isection = intersection(tagset, itemObj.tags.map(function(tag){
+                    isection = intersection(tagset, itemObj.tags.map((tag) => {
                             return `${tag.key}=${tag.value}`;
                         }) || []);
                     tagset = new Set(isection);
@@ -244,7 +244,7 @@ Polymer({
             }
         }
 
-        return Array.from(tagset).map(function(item){
+        return Array.from(tagset).map((item) => {
             return {key: item.split('=')[0],
                     value: item.split('=')[1]};
         }) || [];
@@ -276,42 +276,42 @@ Polymer({
         const {newTag} = e.detail;
 
         // move old tag to tags to delete
-        if (oldTag.key && oldTag.key != newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
+        if (oldTag.key && oldTag.key !== newTag.key && !this._inArray(oldTag, this.tagsToDelete)){
             oldTag.op = "-";
             this.push('tagsToDelete', oldTag);
         }
     },
 
-    _inArray(tag, tagstodelete){
-        const tin = this.tagsToDelete.find(function(t){
-            return t.key == tag.key;
+    _inArray(tag, _tagstodelete){
+        const tin = this.tagsToDelete.find((t) => {
+            return t.key === tag.key;
         })
-        console.log('tin', tin);
+        // console.log('tin', tin);
         return !!tin;
     },
 
     _saveTags() {
         // console.log('_saveTags', this.items);
-        const newTags = this.tags.filter(function(tag) {
+        const newTags = this.tags.filter((tag) => {
                 return tag.key;
             });
             let payload = [];
             let deltags = [];
 
         if (this.tagsToDelete.length > 0) {
-            deltags = this.tagsToDelete.filter(function(tag){
-                return tag.key != "";
+            deltags = this.tagsToDelete.filter((tag) => {
+                return tag.key !== "";
             });
         }
 
-        payload = this.items.map(function(item) {
+        payload = this.items.map((item) => {
             const itemType = item.split(":")[0];
                 const itemCloudId = item.split(":")[1];
                 const itemId = item.split(":")[2];
 
             const newItem = {};
 
-            if (itemType == "machine") {
+            if (itemType === "machine") {
                 newItem.resource = {
                     type: itemType,
                     item_id: this.model.machines[itemId].machine_id,
@@ -322,7 +322,7 @@ Polymer({
                 newItem.resource = {
                     type: itemType,
                     item_id: itemId,
-                    cloud_id: ['image', 'network'].indexOf(itemType) != -1 ? itemCloudId : ''
+                    cloud_id: ['image', 'network'].indexOf(itemType) !== -1 ? itemCloudId : ''
                 };
             }
             newItem.tags = newTags.concat(deltags);
@@ -338,7 +338,7 @@ Polymer({
         this.set('showProgress', true);
     },
 
-    _handleTagsAjaxResponse(e) {
+    _handleTagsAjaxResponse(_e) {
         this._closeDialog();
         this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Tags were updated!',duration:3000} }));
 

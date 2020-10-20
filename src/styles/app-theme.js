@@ -1,5 +1,5 @@
-const $_documentContainer = document.createElement('template');
-$_documentContainer.innerHTML = `<custom-style>
+const documentContainer = document.createElement('template');
+documentContainer.innerHTML = `<custom-style>
 <style>
 body {
     /* takes too long. we can add later */
@@ -399,4 +399,4 @@ http://www.google.com/design/spec/layout/adaptive-ui.html#adaptive-ui-breakpoint
 </custom-style>
 `
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);

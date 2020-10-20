@@ -523,13 +523,14 @@ Polymer({
   _goBack() {
       window.history.back();
   },
-
+  /* eslint-disable no-param-reassign */
   toggleAll() {
       const els = this.shadowRoot.querySelectorAll('app-togglable');
       [].forEach.call(els, (el) => {
           el.open = true;
       });
   },
+  /* eslint-enable no-param-reassign */
 
   _computeIsloading() {
       return !this.template;
