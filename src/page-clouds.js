@@ -150,7 +150,7 @@ Polymer({
                 'body': function(item, row) {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    for (const key in tags) {
                         display += `<span class='tag'>${  key}`;
                         if (tags[key] != undefined && tags[key] != "")
                             display += `=${  tags[key]}`;
