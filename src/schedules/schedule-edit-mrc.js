@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -64,14 +65,14 @@ Polymer({
       'iron-overlay-closed': '_modalClosed'
   },
 
-  _openEditScheduleModal(e) {
+  _openEditScheduleModal(_e) {
       if (this.schedule) {
           this.set('newMaxRunCount', this.schedule.max_run_count);
           this.$.editMrcScheduleModal.opened = true;
       }
   },
 
-  _closeEditScheduleModal(e) {
+  _closeEditScheduleModal(_e) {
       this.$.editMrcScheduleModal.opened = false;
   },
 
@@ -79,10 +80,10 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       this.$.editSchedule.body = {max_run_count: this.newMaxRunCount};
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
-      this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.editSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editSchedule.generateRequest();
   },
 
@@ -92,7 +93,7 @@ Polymer({
       }
   },
 
-  _handleScheduleEditResponse(e) {
+  _handleScheduleEditResponse(_e) {
       this._closeEditScheduleModal();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'Updating max run count.', duration: 5000 } }));
 
@@ -107,12 +108,12 @@ Polymer({
 
   },
 
-  _updateformReady(schedule, newMaxRunCount, sendingData) {
+  _updateformReady(_schedule, _newMaxRunCount, _sendingData) {
       // console.log(parseInt(this.newMaxRunCount), this.newMaxRunCount,  this.schedule.max_run_count)
       if (this.sendingData) {
           this.set('formReady', false);
       } else if (!this.sendingData && this.schedule) {
-          this.set('formReady', (parseInt(this.newMaxRunCount) >= 0 || this.newMaxRunCount == "") && this.newMaxRunCount != this.schedule.max_run_count);
+          this.set('formReady', (parseInt(this.newMaxRunCount, 10) >= 0 || this.newMaxRunCount === "") && this.newMaxRunCount !== this.schedule.max_run_count);
       }
   }
 });

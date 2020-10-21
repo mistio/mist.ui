@@ -10,7 +10,6 @@ import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 export const VOLUME_CREATE_FIELDS = [];
-
 // cloud:
 //   in: path
 //   required: true

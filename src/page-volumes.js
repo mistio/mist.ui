@@ -67,11 +67,11 @@ Polymer({
     },
 
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
 
     _isDetailsPageActive(path) {
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
 
     _isListActive(path) {
@@ -83,9 +83,10 @@ Polymer({
         if (this.model.volumes) {
             return this.model.volumes[id];
         }
+        return "";
     },
 
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.volumes.add
         } }));
@@ -98,21 +99,21 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['provider', 'size', 'attached_to', 'owned_by', 'created_by', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled != true)
+        if (this.model.org && this.model.org.ownership_enabled !== true)
             ret.splice(ret.indexOf('owned_by'), 1);
         return ret;
     },
 
-    _getRenderers(volumes, clouds) {
+    _getRenderers(_volumes, _clouds) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body':  (item, row) => {
                     return `<strong class="name">${  item || row.external_id  }</strong>`;
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body':  (_item, row) => {
                     if (!_this.model.clouds[row.cloud])
                         return '';
                     return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
@@ -121,31 +122,31 @@ Polymer({
             },
             'provider': {
                 'title': 'cloud',
-                'body': function(item, row) {
+                'body':  (item, row) => {
                     return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
                         _this.model.clouds[row.cloud].title : item;
                 }
             },
             'owned_by': {
                 'title': 'owner',
-                'body': function(item, row) {
+                'body':  (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
                 'title': 'created by',
-                'body': function(item, row) {
+                'body':  (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'size': {
-                'body': function(item, row) {
+                'body':  (item, _row) => {
                     return `<span style="display:block;text-align:right; padding-right:50px;">${  item  } GΒ</span>`;
                 }
             },
             'attached_to': {
                 'title': 'attached to',
-                'body': function(item, row) {
+                'body':  (item, _row) => {
                     if (item)
                         return item.map(x => _this.model.machines[x] && _this.model.machines[x].name || '').join(' ');
                     return '';
@@ -153,30 +154,30 @@ Polymer({
             },
             'volume_type': {
                 'title': 'volume type',
-                'body': function(item, row) {
+                'body':  (_item, row) => {
                     return row && row.extra && row.extra.volume_type || '';
                 }
             },
             'state': {
-                'body': function(item, row) {
+                'body':  (_item, row) => {
                     return row && row.extra && row.extra.state || '';
                 }
             },
             'location': {
-                'body': function(item, row) {
+                'body':  (item, row) => {
                     return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] && _this.model.clouds[row.cloud].locations && _this.model.clouds[row.cloud].locations[item] ? _this.model.clouds[row.cloud].locations[item].name : item;
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

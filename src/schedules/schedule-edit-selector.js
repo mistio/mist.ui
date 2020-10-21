@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
 import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
 import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -51,7 +52,7 @@ Polymer({
             }
             .overflow-scroll {
                 overflow: scroll;
-            }
+            }import { CSRFToken } from '../helpers/utils.js';
             paper-checkbox {
                 display: block;
                 font-weight: 500;
@@ -209,7 +210,7 @@ Polymer({
           return ids;
       }
       
-          const cond = selectors.find(function(c){return c.type == "machines"});
+          const cond = selectors.find((c) => {return c.type === "machines"});
           ids = cond.ids || [];
       
       return ids;
@@ -217,17 +218,17 @@ Polymer({
 
   _findSelector(field) {
       if (this.schedule.selectors && this.schedule.selectors.length){
-          var field = this.schedule.selectors.find(function(con){
-              return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
+          const field_ = this.schedule.selectors.find((con) => {
+              return ['age', 'machines', 'tags'].indexOf(field) === -1 ? con.field === field : con.type === field;
           })
-          if (field)
+          if (field_)
               return true;
           return false;
       }
       return false;
   },
 
-  _computeIsUuidsOrTags(schedule, machinesIds) {
+  _computeIsUuidsOrTags(_schedule, _machinesIds) {
       if (this.schedule && this.machinesIds && this.machinesIds.length) {
           this.set('isUuidsOrTags', 'uuids')
       } else if (this.schedule && this.schedule.tags) {
@@ -237,17 +238,17 @@ Polymer({
   },
 
   _updateAgeParts(age){
-      let machineAge = age && parseInt(age) ? parseInt(age) : '';
+      let machineAge = age && parseInt(age, 10) ? parseInt(age, 10) : '';
           let duration;
 
       if (age) {
           duration = 'minutes';
       }
-      if (age >= 60 && age%(60) == 0) {
+      if (age >= 60 && age%(60) === 0) {
           duration = 'hours';
           machineAge = age/60;
       }
-      if (age >= (60*24) && age%(60*24) == 0 ){
+      if (age >= (60*24) && age%(60*24) === 0 ){
           machineAge = age/(60*24);
           duration = 'days';
       }
@@ -256,55 +257,55 @@ Polymer({
   },
 
   _updateCostDisplay(cost){
-      this.set('costDisplay', !cost || parseFloat(cost) == NaN ? '' : cost);
+      this.set('costDisplay', !cost || Number.isNaN(parseFloat(cost))  ? '' : cost);
   },
 
-  _computeMachinesArray(machines) {
+  _computeMachinesArray(_machines) {
       return Object.values(this.model.machines);
   },
 
   _isUuidsOrTagsChanged(isUuidsOrTags) {
-      if (isUuidsOrTags == "uuids"){
+      if (isUuidsOrTags === "uuids"){
           this.set('isUuids', true);
           this.set('isTags', false);
       }
-      else if (isUuidsOrTags == "tags"){
+      else if (isUuidsOrTags === "tags"){
           this.set('isUuids', false);
           this.set('isTags', true);
       }
       console.log('isUuidsOrTags')
   },
 
-  _openEditScheduleModal(e) {
+  _openEditScheduleModal(_e) {
       this.$.editScheduleModal.opened = true;
   },
 
-  _closeEditScheduleModal(e) {
+  _closeEditScheduleModal(_e) {
       this.$.editScheduleModal.opened = false;
   },
 
   _modalClosed(e){
-      if (e.target == this.$.editScheduleModal)
+      if (e.target === this.$.editScheduleModal)
           this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       // console.log("payload", this.payload);
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
-      this.$.editSchedule.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.editSchedule.headers["Csrf-Token"] = CSRFToken.value;
       this.$.editSchedule.generateRequest();
   },
-
+  /* eslint-disable no-param-reassign */
   _formReset() {
       const checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox');
-      Array.prototype.forEach.call(checkboxes, function(c){
+      Array.prototype.forEach.call(checkboxes, (c) => {
           c.checked = this._computeIfChecked(this.machinesIds, c.dataValue);
-      }.bind(this));
+      });
       this._computeNewSchedule();
   },
-
-  _handleResponse(e) {
+  /* eslint-enable no-param-reassign */
+  _handleResponse(_e) {
       this._closeEditScheduleModal();
   },
 
@@ -319,9 +320,7 @@ Polymer({
   _updatePayload(newSchedule) {
       console.log('newSchedule', newSchedule);
       const pl = {};
-          let plLength;
-          let valid = false;
-
+      let valid = false;
       pl.selectors = [];
 
       console.log('newSchedule uuids', this.isUuids, 'tags', this.isTags);
@@ -337,24 +336,24 @@ Polymer({
           valid = this.textToArray(this.tagsString) ? this.textToArray(this.tagsString).length : false;
       }
 
-      if (parseInt(this.machinesAgeDisplayNumber) && this.machinesAgeUnit) {
-          let minutes = parseInt(this.machinesAgeDisplayNumber);
-          if (this.machinesAgeUnit == 'hours'){
+      if (parseInt(this.machinesAgeDisplayNumber, 10) && this.machinesAgeUnit) {
+          let minutes = parseInt(this.machinesAgeDisplayNumber, 10);
+          if (this.machinesAgeUnit === 'hours'){
               minutes = this.machinesAgeDisplayNumber * 60;
           }
-          else if (this.machinesAgeUnit == 'days'){
+          else if (this.machinesAgeUnit === 'days'){
               minutes = this.machinesAgeDisplayNumber * 60 * 24;
           }
           pl.selectors.push({type: 'age', minutes});
       }
-      if (this.costDisplay && this.costDisplay.length && parseFloat(this.costDisplay) != NaN) {
+      if (this.costDisplay && this.costDisplay.length && !Number.isNaN(parseFloat(this.costDisplay))) {
           pl.selectors.push({type: 'field', field:'cost__monthly', value: parseFloat(this.costDisplay), operator:'gt'})
       }
       this.set('payload', pl);
       this.set('formReady', valid);
   },
 
-  _computeIfChecked(machinesIds, machineId) {
+  _computeIfChecked(_machinesIds, machineId) {
       if (this.schedule && this.machinesIds)
           return this.machinesIds.indexOf(machineId) > -1;
       return false;
@@ -369,6 +368,7 @@ Polymer({
           }
           return arr;
       }
+      return [];
   },
 
   _constructCheckboxValue() {
@@ -388,7 +388,7 @@ Polymer({
   _constructTagsValue(tagStringsArray) {
       const arr = {};
       if (tagStringsArray){
-          tagStringsArray.forEach(function(string){
+          tagStringsArray.forEach((string) => {
               const chunks = string.split("=");
               if (chunks.length > 0 && chunks[0].trim().length > 0) {
                   const key = chunks[0].trim();
@@ -401,13 +401,13 @@ Polymer({
       return arr;
   },
 
-  _updateTagsString(selectors){
+  _updateTagsString(_selectors){
       if (this.selectors && this.schedule && this.selectors.length) {
-          const tags = this.selectors.find(function(c){return c.type=="tags"}) ? this.selectors.find(function(c){return c.type=="tags"}).include : {};
+          const tags = this.selectors.find((c) => {return c.type === "tags"}) ? this.selectors.find((c) => {return c.type === "tags"}).include : {};
           const arrTags = Object.keys(tags); 
           for (let i=0; i < arrTags.length; i++) {
               const t = arrTags[i];
-              if (tags[t] != null && tags[t].trim() != '') {
+              if (tags[t] !== null && tags[t].trim() !== '') {
                   arrTags[i] = `${arrTags[i]}=${tags[t]}`;
               }
           }

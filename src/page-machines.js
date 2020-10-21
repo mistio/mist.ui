@@ -5,12 +5,11 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import { ratedCost, CSRFToken } from './helpers/utils.js';
+import { ratedCost } from './helpers/utils.js';
 import moment from '../node_modules/moment/src/moment.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
@@ -180,9 +179,10 @@ Polymer({
         '_logItemChanged(logItem.*)'
     ],
 
-    _getMachine(id, machines) {
+    _getMachine(id, _machines) {
         if (id && this.model && this.model.machines && this.model.machines[id])
             return this.model.machines[id];
+        return "";
     },
 
     setJobId(e) {
@@ -195,12 +195,12 @@ Polymer({
     },
 
     _isAddPageActive(path) {
-        return path == '/+create';
+        return path === '/+create';
     },
 
     _isDetailsPageActive(path) {
         // console.log('load _isDetailsPageActive', path);
-        if (path && path != '/+create') {
+        if (path && path !== '/+create') {
             if (this.shadowRoot && this.shadowRoot.querySelector('machine-page')) {
                 this.shadowRoot.querySelector('machine-page').updateState();
             }
@@ -214,15 +214,14 @@ Polymer({
         return !path;
     },
 
-    _shell(event) {
-        const e = dom(event);
+    _shell(_event) {
         const action = {
             'name': 'shell',
             'icon': 'vaadin:terminal',
             'confirm': false,
             'multi': true
         }
-        if (this.caller == 'machine_page') {
+        if (this.caller === 'machine_page') {
             this.$.actions_machine._performAction(action, [this.itemOfRecommendation]);
         } else {
             this.$.actions.performMachineAction(action, [this.itemOfRecommendation]);
@@ -231,7 +230,7 @@ Polymer({
 
     _jobIdChanged(jobid) {
         // console.log('_jobIdChanged', jobid);
-        if (jobid == false) {
+        if (jobid === false) {
             this.stopPolling();
         } else if (jobid && jobid.length) {
             this.startPolling(jobid);
@@ -245,9 +244,9 @@ Polymer({
     startPolling(jobid) {
         if (jobid) {
             this._showLogs(true);
-            this.intervalID = setInterval(function() {
+            this.intervalID = setInterval(() => {
                 this.$.getJobLog.generateRequest();
-            }.bind(this), 1000);
+            }, 1000);
         }
         // console.log('startPolling');
     },
@@ -255,13 +254,13 @@ Polymer({
     stopPolling() {
         // console.log('stopPolling');
         this.set('jobId', false);
-        if (this.intervalID != false) {
+        if (this.intervalID !== false) {
             window.clearInterval(this.intervalID);
             this.set('intervalID', false);
         }
     },
 
-    _logItemChanged (logItem) {
+    _logItemChanged (_logItem) {
         // If a log's action mentions `finished`, then stop polling.
         // console.log('_logItemChanged');
         if (this.logItem && this.logItem.action && this.logItem.action.endsWith('finished')) {
@@ -289,9 +288,10 @@ Polymer({
     removeUnderscore(action) {
         if (action)
             return action.replace(/_/g, " ");
+        return "";
     },
 
-    clearLog(e) {
+    clearLog(_e) {
         this.stopPolling();
         this._showLogs(false);
         this.set('logItem', {});
@@ -309,7 +309,7 @@ Polymer({
             this.clearListSelection();
     },
 
-    hidePerformingLogs(e) {
+    hidePerformingLogs(_e) {
         this.set('performingAction', false);
     },
 
@@ -317,7 +317,7 @@ Polymer({
         this.set('selectedItems', []);
     },
 
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.machines.add
         } }));
@@ -329,7 +329,7 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['state', 'cloud', 'cost', 'created', 'expiration', 'created_by', 'tags', 'image_id', 'size', 'location', 'parent', 'hostname', 'public_ips'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
@@ -338,7 +338,7 @@ Polymer({
         const _this = this;
         return {
             'indicator': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     const green = "#69b46c";
                         const pending = "#eee";
                         const red = "#d96557";
@@ -348,8 +348,8 @@ Polymer({
                         color = green;
                         if (_this._machineHasIncidents(row, _this.model.incidentsArray))
                             color = red;
-                        if (row.monitoring.installation_status == "installing" || !row.monitoring
-                            .installation_status == "installing" || !row.monitoring.installation_status
+                        if (row.monitoring.installation_status === "installing" || !row.monitoring
+                            .installation_status === "installing" || !row.monitoring.installation_status
                             .activated_at)
                             color = pending;
                         return `border-left: 8px solid ${  color  }; padding-left: 8px;`;
@@ -358,10 +358,10 @@ Polymer({
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (!_this.model.clouds[row.cloud])
                         return '';
-                    if (_this.model.clouds[row.cloud].provider == 'libvirt' && row.parent) {
+                    if (_this.model.clouds[row.cloud].provider === 'libvirt' && row.parent) {
                         return './assets/providers/kvm.png';
                     }
                     return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
@@ -369,25 +369,25 @@ Polymer({
                 }
             },
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'state': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     let ret = '';
                         let prefix = '';
                     if (_this.itemRecommendation(row)) {
                         prefix =
                             '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                     }
-                    if (item == "running")
+                    if (item === "running")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='green'>${  item  }</span></div>`;
-                    else if (item == "error")
+                    else if (item === "error")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='error'>${  item  }</span></div>`;
-                    else if (item == "stopped")
+                    else if (item === "stopped")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='orange'>${  item  }</span></div>`;
                     else
@@ -395,7 +395,7 @@ Polymer({
 
                     return prefix + ret;
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, row1, row2) => {
                     if (row1.monitoring && !row2.monitoring) {
                         return -1;
                     } if (!row1.monitoring && row2.monitoring) {
@@ -405,12 +405,12 @@ Polymer({
                 }
             },
             'cloud': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (_this.model && _this.model.clouds)
-                        return _this.model.clouds[item] ? _this.model.clouds[item].title :
-                            '';
+                        return _this.model.clouds[item] ? _this.model.clouds[item].title : '';
+                    return '';
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, _row1, _row2) => {
                     if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
                         _this.model.clouds[item2.id]) {
                         if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
@@ -422,7 +422,7 @@ Polymer({
                 }
             },
             'parent': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (item && _this.model && _this.model.machines && _this.model.machines[item]) {
                         return `<a href="/machines/${  item  }">${  _this.model.machines[item].name  }</a>`;
                     } 
@@ -431,10 +431,10 @@ Polymer({
                 }
             },
             'cost': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(parseFloat(item.monthly), _this.currency.rate) : '';
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, _row1, _row2) => {
                     if (item1.monthly < item2.monthly)
                         return -1;
                     if (item1.monthly > item2.monthly)
@@ -443,33 +443,33 @@ Polymer({
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return moment(item).isValid() ? moment.utc(item).fromNow() : "";
                 }
             },
             'size': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     return _this.computeSize(row, item);
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, row1, row2) => {
                     const s1 = _this.computeSize(row1, item1);
-                        const s2 = _this.computeSize(row2, item2);
+                    const s2 = _this.computeSize(row2, item2);
 
                     if (!s1.length && !s2.length)
                         return 0;
@@ -487,15 +487,15 @@ Polymer({
                 }
             },
             'image_id': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'image';
                 },
-                'body': function(item, row) {
+                'body': (item, row) => {
                     return _this._computeImage(row, item);
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, row1, row2) => {
                     const im1 = _this._computeImage(row1, item1);
-                        const im2 = _this._computeImage(row2, item2);
+                    const im2 = _this._computeImage(row2, item2);
 
                     if (!im1.length && !im2.length)
                         return 0;
@@ -512,13 +512,13 @@ Polymer({
                 }
             },
             'expiration': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'expiration';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && item.date ? moment.utc(item.date).fromNow() : '';
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (item1, item2, _row1, _row2) => {
                     const exp1 = item1 && item1.date ? moment(item1.date) : moment('');
                     const exp2 = item2 && item2.date ? moment(item2.date) : moment('');
 
@@ -537,47 +537,47 @@ Polymer({
                 }
             },
             'location': {
-                'body': function(item, row) {
+                'body': (item, row) => {
+                    let location = "";
                     if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud] &&
                         _this.model.clouds[row.cloud].locations)
-                        var location = _this.model.clouds[row.cloud].locations[item];
+                        location = _this.model.clouds[row.cloud].locations[item];
                     return location ? location.name : item || '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
-                        let display = "";
-                    let key;
-                    for (key in tags) {
+                    let display = "";
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             },
             'machine_id': {
                 'title': 'id (external)',
-                'body': function(i) {
+                'body': (i) => {
                     return i;
                 }
             },
             'public_ips': {
                 'title': 'public ip\'s',
-                'body': function(ips) {
+                'body': (ips) => {
                     return ips && ips.join(', ');
                 }
             },
             'private_ips': {
                 'title': 'private ip\'s',
-                'body': function(ips) {
+                'body': (ips) => {
                     return ips.join(', ');
                 }
             },
             'hostname': {
-                'body': function(hostname) {
+                'body': (hostname) => {
                     return hostname || '';
                 }
             }
@@ -590,87 +590,88 @@ Polymer({
 
     _computeImage(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        let image_id = item || row.image;
+        let imageID = item || row.image;
 
-        if (!image_id && row.extra && row.extra.image) {
+        if (!imageID && row.extra && row.extra.image) {
             if (row.extra.image.distribution && row.extra.image.name) {
                 return `${row.extra.image.distribution  } ${  row.extra.image.name}`;
             }
-            image_id = row.extra.image;
+            imageID = row.extra.image;
         }
-        if (!image_id && row.extra) {
-            image_id = row.extra.image_id || row.imageId || (row.extra.image && (row.extra.image
+        if (!imageID && row.extra) {
+            imageID = row.extra.imageID || row.imageId || (row.extra.image && (row.extra.image
                 .slug || row.extra.image.name));
         }
 
-        if (image_id && row.cloud && this.model.clouds[row.cloud] && this.model.clouds[row.cloud
-                ].images && this.model.clouds[row.cloud].images[image_id]) {
-            return this.model.clouds[row.cloud].images[image_id].name
+        if (imageID && row.cloud && this.model.clouds[row.cloud] && this.model.clouds[row.cloud
+                ].images && this.model.clouds[row.cloud].images[imageID]) {
+            return this.model.clouds[row.cloud].images[imageID].name
         }
 
-        return image_id || "";
+        return imageID || "";
     },
 
     computeSize(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        let size_id = item;
+        let sizeID = item;
 
 
         // Try to figure out size_id
         if (row.size && typeof(row.size) !== 'object') {
-            size_id = row.size || '';
+            sizeID = row.size || '';
         }
 
-        if (!size_id && row.extra) {
+        if (!sizeID && row.extra) {
             if (row.extra.size && typeof(row.extra.size) === 'string') {
-                size_id = row.extra.size;
+                sizeID = row.extra.size;
             } else {
-                size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
+                sizeID = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
                     row.extra.PLANID;
             }
         }
 
         // Given size_id, try to figure out actual size name
-        if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
+        if (sizeID && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
                 row.cloud.id].sizes && this.model.clouds[
-                row.cloud.id].sizes[size_id]) {
-            const size = this.model.clouds[row.cloud.id].sizes[size_id];
+                row.cloud.id].sizes[sizeID]) {
+            const size = this.model.clouds[row.cloud.id].sizes[sizeID];
             return size.name || size.id;
         }
 
         // If that fails look for size info in the extra metadata
         if (row.extra) {
+            let sizeName = "";
             if (row.extra.size && row.extra.size.vcpus) {
-                var size_name = `${row.extra.size.vcpus  }vCPU`;
+                sizeName = `${row.extra.size.vcpus  }vCPU`;
                 if (row.extra.size.memory)
-                    size_name += `, ${  row.extra.size.memory  }MB RAM`;
-                return size_name;
+                    sizeName += `, ${  row.extra.size.memory  }MB RAM`;
+                return sizeName;
             } if (row.extra.maxCpu) {
-                size_name = `${row.extra.maxCpu  }vCPU`;
+                sizeName = `${row.extra.maxCpu  }vCPU`;
                 if (row.extra.maxMemory)
-                    size_name += `, ${  row.extra.maxMemory  }MB RAM`;
-                return size_name;
+                    sizeName += `, ${  row.extra.maxMemory  }MB RAM`;
+                return sizeName;
             }
         }
 
-        return size_id || '';
+        return sizeID || '';
     },
 
-    _getMachineWeight(machine, model) {
+    _getMachineWeight(machine, _model) {
         let weight = 0;
         const machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray);
-            const machineHasMonitor = this._machineHasMonitoring(machine);
-            const machineHasrecommendations = this._machineHasrecommendations(machine);
-            const machineHasProbe = this._machineHasProbe(machine);
-        machineState = this._machineState(machine);
+        const machineHasMonitor = this._machineHasMonitoring(machine);
+        const machineHasrecommendations = this._machineHasrecommendations(machine);
+        const machineHasProbe = this._machineHasProbe(machine);
+        const machineState = this._machineState(machine);
         weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
             machineHasProbe + machineState;
-        return weight != NaN ? weight : 0;
+        return !Number.isNaN(weight) ? weight : 0;
     },
 
     _machineHasIncidents(machine, incidents) {
-        const machineIncidents = incidents ? incidents.filter(function(inc) {
-            return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
+        const machineIncidents = incidents ? incidents.filter((inc) => {
+            return inc.machine_id === machine.machine_id && inc.cloud_id === machine.cloud && !inc.finished_at
         }) : [];
         return machineIncidents ? machineIncidents.length * 1000 : 0;
     },
@@ -679,7 +680,7 @@ Polymer({
         return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
     },
 
-    _machineHasrecommendations(machine, probes) {
+    _machineHasrecommendations(machine, _probes) {
         return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
     },
 
@@ -690,21 +691,21 @@ Polymer({
     },
 
     _machineState(machine) {
-        if (machine.state == 'running')
+        if (machine.state === 'running')
             return 5;
-        if (machine.state == 'error')
+        if (machine.state === 'error')
             return 3;
-        if (machine.state == 'stopped')
+        if (machine.state === 'stopped')
             return 2;
-        if (machine.state == 'terminated')
+        if (machine.state === 'terminated')
             return 1;
-        if (machine.state == 'unknown')
+        if (machine.state === 'unknown')
             return 0;
         return 0;
     },
 
     itemRecommendation(item) {
-        if (this.probes == {} || !item || !item.id) {
+        if (this.probes === {} || !item || !item.id) {
             return false;
         } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
@@ -714,23 +715,22 @@ Polymer({
     },
 
     itemProbeClasses(item) {
-        if (this.probes == {}) {
+        if (this.probes === {}) {
             return '';
         } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                 return "";
             } 
                 const probe = this.model.probes[item.id].loadavg;
-                const cores = parseInt(this.model.probes[item.id].cores);
+                const cores = parseInt(this.model.probes[item.id].cores, 10);
                 let classes = '';
-                const prefix = '';
 
                 classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
                 classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
                 classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
 
                 // has probe data
-                if (classes != "")
+                if (classes !== "")
                     classes += "hasprobe "
 
                 return classes;

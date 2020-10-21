@@ -69,14 +69,14 @@ Polymer({
     listeners: {},
 
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
 
     _isDetailsPageActive(path) {
-        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('network-page')) {
+        if (path && path !== '/+add' && this.shadowRoot && this.shadowRoot.querySelector('network-page')) {
             this.shadowRoot.querySelector('network-page').updateState();
         }
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
 
     _isListActive(path) {
@@ -86,9 +86,10 @@ Polymer({
     _getNetwork(id) {
         if (this.model.networks)
             return this.model.networks[id];
+        return "";
     },
 
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true , detail:{url: this.model.sections.networks.add}}));
     },
 
@@ -98,21 +99,21 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(networks, clouds) {
+    _getRenderers(_networks, _clouds) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (!_this.model.clouds[row.cloud])
                         return '';
                     return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
@@ -121,15 +122,15 @@ Polymer({
             },
             'provider': {
                 'title': 'cloud',
-                'body': function(item, row) {
+                'body': (item, row) => {
                     return _this.model && _this.model.clouds && _this.model.clouds[row.cloud] ?
                         _this.model.clouds[row.cloud].title : item;
                 }
             },
             'machines': {
                 'title': 'machines',
-                'body': function(item, row) {
-                    const machines = Object.values(_this.model.machines).filter(function(m){ return m.network == row.id });
+                'body': (_item, row) => {
+                    const machines = Object.values(_this.model.machines).filter((m) => { return m.network === row.id });
                     if (machines)
                         return machines.length;
                     return '';
@@ -137,43 +138,42 @@ Polymer({
             },
             'owned_by': {
                 'title': 'owner',
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
                 'title': 'created by',
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'subnets': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && Object.keys(item) ? Object.keys(item).length : '';
                 }
             },
             'state': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     const {provider} = _this.model.clouds[row.cloud];
-                    if (provider == 'ec2')
-                        return row.extra && row.extra.state != undefined ? row.extra.state : '';
-                    if (provider == 'openstack')
-                        return row.admin_state_up != undefined ? `admin state up:${  row.admin_state_up}` :
+                    if (provider === 'ec2')
+                        return row.extra && row.extra.state !==  undefined ? row.extra.state : '';
+                    if (provider === 'openstack')
+                        return row.admin_state_up !== undefined ? `admin state up:${  row.admin_state_up}` :
                             '';
                     return '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    let key;
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

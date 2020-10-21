@@ -75,12 +75,12 @@ Polymer({
     listeners: {},
 
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
     _isDetailsPageActive(path) {
-        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('zone-page'))
+        if (path && path !== '/+add' && this.shadowRoot && this.shadowRoot.querySelector('zone-page'))
             this.shadowRoot.querySelector('zone-page').updateState();
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
     _isListActive(path) {
         return !path;
@@ -88,8 +88,9 @@ Polymer({
     _getZone(id) {
         if (this.model.zones)
             return this.model.zones[id];
+        return "";
     },
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.zones.add
         } }));
@@ -101,12 +102,12 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['provider', 'type', 'created_by', 'id', 'ttl', 'records', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(zones) {
+    _getRenderers(_zones) {
         const _this = this;
             const providerMap = {
                 'gce': 'Google',
@@ -118,12 +119,12 @@ Polymer({
             };
         return {
             'domain': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (!_this.model.clouds[row.cloud])
                         return '';
                     return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
@@ -131,7 +132,7 @@ Polymer({
                 }
             },
             'provider': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (_this.model.clouds && _this.model.clouds[row.cloud]) {
                         const {provider} = _this.model.clouds[row.cloud];
                         return providerMap[provider] || provider;
@@ -140,37 +141,37 @@ Polymer({
                 }
             },
             'records': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const ids = item ? Object.keys(item) : [];
                     return ids.length;
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

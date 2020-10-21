@@ -72,10 +72,10 @@ Polymer({
 
     listeners: {},
     _isAddPageActive(path) {
-        return path.split('?')[0] == '/+create';
+        return path.split('?')[0] === '/+create';
     },
     _isDetailsPageActive(path) {
-        return path && path.split('?')[0] != '/+create';
+        return path && path.split('?')[0] !== '/+create';
     },
     _isListActive(path) {
         return !path;
@@ -84,8 +84,9 @@ Polymer({
         if (this.model.stacks) {
             return this.model.stacks[id];
         }
+        return "";
     },
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.stacks.add
         } }));
@@ -96,21 +97,21 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['template', 'status', 'created_by', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(stacks, templates) {
+    _getRenderers(_stacks, _templates) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'template': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (_this.model && _this.model.templates)
                         return _this.model.templates[item] ? _this.model.templates[item].name :
                             'missing template';
@@ -118,41 +119,41 @@ Polymer({
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'status': {
-                'body': function(item, row) {
-                    if (item == "error") {
+                'body': (item, _row) => {
+                    if (item === "error") {
                         return `<span class='error'>${  item.charAt(0).toUpperCase()  }${item.slice(
-                            1)}`; + "</span>";
+                            1)}</span>`;
                     } 
                         return item ? item.replace(/_/g, " ") : '';
                     
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

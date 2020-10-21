@@ -85,7 +85,7 @@ Polymer({
   listeners: {
   },
 
-  _computeNewSchedule(schedule) {
+  _computeNewSchedule(_schedule) {
       if (this.schedule){
           const newSchedule = {
               name: this.schedule.name,
@@ -96,11 +96,11 @@ Polymer({
       }
   },
 
-  _openEditScheduleModal(e) {
+  _openEditScheduleModal(_e) {
       this.$.editScheduleModal.opened = true;
   },
 
-  _closeEditScheduleModal(e) {
+  _closeEditScheduleModal(_e) {
       this.$.editScheduleModal.opened = false;
   },
 
@@ -108,7 +108,7 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       this.$.editSchedule.body = this.payload;
       this.$.editSchedule.headers["Content-Type"] = 'application/json';
       this.$.editSchedule.headers["Csrf-Token"] = CSRFToken.value;
@@ -119,7 +119,7 @@ Polymer({
       this._computeNewSchedule();
   },
 
-  _handleScheduleEditResponse(e) {
+  _handleScheduleEditResponse(_e) {
       this._closeEditScheduleModal();
   },
 
@@ -132,21 +132,21 @@ Polymer({
 
   },
 
-  _newScheduleChanged(e) {
+  _newScheduleChanged(_e) {
       const pl = {};
       let plLength = 0;
-      for (const p in this.newSchedule) {
-          if (this.schedule[p] != this.newSchedule[p]) {
+      Object.keys(this.newSchedule || {}).forEach((p) => {
+          if (this.schedule[p] !== this.newSchedule[p]) {
               plLength++;
               pl[p] = this.newSchedule[p];
               console.log('_updatePayload', pl[p], this.newSchedule[p]);
           }
-      }
+      });
       this.set('payload', pl);
       this._updateformReady(plLength, this.sendingData);
   },
 
-  _updateformReady(plLength, sendingData) {
+  _updateformReady(plLength, _sendingData) {
       if (this.sendingData) {
           this.set('formReady', false);
       }

@@ -78,10 +78,10 @@ Polymer({
         }
     },
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
     _isDetailsPageActive(path) {
-        return path && path != '/+add' & !path.endsWith('+run');
+        return path && path !== '/+add' && !path.endsWith('+run');
     },
     _isRunPageActive(path) {
         return path && path.endsWith('+run');
@@ -93,9 +93,9 @@ Polymer({
         if (this.model && this.model.scripts && id) {
             return this.model.scripts[id];
         }
+        return "";
     },
-    _addResource(e) {
-        debugger;
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.scripts.add
         } }));
@@ -107,7 +107,7 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['exec_type', 'created_by', 'location', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
@@ -116,52 +116,52 @@ Polymer({
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'exec_type': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'exec type';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item;
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             },
             'location': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'location type';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item.type;
                 }
             }

@@ -44,7 +44,7 @@ Polymer({
             </div>
         </template>
         <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
-        <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]>
+        <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></tunnel-page>
             </key-page>
     </template>
     `,
@@ -76,12 +76,12 @@ Polymer({
         'select-action': 'selectAction',
     },
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
     _isDetailsPageActive(path) {
-        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
+        if (path && path !==  '/+add' && this.shadowRoot && this.shadowRoot.querySelector('tunnel-page'))
             this.shadowRoot.querySelector('tunnel-page').updateState();
-        return path && path != '/+add';
+        return path && path !==  '/+add';
     },
     _isListActive(path) {
         return !path;
@@ -89,8 +89,9 @@ Polymer({
     _getTunnel(id) {
         if (this.model.tunnels)
             return this.model.tunnels[id];
+        return "";
     },
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.tunnels.add
         } }));
@@ -101,50 +102,51 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['cidrs', 'created_by', 'id', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.push('owned_by');
         return ret;
     },
-    _getRenderers(tunnels) {
+    _getRenderers(_tunnels) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'cidrs': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (item)
                         return item.join(', ');
+                    return '';
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
-                        let display = "";
-                    for (key in tags) {
+                    let display = "";
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !==  undefined && tags[key] !==  "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

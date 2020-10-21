@@ -79,15 +79,15 @@ Polymer({
         this.set('selectedItems', []);
     },
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
     _isDetailsPageActive(path) {
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
     _isListActive(path) {
         return !path;
     },
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.templates.add
         } }));
@@ -95,8 +95,8 @@ Polymer({
     },
     _getTemplateStacks(id) {
         return this.model.stacksArray.filter(
-            function(stack) {
-                return stack.template == id;
+            (stack) => {
+                return stack.template === id;
             },
             this);
     },
@@ -106,45 +106,45 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['exec_type', 'location_type', 'created_by', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(templates) {
+    _getRenderers(_templates) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

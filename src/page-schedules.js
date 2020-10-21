@@ -72,11 +72,11 @@ Polymer({
     },
 
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
 
     _isDetailsPageActive(path) {
-        return path && path != '/+add';
+        return path && path!== '/+add';
     },
 
     _isListActive(path) {
@@ -86,9 +86,10 @@ Polymer({
     _getSchedule(id) {
         if (this.model.schedules)
             return this.model.schedules[id];
+        return '';
     },
 
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
             url: this.model.sections.schedules.add
         } }));
@@ -101,63 +102,64 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['task_type', 'schedule', 'selectors', 'created_by', 'total_run_count', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(schedules) {
+    _getRenderers(_schedules) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'task_type': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'task';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (item.action)
                         return item && item.action.toUpperCase();
                     if (item.script_id) {
                         const scriptName = _this.model.scripts[item.script_id] ? _this.model.scripts[item.script_id].name : "missing script";
                         return `RUN ${ scriptName}`;
                     }
+                    return '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key]!== undefined && tags[key]!== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'schedule': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (item.startsWith("Interval")) {
                         return item.replace("Interval ", "")
                     } if (item.startsWith("OneOff")) {
@@ -172,19 +174,19 @@ Polymer({
                 }
             },
             'selectors': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const selectors = item;
                     let display = '';
 
                     for (let i = 0; i < selectors.length; i++) {
                         let missingLength = 0;
-                        if (i == selectors.length - 1 && i > 0)
+                        if (i === selectors.length - 1 && i > 0)
                             display += "and ";
-                        if (selectors[i].type == "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
+                        if (selectors[i].type === "machines" && selectors[i].ids.length > 0 && _this.model.machines) {
                             display += "on ";
                             for (let j = 0; j < selectors[i].ids.length; j++) {
                                 if (_this.model.machines[selectors[i].ids[j]]) {
-                                    if (j == selectors[i].ids.length - 1 && j > 0 && !missingLength)
+                                    if (j === selectors[i].ids.length - 1 && j > 0 && !missingLength)
                                         display += "and ";
                                     display += _this.model.machines[selectors[i].ids[j]].name;
                                     if (j < selectors[i].ids.length - 2)
@@ -203,20 +205,20 @@ Polymer({
                                 else
                                     display += " "
                             }
-                        } else if (selectors[i].type == "tags") {
+                        } else if (selectors[i].type === "tags") {
                             display += "on tags ";
-                            for (const p in selectors[i].include) {
+                            Object.keys(selectors[i].include || {}).forEach((p) => {
                                 display += `<span class='tag'>${  p}`;
-                                if (selectors[i].include[p] != undefined && selectors[i].include[p] != "")
+                                if (selectors[i].include[p]!== undefined && selectors[i].include[p]!== "")
                                     display += `=${  selectors[i].include[p]}`;
                                 display += "</span>";
-                            }
+                            });
                         }
-                        if (selectors[i].type == "age")
+                        if (selectors[i].type === "age")
                             display += `older than ${  selectors[i].minutes  }min `;
-                        else if (selectors[i].type == "field" && selectors[i].field == "cost__monthly")
+                        else if (selectors[i].type === "field" && selectors[i].field === "cost__monthly")
                             display += `cost more than $${  selectors[i].value  }/month `;
-                        else if (selectors[i].type == "field")
+                        else if (selectors[i].type === "field")
                             display += `${selectors[i].field  } ${  selectors[i].value  } `;
                     }
 

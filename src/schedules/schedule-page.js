@@ -518,15 +518,15 @@ Polymer({
       this.isLoading = false;
   },
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
-  _viewID(e) {
+  _viewID(_e) {
       this.set('showId', true);
   },
 
-  _hideID(e) {
+  _hideID(_e) {
       this.set('showId', false);
   },
 
@@ -551,101 +551,108 @@ Polymer({
       }
   },
 
-  _computeHasExpired(schedule) {
-      if (this.schedule && this.schedule.expires != undefined && this.schedule.expires != "" && this.schedule.expires.length > 0){
+  _computeHasExpired(_schedule) {
+      if (this.schedule && this.schedule.expires !== undefined && this.schedule.expires !== "" && this.schedule.expires.length > 0){
           return moment().diff(moment.utc(this.schedule.expires).local()) > 0;
       } 
-          return false;
+      return false;
       
   },
 
-  _computeIsInterval(schedule) {
+  _computeIsInterval(_schedule) {
       if (this.schedule)
-          return this.schedule.schedule_type == "interval";
+          return this.schedule.schedule_type === "interval";
+      return false;
   },
 
-  _computeIsCrontab(schedule) {
+  _computeIsCrontab(_schedule) {
       if (this.schedule)
-          return this.schedule.schedule_type == "crontab";
+          return this.schedule.schedule_type === "crontab";
+      return false;
   },
 
-  _computeIsOneOff(schedule) {
+  _computeIsOneOff(_schedule) {
       console.log('_computeIsOneOff');
       if (this.schedule)
-          return this.schedule.schedule_type == "one_off";
+          return this.schedule.schedule_type === "one_off";
+      return false;
   },
 
-  _computeIsAction(schedule) {
+  _computeIsAction(_schedule) {
       if (this.schedule)
           return this.schedule.task_type.action;
+      return '';
   },
 
-  _computeIsRunScript(schedule) {
+  _computeIsRunScript(_schedule) {
       if (this.schedule)
           return this.schedule.task_type.script_id;
+      return '';
   },
 
-  _computeIsSpecificMachines(schedule) {
+  _computeIsSpecificMachines(_schedule) {
       if (this.schedule)
           return !!(this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('machines'));
+      return false;
   },
 
-  _computeIsMachinesWithTags(schedule) {
+  _computeIsMachinesWithTags(_schedule) {
       if (this.schedule)
           return !!(this.schedule.selectors && this.schedule.selectors.length > 0 && this._findSelector('tags'));
+      return false;
   },
 
   _findSelector(field) {
       if (this.schedule && this.schedule.selectors && this.schedule.selectors.length){
-          var field = this.schedule.selectors.find(function(con){
-              return ['age', 'machines', 'tags'].indexOf(field) == -1 ? con.field == field : con.type == field;
-          })
-          if (field) {
+           const field_ = this.schedule.selectors.find((con) => {
+              return ['age', 'machines', 'tags'].indexOf(field) === -1 ? con.field === field : con.type === field;
+          });
+          if (field_) {
               return true;
           }
-          return false;
       }
       return false;
   },
 
   _computeMachineAge(selectors){
       if (selectors){
-          const ageEntry = selectors.find(function(c){
-              return c.type == 'age';
+          const ageEntry = selectors.find((c) => {
+              return c.type === 'age';
           });
           return ageEntry ? ageEntry.minutes || false : false;
       }
+      return null;
   },
 
-  _computeMachineCost(selectors,rate){
+  _computeMachineCost(selectors, _rate){
       if (selectors){
-          const costEntry = selectors.find(function(c){
-              return c.type == 'field' && c.field == 'cost__monthly';
+          const costEntry = selectors.find((c) => {
+              return c.type === 'field' && c.field === 'cost__monthly';
           });
-          return costEntry && costEntry.value != undefined ? costEntry.value : false;
+          return costEntry && costEntry.value !== undefined ? costEntry.value : false;
       } 
           return false;
       
   },
 
-  _ratedCost(cost, rate){
+  _ratedCost(cost, _rate){
       // TODO:  Does COST come in $ from backend? // cost ? (cost/this.currency.rate).formatMoney(2) : '';
       return cost.formatMoney(2);
   },
 
   _computeAgeText(age){
       let duration = 'minutes';
-      let machineAge = parseInt(age);
-      if (age >= 60 && age%(60) == 0) {
+      let machineAge = parseInt(age, 10);
+      if (age >= 60 && age%(60) === 0) {
           machineAge = age/60;
           duration = 'hours';
-          if (machineAge == 1)
+          if (machineAge === 1)
               duration = 'hour';
       }
-      if (age >= (60*24) && age%(60*24) == 0 ){
+      if (age >= (60*24) && age%(60*24) === 0 ){
           machineAge = age/(60*24);
           duration = 'days';
-          if (machineAge == 1)
+          if (machineAge === 1)
               duration = 'day';
       }
       return `${machineAge } ${ duration}`;
@@ -663,10 +670,10 @@ Polymer({
           }
           // we need to reset start if hasExpired and expires if start has passed
           if (this.hasExpired) {
-              if (field == "start_after") {
+              if (field === "start_after") {
                   payload.expires = "";
               }
-              else if (field == "expires" && (moment().diff(moment.utc(this.schedule.start_after).local()) > 0 || this.schedule.start_after == "")) {
+              else if (field === "expires" && (moment().diff(moment.utc(this.schedule.start_after).local()) > 0 || this.schedule.start_after === "")) {
                   payload.start_after = "";
               }
           }
@@ -694,7 +701,7 @@ Polymer({
       this.expError = true;
   },
 
-  _deleteSchedule(e) {
+  _deleteSchedule(_e) {
       this._showDialog({
           title: 'Delete Schedule?',
           body: "Deleting schedules cannot be undone." ,
@@ -704,7 +711,7 @@ Polymer({
       });
   },
 
-  _handleScheduleDeleteResponse(e) {
+  _handleScheduleDeleteResponse(_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/schedules'} }));
   },
 
@@ -718,15 +725,16 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element#scheduleModal');
-      for (const i in info) {
+      Object.keys(info || {}).forEach((i) =>{
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
   _makeCleanerTask(task) {
+      let ret = '';
       if (task) {
-          let ret = '';
+          
           if (task.action) {
               ret = task.action.toUpperCase();
               ret += " machines";
@@ -735,38 +743,39 @@ Polymer({
               const scriptName = this.model && this.model.scripts && this.model.scripts[task.script_id] ? this.model.scripts[task.script_id].name : "missing script";
               ret = `RUN ${  scriptName}`;
           }
-          return ret;
       }
+      return ret;
   },
 
   _parseToLocalTime(string) {
       if (!this.isOneOff) 
           return string;
-      
-          if (string){
-              var newString = `once on ${  moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString() } (${ moment.utc(this.schedule.schedule_entry.entry).local().fromNow()})`;
-          }
-          return newString;
+      let newString = "";
+      if (string){
+          newString = `once on ${  moment.utc(this.schedule.schedule_entry.entry).local().format('YYYY-MM-DD HH:mm').toString() } (${ moment.utc(this.schedule.schedule_entry.entry).local().fromNow()})`;
+      }
+      return newString;
       
   },
 
-  _computeScriptLink(schedule) {
+  _computeScriptLink(_schedule) {
       if (this.schedule && this.schedule.task_type.script_id) {
           return `/scripts/${this.schedule.task_type.script_id}`
       }
+      return ""
   },
 
-  _computeMachines(schedule, machines) {
+  _computeMachines(_schedule, _machines) {
       let filteredMachines = [];
           const missingMachines = [];
           const _that = this;
-      filteredMachines = Object.values(this.model.machines).filter(function(m){
+      filteredMachines = Object.values(this.model.machines).filter((m) => {
           return _that.selector(m);
       });
 
       if (this.schedule && this.schedule.selectors && this._findSelector('machines')) {
           for (let i = 0; i < this.machinesIds.length; i++) {
-              const machine = this.schedule.selectors.find(function(c){return c.type == "machines"}).ids[i];
+              const machine = this.schedule.selectors.find((c) => {return c.type === "machines"}).ids[i];
               if (this.model.machines && !this.model.machines[machine]){
                   missingMachines.push(machine);
               }
@@ -777,13 +786,13 @@ Polymer({
       this.set('missingMachines', missingMachines);
   },
 
-  _computeMachinesIds(selectors) {
+  _computeMachinesIds(_selectors) {
       let ids = [];
       if (!this.selectors.length || !this._findSelector('machines')){
           return ids;
       }
       
-          ids = this.selectors.find(function(c){return c.type == "machines"}).ids;
+          ids = this.selectors.find((c) => {return c.type === "machines"}).ids;
       
       return ids;
   },
@@ -796,13 +805,13 @@ Polymer({
           return false;
 
       if (this._findSelector('age')){
-          fulfillsAge = m.created && m.created.trim() != "" ? moment().diff(m.created, 'minutes') > this.schedule.selectors.find(function(con){
-                  return con.type == 'age';
+          fulfillsAge = m.created && m.created.trim() !== "" ? moment().diff(m.created, 'minutes') > this.schedule.selectors.find((con) => {
+                  return con.type === 'age';
               }).minutes : false;
       }
       if (this._findSelector('cost__monthly')){
-          fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.selectors.find(function(con){
-                  return con.field == 'cost__monthly';
+          fulfillsCost = m.cost && m.cost.monthly ? m.cost.monthly > this.schedule.selectors.find((con) => {
+                  return con.field === 'cost__monthly';
               }).value : false;
       }
 
@@ -811,23 +820,24 @@ Polymer({
       } if (this.isMachinesWithTags) {
           return this.machineHasTag(m) && fulfillsAge && fulfillsCost;
       }
+      return false;
   },
 
   isSelectedMachine(machineId) {
-      return !this.schedule.selectors || !this.schedule.selectors.find(function(c){return c.type == "machines"}) ? false : this.schedule.selectors.find(function(c){return c.type == "machines"}).ids.indexOf(machineId) > -1;
+      return !this.schedule.selectors || !this.schedule.selectors.find((c) => {return c.type === "machines"}) ? false : this.schedule.selectors.find((c) => {return c.type === "machines"}).ids.indexOf(machineId) > -1;
   },
 
   machineHasTag(m) {
       let exists = false;
       for (let i = 0; i < m.tags.length; i++){
-          const scheduleTags = this.schedule.selectors.find(function(c){return c.type == "tags"}).include;
+          const scheduleTags = this.schedule.selectors.find((c) => {return c.type === "tags"}).include;
 
-          if (scheduleTags.hasOwnProperty(m.tags[i].key)){
+          if (Object.prototype.hasOwnProperty.call(scheduleTags, m.tags[i].key)){
               if (!scheduleTags[m.tags[i].key] && !m.tags[i].value){
                   exists = true;
                   break;
               }
-              else if (scheduleTags[m.tags[i].key] == m.tags[i].value){
+              else if (scheduleTags[m.tags[i].key] === m.tags[i].value){
                   exists = true;
                   break;
               }
@@ -871,11 +881,11 @@ Polymer({
       this.$.actions.$.editScheduleTask._openEditScheduleModal();
   },
 
-  _computeTagsArray(selectors, isMachinesWithTags ){
+  _computeTagsArray(_selectors, _isMachinesWithTags ){
       console.log('_computeTagsArray');
       if (this.isMachinesWithTags && this.schedule.selectors) {
-          const tagsSelector = this.schedule.selectors.find(function(c){
-              return c.type == 'tags'
+          const tagsSelector = this.schedule.selectors.find((c) => {
+              return c.type === 'tags'
           });
           if (tagsSelector) {
               const tags = tagsSelector.include;
@@ -883,20 +893,21 @@ Polymer({
               const tagsArray = Object.keys(tags);
               for (let i=0; i < tagsArray.length; i++) {
                   const t = tagsArray[i];
-                  if (tags[t] != null && tags[t].trim() != '') {
+                  if (tags[t] !== null && tags[t].trim() !== '') {
                       tagsArray[i] = `${tagsArray[i]}=${tags[t]}`;
                   }
               }
               return tagsArray;
           }
       }
+      return [];
   },
 
-  _editMaxRunCount(e){
+  _editMaxRunCount(_e){
       this.shadowRoot.querySelector('schedule-actions').$.editMaxRunCount._openEditScheduleModal();
   },
 
-  _hideRunNow(hasExpired, max_run_count, total_run_count) {
+  _hideRunNow(_hasExpired, _maxRunCount, _totalRunCount) {
       // return hasExpired || this.schedule.max_run_count == this.schedule.total_run_count;
       return true;
   }

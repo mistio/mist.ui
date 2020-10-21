@@ -90,15 +90,15 @@ Polymer({
 
     listeners: {},
     _isDetailsPageActive(path) {
-        if (path && path != '/+add' && this.$.teamPage)
+        if (path && path !== '/+add' && this.$.teamPage)
             this.$.teamPage.updateState();
         return path && !path.endsWith('+add');
     },
     _isAddMembersPageActive(path) {
-        return path != '/+add' && path.endsWith('+add');
+        return path !== '/+add' && path.endsWith('+add');
     },
     _isAddMemberPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
     _isListActive(path) {
         return !path;
@@ -106,7 +106,7 @@ Polymer({
     _isMemberOfFilter() {
         const _this = this;
         return {
-            'apply': function(item, query) {
+            'apply': (item, query) => {
                 let q = query.slice(0) || '';
                     const filterOwner = query.indexOf('owner:') > -1;
                     const ownerRegex = /owner:(\S*)\s?/;
@@ -115,14 +115,14 @@ Polymer({
                     if (ownerRegex.exec(q).length) {
                         const owner = ownerRegex.exec(q)[1];
                         if (owner) {
-                            if (owner == "$me") {
-                                if (!item.members.length || item.members.indexOf(_this.model.user.id) == -1)
+                            if (owner === "$me") {
+                                if (!item.members.length || item.members.indexOf(_this.model.user.id) === -1)
                                     return false;
                             } else {
-                                const ownerObj = _this.model.membersArray.find(function(m) {
+                                const ownerObj = _this.model.membersArray.find((m) => {
                                     return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
                                 });
-                                if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) == -1))
+                                if (!ownerObj || (!item.members.length || item.members.indexOf(ownerObj.id) === -1))
                                     return false;
                             }
                             q = q.replace('owner:', '').replace(owner, '');
@@ -140,6 +140,7 @@ Polymer({
     _getTeam(id) {
         if (this.model.teams && id)
             return this.model.teams[id];
+        return "";
     },
 
     _getFrozenColumn() {
@@ -150,11 +151,11 @@ Polymer({
         return ['description', 'members'];
     },
 
-    _getRenderers(teams, members) {
+    _getRenderers(_teams, _members) {
         const _this = this;
         return {
             'name': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     if (row.parent && _this.model && _this.model.org && _this.model.org.parent_org_name) {
                         const ret = `[${  _this.model.org.parent_org_name  }] <strong>${  item  }</strong>`;
                         return ret;
@@ -163,15 +164,16 @@ Polymer({
                 }
             },
             'members': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (_this.model && _this.model.members && item && item.length && item.length > 0) {
-                        const names = item.map(function(i) {
-                            if (_this.model.members[i])
-                                var displayName = _this.model.members[i].name || _this.model.members[i].email || _this.model.members[i].username;
-                            return ` ${  displayName}`;
-                        })
-                        const ret = names;
-                        return ret;
+                        const names = item.map((i) => {
+                            if (_this.model.members[i]){
+                                const displayName = _this.model.members[i].name || _this.model.members[i].email || _this.model.members[i].username;
+                                return ` ${  displayName}`;
+                            }
+                            return "";
+                        });
+                        return names;
                     }
                     return item;
                 }
@@ -179,7 +181,7 @@ Polymer({
         };
     },
 
-    _addTeam(e) {
+    _addTeam(_e) {
         const dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
         dialog.openDialog();
     },
@@ -191,7 +193,7 @@ Polymer({
         }
     },
 
-    _showAddTeam(path, user) {
+    _showAddTeam(path, _user) {
         return this.model && this._isListActive(path) && this.check_perm('add','key', null, this.model.org, this.model.user);
     }
 
