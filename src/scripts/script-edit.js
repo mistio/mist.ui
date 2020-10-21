@@ -104,6 +104,7 @@ Polymer({
               description: script.description
           };
       }
+      return {};
   },
 
   _computeFormReady(name, sendingData) {
@@ -120,11 +121,11 @@ Polymer({
       return formReady;
   },
 
-  _openEditScriptModal(e) {
+  _openEditScriptModal(_e) {
       this.$.editScriptModal.opened = true;
   },
 
-  _closeEditScriptModal(e) {
+  _closeEditScriptModal(_e) {
       this.$.editScriptModal.opened = false;
   },
 
@@ -132,7 +133,7 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       this.$.scriptEditAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.scriptEditAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.scriptEditAjaxRequest.body = {
@@ -146,18 +147,18 @@ Polymer({
       //   this.set('script.id', '');
   },
 
-  _handleScriptEditAjaxResponse(e) {
+  _handleScriptEditAjaxResponse(_e) {
       this._closeEditScriptModal();
   },
 
-  _handleScriptEditAjaxError(e,d) {
+  _handleScriptEditAjaxError(e, _d) {
       this.set('formError', true);
       // console.log('FAIL', e)
       // this.$.errormsg.textContent = e.detail.request.xhr.response.body.innerText;
       this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  hideErrors(e) {
+  hideErrors(_e) {
       this.set('formError', false);
   }
 });

@@ -232,16 +232,16 @@ Polymer({
   },
 
   _fieldIndexByName(name) {
-      return this.fields.findIndex(function(f) {
-          return f.name == name;
+      return this.fields.findIndex((f) => {
+          return f.name === name;
       });
   },
 
   _execTypeChanged (type) {
       let placeholder = "";
-      if (type == "executable") {
+      if (type === "executable") {
           placeholder = "#!/bin/bash\necho 'hello world'";
-      } else if (type == "ansible") {
+      } else if (type === "ansible") {
           placeholder =
               "- name: Dummy ansible playbook\n  hosts: localhost\n  tasks:\n    - name: Dummy task\n      debug:\n        msg: 'Hello World'\n"
       }

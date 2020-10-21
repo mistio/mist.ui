@@ -268,13 +268,14 @@ Polymer({
       return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
   _computeIsInline(location) {
       if (location)
           return !!location.source_code;
+      return false;
   },
 
   _runScript(e) {
@@ -282,7 +283,7 @@ Polymer({
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${  this.script.id  }/+run`} }));
   },
 
-  _handleScriptDeleteAjaxResponse(e) {
+  _handleScriptDeleteAjaxResponse(_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts'} }));
   },
 
@@ -293,16 +294,18 @@ Polymer({
   _computeLink(location) {
       if (location)
           return location.repo || location.url;
+      return null;
   },
 
-  _computeIsloading(script) {
+  _computeIsloading(_script) {
       return !this.script;
   },
 
-  _computeScriptTags (script, scriptTags) {
+  _computeScriptTags (_script, _scriptTags) {
       if (this.script) {
           return Object.entries(this.script.tags).map(([key, value]) => ({key,value}));
       }
+      return [];
   },
 
   _getVisibleColumns () {
@@ -317,7 +320,7 @@ Polymer({
       const _this = this;
       return {
           'time': {
-              'body': function(item, row) {
+              'body': (item, row) => {
                   let ret = `<span title="${  moment(item*1000).format()  }">${  moment(item*1000).fromNow()  }</span>`;
                   if (row.error)
                       ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
@@ -325,11 +328,11 @@ Polymer({
               }
           },
           'user_id': {
-              'title': function(){ return 'user';},
-              'body': function(item) {
+              'title': () => { return 'user';},
+              'body': (item) => {
                   if (_this.model && _this.model.members && item in _this.model.members &&
                       _this.model.members[item] && _this.model.members[item].name &&
-                      _this.model.members[item].name != undefined){
+                      _this.model.members[item].name !== undefined){
                       const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
                       const ret = `<a href="/members/${  item  }">${  displayUser  }</a>`;
                       return ret;
@@ -339,7 +342,7 @@ Polymer({
           },
           'machine_id': {
               'title': 'machine',
-              'body': function(item, row) {
+              'body': (item, _row) => {
                   if (_this.model && _this.model.machines &&
                       item in _this.model.machines) {
                       const ret = `<a href="/machines/${  _this.model.machines[item].uuid  }">${  _this.model.machines[item].name  }</a>`;
@@ -351,7 +354,7 @@ Polymer({
       };
   },
 
-  _changed(item) {
+  _changed(_item) {
       if (this.script)
           this.set('itemArray', [this.script]);
   }

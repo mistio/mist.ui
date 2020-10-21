@@ -172,7 +172,7 @@ Polymer({
   _otherMembers(members, _items) {
       if (this.items && members) {
           const owners = this.items.map((i) => { return i.owned_by; })
-              .filter(function(value, index, self) { return self.indexOf(value) === index; });
+              .filter((value, index, self) => { return self.indexOf(value) === index; });
           // filter out pending users and the single owner of the item-set if that is the case
           return members.filter((m) => {
               return owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending;

@@ -159,8 +159,8 @@ Polymer({
       this.set('fields', fields);
   },
 
-  _computeMachinesOptions(clouds) {
-      return Object.values(this.model.machines).filter(function(cloud) {
+  _computeMachinesOptions(_clouds) {
+      return Object.values(this.model.machines).filter((cloud) => {
               return cloud.enabled;
           });
   },
@@ -169,10 +169,11 @@ Polymer({
       return machinesOptions.base.length > 0;
   },
 
-  _computeFieldType(field, value, show) {
+  _computeFieldType(field, value, _show) {
       if (!(field.showIf && !field.show)) {
-          return field.type == value;
+          return field.type === value;
       }
+      return false;
   },
 
   _computeCardTitleText(name, machine) {
@@ -180,11 +181,8 @@ Polymer({
   },
 
   _fieldsChanged() {
-      const machine = this.fields.find(function(f){
+      const machine = this.fields.find((f) => {
           return f.name.startsWith("machine");
-      });
-      const cloud = this.fields.find(function(f, index){
-          return f.name.startsWith("cloud");
       });
       if (machine && machine.value) {
           const machineId = machine.value;
@@ -198,12 +196,12 @@ Polymer({
       return !!(machine.key_associations && machine.key_associations.length > 0);
   },
 
-  _cloudsChanged(fieldsLength, clouds, machines, keys) {
+  _cloudsChanged(_fieldsLength, _clouds, _machines, _keys) {
 
       this.set('fields.0.options', Object.values(this.model.machines));
 
       if (this.fields && this.fields[0] && this.fields[0].options) {
-          this.fields[0].options.forEach(function (o, index){
+          this.fields[0].options.forEach((o, index) => {
               if (o && o.key_associations && o.key_associations.length > 0){
                   this.set(`fields.0.options.${index}.icon`, 'communication:vpn-key');
               } else {
@@ -213,10 +211,10 @@ Polymer({
       }
   },
 
-  _runScriptResponse(e) {
+  _runScriptResponse(_e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Run script request was successfull. Redirecting to script...',duration:3000} }));
 
-      this.async(function(){
+      this.async(() => {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${this.script.id}`} }));
       }, 3300)
   }
