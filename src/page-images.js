@@ -91,6 +91,7 @@ Polymer({
         // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
         if (this.model.images)
             return this.model.images[route.path.slice(1, route.path.length)];
+        return "";
     },
     _getImageId (route) {
         if (route.path.slice(1, route.path.length) && this.shadowRoot && this.shadowRoot.querySelector('image-page')) {
@@ -98,7 +99,7 @@ Polymer({
         }
         return route.path.slice(1, route.path.length);
     },
-    _addResource (e) {
+    _addResource (_e) {
         this.searchOnProviders();
     },
     _getFrozenColumn () {
@@ -107,68 +108,68 @@ Polymer({
     _getVisibleColumns () {
         return ['starred', 'cloud', 'created_by', 'id'/* , 'tags' */];
     },
-    _getRenderers (keys) {
+    _getRenderers (_keys) {
         const _this = this;
         return {
             'name': {
-                'body': function (item, row) {
-                    const name = item == "<none>:<none>" ? row.id : item;
+                'body': (item, row) => {
+                    const name = item === "<none>:<none>" ? row.id : item;
                     if (row.star)
                         return `<strong class="name starred">${  name  }</strong>`;
                     return `<strong class="name unstarred">${  name  }</strong>`;
                 }
             },
             'cloud': {
-                'body': function (item, row) {
+                'body': (_item, row) => {
                     return row && row.cloud ? row.cloud.title : '';
                 }
             },
             'starred': {
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return item ? '<iron-icon icon="star" class="starred"></iron-icon>' :
                         '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
                 }
             },
             'owned_by': {
-                'title': function (item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model
                         .members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function (item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model
                         .members[item].email|| _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }
         }
     },
     searchableClouds (clouds) {
-        return clouds.filter(function (c) {
+        return clouds.filter((c) => {
             return ['ec2', 'docker'].indexOf(c.provider) > -1;
         });
     },
-    sortedImages (images) {
-        return this.model.imagesArray.sort(function (a, b) {
+    sortedImages (_images) {
+        return this.model.imagesArray.sort((a, b) => {
             // if both properties exist
             if (a.star > b.star) {
                 return -1;

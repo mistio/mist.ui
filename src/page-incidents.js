@@ -47,7 +47,7 @@ Polymer({
         'incidentsChanged(model.incidents.*)'
     ],
     incidentsChanged (incidents) {
-        if (incidents.path == 'model.incidents' && this.shadowRoot.querySelector('mist-list')) {
+        if (incidents.path === 'model.incidents' && this.shadowRoot.querySelector('mist-list')) {
             this.shadowRoot.querySelector('mist-list').fire('resize');
         }
     },
@@ -66,10 +66,10 @@ Polymer({
         const _this = this;
         return {
             'started_at': {
-                'title': function (item) {
+                'title': (item) => {
                     return item ? item.replace(/_/g, " ") : 'started at';
                 },
-                'body': function (item, row) {
+                'body': (item, row) => {
                     let active = '';
                     if (!row.finished_at) {
                         active = '<strong class="error"> - Active now </strong>'
@@ -77,7 +77,7 @@ Polymer({
                     return `<span title="${  dayjs(item * 1000).format()  }">${  dayjs(item *
                         1000).fromNow()  }</span>${  active}`;
                 },
-                'cmp': function (item1, item2, row1, row2) {
+                'cmp': (item1, item2, _row1, _row2) => {
                     if (item1 > item2) {
                         return 1;
                     } if (item1 < item2) {
@@ -87,10 +87,10 @@ Polymer({
                 }
             },
             'resource_id': {
-                'title': function (item) {
+                'title':  (_item) => {
                     return 'resource';
                 },
-                'body': function (item, row) {
+                'body': (_item, row) => {
                     const resource = _this._getResource(row, _this.model);
                     console.log('RESOURCE ===', resource)
                     // Resource may be missing. If not display link
@@ -98,25 +98,25 @@ Polymer({
                         if (resource.id)
                             return `<a href="/${ resource.type }s/${  resource.id 
                                 }" class="regular" style="color: #2196F3;">${  resource.name  }</a>`;
-                        if (resource.type == "organization")
+                        if (resource.type === "organization")
                             return 'Organization';
-                        if (!resource.id && resource.type != "organization")
+                        if (!resource.id && resource.type !== "organization")
                             return resource.name;
                     }
                     return row[`${resource.type}_id`]
                 }
             },
             'cloud_id': {
-                'title': function (item) {
+                'title':  (item) => {
                     return item ? item.replace(/_/g, " ") : 'cloud';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return _this.model.clouds && _this.model.clouds[item] ? _this.model.clouds[
                         item].title : (item || '');
                 }
             },
             'error': {
-                'body': function (item, row) {
+                'body':  (item, _row) => {
                     const classname = item ? 'error' : '';
                     return `<span class="${  classname  }">${  item  }</span>`;
                 }

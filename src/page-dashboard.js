@@ -19,6 +19,7 @@ import '../node_modules/@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
 import moment from '../node_modules/moment/src/moment.js'
+import { CSRFToken } from './helpers/utils.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -465,26 +466,26 @@ Polymer({
     attached() {
         // initialise chips position matrix
         const that = this;
-        this.async(function() {
+        this.async(() => {
             that.cloudLayoutMatrix(that.model.clouds, that.sidebarIsOpen);
         }, 50);
     },
     isOnline(cloud) {
-        return cloud.state == 'online' && 'online';
+        return cloud.state === 'online' && 'online';
     },
     isOffline(cloud) {
-        return cloud.state == 'offline' && 'offline';
+        return cloud.state === 'offline' && 'offline';
     },
-    _computeHasIncidents(incidents) {
+    _computeHasIncidents(_incidents) {
         // incidents must be unresolved to count
         return !!(this.model.incidents && Object.values(
-            this.model.incidents).filter(function(incident) {
+            this.model.incidents).filter((incident) => {
             return !incident.finished_at;
         }, this).length);
     },
     _computeshowDashboard(cloudslength, isLoadingClouds) {
         let show;
-        if (cloudslength > 0 && isLoadingClouds == false) {
+        if (cloudslength > 0 && isLoadingClouds === false) {
             show = true;
         } else {
             show = false;
@@ -495,7 +496,7 @@ Polymer({
     },
     hideSidebar() {
         // if we are on boarding, close sidebar for focus
-        window.setTimeout(function() {
+        window.setTimeout(() => {
             const sidebar = document.querySelector('mist-sidebar');
                 const content = document.querySelector('iron-pages');
             sidebar.classList.add('close');
@@ -503,12 +504,12 @@ Polymer({
         }, 2400);
         this.set('sidebarIsOpen', false);
     },
-    _computeReplaceTargets(monitoring) {
+    _computeReplaceTargets(_monitoring) {
         const ret = {};
             const mIds = Object.keys(this.get('model.monitoring.monitored_machines') || {});
         for (let i = 0; i < mIds.length; i++) {
             const mref = this.model.monitoring.monitored_machines[mIds[i]];
-                var m;
+            let m;
             if (this.model.clouds && this.model.clouds[mref.cloud_id] && this.model.clouds[mref.cloud_id].machines && this.model.clouds[mref.cloud_id].machines[mref.machine_id])
                 m = mref && this.model.clouds[mref.cloud_id].machines[mref.machine_id];
             ret[mIds[i]] = m ? m.name : 'unknown';
@@ -517,14 +518,14 @@ Polymer({
     },
     _closeCloudChips() {
         const cloudChips = this.shadowRoot.querySelectorAll('cloud-chip');
-        [].forEach.call(cloudChips, function(el, index) {
+        [].forEach.call(cloudChips, (el, _index) => {
             el.removeAttribute('opened');
         });
         this.set('openedCloud', '');
     },
     showSidebar() {
         // show sidebar for navigation
-        window.setTimeout(function() {
+        window.setTimeout(() => {
             const sidebar = document.querySelector('mist-sidebar');
                 const content = document.querySelector('iron-pages');
             sidebar.classList.remove('close');
@@ -532,12 +533,12 @@ Polymer({
         }, 200);
         this.set('sidebarIsOpen', true);
     },
-    cloudLayoutMatrix(clouds, sidebarOpen) {
+    cloudLayoutMatrix(_clouds, _sidebarOpen) {
         // construct a reference matrix of the chips offsetTops
         const chips = document.querySelectorAll('cloud-chip');
         const matrix = [];
         if (chips) {
-            [].forEach.call(chips, function(c) {
+            [].forEach.call(chips, (c) => {
                 matrix.push(c.offsetTop);
             });
             this.set('matrix', matrix);
@@ -547,10 +548,10 @@ Polymer({
         // calculate the index of the first chip of the next row
         const ref = this.matrix[index];
         let targetIndex;
-        const nextInd = this.matrix.find(function(n, index) {
-            targetIndex = index;
+        const nextInd = this.matrix.find((n, ind) => {
+            targetIndex = ind;
             return n > ref;
-        }, this);
+        });
         // or if the first chip of the next row does not exist, set index to the last chip
         if (!nextInd) {
             targetIndex = this.matrix.length
@@ -561,37 +562,37 @@ Polymer({
         // show load on all if at least one machine has activated monitoring
         let show = false;
         if (machines) {
-            for (const p in machines) {
+            Object.keys(machines).forEach((p) => {
                 if (machines[p].installation_status.activated_at) {
                     show = true;
                 }
-            }
+            });
         }
         return show;
     },
-    _computeHasMissingMonitored(machines, monitoring) {
+    _computeHasMissingMonitored(_machines, _monitoring) {
         const hasNonExisting = [];
         if (this.model && this.model.clouds && this.model.monitoring && this.model.monitoring.monitored_machines) {
-            for (const p in this.model.monitoring.monitored_machines) {
+            Object.keys(this.model.monitoring.monitored_machines || {}).forEach((p) => {
                 if (!this.model.machines[p]) {
                     hasNonExisting.push([this.model.monitoring.monitored_machines[p].cloud_id, this.model.monitoring.monitored_machines[p].machine_id]);
                 }
-            }
+            });
         }
         return hasNonExisting;
     },
-    _disableMonitoringOnNonExisting(e) {
-        for (const p in this.model.monitoring.monitored_machines) {
+    _disableMonitoringOnNonExisting(_e) {
+        Object.keys(this.model.monitoring.monitored_machines || {}).forEach((p) => {
             if (!this.model.machines[p]) {
                 console.log('not existing');
                 this._disableMonitoring([this.model.monitoring.monitored_machines[p].cloud_id, p]);
             }
-        }
+        });
     },
     _disableMonitoring(m) {
         const payload = {};
         payload.action = "disable";
-        this.$.monitoringRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+        this.$.monitoringRequest.headers["Csrf-Token"] = CSRFToken.value;
         this.$.monitoringRequest.url = `/api/v1/machines/${  m[1]  }/monitoring`
         this.$.monitoringRequest.params = payload;
         this.$.monitoringRequest.generateRequest();
@@ -605,8 +606,8 @@ Polymer({
         this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add cloud fab click' }));
 
     },
-    _isHidden(item, count) {
-        if (item.hideTileIfZero && item.count == 0)
+    _isHidden(item, _count) {
+        if (item.hideTileIfZero && item.count === 0)
             return true;
         return false;
     },
@@ -614,7 +615,7 @@ Polymer({
         const _this = this;
         return {
             'time': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     let ret = `<span title="${  moment(item * 1000).format()  }">${  moment(item * 1000).fromNow()  }</span>`;
                     if (row.error)
                         ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
@@ -623,7 +624,7 @@ Polymer({
             },
             'user_id': {
                 'title': 'user',
-                'body': function(item) {
+                'body': (item) => {
                     if (_this.model && _this.model.members && item in _this.model.members && _this.model.members[item]) {
                         let name = '';
                             const m = _this.model.members[item];
@@ -651,11 +652,11 @@ Polymer({
         return ['time']
     },
 
-    clearSearch(e) {
+    clearSearch(_e) {
         this.dispatchEvent(new CustomEvent('clear-search-on-nav', {bubbles:true, composed:true}));
     },
 
-    _toArray(x, z) {
+    _toArray(x, _z) {
         if (x) {
             return Object.keys(x).map(y => x[y])
         }
@@ -664,21 +665,21 @@ Polymer({
 
     _getFilteredResources(resources, q) {
         let owned;
-        if (q == "owner:$me" && this.model && resources) {
-            owned = Object.values(resources).filter(function(item){
-                return item.owned_by == this.model.user.id;
-            }.bind(this))
+        if (q === "owner:$me" && this.model && resources) {
+            owned = Object.values(resources).filter((item) => {
+                return item.owned_by === this.model.user.id;
+            })
         }
-        return owned != undefined ? owned : Object.values(resources);
+        return owned !== undefined ? owned : Object.values(resources);
     },
 
-    _getSectionCount(name, sections, q) {
+    _getSectionCount(name, _sections, q) {
         let count;
-        if (q == "owner:$me" && this.model && this.model[name]) {
-            count = Object.values(this.model[name]).filter(function(item){
-                return item.owned_by == this.model.user.id;
-            }.bind(this)).length;
+        if (q === "owner:$me" && this.model && this.model[name]) {
+            count = Object.values(this.model[name]).filter((item) => {
+                return item.owned_by === this.model.user.id;
+            }).length;
         }
-        return count != undefined ? count : this.model.sections[name].count;
+        return count !== undefined ? count : this.model.sections[name].count;
     }
 });

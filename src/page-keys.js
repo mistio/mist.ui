@@ -62,14 +62,14 @@ Polymer({
     },
 
     _isAddPageActive (path) {
-        return path == '/+add';
+        return path === '/+add';
     },
 
     _isDetailsPageActive (path) {
-        if (path && path != '/+add' && this.querySelector('key-page')) {
+        if (path && path !== '/+add' && this.querySelector('key-page')) {
             this.querySelector('key-page').updateState();
         }
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
 
     _isListActive (path) {
@@ -79,9 +79,10 @@ Polymer({
     _getKeyPair (id) {
         if (this.model.keys)
             return this.model.keys[id];
+        return "";
     },
 
-    _addResource (e) {
+    _addResource (_e) {
         this.dispatchEvent(new CustomEvent('go-to', {
             bubbles: true,
             composed: true,
@@ -100,57 +101,57 @@ Polymer({
         return ['machines', 'isDefault', 'created_by', 'id', 'tags'];
     },
 
-    _getRenderers (keys) {
+    _getRenderers (_keys) {
         const _this = this;
         return {
             'name': {
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'machines': {
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return item.length;
                 }
             },
             'isDefault': {
-                'title': function (item, row) {
+                'title': (_item, _row) => {
                     return 'Default';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return item ?
                         '<span class="default"><iron-icon icon="communication:vpn-key"></iron-icon> Default key</span>' :
                         '';
                 }
             },
             'owned_by': {
-                'title': function (item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model
                         .members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function (item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model
                         .members[item].email || _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function (item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }

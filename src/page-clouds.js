@@ -9,7 +9,6 @@ import './helpers/mist-lists-behavior.js';
 import PROVIDERS from './helpers/providers.js';
 import { rbacBehavior } from './rbac-behavior.js';
 import {ownerFilterBehavior} from './helpers/owner-filter-behavior.js';
-import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -94,21 +93,21 @@ Polymer({
 
     _getVisibleColumns() {
         const ret = ['state', 'provider', 'region', 'machines', 'volumes', 'locations', 'id', 'tags'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.length - 1, 0, 'owned_by');
         return ret;
     },
 
-    _getRenderers(keys) {
+    _getRenderers(_keys) {
         const _this = this;
         return {
             'title': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (!row.provider)
                         return '';
                     return `./assets/providers/provider-${  row.provider.replace("_", "")
@@ -116,46 +115,46 @@ Polymer({
                 }
             },
             'machines': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && Object.keys(item).length || 0;
                 }
             },
             'volumes': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && Object.keys(item).length || 0;
                 }
             },
             'locations': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return item && Object.keys(item).length || 0;
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email|| _this.model.members[item].username : '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
-                        let display = "";
-                    for (key in tags) {
+                    let display = "";
+                    Object.keys(tags || {}).forEach((key) => {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
-                    }
+                    });
                     return display;
                 }
             }
@@ -163,7 +162,7 @@ Polymer({
     },
 
     _isAddPageActive(path) {
-        return path == '/+add';
+        return path === '/+add';
     },
 
     _isListActive(path) {
@@ -173,18 +172,19 @@ Polymer({
     },
 
     _isDetailsPageActive(path) {
-        if (path && path != '/+add' && this.shadowRoot && this.shadowRoot.querySelector('cloud-page')) {
+        if (path && path !== '/+add' && this.shadowRoot && this.shadowRoot.querySelector('cloud-page')) {
             this.shadowRoot.querySelector('cloud-page').updateState();
         }
-        return path && path != '/+add';
+        return path && path !== '/+add';
     },
 
     _getCloud(id) {
         if (this.model.clouds && id)
             return this.model.clouds[id];
+        return "";
     },
 
-    _addResource(e) {
+    _addResource(_e) {
         this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: this.model.sections.clouds.add } }));
     }
 });
