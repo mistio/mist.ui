@@ -9,6 +9,7 @@ import '../teams/team-add.js';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -252,7 +253,7 @@ Polymer({
   },
 
   _computeHasOrg (name) {
-      if (name.value == '') {
+      if (name.value === '') {
           return false;
       } 
           return true;
@@ -268,6 +269,7 @@ Polymer({
           return `${this.model.user.email.split('@')[0]  }.org`;
       if (this.model.user && this.model.user.username)
           return `${this.model.user.username  }.org`;
+      return '';
   },
 
   _orgInputKeyUp(event) {
@@ -277,16 +279,16 @@ Polymer({
   },
 
   saveOrg(){
-      const new_name = this.shadowRoot.querySelector("#orginput").value;
-      this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: `Save org ${  new_name}` }));
+      const newName = this.shadowRoot.querySelector("#orginput").value;
+      this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: `Save org ${  newName}` }));
 
       this.$.saveOrgRequest.headers["Content-Type"] = 'application/json';
-      this.$.saveOrgRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.saveOrgRequest.body = { 'new_name': new_name };
+      this.$.saveOrgRequest.headers["Csrf-Token"] = CSRFToken.value;
+      this.$.saveOrgRequest.body = { 'new_name': newName };
       this.$.saveOrgRequest.generateRequest();
   },
 
-  saveOrgResponse(event) {
+  saveOrgResponse(_event) {
       this.$.addFirstCloudBtn.focus();
   },
 
@@ -324,7 +326,7 @@ Polymer({
       const emails = this.shadowRoot.querySelector('#membersemails').value;
       if (emails){
           this.$.invitePeopleRequest.headers["Content-Type"] = 'application/json';
-          this.$.invitePeopleRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.invitePeopleRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.invitePeopleRequest.body = { 'emails': emails };
           this.$.invitePeopleRequest.generateRequest();
       } else {
@@ -336,9 +338,9 @@ Polymer({
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/teams/${  this.selectedTeamId}`} }));
 
       this.set('showProgress', false);
-      this.async(function(){
+      this.async(() => {
           this.hideInviteForm();
-      },100, this)
+      },100);
   },
 
   invitePeopleError(e){
@@ -355,7 +357,7 @@ Polymer({
       if (this.hasError){
           this.set('hasError', false);
       }
-      if ( e.detail.item.id == 'teamoption') {
+      if ( e.detail.item.id === 'teamoption') {
           const teamId = e.detail.item.value;
           this.set('selectedTeamId', teamId);
       }
@@ -367,14 +369,14 @@ Polymer({
       }
   },
 
-  _addTeam(e) {
+  _addTeam(_e) {
       this.dispatchEvent(new CustomEvent('user-action', { bubbles: true, composed: true, detail: 'add team click' }));
 
       const dialog = this.shadowRoot.querySelector('team-add');
       dialog.openDialog();
   },
 
-  updateToNewTeam(newTeam) {
+  updateToNewTeam(_newTeam) {
       // would be nice to update dropdown to new team
   }
 });

@@ -22,7 +22,7 @@ import './orchestration-form.js';
 import moment from 'moment/src/moment';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import anchorme from 'anchorme/dist/browser/anchorme.min.js';
+import 'anchorme/dist/browser/anchorme.min.js';
 import { YAML } from 'yaml/browser/dist/index.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';

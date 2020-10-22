@@ -118,19 +118,19 @@ Polymer({
   },
 
   _computeType(type, value) {
-      return type == value;
+      return type === value;
   },
 
   _computeDanger(danger) {
       return danger;
   },
 
-  openDialog(e) {
+  openDialog(_e) {
       this.shadowRoot.querySelector('vaadin-dialog').opened = true;
       this._formReset();
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       document.querySelector('vaadin-dialog-overlay').opened = false;
       this._formReset();
   },
