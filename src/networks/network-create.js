@@ -533,8 +533,10 @@ Polymer({
           this.set('fields', networkFields.fields);
 
       // add locations fields
-      if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
-          const fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
+      let fieldName;
+      if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1){
+          fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
+      }
           if (cloudName === "ec2")
               this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, this.model.clouds[selectedCloud].locationsArray);
           if (cloudName === "gce") {
