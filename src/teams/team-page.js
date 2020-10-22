@@ -230,7 +230,7 @@ Polymer({
                 <team-actions items="[[itemArray]]" actions="{{actions}}" org="[[model.org.id]]"></team-actions>
             </paper-material>
             <paper-material>
-                <div class="missing" hidden\$="[[!isMissing]]">Team not found.</div>
+                <div class="missing" hidden$="[[!isMissing]]">Team not found.</div>
                 <div class="flex-horizontal-with-ratios" hidden\$="[[isMissing]]">
                     <div class="page-block" hidden\$="[[!team.description.length]]">
                         <h3 class="smallcaps">Team Description</h3>
@@ -485,11 +485,11 @@ Polymer({
       console.log('_hasMembers',team);
       return !!(team && team.members && team.members.length > 0);
   },
-
+  /* eslint-disable no-param-reassign */
   _computeMembers(team, teamMembers, members) {
       const pendingMembers = [];
       const confirmedMembers = [];
-
+      teamMembers = [];
       if (team && team.members && teamMembers && members) {
           // TODO: teamMembers calculate
           team.members.forEach((member) => {
@@ -498,27 +498,29 @@ Polymer({
               } else {
                   confirmedMembers.push(members.base[member]);
               }
+              console.log(members.base[member])
               teamMembers.push(members.base[member]);
           });
       }
 
-      if (pendingMembers.length > 0) {
+      if (pendingMembers && pendingMembers.length > 0) {
           this.set("hasPending", true);
       } else {
           this.set("hasPending", false);
       }
 
-      if (teamMembers.length > 0) {
+      if (teamMembers && teamMembers.length > 0) {
           this.set("hasMembers", true);
       } else {
           this.set("hasMembers", false);
       }
-
-      this.set("confirmedMembersLength", teamMembers.length - pendingMembers.length);
-      this.set("pendingMembers", pendingMembers);
+      if(teamMembers && pendingMembers){
+          this.set("confirmedMembersLength", teamMembers.length - pendingMembers.length);
+          this.set("pendingMembers", pendingMembers);
+      }
       return teamMembers;
   },
-
+  /* eslint-enable no-param-reassign */
   _addMember(e) {
       e.stopImmediatePropagation();
       this.dispatchEvent(new CustomEvent('go-to', {
