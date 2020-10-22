@@ -500,8 +500,8 @@ Polymer({
       'format-payload': 'updatePayload'
   },
 
-  _cloudsChanged (clouds) {
-      const networkClouds = this.model && this.model.cloudsArray.filter(function (cloud) {
+  _cloudsChanged (_clouds) {
+      const networkClouds = this.model && this.model.cloudsArray.filter((cloud) => {
           return ['openstack', 'gce', 'ec2', 'lxd', 'gig_g8'].indexOf(cloud.provider) > -1;
       });
       this.set('providers', networkClouds);
@@ -513,18 +513,19 @@ Polymer({
       return `assets/providers/provider-${  identifier  }.png`;
   },
 
-  _isOnline (cloud, state, clouds) {
-      return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+  _isOnline (cloud, _state, _clouds) {
+      return this.model.clouds[cloud] && this.model.clouds[cloud].state  ===  'online';
   },
 
   _cloudChanged (selectedCloud) {
       // clear to reset
       this.set('machineFields', []);
       let networkFields = [];
+      let cloudName = "";
       if (this.selectedCloud) {
-          var cloudName = this.model.clouds[selectedCloud].provider;
-          networkFields = this.networksFields.find(function (c) {
-              return c.provider == cloudName;
+          cloudName = this.model.clouds[selectedCloud].provider;
+          networkFields = this.networksFields.find((c) => {
+              return c.provider  ===  cloudName;
           });
       }
       // add cloud fields
@@ -533,13 +534,13 @@ Polymer({
 
       // add locations fields
       if (this.fieldIndexByName('region') > -1 || this.fieldIndexByName('availability_zone') > -1)
-          var fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
-          if (cloudName == "ec2")
+          const fieldName = this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
+          if (cloudName === "ec2")
               this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, this.model.clouds[selectedCloud].locationsArray);
-          if (cloudName == "gce") {
+          if (cloudName === "gce") {
               const regionsArr = []; const regions = [];
               if (this.model.clouds[selectedCloud].locationsArray)
-                  this.model.clouds[selectedCloud].locationsArray.forEach(function(l){
+                  this.model.clouds[selectedCloud].locationsArray.forEach((l) => {
                       if (!regionsArr.includes(l.extra.region)) {
                           regionsArr.push(l.extra.region);
                           regions.push({name:l.extra.region, id:l.extra.region});
@@ -555,23 +556,23 @@ Polymer({
               const {provider} = this.model.clouds[this.selectedCloud];
           payload.network = {};
           // create network
-          for (var i = 0; i < this.fields.length; i++) {
-              if (this.fields[i].inPayloadGroup == "network")
+          for (let i = 0; i < this.fields.length; i++) {
+              if (this.fields[i].inPayloadGroup === "network")
                   payload.network[this.fields[i].name] = this.fields[i].value;
           }
           // create subnet
-          if ((this.fieldIndexByName('createSubnet') > -1 && this.fields[this.fieldIndexByName('createSubnet')].value == true) ||
-              (provider == "gce" && this.fields[this.fieldIndexByName('mode')].value == "custom")) {
+          if ((this.fieldIndexByName('createSubnet') > -1 && this.fields[this.fieldIndexByName('createSubnet')].value === true) ||
+              (provider === "gce" && this.fields[this.fieldIndexByName('mode')].value === "custom")) {
               payload.subnet = {};
-              for (var i = 0; i < this.fields.length; i++) {
-                  if (this.fields[i].inPayloadGroup == "subnet")
-                      payload.subnet[this.fields[i].name] = this.fields[i].name != "availability_zone" ? this.fields[i].value : this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('availability_zone')].value].name;
+              for (let i = 0; i < this.fields.length; i++) {
+                  if (this.fields[i].inPayloadGroup === "subnet")
+                      payload.subnet[this.fields[i].name] = this.fields[i].name !== "availability_zone" ? this.fields[i].value : this.model.clouds[this.selectedCloud].locations[this.fields[this.fieldIndexByName('availability_zone')].value].name;
               }
               // parse and format allocation pools if they exist
               if (this.fieldIndexByName('allocation_pools') > -1 && this.fields[this.fieldIndexByName('allocation_pools')].value) {
                   const allocationPools = []; 
                       const lines = this.fields[this.fieldIndexByName('allocation_pools')].value.split('\n');
-                  lines.forEach(function (l) {
+                  lines.forEach((l) => {
                       if (l && l.indexOf('-') > 0)
                           allocationPools.push({
                               start: l.replace(',', '').split('-')[0].trim(),
@@ -585,7 +586,7 @@ Polymer({
                   }
               }
 
-              if (this.fieldIndexByName('disableGateway') > -1 && this.fields[this.fieldIndexByName('disableGateway')].value == true) {
+              if (this.fieldIndexByName('disableGateway') > -1 && this.fields[this.fieldIndexByName('disableGateway')].value === true) {
                   delete payload.subnet.gateway_ip;
               }
           }
@@ -595,14 +596,13 @@ Polymer({
   },
 
   fieldIndexByName (name) {
-      const field = this.fields.findIndex(function (f) {
-          return f.name == name;
+      const field = this.fields.findIndex((f) => {
+          return f.name  === name;
       });
       return field;
   },
 
-  _handleCreateNetworkResponse (e) {
-      const response = JSON.parse(e.detail.xhr.response);
+  _handleCreateNetworkResponse (_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/networks'
       } }));
@@ -615,6 +615,6 @@ Polymer({
   },
 
   _goBack () {
-      history.back();
+      window.history.back();
   }
 });

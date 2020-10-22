@@ -342,14 +342,12 @@ Polymer({
         return [newCols, newRows];
     },
     detached() {
-        debugger;
         console.debug('xterm detached');
         const socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
         socket.send('uns', 'shell');
         window.removeEventListener("resize", this.resizeHandler);
     },
     _closeDialog(e) {
-        debugger;
         // this.$.dialogModal.close();
         this.remove();
     },

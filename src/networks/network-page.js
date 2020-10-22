@@ -270,7 +270,7 @@ Polymer({
       '_change(network)'
   ],
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
@@ -282,29 +282,31 @@ Polymer({
   _computeMachines(network, machines) {
       if (!network || !machines)
           return [];
-      return Object.values(this.model.machines).filter(function(m){ return m.network == network.id });
+      return Object.values(this.model.machines).filter((m) => { return m.network === network.id });
   },
 
   _computeHasSubnets (network) {
       return network && network.subnets && network.subnets.length;
   },
 
-  _computeNetworkCloud (network, clouds) {
+  _computeNetworkCloud (network, _clouds) {
       if (network)
           return this.model.clouds[this.network.cloud].title
+      return "";
   },
 
-  _computeNetworkTags (network, networkTags) {
+  _computeNetworkTags (_network, _networkTags) {
       if (this.network) {
           return Object.entries(this.network.tags).map(([key, value]) => ({key,value}));
       }
+      return [];
   },
 
   _editNetwork (e) {
       console.log(e);
   },
 
-  _deleteNetwork (e) {
+  _deleteNetwork (_e) {
       this._showDialog({
           title: 'Delete Network?',
           body: `Deleting networks cannot be undone. You are about to delete network: '${ 
@@ -314,7 +316,7 @@ Polymer({
       });
   },
 
-  _handleNetworDeletekAjaxResponse (e) {
+  _handleNetworDeletekAjaxResponse (_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
           url: '/networks'
       } }));
@@ -323,17 +325,17 @@ Polymer({
 
   _showDialog (info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      for (const i in info) {
+      Object.keys(info || {}).forEach((i) => {
           dialog[i] = info[i];
-      }
+      });
       dialog._openDialog();
   },
 
-  _computeIsloading (network) {
+  _computeIsloading (_network) {
       return !this.network;
   },
 
-  _computeSubnets(network, subnets) {
+  _computeSubnets(_network, _subnets) {
       return Object.values(this.network && this.network.subnets || []);
   },
 

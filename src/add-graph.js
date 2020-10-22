@@ -209,7 +209,7 @@ Polymer({
   },
 
   _computeMetricsUri(machineId) {
-      return `/api/v1/machines/${  machineId  }/metrics`;
+    return "/api/v1/metrics?resource_type=machine&resource_id=" + machineId;
   },
 
   openDialog() {

@@ -128,7 +128,7 @@ Polymer({
 
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
-      Object.keys(info || {})((i) => {
+      Object.keys(info || {}).forEach((i) => {
           dialog[i] = info[i];
       });
       dialog._openDialog();

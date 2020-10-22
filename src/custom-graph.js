@@ -5,6 +5,7 @@ import '../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import '../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -189,7 +190,7 @@ Polymer({
           "host": this.machine.public_ips[0]
       };
       this.$.postCustomgraph.contentType = "application/json"
-      this.$.postCustomgraph.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.postCustomgraph.headers["Csrf-Token"] = CSRFToken.value;
       this.$.postCustomgraph.body = payload;
       this.$.postCustomgraph.generateRequest();
       this.set('sendingData', true);
