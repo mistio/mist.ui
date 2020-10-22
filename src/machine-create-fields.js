@@ -555,9 +555,9 @@ MACHINE_CREATE_FIELDS.push({
     }]
 });
 
-// PACKET
+// Equinix Metal
 MACHINE_CREATE_FIELDS.push({
-    provider: 'packet',
+    provider: 'equinixmetal',
     fields: [{
         name: 'ip_addresses',
         type: 'array',
@@ -583,7 +583,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: '',
         show: false,
         required: false,
-        helptext: "Choose the public IPv4 subnet sizes that you would like to allocate when provisioning this device. By default, Packet assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
+        helptext: "Choose the public IPv4 subnet sizes that you would like to allocate when provisioning this device. By default, Equinix Metal assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
         options: [{ title: '/28', val: '28'
         }, { title: '/29', val: '29'
         }, { title: '/30', val: '30'
@@ -611,7 +611,7 @@ MACHINE_CREATE_FIELDS.push({
         defaultValue: '',
         show: false,
         required: false,
-        helptext: "Choose the public IPv6 subnet size that you would like to allocate when provisioning this device. By default, Packet assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
+        helptext: "Choose the public IPv6 subnet size that you would like to allocate when provisioning this device. By default, Equinix Metal assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
         options: [{ title: '/64', val: '64'
         }, { title: '/65', val: '65'
         }, { title: '/66', val: '66'
@@ -1248,7 +1248,7 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     });
 
     // add cloud init field only to providers that accept and we support
-    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'packet', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer', 'gig_g8'].indexOf(p.provider) != -1) {
+    if (['azure', 'azure_arm', 'digitalocean', 'ec2', 'gce', 'equinixmetal', 'rackspace', 'libvirt', 'openstack', 'aliyun_ecs', 'vultr', 'softlayer', 'gig_g8'].indexOf(p.provider) != -1) {
         p.fields.push({
             name: 'cloud_init',
             label: 'Cloud Init',
@@ -1283,9 +1283,9 @@ MACHINE_CREATE_FIELDS.forEach(function(p) {
     }
 
     // add create volume fields for 'openstack'
-    // coming soon for 'gce', 'digitalocean', 'aws' & 'packet'
+    // coming soon for 'gce', 'digitalocean', 'aws' & 'equinixmetal'
 
-    if (['openstack', 'packet', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
+    if (['openstack', 'equinixmetal', 'azure_arm','gce', 'digitalocean', 'ec2', 'aliyun_ecs', 'lxd', 'kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
         var allowedVolumes = ['gce','azure_arm','gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
         var allowExistingVolumes = ['gig_g8'].indexOf(p.provider) == -1;
         p.fields.push({

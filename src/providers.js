@@ -380,15 +380,15 @@ PROVIDERS.push({
 
 // PACKET
 PROVIDERS.push({
-    title: 'Packet',
-    val: 'packet',
-    className: 'provider-packet',
+    title: 'Equinix Metal',
+    val: 'equinixmetal',
+    className: 'provider-equinixmetal',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "Packet",
-        defaultValue: "Packet",
+        value: "Equinix Metal",
+        defaultValue: "Equinix Metal",
         show: true,
         required: true,
         errorMessage: "Please enter title"
@@ -402,7 +402,7 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter API Key",
         helptext: '',
-        helpHref: 'http://docs.mist.io/article/100-adding-packet'
+        helpHref: 'http://docs.mist.io/article/100-adding-equinix-metal'
     }]
 });
 

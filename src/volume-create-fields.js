@@ -178,9 +178,9 @@ VOLUME_CREATE_FIELDS.push({
     fields: []
 });
 
-// PACKET
+// Equinix Metal
 VOLUME_CREATE_FIELDS.push({
-    provider: 'packet',
+    provider: 'equinixmetal',
     fields: []
 });
 
@@ -490,7 +490,7 @@ VOLUME_CREATE_FIELDS.push({
 
 VOLUME_CREATE_FIELDS.forEach(function(p) {
 // add common machine properties fields
-    var minimumSize = (p.provider == 'packet' && 100) ||
+    var minimumSize = (p.provider == 'equinixmetal' && 100) ||
                       (p.provider == 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
@@ -507,7 +507,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         custom: false
     });
 
-    if (p.provider != 'packet') {
+    if (p.provider != 'equinixmetal') {
         p.fields.splice(0, 0, {
             name: "name",
             label: "Name *",
