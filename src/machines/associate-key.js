@@ -161,7 +161,7 @@ Polymer({
       this.$.dialogModal.opened = true;
   },
 
-  _addKey(e) {
+  _addKey(_e) {
       this.$.dialogModal.opened = false;
       // set attribute origin
       const origin = window.location.pathname;
@@ -173,9 +173,9 @@ Polymer({
 
   associateKey(e) {
       const user = this.user || 'root';
-          const port = this.port || '22';
-          const request = this.$.associateKeyRequest;
-          const keyId = this.selectedKeyId;
+      const port = this.port || '22';
+      const request = this.$.associateKeyRequest;
+      const keyId = this.selectedKeyId;
 
       const items = this.items.slice(0);
       console.log('associateKey', this.items);
@@ -194,9 +194,9 @@ Polymer({
               itemId = item.id
           }
           const machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '';
-              const uri = `/api/v1/machines/${  itemId  }/keys/${  keyId}`;
+          const uri = `/api/v1/machines/${  itemId  }/keys/${  keyId}`;
 
-          // console.log('machineHost', machineHost, model.machines[itemId]);
+          console.log('machineHost', machineHost, model.machines[itemId]);
 
           request.url = uri;
           request.headers["Content-Type"] = 'application/json';

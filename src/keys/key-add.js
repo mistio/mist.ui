@@ -236,7 +236,7 @@ Polymer({
       this.$.addKeyModal.close();
   },
 
-  _uploadKey (e) {
+  _uploadKey (_e) {
       this.$.keyUpload.click();
   },
 

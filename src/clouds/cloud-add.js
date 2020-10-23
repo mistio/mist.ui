@@ -536,7 +536,7 @@ Polymer({
 
   updateKeysInLists (e, lists) {
       for (let j = 0; j < lists.length; j++) {
-          var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[i]].options,
+          var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[j]].options,
               'ssh_key');
 
           this.async(function () {

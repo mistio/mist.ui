@@ -12,6 +12,7 @@ import './machine-expiration-edit.js';
 import './machine-actions.js';
 import './machine-r12ns.js';
 import moment from '../../node_modules/moment/src/moment.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { ratedCost, itemUid } from '../helpers/utils.js';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -1306,15 +1307,15 @@ Polymer({
       if (e.detail.response == "confirm" && e.detail.reason == "machine.expiration_delete") {
           this.set('isPendingExpirationRequest', true);
           const emptyExpDate = {expiration: {date:false}};
-          this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRF_TOKEN;
+          this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#deleteExpirationDate').headers["Content-Type"] = 'application/json';
           this.shadowRoot.querySelector('#deleteExpirationDate').body = emptyExpDate;
           this.shadowRoot.querySelector('#deleteExpirationDate').generateRequest();
       } else if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
-          this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+          this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
       } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
-          this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRF_TOKEN;
+          this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#detachVolumeRequest').headers["Content-Type"] = 'application/json';
           this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
           this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
@@ -1532,7 +1533,7 @@ Polymer({
       const payload = {
           'key': this.machineKeys[0].key
       };
-      this.$.probeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.probeMachine.headers["Csrf-Token"] = CSRFToken.value;
       this.$.probeMachine.params = payload;
       this.$.probeMachine.generateRequest();
       this.async(function() {
