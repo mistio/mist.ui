@@ -9,6 +9,7 @@ import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import './mist-dropdown-multi.js';
+import './rule-metrics.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { validateRuleBehavior } from './validate-rule-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -16,460 +17,498 @@ import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js'
 
 Polymer({
   _template: html`
-        <style>
-            :host {
-                display: block;
-                position: relative;
-                background-color: #fff;
-                border-bottom: 1px solid #ccc;
-            }
+  <style>
+  :host {
+      display: block;
+      position: relative;
+      background-color: #fff;
+      border-bottom: 1px solid #ccc;
+  }
 
-            .rule-edit {
-                position: relative;
-            }
+  .rule-edit {
+      position: relative;
+  }
 
-            paper-button {
-                padding: 0.8em 1.57em 0.7em 1.57em;
-                font-weight: 500;
-            }
+  paper-button {
+      padding: 0.8em 1.57em 0.7em 1.57em;
+      font-weight: 500;
+  }
 
-            paper-button[disabled] {
-                background-color: rgba(0, 0, 0, .13) !important;
-                color: rgba(0, 0, 0, 0.32) !important;
-            }
+  paper-button[disabled] {
+      background-color: rgba(0, 0, 0, .13) !important;
+      color: rgba(0, 0, 0, 0.32) !important;
+  }
 
-            .operator {
-                width: 50px;
-            }
+  .operator {
+      width: 50px;
+  }
 
-            .aggregation,
-            .action {
-                width: 100px;
-                margin-right: 10px;
-            }
-            paper-input.inline, paper-textarea, mist-dropdown-multi {
-                top: 2px;
-                position: relative;
-            }
+  .aggregation,
+  .action {
+      width: 100px;
+      margin-right: 10px;
+  }
+  paper-input.inline, paper-textarea, mist-dropdown-multi {
+      top: 2px;
+      position: relative;
+  }
 
-            paper-input.threshold,
-            paper-input.offset {
-                width: 40px;
-                display: inline-block;
-                top: 2px;
-                position: relative;
-            }
+  paper-input.threshold,
+  paper-input.offset {
+      width: 40px;
+      display: inline-block;
+      top: 2px;
+      position: relative;
+  }
 
-            paper-input.target,
-            paper-input.type {
-                width: 200px;
-                display: inline-block;
-                top: 2px;
-                position: relative;
-            }
+  paper-input.target,
+  paper-input.type {
+      width: 200px;
+      display: inline-block;
+      top: 2px;
+      position: relative;
+  }
 
-            .rule.incident-true {
-                color: var(--red-color);
-            }
+  paper-input#resources-rule-type-tags{
+      margin-bottom: -2px;
+  }
 
-            .rule {
-                padding: 8px 0;
-            }
+  .rule.incident-true {
+      color: var(--red-color);
+  }
 
-            .rule-id {
-                position: absolute;
-                color: rgba(0, 0, 0, 0.32);
-                font-size: 0.8em;
-                top: 16px;
-                left: 0;
-            }
+  .rule {
+      padding: 8px 0;
+  }
 
-            .rule-actions {
-                justify-content: flex-end;
-                font-size: 0.9em;
-                margin-top: 16px;
-                text-align: right
-            }
+  .rule-id {
+      position: absolute;
+      color: rgba(0, 0, 0, 0.32);
+      font-size: 0.8em;
+      top: 16px;
+      left: 0;
+  }
 
-            paper-button iron-icon {
-                opacity: 0.32;
-                padding: 4px;
-            }
+  .rule-actions {
+      justify-content: flex-end;
+      font-size: 0.9em;
+      margin-top: 16px;
+      text-align: right
+  }
 
-            paper-input#emails {
-                max-width: 240px;
-                display: inline-block;
-                top: 2px;
-                position: relative;
-            }
+  paper-button iron-icon {
+      opacity: 0.32;
+      padding: 4px;
+  }
 
-            #newrule {
-                padding-left: 8px;
-                padding-right: 8px;
-            }
+  paper-input#emails {
+      max-width: 240px;
+      display: inline-block;
+      top: 2px;
+      position: relative;
+  }
 
-            #norule {
-                padding-right: 8px;
-            }
+  #newrule {
+      padding-left: 8px;
+      padding-right: 8px;
+  }
 
-            span {
-                vertical-align: bottom;
-            }
+  #norule {
+      padding-right: 8px;
+  }
 
-            span.if,
-            span.then,
-            span.on {
-                margin-left: -8px;
-            }
+  span {
+      vertical-align: bottom;
+  }
 
-            paper-dropdown-menu::slotted(#dropdown) {
-                width: inherit !important;
-            }
+  span.if,
+  span.then,
+  span.on {
+      margin-left: -8px;
+  }
 
-            .add {
-                cursor: pointer;
-            }
+  paper-dropdown-menu::slotted(#dropdown) {
+      width: inherit !important;
+  }
 
-            .and {
-                padding: 0 8px;
-            }
+  .add {
+      cursor: pointer;
+  }
 
-            paper-dropdown-menu,
-            paper-input {
-                top: 2px;
-            }
+  .and {
+      padding: 0 8px;
+  }
 
-            span.keyword {
-                font-weight: 600;
-                font-family: monospace;
-                margin-right: 8px;
-                top: -8px;
-                position: relative;
-            }
+  paper-dropdown-menu{
+     top: 2px;
+  }
 
-            paper-dropdown-menu.target,
-            paper-dropdown-menu.type,
-            paper-dropdown-menu.ruleAction {
-                width: 150px;
-            }
+  span.keyword {
+      font-weight: 600;
+      font-family: monospace;
+      margin-right: 8px;
+      top: -8px;
+      position: relative;
+  }
 
-            .errormsg-container {
-                color: var(--red-color);
-            }
+  paper-dropdown-menu.target {
+      min-width: 250px;
+  }
+  paper-dropdown-menu.type,
+  paper-dropdown-menu.ruleAction {
+      width: 150px;
+  }
+  paper-dropdown-menu.target::slotted(input){
+      min-width: 250px;
+      width: min-content;
+  }
 
-            paper-textarea#command {
-                --paper-input-container-input: {
-                    text-align: left;
-                    font-family: monospace;
-                }
-                ;
-                min-width: 200px;
-                display: inline-block;
-                top: 3px;
-            }
+  .errormsg-container {
+      color: var(--red-color);
+  }
 
-            paper-textarea#alert-description, paper-textarea#http-params, paper-textarea#http-body, paper-textarea#json-body, paper-textarea#http-headers {
-                width: 40%;
-                display: inline-block;
-            }
+  paper-textarea#command {
+      --paper-input-container-input: {
+          text-align: left;
+          font-family: monospace;
+      }
+      ;
+      min-width: 200px;
+      display: inline-block;
+      top: 3px;
+  }
 
-            paper-input#webhook-url {
-                width: 30%;
-            }
-            paper-spinner {
-                width: 32px;
-                height: 32px;
-            }
+  paper-textarea#alert-description, paper-textarea#http-params, paper-textarea#http-body, paper-textarea#json-body, paper-textarea#http-headers {
+      width: 40%;
+      display: inline-block;
+  }
 
-            .monitored-icon {
-                opacity: .54;
-                padding: 8px 8px 8px 0;
-                transform: scale(.9);
-            }
+  paper-input#webhook-url {
+      width: 30%;
+  }
+  paper-spinner {
+      width: 32px;
+      height: 32px;
+  }
+  paper-spinner[hidden]{
+      display:none;
+  }
+  .monitored-icon {
+      opacity: .54;
+      padding: 8px 8px 8px 0;
+      transform: scale(.9);
+  }
 
-            paper-dropdown-menu,
-            paper-input {
-                vertical-align: bottom;
-                --paper-dropdown-menu-input: {
-                    font-family: monospace;
-                    text-transform: lowercase;
-                }
-                --paper-dropdown-menu-label: {
-                    font-family: monospace;
-                    text-transform: lowercase;
-                }
-                --paper-input-container-input: {
-                    font-family: monospace;
-                    text-align: center;
-                    text-transform: lowercase;
-                }
-                --paper-input-container-label: {
-                    font-family: monospace;
-                    text-transform: lowercase;
-                }
-            }
-            .inline:not([hidden]) {
-                display: inline-block;
-                max-width: 200px !important;
-                vertical-align: bottom;
-            }
-            iron-icon.help {
-                color: #000;
-                opacity: 0.32;
-                padding: 4px;
-                width: 20px;
-                height: 20px;
-            }
-        </style>
-        <custom-style>
-            <style is="custom-style">
-            paper-tooltip {
-              --paper-tooltip: {
-                font-size: .9em;
-                line-height: 1.65em;
-              }
-            }
-            paper-tooltip code {
-              background-color: #484848;
-              padding: 2px 4px;
-              border-radius: 3px;
-              font-size: .9em;
-            }
-          </style>
-        </custom-style>
-        <div class="rule-edit">
-            <span class="rule-id">[[_computeId(rule.title)]]</span>
-            <div id="newrule" class="rule">
-                <div hidden\$="[[hideApplyOn]]">
-                    <span class="keyword on">apply on</span>
-                    <!-- choose resourceType -->
-                    <div class="inline">
-                        <paper-dropdown-menu id="resources" class="dropdown-block apply-on" disabled="[[editingExistingRule]]">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
-                                <paper-item value="organization" disabled="[[_disableOrg(resourceType,editingExistingRule)]]">organization</paper-item>
-                                <hr>
-                                <template is="dom-repeat" items="[[resourceTypes]]" as="rtype">
-                                    <template is="dom-if" if="[[rtype]]">
-                                        <paper-item value="[[rtype]]" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[rtype]]</paper-item>
-                                    </template>
-                                    <template is="dom-if" if="[[!rtype]]">
-                                        <hr>
-                                    </template>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                    <!-- choose ruleType -->
-                    <div class="inline" hidden\$="[[_disableRuleTypeChanges(resourceType)]]">
-                        <paper-dropdown-menu id\$="resources-rule-type-[[index]]" class="dropdown-block resource-type">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
-                                <paper-item value="every">all</paper-item>
-                                <paper-item value="specific">select</paper-item>
-                                <paper-item value="tagged">tagged </paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                    <div class="inline" hidden\$="[[!showDropDownResources]]">
-                        <paper-dropdown-menu id="resources-rule-type-id" class="dropdown-block resource-id">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" auto-focus="" selected="{{resourceId}}" class="dropdown-content">
-                                <template is="dom-if" if="[[!resources.length]]">
-                                    <paper-item disabled="">no [[resourceType]]s found</paper-item>
-                                </template>
-                                <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]">
-                                    <paper-item value="[[item.id]]">
-                                        <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden\$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
-                                        [[_displayItemName(item, resourceType)]]</paper-item>
-                                </template>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                    <div class="inline" hidden\$="[[!_showTags(ruleType,resourceType)]]">
-                        <paper-input id="resources-rule-type-tags" class="tags" auto-focus="" value="{{tags}}" placeholder="enter tags" tabindex="0"></paper-input>
-                    </div>
-                </div>
-                <div hidden\$="[[!isNoData]]">
-                    <span class="keyword if">if</span>
-                    <span class="keyword"> no monitoring data </span>
-                    <span hidden\$="[[!rule.window]]">
-                        <span class="keyword">for</span>
-                        <paper-input id\$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate="" on-value-changed="_validateRule"></paper-input>
-                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                            <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                                <paper-item value="minutes">minutes</paper-item>
-                                <paper-item value="hours">hours</paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </span>
-                    <div>
-                        <span class="keyword on">check every</span>
-                        <paper-input id\$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate="" on-value-changed="_validateRule"></paper-input>
-                        <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                            <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
-                                <paper-item value="minutes">minutes</paper-item>
-                                <paper-item value="hours">hours</paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
-                    </div>
-                </div>
-                <div hidden\$="[[!showCheckEvery]]">
-                    <span class="keyword on">check every</span>
-                    <paper-input id\$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate="" on-value-changed="_validateRule"></paper-input>
-                    <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                        <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
-                            <paper-item value="minutes">minutes</paper-item>
-                            <paper-item value="hours">hours</paper-item>
-                        </paper-listbox>
-                    </paper-dropdown-menu>
-                </div>
-                <span hidden\$="[[isNoData]]">
-                    <span class="keyword if">if</span>
-                    <template is="dom-repeat" items="{{rule.queries}}" as="query">
+  paper-dropdown-menu,
+  paper-input {
+      vertical-align: bottom;
+      --paper-dropdown-menu-input: {
+          font-family: monospace;
+          text-transform: lowercase;
+      }
+      --paper-dropdown-menu-label: {
+          font-family: monospace;
+          text-transform: lowercase;
+      }
+      --paper-input-container-input: {
+          font-family: monospace;
+          text-align: center;
+          text-transform: lowercase;
+      }
+      --paper-input-container-label: {
+          font-family: monospace;
+          text-transform: lowercase;
+      }
+  }
+  .inline:not([hidden]) {
+      display: inline-block;
+      max-width: 200px !important;
+      vertical-align: bottom;
+  }
+  iron-icon.help {
+      color: #000;
+      opacity: 0.32;
+      padding: 4px;
+      width: 20px;
+      height: 20px;
+  }
+  paper-listbox[id^="metricsListbox-"] {
+      min-width: 300px;
+      min-height: 200px;
+  }
+  paper-listbox:focus {
+      outline: none;
+  }
+  .loader {
+      user-select: none;
+      text-align: center;
+  }
+  .loader::selection {
+      border: 0 none;
+  }
+  .error {
+      color: var(--red-color);
+  }
+</style>
+<custom-style>
+  <style is="custom-style">
+  paper-tooltip {
+    --paper-tooltip: {
+      font-size: .9em;
+      line-height: 1.65em;
+    }
+  }
+  paper-tooltip code {
+    background-color: #484848;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: .9em;
+  }
+</style>
+</custom-style>
+<div class="rule-edit">
+  <span class="rule-id">[[_computeId(rule.title)]]</span>
+  <div id="newrule" class="rule">
+      <div hidden$=[[hideApplyOn]]>
+          <span class="keyword on">apply on</span>
+          <!-- choose resourceType -->
+          <div class="inline">
+              <paper-dropdown-menu id="resources" class="dropdown-block apply-on" disabled="[[editingExistingRule]]">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{resourceType}}" class="dropdown-content">
+                      <paper-item value="organization" disabled="[[_disableOrg(resourceType,editingExistingRule)]]">organization</paper-item>
+                      <hr>
+                      <template is="dom-repeat" items="[[resourceTypes]]" as="rtype">
+                          <template is="dom-if" if="[[rtype]]">
+                              <paper-item value="[[rtype]]" disabled="[[_disableResource(ruleType,editingExistingRule)]]">[[rtype]]</paper-item>
+                          </template>
+                          <template is="dom-if" if="[[!rtype]]">
+                              <hr>
+                          </template>
+                      </template>
+                  </paper-listbox>
+              </paper-dropdown-menu>
+          </div>
+          <!-- choose ruleType -->
+          <div class="inline" hidden$=[[_disableRuleTypeChanges(resourceType)]]>
+              <paper-dropdown-menu id$="resources-rule-type-[[index]]" class="dropdown-block resource-type">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleType}}" class="dropdown-content">
+                      <paper-item value="every">all</paper-item>
+                      <paper-item value="specific">select</paper-item>
+                      <paper-item value="tagged">tagged </paper-item>
+                  </paper-listbox>
+              </paper-dropdown-menu>
+          </div>
+          <div class="inline" hidden$=[[!showDropDownResources]]>
+              <paper-dropdown-menu id="resources-rule-type-id" class="dropdown-block resource-id">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="value" auto-focus selected="{{resourceId}}" class="dropdown-content">
+                      <template is="dom-if" if="[[!resources.length]]">
+                          <paper-item disabled>no [[resourceType]]s found</paper-item>
+                      </template>
+                      <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]" initial-count="10">
+                          <paper-item value="[[item.id]]">
+                              <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
+                              [[_displayItemName(item, resourceType)]]</paper-item>
+                      </template>
+                  </paper-listbox>
+              </paper-dropdown-menu>
+          </div>
+          <div class="inline" hidden$=[[!_showTags(ruleType,resourceType)]]>
+              <paper-input id="resources-rule-type-tags" class="tags" auto-focus value="{{tags}}" placeholder="enter tags" tabindex="0" on-blur="_getMetrics"></paper-input>
+          </div>
+      </div>
+      <div hidden$="[[!isNoData]]">
+          <span class="keyword if">if</span>
+          <span class="keyword"> no monitoring data </span>
+          <span hidden$=[[!rule.window]]>
+              <span class="keyword">for</span>
+              <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+              <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                  <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                      <paper-item value="minutes">minutes</paper-item>
+                      <paper-item value="hours">hours</paper-item>
+                  </paper-listbox>
+              </paper-dropdown-menu>
+          </span>
+          <div>
+              <span class="keyword on">check every</span>
+              <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+              <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                  <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                      <paper-item value="minutes">minutes</paper-item>
+                      <paper-item value="hours">hours</paper-item>
+                  </paper-listbox>
+              </paper-dropdown-menu>
+          </div>
+      </div>
+      <div hidden$=[[!showCheckEvery]]>
+          <span class="keyword on">check every</span>
+          <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+          <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+              <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                  <paper-item value="minutes">minutes</paper-item>
+                  <paper-item value="hours">hours</paper-item>
+              </paper-listbox>
+          </paper-dropdown-menu>
+      </div>
+      <span hidden$="[[isNoData]]">
+          <span class="keyword if">if</span>
+          <template is="dom-repeat" items="{{rule.queries}}" as="query">
 
-                        <!--  rule.data_type: metrics OR logs -->
-                        <paper-dropdown-menu id\$="data-type-[[index]]" class="dropdown-block target-type" auto-focus="" on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
-                            <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
-                                <paper-item value="metrics" disabled\$="[[!_canUseMetrics(resourceType,ruleType,resourceId,resource,model.monitoring.*)]]">metric</paper-item>
-                                <paper-item value="logs">log</paper-item>
-                            </paper-listbox>
-                        </paper-dropdown-menu>
+              <!--  rule.data_type: metrics OR logs -->
+              <paper-dropdown-menu id$="data-type-[[index]]" class="dropdown-block target-type" auto-focus on-value-changed="_focusOnTarget" disabled="[[rule.id]]">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.data_type}}" class="dropdown-content">
+                      <paper-item value="metrics" disabled$="[[!_canUseMetrics(resourceType,ruleType,resourceId,resource,model.monitoring.*)]]">metric</paper-item>
+                      <paper-item value="logs">log</paper-item>
+                  </paper-listbox>
+              </paper-dropdown-menu>
 
-                        <span hidden\$="[[!rule.data_type]]">
-                            <!-- log filter -->
-                            <span hidden\$="[[!isDataTypeLogs(rule.data_type)]]">
-                                <paper-input id\$="target-logs-[[index]]" class="target" value="{{query.target}}" auto-validate="" auto-focus="" type="text" on-value-changed="_validateTarget" placeholder="enter log query" tabindex="0"></paper-input>
-                                <a target="new" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax"><iron-icon id="logs" icon="icons:help" class="help"></iron-icon></a>
-                                <paper-tooltip for="logs" position="top" animation-delay="100">
-                                    You can filter logs by using a <code>key:value</code> pair,
-                                    <br> or any other suitable Elasticsearch query string.
-                                    <br> e.g. <code>type:observation AND action:destroy_machine</code> </paper-tooltip>
-                            </span>
+              <span hidden$=[[!rule.data_type]]>
+                  <!-- log filter -->
+                  <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
+                      <paper-input id$="target-logs-[[index]]" class="target" value="{{query.target}}" auto-validate auto-focus
+                              type="text" on-value-changed="_validateTarget" placeholder="enter log query" tabindex="0"></paper-input>
+                      <a target="new" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#query-string-syntax"><iron-icon id="logs" icon="icons:help" class="help"></iron-icon></a>
+                      <paper-tooltip for="logs" position="top" animation-delay="100">
+                          You can filter logs by using a <code>key:value</code> pair,
+                          <br/> or any other suitable Elasticsearch query string.
+                          <br/> e.g. <code>type:observation AND action:destroy_machine</code> </paper-tooltip>
+                  </span>
 
-                            <!--  metric option -->
-                            <span hidden\$="[[isDataTypeLogs(rule.data_type)]]">
-                                <paper-dropdown-menu id\$="target-metrics-[[index]]" class="dropdown-block target" auto-focus="" on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
-                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.target}}" class="dropdown-content">
-                                        <template is="dom-repeat" items="{{availableMetrics}}" as="option">
-                                            <paper-item value="[[option.id]]">[[option.name]]</paper-item>
-                                        </template>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                            </span>
+                  <!--  metric option -->
+                  <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
+                      <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus value="[[query.target]]" on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
+                          <paper-listbox id$="metricsListbox-[[index]]" slot="dropdown-content" attr-for-selected="value" selected="[[query.target]]" slot="dropdown-content" class="dropdown-content">
+                              <template is="dom-if" if="[[availableMetrics.length]]" restamp>
+                                  <template is="dom-repeat" items="[[availableMetrics]]" initial-count="1">
+                                      <rule-metrics metric=[[item]] query-index="[[_getQueryIndex(query)]]"></rule-metrics>
+                                  </template>
+                              </template>
+                              <template is="dom-if" if="[[!availableMetrics.length]]" restamp>
+                                  <paper-item hidden$="[[loadingMetrics]]" disabled>No metrics available</paper-item>
+                              </template>
+                          </paper-listbox>
+                      </paper-dropdown-menu>
+                      <paper-spinner active="[[loadingMetrics]]" hidden$=[[!loadingMetrics]]></paper-spinner>
+                  </span>
 
-                            <span hidden\$="[[!query.target]]">
-                                 <!--  aggregation: aggr value / count for logs -->
-                                <span hidden\$="[[!isDataTypeLogs(rule.data_type)]]">
-                                    <span class="keyword">count</span>
-                                </span>
+                  <span hidden$=[[!query.target]]>
+                      <!--  aggregation: aggr value / count for logs -->
+                      <span hidden$=[[!isDataTypeLogs(rule.data_type)]]>
+                          <span class="keyword">count</span>
+                      </span>
 
-                                <!--  operator value -->
-                                <paper-dropdown-menu id\$="operator-[[index]]" class="dropdown-block operator" auto-focus="" hidden\$="[[!query.target]]" on-value-changed="_focusOnThreshold" on-selected-item-changed="_validateRule">
-                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
-                                        <paper-item value="gt"> &gt; </paper-item>
-                                        <paper-item value="lt"> &lt; </paper-item>
-                                        <paper-item value="eq"> = </paper-item>
-                                        <paper-item value="ne"> ≠ </paper-item>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                                <paper-input id\$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-focus="" type="number" on-value-changed="_focusOnAggregation" tabindex="0"></paper-input>
-                                <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp="">
-                                    [[_computeUnits(newMetric, availableMetrics)]]
-                                </template>
+                      <!--  operator value -->
+                      <paper-dropdown-menu id$="operator-[[index]]" class="dropdown-block operator" auto-focus hidden$=[[!query.target]] on-value-changed="_focusOnThreshold" on-selected-item-changed="_validateRule">
+                          <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{query.operator}}" class="dropdown-content">
+                              <paper-item value="gt"> &gt; </paper-item>
+                              <paper-item value="lt"> &lt; </paper-item>
+                              <paper-item value="eq"> &equals; </paper-item>
+                              <paper-item value="ne"> &ne; </paper-item>
+                          </paper-listbox>
+                      </paper-dropdown-menu>
+                      <paper-input id$="threshold-[[index]]" class="threshold" value="{{query.threshold}}" auto-focus
+                          type="number" on-value-changed="_focusOnAggregation" tabindex="0"></paper-input>
+                      <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp>
+                          [[_computeUnits(newMetric, availableMetrics)]]
+                      </template>
 
-                                 <!--  aggregation: aggr value / count for metrics -->
-                                 <span hidden\$="[[isDataTypeLogs(rule.data_type)]]">
-                                    <span class="keyword">for</span>
-                                    <paper-dropdown-menu id\$="aggregation-[[index]]" class="dropdown-block aggregation" on-selected-item-changed="_validateRule" on-value-changed="_validateCondition">
-                                        <paper-listbox slot="dropdown-content" id\$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content">
-                                            <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp="">
-                                                <paper-item value=""> any </paper-item>
-                                                <paper-item value="all"> every </paper-item>
-                                                <paper-item value="avg"> average </paper-item>
-                                            </template>
-                                            <template is="dom-if" if="[[isDataTypeLogs(rule.data_type)]]" restamp="">
-                                                <paper-item value="count"> count </paper-item>
-                                            </template>
-                                        </paper-listbox>
-                                    </paper-dropdown-menu>
-                                    <span class="keyword">value</span>
-                                </span>
-                            </span>
+                       <!--  aggregation: aggr value / count for metrics -->
+                       <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
+                          <span class="keyword">for</span>
+                          <paper-dropdown-menu id$="aggregation-[[index]]" class="dropdown-block aggregation" on-selected-item-changed="_validateRule" on-value-changed="_validateCondition">
+                              <paper-listbox slot="dropdown-content" id$="aggregation-[[index]]" attr-for-selected="value" selected="{{rule.aggregation}}" class="dropdown-content">
+                                  <template is="dom-if" if="[[!isDataTypeLogs(rule.data_type)]]" restamp>
+                                      <paper-item value=""> any </paper-item>
+                                      <paper-item value="all"> every </paper-item>
+                                      <paper-item value="avg"> average </paper-item>
+                                  </template>
+                                  <template is="dom-if" if="[[isDataTypeLogs(rule.data_type)]]" restamp>
+                                      <paper-item value="count"> count </paper-item>
+                                  </template>
+                              </paper-listbox>
+                          </paper-dropdown-menu>
+                          <span class="keyword">value</span>
+                      </span>
+                  </span>
 
-                            <!--  window -->
-                            <span hidden\$="[[!query.threshold]]">
-                                <span class="keyword">within</span>
-                                <paper-input id\$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate="" on-value-changed="_validateRule"></paper-input>
-                                <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                                    <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
-                                        <paper-item value="minutes">minutes</paper-item>
-                                        <paper-item value="hours">hours</paper-item>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                            </span>
+                  <!--  window -->
+                  <span hidden$=[[!query.threshold]]>
+                      <span class="keyword">within</span>
+                      <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
+                      <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
+                          <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                              <paper-item value="minutes">minutes</paper-item>
+                              <paper-item value="hours">hours</paper-item>
+                          </paper-listbox>
+                      </paper-dropdown-menu>
+                  </span>
 
-                        </span>
-                    </template>
-                </span>
-                <div hidden\$="[[!conditionValid]]">
-                    <span class="keyword then">then</span>
-                    <span id="actionsDropdown">
-                        <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
-                            <span class="and" hidden\$="[[!index]]"> AND </span>
-                            <paper-dropdown-menu class="dropdown-block action" on-value-changed="_validateRule" disabled\$="[[isNoData]]">
-                                <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" on-selected-changed="_setActionDefaults" class="dropdown-content">
-                                    <template id="actionsRepeat" is="dom-repeat" items="[[actions]]" as="action">
-                                        <paper-item value="[[action]]" hidden\$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
-                                    </template>
-                                </paper-listbox>
-                            </paper-dropdown-menu>
-                            <template is="dom-if" if="[[_isWebhookSelected(ruleAction.type)]]">
-                                <paper-input id="webhook-url" class="inline webhook-url" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
-                                <paper-dropdown-menu label="method" class="inline">
-                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.method}}" class="dropdown-content">
-                                        <paper-item value="post">POST</paper-item>
-                                        <paper-item value="delete">DELETE</paper-item>
-                                        <paper-item value="put">PUT</paper-item>
-                                        <paper-item value="patch">PATCH</paper-item>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                                <paper-textarea id="http-params" class="inline http-params" placeholder="Query string params (optional)" value="{{ruleAction.params}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="http-body" class="inline http-body" placeholder="Request body (optional)" value="{{ruleAction.data}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="json-body" class="inline json-body" placeholder="JSON body (optional)" value="{{ruleAction.json}}" on-value-changed="_validateRule"></paper-textarea>
-                                <paper-textarea id="http-headers" class="inline http-headers" placeholder="HTTP headers (optional)" value="{{ruleAction.headers}}" on-value-changed="_validateRule"></paper-textarea>
-                            </template>
-                            <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
-                                <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>
-                            </template>
-                            <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
-                                <paper-dropdown-menu label="level" class="alert-level">
-                                    <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.level}}" class="dropdown-content">
-                                        <paper-item value="info">info</paper-item>
-                                        <paper-item value="warning">warning</paper-item>
-                                        <paper-item value="critical">critical</paper-item>
-                                    </paper-listbox>
-                                </paper-dropdown-menu>
-                                <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{ruleAction.teams}}" on-value-changed="_validateRule"></mist-dropdown-multi>
-                                <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{ruleAction.users}}" on-value-changed="_validateRule"></mist-dropdown-multi>
-                                <paper-input id="emails" label="other email" value="{{ruleAction.emails}}" type="email" auto-validate="" on-invalid-changed="_validateRule" invalid="{{ruleAction.emailsInvalid}}"></paper-input>
-                                <paper-textarea id="alert-description" placeholder="description" value="{{ruleAction.description}}" cols="" on-value-changed="_validateRule"></paper-textarea>
-                            </template>
-                            <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden\$="[[!index]]"></iron-icon>
-                        </template>
-                    </span>
-                    <!--iron-icon icon="add" on-tap="_addAction"></iron-icon-->
-                </div>
-            </div>
-            <div slot="rule-actions" class="rule-actions layout horizontal">
-                <p class="errormsg-container" hidden\$="[[!formError]]">
-                    <iron-icon icon="icons:error-outline"></iron-icon>
-                    <span id="errormsg">[[formMessage]]</span>
-                </p>
-                <paper-spinner active\$="{{sendingData}}"></paper-spinner>
-                <paper-button class="link" on-tap="_close">cancel</paper-button>
-                <paper-button on-tap="saveRule" class="blue" disabled\$="[[!isValidRule]]">save rule</paper-button>
-            </div>
-        </div>
-        <iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contenttype="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
-        <iron-ajax id="addRuleRequest" url="/api/v1/rules" contenttype="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+              </span>
+          </template>
+      </span>
+      <div hidden$="[[!conditionValid]]">
+          <span class="keyword then">then</span>
+          <span id="actionsDropdown">
+              <template is="dom-repeat" items="[[rule.actions]]" as="ruleAction">
+                  <span class="and" hidden$="[[!index]]"> AND </span>
+                  <paper-dropdown-menu class="dropdown-block action" on-value-changed="_validateRule" disabled$="[[isNoData]]">
+                      <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.type}}" on-selected-changed="_setActionDefaults" class="dropdown-content">
+                          <template id="actionsRepeat" is="dom-repeat" items=[[actions]] as="action">
+                              <paper-item value=[[action]] hidden$="[[_hideAction(action,isNoData)]]">[[_actionName(action)]]</paper-item>
+                          </template>
+                      </paper-listbox>
+                  </paper-dropdown-menu>
+                  <template is="dom-if" if="[[_isWebhookSelected(ruleAction.type)]]">
+                      <paper-input id ="webhook-url" class="inline webhook-url" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" value="{{ruleAction.params}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
+                      <paper-dropdown-menu label="method" class="inline">
+                          <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.method}}" class="dropdown-content">
+                              <paper-item value="post">POST</paper-item>
+                              <paper-item value="delete">DELETE</paper-item>
+                              <paper-item value="put">PUT</paper-item>
+                              <paper-item value="patch">PATCH</paper-item>
+                          </paper-listbox>
+                      </paper-dropdown-menu>
+                      <paper-textarea id="http-params" class="inline http-params" placeholder="Query string params (optional)" value="{{ruleAction.params}}" on-value-changed="_validateRule"></paper-textarea>
+                      <paper-textarea id="http-body" class="inline http-body" placeholder="Request body (optional)" value="{{ruleAction.data}}" on-value-changed="_validateRule"></paper-textarea>
+                      <paper-textarea id="json-body" class="inline json-body" placeholder="JSON body (optional)" value="{{ruleAction.json}}" on-value-changed="_validateRule"></paper-textarea>
+                      <paper-textarea id="http-headers" class="inline http-headers" placeholder="HTTP headers (optional)" value="{{ruleAction.headers}}" on-value-changed="_validateRule"></paper-textarea>
+                  </template>
+                  <template is="dom-if" if="[[_isCommandSelected(ruleAction.type)]]">
+                      <paper-textarea id="command" placeholder="command input" value="{{ruleAction.command}}" on-value-changed="_validateRule"></paper-textarea>
+                  </template>
+                  <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
+                      <paper-dropdown-menu label="level" class="alert-level">
+                          <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.level}}" class="dropdown-content">
+                              <paper-item value="info">info</paper-item>
+                              <paper-item value="warning">warning</paper-item>
+                              <paper-item value="critical">critical</paper-item>
+                          </paper-listbox>
+                      </paper-dropdown-menu>
+                      <mist-dropdown-multi id="teams" label="teams" selections="[[teams]]" value="{{ruleAction.teams}}" on-value-changed="_validateRule"></mist-dropdown-multi>
+                      <mist-dropdown-multi id="members" label="members" selections="[[users]]" value="{{ruleAction.users}}" on-value-changed="_validateRule"></mist-dropdown-multi>
+                      <paper-input id="emails" label="other email" value="{{ruleAction.emails}}" type="email" auto-validate on-invalid-changed="_validateRule" invalid={{ruleAction.emailsInvalid}}></paper-input>
+                      <paper-textarea id="alert-description" placeholder="description" value="{{ruleAction.description}}" cols on-value-changed="_validateRule"></paper-textarea>
+                  </template>
+                  <iron-icon id="[[index]]" icon="remove" on-tap="_removeAction" hidden$="[[!index]]"></iron-icon>
+              </template>
+          </span>
+          <!--iron-icon icon="add" on-tap="_addAction"></iron-icon-->
+      </div>
+  </div>
+  <div slot="rule-actions" class="rule-actions layout horizontal">
+      <p class="errormsg-container" hidden$="[[!formError]]">
+          <iron-icon icon="icons:error-outline"></iron-icon>
+          <span id="errormsg">[[formMessage]]</span>
+      </p>
+      <paper-spinner active$="{{sendingData}}"></paper-spinner>
+      <paper-button class="link" on-tap="_close">cancel</paper-button>
+      <paper-button on-tap="saveRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
+  </div>
+</div>
+<iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+<iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+<iron-ajax id="metrics" url="[[metricsUri]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
+</iron-ajax>
 `,
 
   is: 'rule-edit',
@@ -610,7 +649,16 @@ Polymer({
       },
       features: {
           type: Object
+      },
+      metricsUri: {
+          type: String,
+          computed: '_computeMetricsUri(resource.id, resourceId, rule.resource_type, tags, ruleType)'
+      },
+      loadingMetrics: {
+          type: Boolean,
+          value: false
       }
+
   },
 
   observers: [
@@ -621,12 +669,156 @@ Polymer({
       "_initialiseEdit(currentRule, resource, rule.id)",
       "_computeResourcesAndActions(model, resourceType, ruleType)",
       "_validateCondition(rule.*)",
-      "_resourceTypeChanged(resourceType)"
+      "_resourceTypeChanged(resourceType)",
+      "_metricsUriChanged(metricsUri)",
+      "_ruleDataTypeChanged(rule.data_type)"
   ],
+  listeners: {
+    "choose-metric": "_selectMetric"
+  },
 
   ready() {
       if (!this.rule) {
           this._resetRule();
+      }
+  },
+  _getQueryIndex(query) {
+      return this.rule.queries.indexOf(query);
+  },
+  _metricsUriChanged(_metricsUri){
+      // Get metrics unless we're not editing, or the rule is on tags (if on tags, get metrics will be triggered on-blur)
+      if (!this.hidden && this.rule && this.rule.data_type == "metrics" && !this._isTagged(this.ruleType))
+          this._getMetrics();
+  },
+  _computeMetricsUri(_resource_id, resourceId, _resource_type, _tags, _ruleType) {
+      // Update uri, unless we are in a single page where we are provided with a resource and resourceType.
+      if (this.resource) {
+          return "/api/v1/metrics?resource_type="+ this.resourceType +"&resource_id=" + this.resource.id;
+      } else if (this.rule && !this.isNoData){
+          var typeString = "",
+              idString = "",
+              tagsString = "";
+          if (this.rule.resource_type && !this._isOrg(this.resourceType)) {
+              typeString = "resource_type="+ this.rule.resource_type;
+          }
+          if (this.resourceId && this._isSpecific(this.ruleType)) {
+              idString = (typeString ? "&" : "") + "resource_id="+ this.resourceId;
+          }
+          if (this.tags && this._isTagged(this.ruleType)) {
+              tagsString = (typeString || resourceId ? "&" : "") + "tags=" + this._computeTagsString(this._computeTagsFromString(this.tags))
+          }
+          console.log('_computeMetricsUri =====', "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString);
+
+          return "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString;
+      }
+  },
+  _computeTagsString(tags) {
+      // Compute tags string in the form "tagkey1:tagvalue1,tagkey2,..""
+      var tagsString = "";
+      for (var p in tags) {
+          tagsString += p;
+          if (tags[p])
+              tagsString += ":" + tags[p];
+          tagsString += ","
+      }
+      console.log(tagsString);
+      return tagsString.length ? tagsString.substring(0, tagsString.length-1) : "";
+  },
+  _handleMetricResponse(data) {
+      var output = {};
+      if (data.detail.response) {
+          // console.log('_handleMetricResponse response data', data.detail.response);
+          Object.keys(data.detail.response).forEach(function(metric) {
+              var res = output;
+              var chunks = metric.split(".")
+              for (var i = 0; i < chunks.length; i++) {
+                  if (!res[chunks[i]]) {
+                      res[chunks[i]] = {};
+                  }
+                  if (i == chunks.length - 1) {
+                      res[chunks[i]] = data.detail.response[metric].id;
+                  }
+                  res = res[chunks[i]];
+              }
+          });
+      }
+      this.set('availableMetrics', this._makeArray(output));
+      // Store metrics in resource if available, ie we are in a single page, so as to improve performance
+      if (!this.model.metrics) {
+          this.model.metrics = {};
+      }
+      this.model.metrics[this.metricsUri] = this.availableMetrics;
+      // handle empty response
+      if (!output) {
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"No metrics available for this resource(s)", duration:3000} }));
+      }
+  },
+  _makeArray(output) {
+      var arr = [];
+      if (output) {
+          if (output && typeof(output) == 'object') {
+              var obj = {};
+              for (var p in output) {
+                  if (typeof(output[p]) == 'object') {
+                      obj = { name: p, options: this._makeArray(output[p]) };
+                  } else {
+                      obj = { name: output[p], options: [] };
+                  }
+                  arr.push(obj);
+              }
+          }
+      }
+      return arr;
+  },
+  _handleMetricError(error) {
+      console.error('_handleMetricError', error);
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Error fetching available metrics.", duration:3000} }));
+  },
+  _ruleDataTypeChanged(dataType){
+      console.log('get metrics', dataType)
+      if (this.rule && this.rule.data_type == "metrics")
+          this._getMetrics();
+  },
+  _getMetrics() {
+      // Generate request only if these available metrics have not been requested before.
+      if (this.model && this.model.metrics && this.model.metrics[this.metricsUri]) {
+          this._clearAvailableMetrics();
+          this.set('availableMetrics', this.model.metrics[this.metricsUri]);
+      } else if (this.rule.data_type == "metrics"){
+          this._clearAvailableMetrics();
+          this.debounce('debounceGetMetrics',function() {
+              this.$.metrics.generateRequest();
+          }.bind(this), 250);
+      }
+  },
+  _clearAvailableMetrics() {
+      this.set('availableMetrics', []);
+      for (var i = 0; i<this.rule.queries.length; i++) {
+          if (!this.editingExistingRule)
+              if (this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)) {
+                  this.set('rule.queries.'+ i +'.target', "");
+                  this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)
+                      .shadowRoot.querySelector("paper-input")
+                      .shadowRoot.querySelector("paper-input-container")
+                      .querySelector("iron-input").querySelector("input").value = "";
+                  this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i).selected = -1;
+              }
+      }
+  },
+  _selectMetric(e) {
+      // Choose metric, need to implement selection for paper-dropdown-menu with custom-components nested in listbox
+      console.log('_selectMetric', e);
+      if (e.detail && e.detail.metric) {
+          var selectedMetric = e.detail.metric,
+              queryIndex = e.detail.queryIndex;
+          this.set('rule.queries.'+ queryIndex +'.target', selectedMetric);
+          this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex)
+              .shadowRoot.querySelector("paper-input")
+              .shadowRoot.querySelector("paper-input-container")
+              .querySelector("iron-input").querySelector("input").value = selectedMetric;
+          this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex).selected = selectedMetric;
+
+          this._focusOnOperator(e, queryIndex);
       }
   },
 
