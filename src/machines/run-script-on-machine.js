@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -94,35 +95,31 @@ Polymer({
       this.$.scriptDialogModal.opened = true;
   },
 
-  _dismissDialog(e) {
+  _dismissDialog(_e) {
       this.$.scriptDialogModal.opened = false;
   },
 
-  runScript(e) {
+  runScript(_e) {
       const request = this.$.runScriptRequest;
       const scriptparams = this.params || '';
 
       console.log('runScript', request.id, items, scriptparams);
-
       var items = this.items.slice(0);
       var run = function(el) {
           const item = items.shift();
-              let itemType;
-              let itemId;
+          let itemId;
           if (item.length) {
-              chunks = item.split(':'),
-                  itemId = chunks[2],
-                  cloudId = chunks[1];
+              const chunks = item.split(':');
+              itemId = chunks[2];
           } else {
               itemId = item.id;
-              cloudId = item.cloud.id;
           }
           request.body = {
               machine_uuid: itemId,
               params: scriptparams
           }
           request.headers["Content-Type"] = 'application/json';
-          request.headers["Csrf-Token"] = CSRF_TOKEN;
+          request.headers["Csrf-Token"] = CSRFToken.value;
           request.generateRequest();
 
           if (items.length) {

@@ -256,9 +256,10 @@ Polymer({
             cursorBlink: true
         });
         const terminalContainer = this.shadowRoot.querySelector('#terminal-container');
-        this.term.open(terminalContainer);
         this.fitAddon = new FitAddon.FitAddon();
-        this.term.loadAddon(this.fitAddon);      
+        this.term.loadAddon(this.fitAddon);  
+        this.term.open(terminalContainer);
+            
 
         let newCols; let newRows;
         [newCols, newRows] = this.resizeTerminal();
@@ -270,7 +271,7 @@ Polymer({
         const {socket} = this;
         this.attachAddon = new AttachAddon.AttachAddon(socket);
         this.term.loadAddon(this.attachAddon);
-        this.term.onData((data, ev) => {
+        this.term.onData((data, _ev) => {
             socket.send('msg', 'shell', 'shell_data', [data]);
         });
         socket.send('sub', 'shell');
@@ -313,11 +314,12 @@ Polymer({
         socket.set('term', this.term);
 
         // Add event handler for window resize
-        const that = this;
-        this.resizeHandler = function() {
-            that.resizeTerminal();
+        this.resizeHandler = () => {
+            this.resizeTerminal();
         };
         window.addEventListener("resize", this.resizeHandler,{passive: true});
+        const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
+        textArea.focus();
     },
 
     resizeTerminal(newRows, newCols) {
