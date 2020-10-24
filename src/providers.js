@@ -378,7 +378,7 @@ PROVIDERS.push({
     }]
 });
 
-// PACKET
+// Equinix Metal
 PROVIDERS.push({
     title: 'Equinix Metal',
     val: 'equinixmetal',
