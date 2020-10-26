@@ -131,8 +131,8 @@ Polymer({
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (action.confirm && action.name != 'tag') {
-        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-            const plural = this.items.length == 1 ? '' : 's';
+        const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
+            const plural = this.items.length === 1 ? '' : 's';
             const count = this.items.length > 1 ? `${this.items.length} ` : '';
         // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
         this._showDialog({
@@ -144,16 +144,16 @@ Polymer({
             reason: `${this.type  }.${  this.action.name}`
         });
       }
-      if (action.name == 'unstar') {
+      if (action.name === 'unstar') {
         this._star('Unstar');
       }
-      else if (action.name == 'star') {
+      else if (action.name === 'star') {
         this._star('Star');
       }
-      else if (action.name == "tag") {
+      else if (action.name === "tag") {
         this.$.tagsdialog._openDialog();
       }
-      else if (action.name == "create machine") {
+      else if (action.name === "create machine") {
         // single image only
         this.dispatchEvent(new CustomEvent('create_machine', { bubbles: true, composed: true, detail: {cloud: this.items[0].cloud.id, image: this.items[0].id} }));
 
@@ -196,7 +196,6 @@ Polymer({
     this.set('actions', []);
     let actions = new Set(); 
         let isection = new Set();
-    debugger;
     if (this.items.length > 0) {
       actions= new Set(this.itemActions(this.items[0]) || []);
 

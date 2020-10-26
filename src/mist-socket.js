@@ -410,7 +410,6 @@ Polymer({
                 // console.debug('0. length', data.length, this.get('model.' + section + 'Array.length'));
                 changed = true;
             }
-            // debugger;
             // For each item in the received data array
             for (let i = 0; i < data.length; i++) {
                 // If we know things have changed no need to keep checking

@@ -6,9 +6,8 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  */
 export const getResourceFromIncidentBehavior = {
     properties: {},
-    _getResource(incident, model) {
+    _getResource(incident, _model) {
         if (this.model) {
-            // debugger;
             // Get incident type
             const resourceTypes = [
                 'machine',
@@ -32,25 +31,25 @@ export const getResourceFromIncidentBehavior = {
             // Get resource
             if (type) {
                 let resource = {};
-                if (type == 'subnet') {
+                if (type === 'subnet') {
                     if (this.model.clouds[incident.network_id])
                         resource = this.model.networks[incident.network_id][incident[`${type  }_id`]];
                     if (resource)
                         resource.uri = `/networks/${  incident.network_id}`;
-                } else if (type == 'record') {
+                } else if (type === 'record') {
                     if (this.model.clouds[incident.zone_id])
                         resource = this.model.networks[incident.zone_id][incident[`${type  }_id`]];
                     if (resource) {
                         resource.uri = `/zones/${  incident.zone_id}`;
                     }
-                } else if (type == 'cloud') {
+                } else if (type === 'cloud') {
                     if (this.model.clouds)
                         resource = this.model.clouds[incident.cloud_id];
                     if (resource) {
                         resource.uri = `/clouds/${  incident.cloud_id}`;
                         resource.name = resource.title;
                     }
-                } else if (type == 'organization') {
+                } else if (type === 'organization') {
                     resource = {
                         name: "Organization",
                         type
@@ -78,7 +77,7 @@ export const getResourceFromIncidentBehavior = {
                 }
                 return resource;
             }
-            if (incident.rule_arbitrary == true) {
+            if (incident.rule_arbitrary === true) {
                 return {
                     name: "Organization",
                     type: 'organization'
