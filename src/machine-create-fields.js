@@ -688,9 +688,9 @@ MACHINE_CREATE_FIELDS.push({
         label: 'Private IPv4 Subnet Size *',
         type: 'dropdown',
         value: '',
-        defaultValue: '',
+        defaultValue: '31',
         show: true,
-        required: true,
+        required: false,
         helptext: "Choose the private IPv4 subnet size that you would like to allocate when provisioning this device.",
         options: [{ title: '/28', val: '28'
         }, { title: '/29', val: '29'
