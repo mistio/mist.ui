@@ -1,5 +1,5 @@
 const PROVIDERS = []
-// 1. amazon 2. azure 3. google 4. alibaba 5. IBM 6. DigitalOcean 7. Packet 8. Linode 9. Rackspace 10. vultr 
+// 1. amazon 2. azure 3. google 4. alibaba 5. IBM 6. DigitalOcean 7. Equinix Metal 8. Linode 9. Rackspace 10. vultr 
 
 // AWS
 PROVIDERS.push({
@@ -378,17 +378,17 @@ PROVIDERS.push({
     }]
 });
 
-// PACKET
+// Equinix Metal
 PROVIDERS.push({
-    title: 'Packet',
-    val: 'packet',
-    className: 'provider-packet',
+    title: 'Equinix Metal',
+    val: 'equinixmetal',
+    className: 'provider-equinixmetal',
     options: [{
         name: "title",
         label: "Title *",
         type: "text",
-        value: "Packet",
-        defaultValue: "Packet",
+        value: "Equinix Metal",
+        defaultValue: "Equinix Metal",
         show: true,
         required: true,
         errorMessage: "Please enter title"
@@ -402,7 +402,7 @@ PROVIDERS.push({
         required: true,
         errorMessage: "Please enter API Key",
         helptext: '',
-        helpHref: 'http://docs.mist.io/article/100-adding-packet'
+        helpHref: 'http://docs.mist.io/article/100-adding-equinixmetal'
     }]
 });
 

@@ -285,7 +285,7 @@ Polymer({
       ]
       for (let i = 0; i < providers.length; i++) {
           const provider = providers[i];
-          if (['azure_arm','digitalocean','ec2','gce','linode','packet','rackspace','softlayer','aliyun_ecs','vultr', 'maxihost'].indexOf(provider.val) > -1){
+          if (['azure_arm','digitalocean','ec2','gce','linode','equinixmetal','rackspace','softlayer','aliyun_ecs','vultr', 'maxihost'].indexOf(provider.val) > -1){
               categories[0].providers.push(provider);
           }
           if (['openstack','onapp','vsphere', 'vcloud', 'gig_g8'].indexOf(provider.val) > -1){
