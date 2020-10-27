@@ -586,9 +586,9 @@
                     this._updateFieldsForOpenstack();
                 }
 
-                // if is packet construct ip_addresses value
-                if (this.model.clouds[this.selectedCloud].provider == "packet") {
-                    this._updateFieldsForPacket();
+                // if is equinix metal construct ip_addresses value
+                if (this.model.clouds[this.selectedCloud].provider == "equinixmetal") {
+                    this._updateFieldsForEquinixMetal();
                 }
 
                 // fetch security groups if necessary
@@ -706,10 +706,10 @@
                             this.set('machineFields.' + index + '.required', false);
                     }
 
-                    // if is packet construct ip_addresses value
+                    // if is equinix metal construct ip_addresses value
                     if (f.name.includes("ipv4") || f.name.includes("ipv6")) {
-                        // console.log("_updateFieldsForPacket");
-                        this._updateFieldsForPacket();
+                        // console.log("_updateFieldsForEquinixMetal");
+                        this._updateFieldsForEquinixMetal();
                     }
 
                     // for ec2 subnet selection
@@ -959,11 +959,11 @@
                     }
                 }
 
-                // if its packet and ips changed
-                if (this.model.clouds[this.selectedCloud].provider == 'packet' && changeRecord
+                // if its equinix metal and ips changed
+                if (this.model.clouds[this.selectedCloud].provider == 'equinixmetal' && changeRecord
                     .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
                     .name.includes('_ipv')) {
-                    this._updateFieldsForPacket();
+                    this._updateFieldsForEquinixMetal();
                 }
 
                 // if selected image provides size min/max, update them
@@ -2213,7 +2213,7 @@
             }
             return interval;
         },
-        _updateFieldsForPacket: function(e) {
+        _updateFieldsForEquinixMetal: function(e) {
             var ipAddresses = this._fieldIndexByName("ip_addresses");
             var ipv4Ind = this._fieldIndexByName("public_ipv4"),
                 ipv6Ind = this._fieldIndexByName("public_ipv6");
