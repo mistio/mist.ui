@@ -685,7 +685,7 @@ MACHINE_CREATE_FIELDS.push({
         },
     }, {
         name: 'private_ipv4_subnet_size',
-        label: 'Private IPv4 Subnet Size *',
+        label: 'Private IPv4 Subnet Size',
         type: 'dropdown',
         value: '',
         defaultValue: '31',
