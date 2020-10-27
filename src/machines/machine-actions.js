@@ -20,9 +20,176 @@ import './attach-volume-on-machine.js';
 import './machine-snapshots.js';
 import './expose-ports.js';
 import { CSRFToken } from '../helpers/utils.js'
-import '../helpers/volume-create-fields.js';
+import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
+const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
+
+const MACHINE_ACTIONS = {
+    'attach-volume': {
+        'name': 'attach volume',
+        'icon': 'device:storage',
+        'confirm': false,
+        'multi': false,
+        'single': true
+    },
+    'create_snapshot': {
+        'name': 'create snapshot',
+        'icon': 'image:add-a-photo',
+        'confirm': true,
+        'multi': false
+    },
+    'remove_snapshot': {
+        'name': 'remove snapshot',
+        'icon': 'image:monochrome-photos',
+        'confirm': true,
+        'multi': false
+    },
+    'revert_to_snapshot': {
+        'name': 'revert to snapshot',
+        'icon': 'social:party-mode',
+        'confirm': true,
+        'multi': false
+    },
+    'shell': {
+        'name': 'shell',
+        'icon': 'vaadin:terminal',
+        'confirm': false,
+        'multi': false
+    },
+    'console': {
+        'name': 'console',
+        'icon': 'vaadin:terminal',
+        'confirm': false,
+        'multi': false
+    },
+    'tag': {
+        'name': 'tag',
+        'icon': 'label',
+        'confirm': true,
+        'multi': true
+    },
+    'associate-key': {
+        'name': 'associate key',
+        'icon': 'communication:vpn-key',
+        'confirm': true,
+        'multi': false
+    },
+    'run-script': {
+        'name': 'run script',
+        'icon': 'image:movie-creation',
+        'confirm': true,
+        'multi': false
+    },
+    'reboot': {
+        'name': 'reboot',
+        'icon': 'av:replay',
+        'confirm': true,
+        'multi': true
+    },
+    'start': {
+        'name': 'start',
+        'icon': 'av:play-arrow',
+        'confirm': true,
+        'multi': true
+    },
+    'stop': {
+        'name': 'stop',
+        'icon': 'av:stop',
+        'confirm': true,
+        'multi': true
+    },
+    'clone': {
+        'name': 'clone',
+        'icon': 'content-copy',
+        'confirm': true,
+        'multi': false,
+        'fields': [{
+            type: 'text',
+            name: 'name',
+            label: "Clone's Name",
+            type: 'text',
+            value: '',
+            defaultValue: '',
+            show: true,
+            required: false,
+        }]
+    },
+    'suspend': {
+        'name': 'suspend',
+        'icon': 'av:stop',
+        'confirm': true,
+        'multi': true
+    },
+    'rename': {
+        'name': 'rename',
+        'icon': 'editor:mode-edit',
+        'confirm': true,
+        'multi': false
+    },
+    'resize': {
+        'name': 'resize',
+        'icon': 'image:photo-size-select-small',
+        'confirm': true,
+        'multi': false
+    },
+    'resume': {
+        'name': 'resume',
+        'icon': 'av:replay',
+        'confirm': true,
+        'multi': true
+    },
+    'undefine': {
+        'name': 'undefine',
+        'icon': 'image:panorama-fish-eye',
+        'confirm': true,
+        'multi': true
+    },
+    'remove': {
+        'name': 'remove',
+        'icon': 'remove',
+        'confirm': true,
+        'multi': true
+    },
+    'destroy': {
+        'name': 'destroy',
+        'icon': 'delete',
+        'confirm': true,
+        'multi': true
+    },
+    'transfer-ownership': {
+        'name': 'transfer ownership',
+        'icon': 'icons:redo',
+        'confirm': false,
+        'multi': true
+    },
+    'tag': {
+        'name': 'tag',
+        'icon': 'label',
+        'confirm': true,
+        'multi': true
+    },
+    'webconfig': {
+        'name': 'webconfig',
+        'icon': 'mist-icons:menu',
+        'confirm': true,
+        'multi': false
+    },
+    'delete': {
+        'name': 'delete',
+        'icon': 'delete',
+        'confirm': true,
+        'multi': true
+    },
+    'expose': {
+        'name': 'expose',
+        'icon': 'icons:forward',
+        'confirm': true,
+        'multi': false
+
+    }
+};
 
 Polymer({
   _template: html`

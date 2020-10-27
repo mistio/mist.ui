@@ -9,8 +9,9 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import '../helpers/machine-create-fields.js';
+import { machine_create_fields_obj } from '../helpers/machine-create-fields.js';
 
+const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
 const $_documentContainer = document.createElement('template');
 
 $_documentContainer.innerHTML = `<dom-module id="expose-ports">

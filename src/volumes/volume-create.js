@@ -8,7 +8,9 @@ import '../app-form/app-form.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import  '../helpers/volume-create-fields.js';
+import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
+
+const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
 
 Polymer({
   _template: html`

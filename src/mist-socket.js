@@ -736,7 +736,7 @@ Polymer({
     },
 
     _updateCloudResources (data, section, externalId) {
-        if (this.model && this.model.clouds && this.model.clouds[data.cloudId]) {
+        if (this.model && this.model.clouds && this.model.clouds[data.cloud_id]) {
             if (this.model.clouds[data.cloud_id][section] === undefined)
                 this.model.clouds[data.cloud_id][section] = {};
             const oldCloudResourcesExternalIDs = Object.keys(this.model.clouds[data.cloud_id][section]);

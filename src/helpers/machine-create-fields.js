@@ -580,7 +580,7 @@ MACHINE_CREATE_FIELDS.push({
         label: 'IPv4 Subnet Size',
         type: 'dropdown',
         value: '',
-        defaultValue: '31',
+        defaultValue: '',
         show: false,
         required: false,
         helptext: "Choose the public IPv4 subnet sizes that you would like to allocate when provisioning this device. By default, Equinix Metal assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
@@ -688,7 +688,7 @@ MACHINE_CREATE_FIELDS.push({
         label: 'Private IPv4 Subnet Size',
         type: 'dropdown',
         value: '',
-        defaultValue: '',
+        defaultValue: '31',
         show: true,
         required: false,
         helptext: "Choose the private IPv4 subnet size that you would like to allocate when provisioning this device.",
@@ -1880,5 +1880,5 @@ MACHINE_CREATE_FIELDS.forEach((p) => {
         helptext: '',
     });
 });
-
-export default MACHINE_CREATE_FIELDS
+const machine_create_fields_obj = {value: MACHINE_CREATE_FIELDS}
+export { machine_create_fields_obj };

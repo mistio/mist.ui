@@ -584,5 +584,5 @@ const SCHEDULEACTIONS = {
         'multi': false
     }
 };
-
-export default VOLUME_CREATE_FIELDS;
+const volumeCreateFieldsObj = {value: VOLUME_CREATE_FIELDS};
+export { volumeCreateFieldsObj };

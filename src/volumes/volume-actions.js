@@ -12,10 +12,11 @@ import '../tags/tags-form.js';
 import './attach-volume.js';
 import './detach-volume.js';
 import { CSRFToken, intersection } from '../helpers/utils.js';
-import '../helpers/volume-create-fields.js';
+import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
+const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
 const VOLUME_ACTIONS = {
   'tag': {
     'name': 'tag',

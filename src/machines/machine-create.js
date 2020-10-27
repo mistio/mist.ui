@@ -10,8 +10,62 @@ import { rbacBehavior } from '../rbac-behavior.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../helpers/machine-create-fields.js';
-import '../helpers/volume-create-fields.js';
+import { machine_create_fields_obj } from '../helpers/machine-create-fields.js';
+import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
+
+const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
+const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
+console.log(MACHINE_CREATE_FIELDS);
+const SCHEDULEACTIONS = {
+    'reboot': {
+        'name': 'reboot',
+        'icon': 'av:replay',
+        'confirm': true,
+        'multi': true
+    },
+    'start': {
+        'name': 'start',
+        'icon': 'av:replay',
+        'confirm': true,
+        'multi': true
+    },
+    'stop': {
+        'name': 'stop',
+        'icon': 'av:stop',
+        'confirm': true,
+        'multi': true
+    },
+    'suspend': {
+        'name': 'suspend',
+        'icon': 'av:stop',
+        'confirm': true,
+        'multi': true
+    },
+    'resume': {
+        'name': 'resume',
+        'icon': 'av:replay',
+        'confirm': true,
+        'multi': true
+    },
+    'undefine': {
+        'name': 'undefine',
+        'icon': 'image:panorama-fish-eye',
+        'confirm': true,
+        'multi': true
+    },
+    'destroy': {
+        'name': 'destroy',
+        'icon': 'delete',
+        'confirm': true,
+        'multi': true
+    },
+    'run-script': {
+        'name': 'run script',
+        'icon': 'image:movie-creation',
+        'confirm': true,
+        'multi': false
+    }
+};
 
 Polymer({
   _template: html`
@@ -2264,12 +2318,12 @@ Polymer({
   _updateFieldsForEquinixMetal(_e) {
       const ipAddresses = this._fieldIndexByName("ip_addresses");
       const ipv4Ind = this._fieldIndexByName("public_ipv4");
-          const ipv6Ind = this._fieldIndexByName("public_ipv6");
+      const ipv6Ind = this._fieldIndexByName("public_ipv6");
       const ipv4SubSizeInd = this._fieldIndexByName("public_ipv4_subnet_size");
-          const ipv6SubSizeInd = this._fieldIndexByName("public_ipv6_subnet_size");
-          const privateIpv4SubSizeInd = this._fieldIndexByName("private_ipv4_subnet_size");
+      const ipv6SubSizeInd = this._fieldIndexByName("public_ipv6_subnet_size");
+      const privateIpv4SubSizeInd = this._fieldIndexByName("private_ipv4_subnet_size");
       const ipv4 = ipv4Ind > -1 ? this.get(`machineFields.${  ipv4Ind  }.value`) : false;
-          const ipv6 = ipv6Ind > -1 ? this.get(`machineFields.${  ipv6Ind  }.value`) : false;
+      const ipv6 = ipv6Ind > -1 ? this.get(`machineFields.${  ipv6Ind  }.value`) : false;
       const ipv4SubSize = ipv4SubSizeInd > -1 ? this.get(`machineFields.${  ipv4SubSizeInd  }.value`) : '';
           const ipv6SubSize = ipv6SubSizeInd > -1 ? this.get(`machineFields.${  ipv6SubSizeInd  }.value`) : '';
           const privateIpv4SubSize = privateIpv4SubSizeInd > -1 ? this.get(`machineFields.${  privateIpv4SubSizeInd  }.value`) : '';
