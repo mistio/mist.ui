@@ -786,9 +786,9 @@ Polymer({
           this.set('availableMetrics', this.model.metrics[this.metricsUri]);
       } else if (this.rule.data_type == "metrics"){
           this._clearAvailableMetrics();
-          this.debounce('debounceGetMetrics',function() {
+          this.debounce('debounceGetMetrics',() => {
               this.$.metrics.generateRequest();
-          }.bind(this), 250);
+          }, 250);
       }
   },
   _clearAvailableMetrics() {
