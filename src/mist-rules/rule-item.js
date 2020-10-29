@@ -285,24 +285,21 @@ Polymer({
   ready () {},
 
   _computeIsNoData (rule) {
-      return rule.title == 'NoData';
+      return rule.title === 'NoData';
   },
 
   _computeIsLogData (rule) {
-      return rule.data_type == 'logs';
+      return rule.data_type === 'logs';
   },
 
-  _computeCanEdit (rule, resource) {
-      const that = this;
+  _computeCanEdit (_rule, resource) {
       if (resource) {
           const ruleExist = !!this.rule;
-              const ruleIsNoData = this.rule.title == "NoData";
-              const ruleSelectors = !!(this.rule.selectors && this.rule.selectors.length);
-              const ruleAppliesOnAllResources = !this.rule.selectors || !this.rule.selectors.length;
-              const ruleAppliesOnLogs = this.rule.data_type == 'logs';
-              const ruleAppliesOnTags = this.rule.selectors && this.rule.selectors.filter(function (c) {
-                                      return c.type == "tags"
-                                  }).length > 0;
+          const ruleIsNoData = this.rule.title === "NoData";
+          const ruleAppliesOnAllResources = !this.rule.selectors || !this.rule.selectors.length;
+          const ruleAppliesOnTags = this.rule.selectors && this.rule.selectors.filter((c) => {
+                                return c.type === "tags"
+                            }).length > 0;
           // console.log('_computeCanEdit', rule.id, ruleExist, ruleSelectors, !ruleAppliesOnAllResources, !ruleAppliesOnTags);
           this.set('ruleAppliesOnAllMachines', ruleAppliesOnAllResources);
           return !ruleIsNoData && ruleExist && !ruleAppliesOnAllResources && !ruleAppliesOnTags;
@@ -310,48 +307,49 @@ Polymer({
       return true;
   },
 
-  _computeUnit (metric, availableMetrics) {
+  _computeUnit (metric, _availableMetrics) {
       let ref;
       if (this.availableMetrics)
           ref = this.availableMetrics[metric];
       return ref && ref.unit ? ref.unit : '';
   },
 
-  _computeTargetName (metric, availableMetrics) {
+  _computeTargetName (metric, _availableMetrics) {
       let ref;
       if (this.availableMetrics)
-          ref = this.availableMetrics.find(function (i) {
-              return i.id == metric
+          ref = this.availableMetrics.find((i) => {
+              return i.id === metric
           });
       return ref && ref.name ? ref.name : metric;
   },
 
   _computeOperator (op) {
-      if (op == "gt")
+      if (op === "gt")
           return ">";
-      if (op == "lt")
+      if (op === "lt")
           return "<";
-      if (op == "eq")
+      if (op === "eq")
           return "=";
-      if (op == "ne")
+      if (op === "ne")
           return "≠";
+      return null;
   },
 
   _computeAggregation (aggr) {
-      if (aggr == "all")
+      if (aggr === "all")
           return "every";
       return aggr || "any";
   },
 
   _computeTeam (team) {
-      return this.teams.find(function (i) {
-          return i.id == team;
+      return this.teams.find((i) => {
+          return i.id === team;
       }).name;
   },
 
   _computeUser (user) {
-      const u = this.users.find(function (i) {
-          return i.id == user;
+      const u = this.users.find((i) => {
+          return i.id === user;
       });
       return u && u.name;
   },
@@ -360,7 +358,7 @@ Polymer({
       const ret = [];
       if (this.rule && this.rule.selectors) {
           for (let i = 0; i < this.rule.selectors.length; i++) {
-              if (this.rule.selectors[i].type == 'tags') {
+              if (this.rule.selectors[i].type === 'tags') {
                   const keys = Object.keys(this.rule.selectors[i].include);
                   for (let j = 0; j < keys.length; j++) {
                       const key = keys[j];
@@ -377,27 +375,27 @@ Polymer({
   },
 
   _hasWindow (aggregation) {
-      if (!aggregation || aggregation == "any")
+      if (!aggregation || aggregation === "any")
           return false;
       return true;
   },
 
   _phrase (action) {
       let verb;
-      if (action == 'notification')
+      if (action === 'notification')
           verb = 'alert';
-      else if (action == 'machine_action')
+      else if (action === 'machine_action')
           verb = '';
-      else if (action == 'command')
+      else if (action === 'command')
           verb = 'run command';
-      else if (action == 'no_data')
+      else if (action === 'no_data')
           verb = 'alert';
-      else if (action == 'webhook')
+      else if (action === 'webhook')
           verb = 'webhook';
       return verb;
   },
 
-  deleteRule (e) {
+  deleteRule (_e) {
       const ruleid = this.rule.id;
       this.$.deleteRuleRequest.url = `/api/v1/rules/${  ruleid}`;
       this.$.deleteRuleRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -405,12 +403,13 @@ Polymer({
   },
 
   _showCommandTextarea (action) {
-      return action == "command";
+      return action === "command";
   },
 
   _joinEmails (emails) {
       if (emails)
-          return typeof (emails) === 'array' ? emails.join(', ') : emails;
+          return Array.isArray(emails) ? emails.join(', ') : emails;
+      return emails;
   },
 
   _isPlural (i) {

@@ -6,25 +6,26 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  */
 export const validateRuleBehavior = {
     _validateRule(rule, actions, queries) {
-        this.debounce('_validateRule', function () {
+        this.debounce('_validateRule', () => {
             this._actuallyValidateRule(rule, actions, queries);
         }, 100);
     },
-    _actuallyValidateRule (rule, actions, queries) {
+    _actuallyValidateRule (_rule, _actions, _queries) {
         let valid = true;
             let validActions;
             let validQueries;
         if (!this.rule || !this.rule.actions || !this.rule.queries) {
             valid = false;
         } else {
-            for (const p in this.rule) {
+            Object.keys(this.rule || {}).every((p) => {
                 // console.log('this.rule[p]', p, this.rule[p])
                 // don't break on resource_type or selectors, 
-                if (['resource_type','selectors'].indexOf(p) == -1 && this.rule[p] == undefined) {
+                if (['resource_type','selectors'].indexOf(p) === -1 && this.rule[p] === undefined) {
                     valid = false;
-                    break;
+                    return false;
                 }
-            }
+                return true;
+            });
             for (let i = 0; i < this.rule.actions.length; i++) {
                 validActions = this._validateAction(this.rule.actions[i]);
                 if (!validActions) {
@@ -43,21 +44,21 @@ export const validateRuleBehavior = {
     },
     _validateAction(action) {
         let valid = false;
-        if (action.type == 'reboot' || action.type == 'destroy') {
+        if (action.type === 'reboot' || action.type === 'destroy') {
             valid = true;
-        } else if (action.type == 'alert') {
+        } else if (action.type === 'alert') {
             if ((action.emails && action.emails.length && !action.emailsInvalid) ||
                 (action.teams && action.teams.length) ||
                 (action.users && action.users.length)) {
                 valid = true;
             }
-        } else if (action.type == 'run') {
+        } else if (action.type === 'run') {
             if (action.command && action.command.length) {
                 valid = true;
             }
-        } else if (action.type == 'no_data') {
+        } else if (action.type === 'no_data') {
             valid = true;
-        } else if (action.type == 'webhook') {
+        } else if (action.type === 'webhook') {
             if (action.url && action.method) {
                 valid = true;
             }
@@ -66,7 +67,7 @@ export const validateRuleBehavior = {
     },
     _validateQuery(query) {
         let valid = false;
-        if (query.target && query.operator && query.threshold != undefined)
+        if (query.target && query.operator && query.threshold !== undefined)
             valid = true;
         return valid;
     },

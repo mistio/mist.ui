@@ -5,7 +5,7 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { _generateMap , CSRFToken } from './helpers/utils.js'
 
 const DEBUG_SOCKET = false;
-let STRIPE_PUBLIC_APIKEY = ''
+
 Polymer({
     is: 'mist-socket',
     url: '/socket',
@@ -50,25 +50,25 @@ Polymer({
 
         // Connect the receiver
         const receiver = this.receive.bind(this);
-        this.socket.onmessage = function (e) {
+        this.socket.onmessage = (e) => {
             receiver(e.data);
         };
 
         const that = this;
 
         // Handle error & close
-        this.socket.onerror = function () {
+        this.socket.onerror = () => {
             console.warn('CONNECTION ERROR');
             that.async(that.connect, 1000);
         };
-        this.socket.onclose = function () {
+        this.socket.onclose = () => {
             console.warn('CONNECTION CLOSED');
             that.async(that.connect, 1000);
         };
         this.socket.onheartbeat = this.heartbeat;
 
         // When socket connects prepare channels
-        this.socket.onopen = function () {
+        this.socket.onopen = () => {
             console.log('CONNECTION ESTABLISHED');
             that.send('sub', 'main');
             that.send('msg', 'main', 'ready');
@@ -153,7 +153,7 @@ Polymer({
                     console.info('Loaded org data');
                     that._updateOrg(data);
                 },
-                logout (data) {
+                logout (_data) {
                     document.location.pathname = '/';
                 },
                 stats (data) {
@@ -167,10 +167,10 @@ Polymer({
                 notifications (data) {
                     that.debounce(
                         'loadNotifications',
-                        function () {
+                        () => {
                             that._loadNotifications(data)
                         },
-                        function () {
+                        () => {
                             console.debug('Loaded notifications list data');
                         },
                         250
@@ -204,7 +204,7 @@ Polymer({
                 incidents (data) {
                     if (DEBUG_SOCKET)
                         console.debug('got incidents', data);
-                    that.debounce(that._updateIncidents(data), function () {
+                    that.debounce(that._updateIncidents(data), () => {
                         console.debug('Loaded incidents data');
                     }, 250);
                 },
@@ -234,13 +234,13 @@ Polymer({
     heartbeat () {
         console.debug('got heartbeat');
         const _this = this;
-        requestIdleCallback(function () {
+        requestIdleCallback(() => {
             _this.send('h'); // reply with empty frame
         }, {
             timeout: 5000
         });
     },
-
+    /* eslint-disable no-param-reassign */
     getStats (data, callback) {
         // console.log('getStats', data);
         const reqId = this.generateGuid(); // Math.floor(10000 * Math.random());
@@ -248,7 +248,7 @@ Polymer({
         this.openRequests[reqId] = callback;
         this.send('msg', 'main', 'stats', data);
     },
-
+    /* eslint-enable no-param-reassign */
     generateGuid () {
         function s4() {
             return Math.floor((1 + Math.random()) * 0x10000)
@@ -258,7 +258,7 @@ Polymer({
         return `${s4() + s4()  }-${  s4()  }-${  s4()  }-${ 
             s4()  }-${  s4()  }${s4()  }${s4()}`;
     },
-
+    /* eslint-disable no-param-reassign */
     send (type, namespace, body, params) {
         if (namespace === undefined)
             namespace = 'main';
@@ -275,14 +275,13 @@ Polymer({
         if (DEBUG_SOCKET)
             console.debug(`SENT: ${  payload}`);
     },
-
+    /* eslint-enable no-param-reassign */
     receive (message) {
         if (DEBUG_SOCKET)
             console.debug(`RECEIVED: ${  message}`);
 
         const parts = message.split(',');
-        const type = parts[0];
-            const namespace = parts[1];
+        const namespace = parts[1];
         const body = JSON.parse(parts.splice(2).join(','));
         if (this.handlers[namespace] === undefined)
             console.warn('Unknown namespace', namespace);
@@ -300,33 +299,33 @@ Polymer({
 
     _patchModel (patch) {
         const _this = this;
-        patch.forEach(function(operation) {
-            const idleCallbackId = requestIdleCallback(function () {
-                let cloudId; let resource_type; let resource_id; let resource_external_id; let path; let property_path; let old_cloud_resource_external_ids; let old_cloud_resource_ids;
+        patch.forEach((operation) => {
+            const idleCallbackId = requestIdleCallback(() => {
+                let cloudId; let resourceType; let resourceExternalId; let path; let propertyPath; let oldCloudResourceExternalIds; let oldCloudResourceIds;
 
                 // Let's figure out if the patch applies to a cloud and which one
                 if (operation.path.search('/clouds/') > -1) {
                     path = operation.path.split('/clouds/')[1].split('/');
-                    cloudId = path[0];
+                    [cloudId] = path;
 
                     // console.log('DEBUG 1 - search cloud', path, cloudId);
 
                     // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
                     if (['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1) {
-                        resource_type = path[1];
-                        path = operation.path.split(`/${  resource_type  }/`)[1].split('/');
-                        resource_external_id = path[0];
-                        property_path = operation.path.split(resource_external_id)[1].replace(/\//g, '.');
+                        [, resourceType] = path;
+                        path = operation.path.split(`/${  resourceType  }/`)[1].split('/');
+                        [resourceExternalId] = path;
+                        propertyPath = operation.path.split(resourceExternalId)[1].replace(/\//g, '.');
 
 
                         // console.log('DEBUG 2 - resources of cloud', path, cloudId);
 
 
                         if (_this.model.clouds && _this.model.clouds[cloudId]) {
-                            old_cloud_resource_external_ids = Object.keys(_this.model.clouds[cloudId][resource_type] || {}) || [];
-                            old_cloud_resource_ids = old_cloud_resource_external_ids.map(i => _this.model.clouds[cloudId][resource_type][i].id);
+                            oldCloudResourceExternalIds = Object.keys(_this.model.clouds[cloudId][resourceType] || {}) || [];
+                            oldCloudResourceIds = oldCloudResourceExternalIds.map(i => _this.model.clouds[cloudId][resourceType][i].id);
 
-                            // console.log('DEBUG 3 - old ids', old_cloud_resource_external_ids, old_cloud_resource_ids);
+                            // console.log('DEBUG 3 - old ids', oldCloudResourceExternalIds, oldCloudResourceIds);
 
                         }
                     }
@@ -341,64 +340,64 @@ Polymer({
                         console.error("jsonpatch applyOperation error", error);
                 }
 
-                if (resource_type && cloudId && _this.model.clouds && _this.model.clouds[cloudId] && _this.model.clouds[cloudId][resource_type]) {
-                    const new_cloud_resources = _this.model.clouds[cloudId][resource_type];
-                        const new_cloud_resource_external_ids = Object.keys(new_cloud_resources);
-                        const new_cloud_resource_ids = new_cloud_resource_external_ids.map(i => new_cloud_resources[i].id);
+                if (resourceType && cloudId && _this.model.clouds && _this.model.clouds[cloudId] && _this.model.clouds[cloudId][resourceType]) {
+                    const newCloudResources = _this.model.clouds[cloudId][resourceType];
+                    const newCloudResourceExternalIds = Object.keys(newCloudResources);
+                    const newCloudResourceIds = newCloudResourceExternalIds.map(i => newCloudResources[i].id);
 
 
-                        // console.log('DEBUG 4 -  new ids', new_cloud_resources, new_cloud_resource_external_ids, new_cloud_resource_ids);
+                        // console.log('DEBUG 4 -  new ids', newCloudResources, newCloudResourceExternalIds, newCloudResourceIds);
 
                     // Cleanup deleted resource refs
-                    for (var i=0; i < old_cloud_resource_ids.length; i++) {
-                        if (new_cloud_resources[old_cloud_resource_external_ids[i]] === undefined
-                            && _this.model[resource_type][old_cloud_resource_ids[i]] !== undefined) {
-                            _this.set(`model.${  resource_type  }.${  old_cloud_resource_ids[i]}`, null);
-                            _this.notifyPath(`model.${  resource_type  }.${  old_cloud_resource_ids[i]}`);
-                            delete _this.model[resource_type][old_cloud_resource_ids[i]];
+                    for (let i=0; i < oldCloudResourceIds.length; i++) {
+                        if (newCloudResources[oldCloudResourceExternalIds[i]] === undefined
+                            && _this.model[resourceType][oldCloudResourceIds[i]] !== undefined) {
+                            _this.set(`model.${  resourceType  }.${  oldCloudResourceIds[i]}`, null);
+                            _this.notifyPath(`model.${  resourceType  }.${  oldCloudResourceIds[i]}`);
+                            delete _this.model[resourceType][oldCloudResourceIds[i]];
                         }
                     }
 
                     // Link paths of new resources for easy global lookup
-                    for (var i=0; i < new_cloud_resource_ids.length; i++) {
-                        if (_this.model[resource_type][new_cloud_resource_ids[i]] === undefined) {
-                            _this.set(`model.${  resource_type  }.${  new_cloud_resource_ids[i]}`, _this.model.clouds[cloudId][resource_type][new_cloud_resource_external_ids[i]]);
-                            _this.linkPaths(`model.${ resource_type  }.${  new_cloud_resource_ids[i]}`, `model.clouds.${  cloudId  }.${  resource_type  }.${  new_cloud_resource_external_ids[i]}`);
+                    for (let i=0; i < newCloudResourceIds.length; i++) {
+                        if (_this.model[resourceType][newCloudResourceIds[i]] === undefined) {
+                            _this.set(`model.${  resourceType  }.${  newCloudResourceIds[i]}`, _this.model.clouds[cloudId][resourceType][newCloudResourceExternalIds[i]]);
+                            _this.linkPaths(`model.${ resourceType  }.${  newCloudResourceIds[i]}`, `model.clouds.${  cloudId  }.${  resourceType  }.${  newCloudResourceExternalIds[i]}`);
                         }
                     }
 
-                    if (property_path && _this.model.clouds[cloudId][resource_type][resource_external_id]) {
-                        const resource_global_path = `model.${  resource_type  }.${  _this.model.clouds[cloudId][resource_type][resource_external_id].id}`;
-                            const property_global_path =  resource_global_path + property_path;
-                            const resource_local_path = `model.clouds.${  cloudId  }.${  resource_type  }.${  resource_external_id}`;
-                            const property_local_path = resource_local_path + property_path;
+                    if (propertyPath && _this.model.clouds[cloudId][resourceType][resourceExternalId]) {
+                        const resourceGlobalPath = `model.${  resourceType  }.${  _this.model.clouds[cloudId][resourceType][resourceExternalId].id}`;
+                            const propertyGlobalPath =  resourceGlobalPath + propertyPath;
+                            const resourceLocalPath = `model.clouds.${  cloudId  }.${  resourceType  }.${  resourceExternalId}`;
+                            const propertyLocalPath = resourceLocalPath + propertyPath;
 
-                        if (_this.get(property_global_path) && _this.get(property_global_path) === _this.get(property_local_path)) {
-                            _this.notifyPath(property_global_path);
+                        if (_this.get(propertyGlobalPath) && _this.get(propertyGlobalPath) === _this.get(propertyLocalPath)) {
+                            _this.notifyPath(propertyGlobalPath);
                         } else {
-                            _this.set(resource_global_path, _this.get(resource_local_path));
+                            _this.set(resourceGlobalPath, _this.get(resourceLocalPath));
                         }
 
                         // Check if we need to notify a subpath e.g. when updating records of a zone
-                        let property_sub_path = property_path.split('.');
-                        property_sub_path.pop();
-                        if (property_sub_path.length > 1) {
-                            property_sub_path = property_sub_path.join('.');
-                            property_sub_path = `model.${  resource_type  }.${  _this.model.clouds[cloudId][resource_type][resource_external_id].id  }${property_sub_path}`
-                            setTimeout(function() {
-                                _this.notifyPath(property_sub_path);
+                        let propertySubPath = propertyPath.split('.');
+                        propertySubPath.pop();
+                        if (propertySubPath.length > 1) {
+                            propertySubPath = propertySubPath.join('.');
+                            propertySubPath = `model.${  resourceType  }.${  _this.model.clouds[cloudId][resourceType][resourceExternalId].id  }${propertySubPath}`
+                            setTimeout(() => {
+                                _this.notifyPath(propertySubPath);
                             }, 50);
                         }
                     }
-                    _this.notifyPath(`model.${  resource_type}`);
-                    _this.set(`model.sections.${  resource_type  }.count`, Object.keys(_this.model[resource_type]).length);
+                    _this.notifyPath(`model.${  resourceType}`);
+                    _this.set(`model.sections.${  resourceType  }.count`, Object.keys(_this.model[resourceType]).length);
                 }
             }, {
                 timeout: 500
             });
         });
     },
-
+    /* eslint-disable no-param-reassign */
     _updateModel (section, data, primaryField) {
         if (this.model) {
             let changed = false; // we wont update the model if it hasn't changed
@@ -436,17 +435,14 @@ Polymer({
 
                 for (let k = 0; k < dataKeys.length; k++) {
                     // Do not update model just for the last_seen property
-                    if (dataKeys[k] === 'last_seen') {
-                        continue;
-                    }
-                    if (modelKeys.indexOf(dataKeys[k]) === -1) {
+                    if (dataKeys[k] !== 'last_seen' && modelKeys.indexOf(dataKeys[k]) === -1) {
                         // If something is missing the model needs to be updated
                         console.debug('2. model', modelKeys.indexOf(dataKeys[k]), dataKeys[k]);
                         changed = true;
                         break;
                     }
                     // If some field changed the model needs to be updated
-                    if (data[i][dataKeys[k]] !== undefined && JSON.stringify(data[i][dataKeys[k]])
+                    if (dataKeys[k] !== 'last_seen' && data[i][dataKeys[k]] !== undefined && JSON.stringify(data[i][dataKeys[k]])
                         .localeCompare(JSON.stringify(item[dataKeys[k]]))) {
                         // console.debug('localeCompare',JSON.stringify(data[i][dataKeys[k]]).localeCompare(JSON.stringify(item[dataKeys[k]])));
                         console.debug('property ', dataKeys[k], ' changed in ', item);
@@ -484,7 +480,7 @@ Polymer({
         }
         return false;
     },
-
+    /* eslint-enable no-param-reassign */
     _updateClouds (data) {
         // console.log('_updateClouds', data);
         if (data.length && this.get('model.onboarding.hasCloud') !== true)
@@ -500,7 +496,7 @@ Polymer({
 
         if (this.model && this.model.clouds && data) {
             // console.log('_updateClouds - in clean up loop');
-            data.forEach(function (c) {
+            data.forEach((c) => {
                 this.cleanUpResources(c.id);
             }, this)
         }
@@ -513,9 +509,9 @@ Polymer({
         // have never been triggered (ex. all clouds are disabled, list_machines never gets data)
         let cloudsResources = !(!this.model.machines && !this.model.networks && !this.model.images);
         if (data.length && !cloudsResources && ret)
-            cloudsResources = data.map(function (d) {
+            cloudsResources = data.map((d) => {
                 return !!(d.machines || d.images || d.networks);
-            }).reduce(function (b1, b2) {
+            }).reduce((b1, b2) => {
                 return b1 || b2;
             });
         if (!cloudsResources) {
@@ -535,7 +531,7 @@ Polymer({
         this.set('model.pending.monitoring', false);
         // inform machines that have rules
         if (data.rules) {
-            for (const rule in data.rules) {
+            Object.keys(data.rules || {}).forEach((rule) => {
                 if (rule.cloud && rule.machine && this.model.clouds[rule.cloud] && this.model.clouds[rule.cloud].machines[rule.machine]) {
                     if (!this.get(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`)) {
                         this.set(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`, [
@@ -546,7 +542,7 @@ Polymer({
                         this.push(`model.clouds.${  rule.cloud  }.machines.${  rule.machine  }.rules`,
                             rule)
                 }
-            }
+            });
         }
         this._updateRules(data.rules);
         return this.set('model.monitoring', data);
@@ -556,7 +552,7 @@ Polymer({
         this.set('model.user', data);
         if (data) {
             CSRFToken.value = data.csrf_token;
-            STRIPE_PUBLIC_APIKEY = data.stripe_public_apikey;
+            // STRIPE_PUBLIC_APIKEY = data.stripe_public_apikey;
         }
     },
 
@@ -564,7 +560,7 @@ Polymer({
         this.set('model.onboarding.isLoadingTeams', false);
         this._updateModel('teams', data.teams);
         this._updateModel('members', data.members);
-        data.teams = data.members = undefined;
+        // data.teams = data.members = undefined;
         this.set('model.org', data);
     },
 
@@ -574,14 +570,13 @@ Polymer({
         this.fire('update-keys');
         if (data) {
             for (let i = 0; i < data.length; i++) {
-                var key = data[i];
+                const key = data[i];
                 if (this.model.clouds && key.machines) {
-                    key.machines.forEach(function (m, index) {
+                    key.machines.forEach((m) => {
                         const cloud = m[0];
                             const machine = m[1];
-                            const last_used = m[2];
+                            const lastUsed = m[2];
                             const user = m[3];
-                            const sudo = m[4];
                             const port = m[5];
                         if (this.model.clouds && this.model.clouds[cloud] &&
                             this.model.clouds[cloud].machines &&
@@ -589,15 +584,15 @@ Polymer({
                             // check if machine has this key, if not add
                             const keyIndex = this.model.clouds[cloud].machines[machine].key_associations
                                 .findIndex(
-                                    function (k) {
-                                        return k.key === key.id && k.ssh_user === user && k.port ==
+                                    (k) => {
+                                        return k.key === key.id && k.ssh_user === user && k.port ===
                                             port;
                                     });
                             if (keyIndex > -1) {
                                 this.set(`model.clouds.${  cloud  }.machines.${  machine 
                                     }.key_associations.${  keyIndex}`, {
                                         'key': key.id,
-                                        'last_used': last_used,
+                                        'last_used': lastUsed,
                                         'port': port,
                                         'ssh_user': user
                                     });
@@ -606,7 +601,7 @@ Polymer({
                                 this.push(
                                     `model.machines.${  mid  }.key_associations`, {
                                         'key': key.id,
-                                        'last_used': last_used,
+                                        'last_used': lastUsed,
                                         'port': port,
                                         'ssh_user': user
                                     }
@@ -617,17 +612,17 @@ Polymer({
                 }
 
                 // remove disassociated keys from machines
-                let machine_ids = [];
+                let machineIds = [];
                 if (this.model && this.model.machines)
-                    machine_ids = Object.keys(this.model.machines);
-                machine_ids.forEach(function (m, index) {
-                    let associationIndexMachine; let associationIndexKey; const machine = _this.model.machines[m];
-                    associationIndexMachine = machine && machine.key_associations.findIndex(function (k) {
+                    machineIds = Object.keys(this.model.machines);
+                machineIds.forEach((m) => {
+                    let associationIndexKey; const machine = _this.model.machines[m];
+                    const associationIndexMachine = machine && machine.key_associations.findIndex((k) => {
                         return k.key === key.id;
                     }) || -1;
                     if (associationIndexMachine > -1) {
-                        associationIndexKey = key.machines.findIndex(function (ka) {
-                            return ka[0] === machine.cloud && ka[1] === machine.machine_id && ka[3] ==
+                        associationIndexKey = key.machines.findIndex((ka) => {
+                            return ka[0] === machine.cloud && ka[1] === machine.machine_id && ka[3] ===
                                 machine.key_associations[associationIndexMachine].ssh_user &&
                                 ka[5] === machine.key_associations[associationIndexMachine].port;
                         });
@@ -651,10 +646,11 @@ Polymer({
 
     _updateRules (data) {
         const rulesArray = [];
-        for (const p in data) {
-            data[p].id = p;
-            rulesArray.push(data[p]);
-        }
+        Object.keys(data || {}).forEach((p) => {
+            const rule = data[p]
+            rule.id = p;
+            rulesArray.push(rule);
+        });
         this._updateModel('rules', rulesArray);
         // return this._updateModel('rules', data);
     },
@@ -681,7 +677,7 @@ Polymer({
     _updateLocations (data) {
         return this._updateModel(`clouds.${  data.cloud_id  }.locations`, data.locations);
     },
-
+    /* eslint-disable no-param-reassign */
     _updateImages (data) {
         // console.log('_updateImages');
         this.set('model.onboarding.isLoadingImages', false);
@@ -693,18 +689,18 @@ Polymer({
         let allImages = [];
         if (this.model !== undefined) {
             this.model.cloudsArray.forEach(
-                function (cloud) {
+                (cloud) => {
                     if (cloud.imagesArray !== undefined && cloud.enabled) {
-                        cloud.imagesArray.forEach((_image, index, arr) => {
-                            arr[index].cloud = {
+                        cloud.imagesArray.forEach((image) => {
+                            image.cloud = {
                                 'id': cloud.id,
                                 'title': cloud.title,
                                 'provider': cloud.provider
                             };
-                            self.model.imagesArray.push(arr[index])
+                            self.model.imagesArray.push(image)
                         });
                     }
-                    return allImages = allImages.concat(cloud.imagesArray !== undefined ? cloud.imagesArray :
+                    allImages = allImages.concat(cloud.imagesArray !== undefined ? cloud.imagesArray :
                         [])
                 });
         }
@@ -713,8 +709,9 @@ Polymer({
         this.set('model.images', _generateMap(allImages));
         // update section count, necessary for propagating changes to sidebar & dashboard counters
         this.set('model.sections.images.count', allImages.length);
+        return true;
     },
-
+    /* eslint-enable no-param-reassign */
     _updateMachines (data) {
         this.set('model.onboarding.isLoadingMachines', false);
         this._updateCloudResources(data, 'machines', 'machine_id');
@@ -741,22 +738,22 @@ Polymer({
                 this.model.clouds[data.cloud_id][section] = {};
             const oldCloudResourcesExternalIDs = Object.keys(this.model.clouds[data.cloud_id][section]);
             const oldCloudResourcesIDs = oldCloudResourcesExternalIDs.map(i => this.model.clouds[data.cloud_id][section][i].id);
-            const new_cloud_resources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {});
-            const new_cloud_resources_external_ids = Object.keys(new_cloud_resources);
-            const new_cloud_resources_ids = new_cloud_resources_external_ids.map(i => new_cloud_resources[i].id); 
+            const newCloudResources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {});
+            const newCloudResourcesExternalIds = Object.keys(newCloudResources);
+            const newCloudResourcesIds = newCloudResourcesExternalIds.map(i => newCloudResources[i].id); 
 
-            this.set(`model.clouds.${  data.cloud_id  }.${  section}`, new_cloud_resources);
+            this.set(`model.clouds.${  data.cloud_id  }.${  section}`, newCloudResources);
 
             for (let i=0; i<oldCloudResourcesIDs.length; i++) {
-                if (oldCloudResourcesIDs[i].indexOf(new_cloud_resources_ids) === -1) {
+                if (oldCloudResourcesIDs[i].indexOf(newCloudResourcesIds) === -1) {
                     delete this.model[section][oldCloudResourcesIDs[i]];
                 }
             }
 
-            for (let i=0; i < new_cloud_resources_ids.length; i++) {
-                if (this.model[section][new_cloud_resources_ids[i]] === undefined) {
-                    this.set(`model.${  section  }.${  new_cloud_resources_ids[i]}`, this.model.clouds[data.cloud_id][section][new_cloud_resources_external_ids[i]]);
-                    this.linkPaths(`model.${ section  }.${  new_cloud_resources_ids[i]}`, `this.model.clouds.${  data.cloud_id  }.${  section  }.${  new_cloud_resources_external_ids[i]}`);
+            for (let i=0; i < newCloudResourcesIds.length; i++) {
+                if (this.model[section][newCloudResourcesIds[i]] === undefined) {
+                    this.set(`model.${  section  }.${  newCloudResourcesIds[i]}`, this.model.clouds[data.cloud_id][section][newCloudResourcesExternalIds[i]]);
+                    this.linkPaths(`model.${ section  }.${  newCloudResourcesIds[i]}`, `this.model.clouds.${  data.cloud_id  }.${  section  }.${  newCloudResourcesExternalIds[i]}`);
                 }
             }
             this.set(`model.sections.${  section  }.count`, Object.keys(this.model[section]).length);

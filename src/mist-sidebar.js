@@ -6,7 +6,6 @@ import './tag-link/tag-link.js';
 import './theme-color/theme-color.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { dom } from '../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 
 Polymer({
   _template: html`
@@ -389,9 +388,8 @@ Polymer({
       this.updateResize();
   },
 
-  updateResize(e) {
+  updateResize(_e) {
       console.log('updateResize');
-      const that = this;
       if (this.smallscreen)
           this.closeSidebar();
       else
@@ -436,16 +434,16 @@ Polymer({
   },
 
   _isHidden(item) {
-      if (item.hideZero && item.count == 0)
+      if (item.hideZero && item.count === 0)
           return true;
       return false;
   },
 
-  clearSearch(e) {
+  clearSearch(_e) {
       this.dispatchEvent(new CustomEvent('preserve-filters'), {composed: true, bubbles: true});
   },
 
-  _computeSectionsArray(sections) {
+  _computeSectionsArray(_sections) {
       if (this.model && this.model.sections) {
           return Object.keys(this.model.sections).map(y => this.model.sections[y]);
       } 
@@ -453,7 +451,7 @@ Polymer({
       
   },
 
-  _getSectionCount(name, sections) {
+  _getSectionCount(name, _sections) {
       return this.model.sections[name].count;
   }
 });

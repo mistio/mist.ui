@@ -192,7 +192,6 @@ Polymer({
   _mapPolicyToActions (items) {
     // recompute the actions array property as the intersection
     // of the available actions of the selected items
-    console.log("WTF IS THIS", intersection);
     this.set('actions', []);
     let actions = new Set(); 
         let isection = new Set();
