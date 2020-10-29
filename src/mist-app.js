@@ -41,8 +41,9 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { _generateMap } from './helpers/utils.js'
 import PROVIDERS from './helpers/providers.js';
-// import '../../../swiftSet/swiftSet.js';
+
 // import '../../../fingerprintjs2/fingerprint2.js';
+
 const $_documentContainer = document.createElement('template');
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
     <template>

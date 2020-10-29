@@ -2,6 +2,7 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+import moment from '../../node_modules/moment/src/moment.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -12,7 +13,7 @@ Polymer({
             padding: 0;
             margin: 0;
             display: block;
-            overflow: hidden;
+            overflow: visible;
         }
         iron-icon {
             color: inherit !important;
@@ -40,6 +41,7 @@ Polymer({
             float: left;
             position: relative;
             top: 10px;
+            bot: 10px;
         }
         paper-checkbox {
             float: left;

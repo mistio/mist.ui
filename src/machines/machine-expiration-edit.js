@@ -7,7 +7,7 @@ import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-// import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import moment from '../../node_modules/moment/src/moment.js'
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';

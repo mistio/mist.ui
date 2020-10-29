@@ -13,6 +13,7 @@ import '@vaadin/vaadin-upload/vaadin-upload.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-image/iron-image.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
@@ -522,13 +523,13 @@ Polymer({
   },
 
   _computeUploadHeaders() {
-    return { 'Csrf-Token': this.user.csrf_token, Accept: 'application/json' };
+    return { 'Csrf-Token': CSRFToken.value, Accept: 'application/json' };
   },
 
   _deleteAvatar() {
     const xhr = new XMLHttpRequest();
     xhr.open('DELETE', `/api/v1/avatars/${this.org.avatar}`);
-    xhr.setRequestHeader('Csrf-Token', this.user.csrf_token);
+    xhr.setRequestHeader('Csrf-Token', CSRFToken.value);
     xhr.send();
     this.orgAvatar = '';
     this.$.orgAvatarUpload.files = [];
@@ -586,7 +587,7 @@ Polymer({
     };
 
     this.$.userAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.userAjaxRequest.headers['Csrf-Token'] = this.user.csrf_token;
+    this.$.userAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.userAjaxRequest.body = payload;
     this.$.userAjaxRequest.generateRequest();
     console.log('loadingUser', this.loadingUser);
@@ -594,7 +595,7 @@ Polymer({
 
   _toggleOwnership() {
     this.$.ownershipRequest.headers['Content-Type'] = 'application/json';
-    this.$.ownershipRequest.headers['Csrf-Token'] = this.user.csrf_token;
+    this.$.ownershipRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.ownershipRequest.generateRequest();
   },
 
@@ -624,7 +625,7 @@ Polymer({
       if (this.orgAvatar) payload.avatar = this.orgAvatar;
 
       this.$.orgAjaxRequest.headers['Content-Type'] = 'application/json';
-      this.$.orgAjaxRequest.headers['Csrf-Token'] = this.user.csrf_token;
+      this.$.orgAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
       this.$.orgAjaxRequest.body = payload;
       this.$.orgAjaxRequest.generateRequest();
       console.log('loadingOrg', this.loadingOrg);

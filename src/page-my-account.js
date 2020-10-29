@@ -10,7 +10,7 @@ import './account/sessions-list.js';
 import './account/tokens-list.js';
 import './account/whitelisted-ips.js';
 import './account/notifications-settings.js';
-// import './account/metering-graphs.js';
+import './account/metering-graphs.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 

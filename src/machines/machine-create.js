@@ -15,7 +15,6 @@ import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
 
 const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
 const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
-console.log(MACHINE_CREATE_FIELDS);
 const SCHEDULEACTIONS = {
     'reboot': {
         'name': 'reboot',

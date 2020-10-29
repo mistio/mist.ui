@@ -4,9 +4,9 @@ import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
 import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../../node_modules/echarts/dist/echarts.common.min.js';
+import * as echarts from  'echarts/echarts.all.js';
 
-GRAPH_OPTIONS = {
+const GRAPH_OPTIONS = {
     title: {
         text: 'Cores'
     },
@@ -45,7 +45,7 @@ GRAPH_OPTIONS = {
     }]
 };
 
-GRAPH_OPTIONS_2 = {
+const GRAPH_OPTIONS_2 = {
     title: {
         text: 'Datapoints'
     },
@@ -84,7 +84,7 @@ GRAPH_OPTIONS_2 = {
     }]
 };
 
-GRAPH_OPTIONS_3 = {
+const GRAPH_OPTIONS_3 = {
     title: {
         text: 'Checks'
     },
