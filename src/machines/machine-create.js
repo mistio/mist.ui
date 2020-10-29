@@ -10,11 +10,9 @@ import { rbacBehavior } from '../rbac-behavior.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { machine_create_fields_obj } from '../helpers/machine-create-fields.js';
-import { volumeCreateFieldsObj } from '../helpers/volume-create-fields.js';
+import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
+import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
 
-const VOLUME_CREATE_FIELDS = volumeCreateFieldsObj.value;
-const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
 const SCHEDULEACTIONS = {
     'reboot': {
         'name': 'reboot',

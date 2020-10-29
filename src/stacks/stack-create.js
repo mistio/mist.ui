@@ -11,9 +11,7 @@ import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
 import { stackFormsBehavior } from '../helpers/stack-forms-behavior.js';
-import { machine_create_fields_obj } from '../helpers/machine-create-fields.js';
-
-const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
+import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 
 Polymer({
   _template: html`

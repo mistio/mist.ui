@@ -1880,5 +1880,5 @@ MACHINE_CREATE_FIELDS.forEach((p) => {
         helptext: '',
     });
 });
-const machine_create_fields_obj = {value: MACHINE_CREATE_FIELDS}
-export { machine_create_fields_obj };
+
+export { MACHINE_CREATE_FIELDS };

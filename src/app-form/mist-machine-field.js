@@ -13,9 +13,8 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './mist-size-field.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { machine_create_fields_obj } from '../helpers/machine-create-fields.js';
+import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 
-const MACHINE_CREATE_FIELDS = machine_create_fields_obj.value;
 const DEBUG_FORM = false;
 Polymer({
   _template: html`
