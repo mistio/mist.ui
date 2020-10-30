@@ -8,7 +8,6 @@ import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
-import { jsPDF } from "jspdf";
 import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -535,7 +534,7 @@ Polymer({
   toggleMonitoring (_e, action) {
       const payload = {};
       console.log('toggleMonitoring', action)
-      if (action != 'disable') {
+      if (action !== 'disable') {
           payload.action = this.isMonitored ? "disable" : "enable";
       } else {
           payload.action = action;
@@ -608,7 +607,7 @@ Polymer({
       console.log('startpolling');
   },
 
-  stopPolling (logItems) {
+  stopPolling (_logItems) {
       if (this.logItems && this.logItems.length > 0) {
           if (this.logItems[this.logItems.length - 1].action.endsWith('deploy_collectd_finished') ||
               this.logItems[this.logItems.length - 1].action.endsWith('deployment_finished')) {
@@ -815,34 +814,34 @@ Polymer({
   _computeToggleButtonStyle (expanded) {
       return !expanded && "transform: rotate(270deg);" || "";
   },
+//  Need better js to pdf dependency jsPDF won't work with rollup
+//   _exportPdf () {
+//       const generatePdf = () => {
+//           const pdf = new jsPDF(); let offset = 10;
+//           const timerangeButton = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton');
+//           const timerangeHtml = timerangeButton.outerHTML;
+//           const resource = this.resource ? `<strong>${  this.resource.name  }</strong> &nbsp;&nbsp;` : '';
+//           pdf.fromHTML(resource + timerangeHtml, 10, offset);
+//           offset += 10;
 
-  _exportPdf () {
-      const generatePdf = () => {
-          const pdf = new jsPDF(); let offset = 10;
-          const timerangeButton = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton');
-          const timerangeHtml = timerangeButton.outerHTML;
-          const resource = this.resource ? `<strong>${  this.resource.name  }</strong> &nbsp;&nbsp;` : '';
-          pdf.fromHTML(resource + timerangeHtml, 10, offset);
-          offset += 10;
-
-          const incidents = this.shadowRoot.querySelectorAll('.incident');
-          for (let i=0; i < incidents.length; i++) {
-              pdf.fromHTML(incidents[i].outerHTML, 10, offset);
-              offset += 10;
-          }
-          offset += 10;
-          const panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
-          for (let i=0; i<panels.length; i++) {
-              if (i && i%2 === 0) {
-                  pdf.addPage();
-                  offset = 10
-              }
-              const canvas = panels[i].shadowRoot.querySelector('canvas');
-              pdf.fromHTML(panels[i].shadowRoot.querySelector('div.title').outerHTML, 10, offset+(i%2)*120);
-              pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, offset + 10 + (i%2)*120);
-          }
-          pdf.save(`${this.resource.name  }-${  timerangeButton.textContent.replace(' ', '')  }.pdf`);
-      }
-      generatePdf();
-    }
+//           const incidents = this.shadowRoot.querySelectorAll('.incident');
+//           for (let i=0; i < incidents.length; i++) {
+//               pdf.fromHTML(incidents[i].outerHTML, 10, offset);
+//               offset += 10;
+//           }
+//           offset += 10;
+//           const panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
+//           for (let i=0; i<panels.length; i++) {
+//               if (i && i%2 === 0) {
+//                   pdf.addPage();
+//                   offset = 10
+//               }
+//               const canvas = panels[i].shadowRoot.querySelector('canvas');
+//               pdf.fromHTML(panels[i].shadowRoot.querySelector('div.title').outerHTML, 10, offset+(i%2)*120);
+//               pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, offset + 10 + (i%2)*120);
+//           }
+//           pdf.save(`${this.resource.name  }-${  timerangeButton.textContent.replace(' ', '')  }.pdf`);
+//       }
+//       generatePdf();
+//     }
 });

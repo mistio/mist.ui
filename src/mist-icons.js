@@ -2,9 +2,9 @@ import '../node_modules/@polymer/iron-icon/iron-icon.js';
 import '../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../node_modules/@polymer/iron-iconset-svg/iron-iconset-svg.js';
 
-const $_documentContainer = document.createElement('template');
+const documentContainer = document.createElement('template');
 
-$_documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
+documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
     <svg>
         <defs>
             <g id="arrow-back">
@@ -46,7 +46,7 @@ $_documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
     </svg>
 </iron-iconset-svg>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);
 
 /**
 @license

@@ -228,7 +228,7 @@ Polymer({
   },
 
   updateWidth() {
-      this.debounce('windowResize', function() {
+      this.debounce('windowResize', () => {
           this.set('width', this.getBoundingClientRect().width)
       }, 100);
   },
@@ -246,10 +246,12 @@ Polymer({
           this.set("visibleSuggestions", false);
       }
       // ENTER
-      if (e.keyCode === 13 && e.path && e.path.indexOf(this) > -1 && this.userFilter.length) {}
+      if (e.keyCode === 13 && e.path && e.path.indexOf(this) > -1 && this.userFilter.length) {
+          // pass
+      }
   },
 
-  revealSearch(e) {
+  revealSearch(_e) {
       this.set('overflow', true);
       this.set('showClear', true);
   },
@@ -272,16 +274,16 @@ Polymer({
   },
 
   _computePresetFilters(title) {
-      let resource_type;
+      let resourceType;
       if (!title) {
-          return;
+          return [];
       } if (['clouds', 'stacks', 'machines', 'volumes', 'networks',
            'zones',' keys', 'images', 'scripts', 'schedules',
            'teams'].indexOf(title) > -1 ){
-          resource_type = title;
+          resourceType = title;
       } else {
-          resource_type = 'resources';
+          resourceType = 'resources';
       }
-      return [{name:`Your ${  resource_type}`, filter: 'owner:$me', default:true}]
+      return [{name:`Your ${  resourceType}`, filter: 'owner:$me', default:true}]
   }
 });

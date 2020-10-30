@@ -294,21 +294,21 @@ Polymer({
       this.style.width = `${w  }px`;
   },
 
-  queryChanged(query) {
+  queryChanged(_query) {
       if (this.query && this.query.length > 2) {
           const results = {};
-              let result;
           if (this.model) {
-              for (const prop in this.model) {
+              for (const prop of Object.keys(this.model)) {
+                  let result = "";
                   if (prop.endsWith('Array') && this.model[prop].constructor === Array) {
                       result = this.filterItems(this.model[prop]);
                   } else if (['machines', 'networks', 'volumes'].indexOf(prop) > -1) {
                       result = this.filterItems(Object.values(this.model[prop]));
-                  } else {
-                      continue;
                   }
+                  if(result){
                   results[`${prop  }FullLength`] = result.length;
                   results[prop] = result.splice(0, 3);
+                }
               }
           }
           this.set('results', results);
@@ -319,18 +319,18 @@ Polymer({
       }
   },
 
-  resultsChanged(results) {
-      if (!this.query || this.query == undefined || this.query.length <= 2) {
+  resultsChanged(_results) {
+      if (!this.query || this.query === undefined || this.query.length <= 2) {
           this.set('visible', false);
           this.set('resultsExist', false);
       } else {
           let rlen = 0;
           if (this.results) {
-              for (const prop in this.results) {
+              Object.keys(this.results).forEach((prop) => {
                   if (this.results[prop].length > 0) {
                       rlen += this.results[prop].length;
                   }
-              }
+              });
           }
           this.set('resultsExist', rlen > 0);
           if (!this.hide)
@@ -344,29 +344,29 @@ Polymer({
       return false;
   },
 
-  filterItem(item, index) {
+  filterItem(item, _index) {
       let q = this.query || '';
-          const filterOwner = q.indexOf('owner:') > -1;
-          const ownerRegex = /owner:(\S*)\s?/;
-          const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-          let queryTerms; let str;
+      const filterOwner = q.indexOf('owner:') > -1;
+      const ownerRegex = /owner:(\S*)\s?/;
+      const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+      let str;
 
       if (filterOwner && owner && owner.length) {
           q = q.replace('owner:', '').replace(`${owner  }`, '');
 
-          if (owner == "$me") {
-              if (!item || !item.owned_by || item.owned_by != this.model.user.id)
+          if (owner === "$me") {
+              if (!item || !item.owned_by || item.owned_by !== this.model.user.id)
                   return false;
           } else {
-              const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+              const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find((m) => {
                   return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
               });
-              if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+              if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
                   return false;
           }
       }
 
-      queryTerms = q.split(' ');
+      const queryTerms = q.split(' ');
       str = JSON.stringify(item);
       if (this.model && this.model.clouds && item && item.cloud && this.model.clouds[item.cloud]) {
           str += `${this.model.clouds[item.cloud].provider  }${  this.model.clouds[item.cloud].title}`;
@@ -384,26 +384,26 @@ Polymer({
       return true;
   },
 
-  goToResultsList(e) {
+  goToResultsList(_e) {
       this.set('visible', false);
       const that = this;
-      this.async(function() {
+      this.async(() => {
           that.fire('search', that.query);
       }, 500);
   },
 
-  viewingListsChanged(hide) {
+  viewingListsChanged(_hide) {
       if (this.hide) {
           this.set('visible', false);
       }
   },
 
-  closeSuggestions(e) {
+  closeSuggestions(_e) {
       this.set('visible', false);
       this.dispatchEvent(new CustomEvent('clear-search', {composed: true, bubbles: true}));
   },
 
   _displayViewResultsText(num) {
-      return num == 1 ? 'view 1 result' : `view all ${  num  } results` ;
+      return num === 1 ? 'view 1 result' : `view all ${  num  } results` ;
   }
 });
