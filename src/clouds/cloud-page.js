@@ -287,7 +287,7 @@ Polymer({
             </paper-material>
 
             <paper-material hidden\$="[[!isMissing]]">
-                <div class="missing">Network not found.</div>
+                <div class="missing">Cloud not found.</div>
             </paper-material>
 
             <template is="dom-if" if="[[cloud.id]]" restamp="">

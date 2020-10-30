@@ -794,6 +794,11 @@ Polymer({
                     'remove',
                     'edit_tags',
                     'read_logs',
+                ],
+                'image': [
+                    'read',
+                    'create_resources',
+                    'edit_tags'
                 ]
                 // 'team': [
                 //     'add',
