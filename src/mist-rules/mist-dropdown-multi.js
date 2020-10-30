@@ -103,33 +103,34 @@ Polymer({
 
   init() {
       if (this.value && this.selections) {
-          this.set('_value', this.value.map(function (item) {
-              const selectedItem = this.selections.find(function (s) {
-                  return s.id == item
+          this.set('_value', this.value.map((item) => {
+              const selectedItem = this.selections.find((s) => {
+                  return s.id === item
               });
               return selectedItem ? selectedItem.name : '';
-          }.bind(this)));
+          }));
 
           this.setDisplayValue(this._value);
           this.$.selected.selected = '0';
       }
   },
-
+  /* eslint-disable no-param-reassign */
   clear() {
       console.log('clear');
       this.set('value', [])
       this.set('_value', []);
       this.set('displayValue', '');
-      this.shadowRoot.querySelectorAll('paper-checkbox').forEach(function(item) {
+      this.shadowRoot.querySelectorAll('paper-checkbox').forEach((item) => {
           item.checked = false
       });
       this.$.selected.selected = null;
   },
-
+  /* eslint-enable no-param-reassign */
   setDisplayValue(arr) {
+      let str = "";
       if (arr && arr.length)
-          var str = arr.length <= this.maxDisplay ? arr.join(', ') : `${arr.length  } selected`;
-      this.set('displayValue', str || '');
+          str = arr.length <= this.maxDisplay ? arr.join(', ') : `${arr.length  } selected`;
+      this.set('displayValue', str);
   },
 
   _selectionChanged() {
@@ -147,21 +148,20 @@ Polymer({
       this.dispatchEvent(new CustomEvent('change',  { bubbles: true, composed: true}));
   },
 
-  _updateValue(e) {
-      const that = this;
+  _updateValue(_e) {
       const val = [];
-      this.shadowRoot.querySelectorAll('paper-checkbox').forEach(function(item) {
+      this.shadowRoot.querySelectorAll('paper-checkbox').forEach((item) => {
           if (item.checked) {
               val.push(item.textContent.trim())
           }
       })
       this.set('_value', val);
 
-      this.set('value', this._value.map(function(item) {
-          return this.selections.find(function(s) {
-              return s.name == item
+      this.set('value', this._value.map((item) => {
+          return this.selections.find((s) => {
+              return s.name === item
           }).id;
-      }.bind(this)));
+      }));
   },
 
   computeChecked(id) {

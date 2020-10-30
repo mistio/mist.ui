@@ -8,6 +8,7 @@ import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
 import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
+import { jsPDF } from "jspdf";
 import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -484,9 +485,10 @@ Polymer({
   _computeDashboardUri (resource) {
       if (resource)
           return `/api/v1/machines/${  resource.id  }/dashboard`;
+      return "";
   },
 
-  _computeIsMonitored (resource, id, monitoring) {
+  _computeIsMonitored (_resource, _id, _monitoring) {
       // console.log('compute Is Monitored', resource, id, monitoring);
       if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[this.resource.id]) {
@@ -500,17 +502,17 @@ Polymer({
       return !!(this.resource && this.resource.id);
   },
 
-  _computeIsRunning (resource, resourceChangePath, state) {
-      return !!(this.resource && this.resource.state && (this.resource.state == "running" || this.resource
-          .state == "unknown"));
+  _computeIsRunning (_resource, _resourceChangePath, _state) {
+      return !!(this.resource && this.resource.state && (this.resource.state === "running" || this.resource
+          .state === "unknown"));
   },
 
-  _computeWaitingData (resource, monitoring) {
+  _computeWaitingData (resource, _monitoring) {
       if (!this.resource || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[resource.id] || !this.monitoring.monitored_machines[resource.id].installation_status
       ) {
           return false;
-      } if (this.monitoring.monitored_machines[resource.id].installation_status.state ==
+      } if (this.monitoring.monitored_machines[resource.id].installation_status.state ===
           'succeeded' && (!this.monitoring.monitored_machines[resource.id].installation_status.activated_at >
               0 || !this.monitoring.monitored_machines[resource.id].installation_status.finished_at >
               0)) {
@@ -518,19 +520,19 @@ Polymer({
       } return false;
   },
 
-  monitoringState (resource, monitoring) {
+  monitoringState (resource, _monitoring) {
       if (!this.monitoring || !this.monitoring.monitored_machines || !this.monitoring.monitored_machines[
               resource.id]) {
           return "";
       } 
-          if (this.monitoring.monitored_machines[resource.id].installation_status.state == "failed") {
+          if (this.monitoring.monitored_machines[resource.id].installation_status.state === "failed") {
               this.set("failed", true);
           }
           return this.monitoring.monitored_machines[resource.id].installation_status.state;
       
   },
 
-  toggleMonitoring (e, action) {
+  toggleMonitoring (_e, action) {
       const payload = {};
       console.log('toggleMonitoring', action)
       if (action != 'disable') {
@@ -542,7 +544,7 @@ Polymer({
       payload.public_ips = this.resource.public_ips ? this.resource.public_ips : [];
       payload.name = this.resource.name ? this.resource.name : this.resource.id;
       payload.dns_name = this.resource.extra.dns_name ? this.resource.extra.dns_name : "n/a";
-      payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length == 0 ?
+      payload.no_ssh = !this.resource.key_associations || this.resource.key_associations.length === 0 ?
           "true" : "";
       console.log("toggleMonitoring", payload);
       this.$.monitoringRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -553,12 +555,12 @@ Polymer({
 
   _monitoringDisableConfirmation (e) {
       console.log('mist-monitoring', e)
-      if (e.detail.reason == "monitoring.disable" && e.detail.response == "confirm") {
+      if (e.detail.reason === "monitoring.disable" && e.detail.response === "confirm") {
           this.toggleMonitoring(e, 'disable');
       }
   },
 
-  _monitoringRequest (e) {
+  _monitoringRequest (_e) {
       this.set("failed", false);
   },
 
@@ -587,7 +589,7 @@ Polymer({
       this.set('logItems', e.detail.response.logs)
   },
 
-  handleGetJobLogError (e) {
+  handleGetJobLogError (_e) {
 
   },
 
@@ -599,10 +601,10 @@ Polymer({
       }
   },
 
-  startPolling (jobid) {
-      this.intervalID = setInterval(function() {
+  startPolling (_jobid) {
+      this.intervalID = setInterval(() => {
           this.$.getJobLog.generateRequest();
-      }.bind(this), 1000);
+      }, 1000);
       console.log('startpolling');
   },
 
@@ -615,7 +617,7 @@ Polymer({
       }
   },
 
-  computeShowLogs (jobId, isMonitored, isActivated) {
+  computeShowLogs (_jobId, _isMonitored, _isActivated) {
       // console.log("computeShowLogs", this.resource.id)
       return (this.isMonitored && !this.isActivated) || this.jobId;
   },
@@ -639,13 +641,13 @@ Polymer({
       this.set("monitoringError", true);
   },
 
-  _reset (resource) {
+  _reset (_resource) {
       this.set("monitoringError", false);
       this.set("showScript", false);
       this.set("failed", false);
   },
 
-  _computeScript (resource, monitoring) {
+  _computeScript (resource, _monitoring) {
       if (!this.monitoring || !this.monitoring.monitored_machines || !resource || !this.monitoring.monitored_machines[
               resource.id]) {
           return "";
@@ -660,7 +662,7 @@ Polymer({
   _computeIncidentCondition (item) {
       let condition = item.logs.length && item.logs[0].condition || '';
       // transform log condition
-      if (condition.length && item.logs[0].rule_data_type == 'logs') {
+      if (condition.length && item.logs[0].rule_data_type === 'logs') {
           condition = condition.replace('COUNT(','Log ')
                               .replace('){}',' appeared ')
                               .replace('within','times within');
@@ -668,7 +670,7 @@ Polymer({
       return condition;
   },
 
-  _computeIsActivated (resource, monitoring, hidden) {
+  _computeIsActivated (resource, _monitoring, _hidden) {
       // console.log('_computeIsActivated', resource, monitoring, hidden)
       this.set("failed", false);
       if (this.hidden || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines ||
@@ -681,7 +683,7 @@ Polymer({
 
   },
 
-  _computeResourceMonitoringInfo (resource, monitoring) {
+  _computeResourceMonitoringInfo (resource, _monitoring) {
       if (!resource || !this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || !this.monitoring
           .monitored_machines[resource.id]) {
           return false;
@@ -690,7 +692,7 @@ Polymer({
       
   },
 
-  _computeHasKeys (keys) {
+  _computeHasKeys (_keys) {
       if (this.resource && this.resource.keys) {
           return this.resource.keys.length > 0;
       } 
@@ -698,7 +700,7 @@ Polymer({
       
   },
 
-  _computeIsManual (isMonitored, resource, monitoring) {
+  _computeIsManual (_isMonitored, _resource, _monitoring) {
       if (!this.isMonitored || !this.monitoring || !this.monitoring.monitored_machines || (
               this.resource && (
                   !this.monitoring.monitored_machines[this.resource.id] ||
@@ -726,18 +728,16 @@ Polymer({
 
   _showDialog (info) {
       const dialog = this.$.monitorindialog;
-      if (info) {
-          for (const i in info) {
-              dialog[i] = info[i];
-          }
-      }
+      Object.keys(info || {}).forEach((i) => {
+        dialog[i] = info[i];
+        });
       dialog._openDialog();
   },
 
   _disassociateMetric (e) {
       const {targets} = e.detail.panel.panel;
 
-      targets.forEach(function (target) {
+      targets.forEach((target) => {
           if (target.target.startsWith("mist.python")) {
               this.$.disassociateMetric.url = `/api/v1/machines/${  this.resource.id 
                   }/plugins/${  target.target}`;
@@ -758,17 +758,17 @@ Polymer({
       }, this);
   },
 
-  _handleAssociateResponse (target) {
+  _handleAssociateResponse (_target) {
       this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard();
   },
 
-  clearJobID (resource) {
+  clearJobID (_resource) {
       // clear job when navigating away
       this.set('jobId', false);
   },
 
-  getStats (isMonitored, isManual, waitingData, isActivated) {
-      if (this.isMonitored && !this.isActivated && this.monitoring.monitored_machines[this.resource.id].installation_status != "succeeded") {
+  getStats (_isMonitored, _isManual, _waitingData, _isActivated) {
+      if (this.isMonitored && !this.isActivated && this.monitoring.monitored_machines[this.resource.id].installation_status !== "succeeded") {
           if (!this.intervalMonitoringID)
               this.monitoringPolling();
       } else {
@@ -779,17 +779,17 @@ Polymer({
   monitoringPolling () {
       const that = this;
       console.log('_getStats', that.shadowRoot.querySelector('#getStats'), window);
-      this.intervalMonitoringID = window.setInterval(function() {
+      this.intervalMonitoringID = window.setInterval(() => {
           that.shadowRoot.querySelector('#getStats').generateRequest();
           console.log('monitoringPolling');
       }, 5000);
   },
 
-  _handleStatsResponse (e) {
+  _handleStatsResponse (_e) {
       this.stopGetStats();
   },
 
-  _handleStatsError (e) {
+  _handleStatsError (_e) {
       this.stopGetStats();
   },
 
@@ -804,12 +804,12 @@ Polymer({
       return true;
   },
 
-  _isIncidentFinished (finished_at) {
-      return finished_at > 0;
+  _isIncidentFinished (finishedAt) {
+      return finishedAt > 0;
   },
 
   _computeOpenIncidents () {
-      return this.incidents.filter(function(item) { return item.finished_at == 0; });
+      return this.incidents.filter((item) => { return item.finished_at === 0; });
   },
 
   _computeToggleButtonStyle (expanded) {
@@ -817,23 +817,23 @@ Polymer({
   },
 
   _exportPdf () {
-      const generatePdf = function (pdf) {
-          var pdf = new jsPDF(); let offset = 10;
-              const timerange_button = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton');
-              const timerange_html = timerange_button.outerHTML;
+      const generatePdf = () => {
+          const pdf = new jsPDF(); let offset = 10;
+          const timerangeButton = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelector('timerange-picker').shadowRoot.querySelector('#currentTimeRangeButton');
+          const timerangeHtml = timerangeButton.outerHTML;
           const resource = this.resource ? `<strong>${  this.resource.name  }</strong> &nbsp;&nbsp;` : '';
-          pdf.fromHTML(resource + timerange_html, 10, offset);
+          pdf.fromHTML(resource + timerangeHtml, 10, offset);
           offset += 10;
 
           const incidents = this.shadowRoot.querySelectorAll('.incident');
-          for (var i=0; i < incidents.length; i++) {
+          for (let i=0; i < incidents.length; i++) {
               pdf.fromHTML(incidents[i].outerHTML, 10, offset);
               offset += 10;
           }
           offset += 10;
           const panels = this.shadowRoot.querySelector('polyana-dashboard').shadowRoot.querySelectorAll('dashboard-panel');
-          for (var i=0; i<panels.length; i++) {
-              if (i && i%2 == 0) {
+          for (let i=0; i<panels.length; i++) {
+              if (i && i%2 === 0) {
                   pdf.addPage();
                   offset = 10
               }
@@ -841,19 +841,8 @@ Polymer({
               pdf.fromHTML(panels[i].shadowRoot.querySelector('div.title').outerHTML, 10, offset+(i%2)*120);
               pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, offset + 10 + (i%2)*120);
           }
-          pdf.save(`${this.resource.name  }-${  timerange_button.textContent.replace(' ', '')  }.pdf`);
-      }.bind(this);
-      try {
-          new jsPDF();
-          generatePdf();
-      } catch (e) { // import jspdf if not loaded
-          return this.dispatchEvent(
-              new CustomEvent('import-script', {
-                  bubbles: true, composed: true, detail: {
-                      url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.5.3/jspdf.debug.js',
-                      cb: generatePdf
-                  }
-              }));
+          pdf.save(`${this.resource.name  }-${  timerangeButton.textContent.replace(' ', '')  }.pdf`);
       }
-  }
+      generatePdf();
+    }
 });

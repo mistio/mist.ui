@@ -333,7 +333,7 @@ Polymer({
               <span class="keyword on">check every</span>
               <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
               <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                  <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+                  <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
                       <paper-item value="minutes">minutes</paper-item>
                       <paper-item value="hours">hours</paper-item>
                   </paper-listbox>
@@ -344,7 +344,7 @@ Polymer({
           <span class="keyword on">check every</span>
           <paper-input id$="offset-[[index]]" class="offset" value="{{rule.frequency.every}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
           <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-              <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
+              <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.frequency.period}}" class="dropdown-content">
                   <paper-item value="minutes">minutes</paper-item>
                   <paper-item value="hours">hours</paper-item>
               </paper-listbox>
@@ -377,7 +377,7 @@ Polymer({
                   <!--  metric option -->
                   <span hidden$=[[isDataTypeLogs(rule.data_type)]]>
                       <paper-dropdown-menu id$="target-metrics-[[index]]" class="dropdown-block target" auto-focus value="[[query.target]]" on-value-changed="_focusOnOperator" on-selected-item-changed="_validateRule">
-                          <paper-listbox id$="metricsListbox-[[index]]" slot="dropdown-content" attr-for-selected="value" selected="[[query.target]]" slot="dropdown-content" class="dropdown-content">
+                          <paper-listbox id$="metricsListbox-[[index]]" slot="dropdown-content" attr-for-selected="value" selected="[[query.target]]" class="dropdown-content">
                               <template is="dom-if" if="[[availableMetrics.length]]" restamp>
                                   <template is="dom-repeat" items="[[availableMetrics]]" initial-count="1">
                                       <rule-metrics metric=[[item]] query-index="[[_getQueryIndex(query)]]"></rule-metrics>
@@ -436,7 +436,7 @@ Polymer({
                       <span class="keyword">within</span>
                       <paper-input id$="offset-[[index]]" class="offset" value="{{rule.window.start}}" type="number" min="1" auto-validate on-value-changed="_validateRule"></paper-input>
                       <paper-dropdown-menu class="dropdown-block windowPeriod" on-value-changed="_validateRule">
-                          <paper-listbox slot="dropdown-content" id="" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
+                          <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{rule.window.period}}" class="dropdown-content">
                               <paper-item value="minutes">minutes</paper-item>
                               <paper-item value="hours">hours</paper-item>
                           </paper-listbox>
@@ -459,7 +459,7 @@ Polymer({
                       </paper-listbox>
                   </paper-dropdown-menu>
                   <template is="dom-if" if="[[_isWebhookSelected(ruleAction.type)]]">
-                      <paper-input id ="webhook-url" class="inline webhook-url" placeholder="URL to be invoked" value="{{ruleAction.url}}" on-value-changed="_validateRule" value="{{ruleAction.params}}" on-value-changed="_validateRule" pattern="^https://*"></paper-input>
+                  <paper-input id="webhook-url" class="inline webhook-url" placeholder="URL to be invoked" on-value-changed="_validateRule" value="{{ruleAction.params}}" pattern="^https://*"></paper-input>
                       <paper-dropdown-menu label="method" class="inline">
                           <paper-listbox slot="dropdown-content" attr-for-selected="value" selected="{{ruleAction.method}}" class="dropdown-content">
                               <paper-item value="post">POST</paper-item>
@@ -505,8 +505,8 @@ Polymer({
       <paper-button on-tap="saveRule" class="blue" disabled$="[[!isValidRule]]">save rule</paper-button>
   </div>
 </div>
-<iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
-<iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="xml"></iron-ajax>
+<iron-ajax id="updateRuleRequest" url="/api/v1/rules/[[rule.id]]" contentType="application/json" method="POST" on-request="_handleUpdateRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="json"></iron-ajax>
+<iron-ajax id="addRuleRequest" url="/api/v1/rules" contentType="application/json" method="POST" on-request="_handleAddRequest" on-response="_close" on-error="_handleFormError" loading="{{sendingData}}" handle-as="json"></iron-ajax>
 <iron-ajax id="metrics" url="[[metricsUri]]" handle-as="json" method="GET" contentType="application/json" loading="{{loadingMetrics}}" on-response="_handleMetricResponse" on-error="_handleMetricError">
 </iron-ajax>
 `,
@@ -687,55 +687,57 @@ Polymer({
   },
   _metricsUriChanged(_metricsUri){
       // Get metrics unless we're not editing, or the rule is on tags (if on tags, get metrics will be triggered on-blur)
-      if (!this.hidden && this.rule && this.rule.data_type == "metrics" && !this._isTagged(this.ruleType))
+      if (!this.hidden && this.rule && this.rule.data_type === "metrics" && !this._isTagged(this.ruleType))
           this._getMetrics();
   },
-  _computeMetricsUri(_resource_id, resourceId, _resource_type, _tags, _ruleType) {
+  _computeMetricsUri(_resourceID, resourceId, _resourceType, _tags, _ruleType) {
       // Update uri, unless we are in a single page where we are provided with a resource and resourceType.
       if (this.resource) {
-          return "/api/v1/metrics?resource_type="+ this.resourceType +"&resource_id=" + this.resource.id;
-      } else if (this.rule && !this.isNoData){
-          var typeString = "",
-              idString = "",
-              tagsString = "";
+          return `/api/v1/metrics?resource_type=${this.resourceType}&resource_id=${this.resource.id}`;
+      }
+      if (this.rule && !this.isNoData){
+          let typeString = "";
+          let idString = "";
+          let tagsString = "";
           if (this.rule.resource_type && !this._isOrg(this.resourceType)) {
-              typeString = "resource_type="+ this.rule.resource_type;
+              typeString = `resource_type=${this.rule.resource_type}`;
           }
           if (this.resourceId && this._isSpecific(this.ruleType)) {
-              idString = (typeString ? "&" : "") + "resource_id="+ this.resourceId;
+              idString = `${(typeString ? "&" : "")}resource_id=${this.resourceId}`;
           }
           if (this.tags && this._isTagged(this.ruleType)) {
-              tagsString = (typeString || resourceId ? "&" : "") + "tags=" + this._computeTagsString(this._computeTagsFromString(this.tags))
+              tagsString = `${(typeString || resourceId ? "&" : "")}tags=${this._computeTagsString(this._computeTagsFromString(this.tags))}`;
           }
-          console.log('_computeMetricsUri =====', "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString);
+          console.log('_computeMetricsUri =====', `/api/v1/metrics?${typeString}${idString}${tagsString}`);
 
-          return "/api/v1/metrics?"+ typeString + "" + idString + "" + tagsString;
+          return `/api/v1/metrics?${typeString}${idString}${tagsString}`;
       }
+      return "";
   },
   _computeTagsString(tags) {
       // Compute tags string in the form "tagkey1:tagvalue1,tagkey2,..""
-      var tagsString = "";
-      for (var p in tags) {
+      let tagsString = "";
+      Object.keys(tags || {}).forEach((p) => {
           tagsString += p;
           if (tags[p])
-              tagsString += ":" + tags[p];
+              tagsString += `: + ${tags[p]}`;
           tagsString += ","
-      }
+      });
       console.log(tagsString);
       return tagsString.length ? tagsString.substring(0, tagsString.length-1) : "";
   },
   _handleMetricResponse(data) {
-      var output = {};
+      const output = {};
       if (data.detail.response) {
           // console.log('_handleMetricResponse response data', data.detail.response);
-          Object.keys(data.detail.response).forEach(function(metric) {
-              var res = output;
-              var chunks = metric.split(".")
-              for (var i = 0; i < chunks.length; i++) {
+          Object.keys(data.detail.response).forEach((metric) => {
+              let res = output;
+              const chunks = metric.split(".")
+              for (let i = 0; i < chunks.length; i++) {
                   if (!res[chunks[i]]) {
                       res[chunks[i]] = {};
                   }
-                  if (i == chunks.length - 1) {
+                  if (i === chunks.length - 1) {
                       res[chunks[i]] = data.detail.response[metric].id;
                   }
                   res = res[chunks[i]];
@@ -754,18 +756,18 @@ Polymer({
       }
   },
   _makeArray(output) {
-      var arr = [];
+      const arr = [];
       if (output) {
-          if (output && typeof(output) == 'object') {
-              var obj = {};
-              for (var p in output) {
-                  if (typeof(output[p]) == 'object') {
+          if (output && typeof(output) === 'object') {
+              let obj = {};
+              Object.keys(output || {}).forEach((p) => {
+                  if (typeof(output[p]) === 'object') {
                       obj = { name: p, options: this._makeArray(output[p]) };
                   } else {
                       obj = { name: output[p], options: [] };
                   }
                   arr.push(obj);
-              }
+              });
           }
       }
       return arr;
@@ -776,7 +778,7 @@ Polymer({
   },
   _ruleDataTypeChanged(dataType){
       console.log('get metrics', dataType)
-      if (this.rule && this.rule.data_type == "metrics")
+      if (this.rule && this.rule.data_type === "metrics")
           this._getMetrics();
   },
   _getMetrics() {
@@ -784,7 +786,7 @@ Polymer({
       if (this.model && this.model.metrics && this.model.metrics[this.metricsUri]) {
           this._clearAvailableMetrics();
           this.set('availableMetrics', this.model.metrics[this.metricsUri]);
-      } else if (this.rule.data_type == "metrics"){
+      } else if (this.rule.data_type === "metrics"){
           this._clearAvailableMetrics();
           this.debounce('debounceGetMetrics',() => {
               this.$.metrics.generateRequest();
@@ -793,15 +795,15 @@ Polymer({
   },
   _clearAvailableMetrics() {
       this.set('availableMetrics', []);
-      for (var i = 0; i<this.rule.queries.length; i++) {
+      for (let i = 0; i<this.rule.queries.length; i++) {
           if (!this.editingExistingRule)
-              if (this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)) {
-                  this.set('rule.queries.'+ i +'.target', "");
-                  this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i)
+              if (this.shadowRoot.querySelector(`paper-dropdown-menu#target-metrics-${i}`)) {
+                  this.set(`rule.queries.${i}.target`, "");
+                  this.shadowRoot.querySelector(`paper-dropdown-menu#target-metrics-${i}`)
                       .shadowRoot.querySelector("paper-input")
                       .shadowRoot.querySelector("paper-input-container")
                       .querySelector("iron-input").querySelector("input").value = "";
-                  this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ i).selected = -1;
+                  this.shadowRoot.querySelector(`paper-dropdown-menu#target-metrics-${i}`).selected = -1;
               }
       }
   },
@@ -809,20 +811,20 @@ Polymer({
       // Choose metric, need to implement selection for paper-dropdown-menu with custom-components nested in listbox
       console.log('_selectMetric', e);
       if (e.detail && e.detail.metric) {
-          var selectedMetric = e.detail.metric,
-              queryIndex = e.detail.queryIndex;
-          this.set('rule.queries.'+ queryIndex +'.target', selectedMetric);
-          this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex)
+          const selectedMetric = e.detail.metric;
+          const {queryIndex} = e.detail;
+          this.set(`rule.queries.${queryIndex}.target`, selectedMetric);
+          this.shadowRoot.querySelector(`paper-dropdown-menu#target-metrics-+ ${queryIndex}`)
               .shadowRoot.querySelector("paper-input")
               .shadowRoot.querySelector("paper-input-container")
               .querySelector("iron-input").querySelector("input").value = selectedMetric;
-          this.shadowRoot.querySelector("paper-dropdown-menu#target-metrics-"+ queryIndex).selected = selectedMetric;
+          this.shadowRoot.querySelector(`paper-dropdown-menu#target-metrics-+ ${queryIndex}`).selected = selectedMetric;
 
           this._focusOnOperator(e, queryIndex);
       }
   },
 
-  _configUpdates(features) {
+  _configUpdates(_features) {
       if (this.features.orchestration) {
           this.splice("resourceTypes", 9, 0, 'template');
           this.splice("resourceTypes", 10, 0, 'stack');
@@ -837,70 +839,69 @@ Polymer({
   },
 
   _displayItemNameByType(item, type) {
-      if (type == 'zone') {
-          return `${item.zone_id}.` == item.domain ? item.zone_id : `${item.domain } ${ item.zone_id}`;
-      } if (type == 'record') {
+      if (type === 'zone') {
+          return `${item.zone_id}.` === item.domain ? item.zone_id : `${item.domain } ${ item.zone_id}`;
+      } if (type === 'record') {
           // TODO find a comprehensive way to display records across providers
           console.log('_displayItemNameByType', type, item);
-      } else if (type == 'subnet') {
+      } else if (type === 'subnet') {
           // TODO find a comprehensive way to display subnets across providers
           console.log('_displayItemNameByType', type, item);
-      } else {
-          return false;
-      }
+      } 
+      return false;      
   },
 
-  _computeShowCheckEvery(ruleType,resourceType,resourceId,tags,resource) {
+  _computeShowCheckEvery(ruleType, resourceType, resourceId, tags, _resource) {
       return this.showCheckEvery || this.resource || (!this.isNoData && this._targetIsValid(ruleType,resourceType,resourceId,tags));
   },
 
-  _targetIsValid(ruleType,resourceType,resourceId,tags){
+  _targetIsValid(_ruleType, _resourceType, _resourceId, _tags){
       return (this.ruleType || this.resourceType) &&
           // is Arbitrary 
           (this._isArbitrary(this.ruleType) || this._isOrg(this.resourceType) ||
           // is every 
-          (this.ruleType == "every" && this.resourceType) ||
+          (this.ruleType === "every" && this.resourceType) ||
           // is tagged
-          (this.ruleType == "tagged" && this.tags) ||
+          (this.ruleType === "tagged" && this.tags) ||
           // is specific
-          (this.ruleType == "specific" && this.resourceId));
+          (this.ruleType === "specific" && this.resourceId));
   },
 
-  _computeShowDropDownResources(ruleType,resourceType) {
+  _computeShowDropDownResources(ruleType, _resourceType) {
       return this._isSpecific(ruleType) && this.resourceType && !this._isOrg(this.resourceType);
   },
 
-  _showTags(ruleType,resourceType) {
+  _showTags(ruleType, _resourceType) {
       return this._isTagged(ruleType) && this.resourceType;
   },
 
-  _computeEditingExistingRule(rule) {
+  _computeEditingExistingRule(_rule) {
       return this.rule && this.rule.id;
   },
 
   _computeIsNoData(rule) {
-      return rule.title == 'NoData';
+      return rule.title === 'NoData';
   },
 
   _computeHideApplyOn(resource, isNoData) {
       return !!(resource || isNoData);
   },
 
-  _resourceTypeChanged(resourceType) {
+  _resourceTypeChanged(_resourceType) {
       // only machines provide metrics for the time being.
       // TODO: update when other resource metrics are available
-      if (this.resourceType && this.resourceType != "machine"){
+      if (this.resourceType && this.resourceType !== "machine"){
           this.set('rule.data_type','logs');
       }
   },
 
-  _canUseMetrics(resourceType, ruleType, resourceId, resource, modelMonitoring) {
+  _canUseMetrics(_resourceType, _ruleType, _resourceId, _resource, _modelMonitoring) {
       // Must be a machine
-      if (this.resourceType != "machine") {
+      if (this.resourceType !== "machine") {
           return false;
       }
       // Must either be a machine group, or a single monitored machine
-      if (this.ruleType != "specific") {
+      if (this.ruleType !== "specific") {
           return true;
       } 
           return (this.resourceId && this._resourceIsMonitored(this.resourceId, this.model.monitoring))
@@ -908,7 +909,7 @@ Polymer({
       
   },
 
-  _resourceIsMonitored(resourceId, modelMonitoring) {
+  _resourceIsMonitored(resourceId, _modelMonitoring) {
       // Compute based on model.monitoring.monitored_machines
       return this.model && this.model.monitoring && 
           this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[resourceId];
@@ -919,30 +920,30 @@ Polymer({
       return this._isOrg(resourceType);
   },
 
-  _disableOrg(type) {
+  _disableOrg(_type) {
       if (!this.editingExistingRule) return false;
       return !this._isOrg(this.resourceType);
   },
 
-  _disableResource(type) {
+  _disableResource(_type) {
       if (!this.editingExistingRule) return false;
       return this._isOrg(this.resourceType);
   },
 
   _isOrg(resourceType) {
-      return resourceType == 'organization';
+      return resourceType === 'organization';
   },
 
   _isArbitrary(type) {
-      return type == 'arbitrary';
+      return type === 'arbitrary';
   },
 
   _isSpecific(type) {
-      return type == 'specific';
+      return type === 'specific';
   },
 
   _isTagged(type) {
-      return type == 'tagged';
+      return type === 'tagged';
   },
 
   _initialiseEdit(rule, resource) {
@@ -958,10 +959,10 @@ Polymer({
                   this.set('ruleType', "every");
               } else if (rule.selectors.length) {
                   const selector = rule.selectors[0];
-                  if (selector.type == "tags") {
+                  if (selector.type === "tags") {
                       this.set('ruleType', "tagged");
                       this.set('tags', this._removeBrackets(JSON.stringify(selector.include)))
-                  } else if (selector.ids && selector.ids.length == 1) {
+                  } else if (selector.ids && selector.ids.length === 1) {
                       this.set('ruleType', "specific");
                       this.set('resourceId', selector.ids[0]);
                   }
@@ -971,9 +972,9 @@ Polymer({
       }
   },
 
-  _computeResourcesAndActions(model,resourceType) {
-      var resources = []; 
-          const key = `${resourceType}s`;
+  _computeResourcesAndActions(_model, resourceType) {
+      let resources = []; 
+      const key = `${resourceType}s`;
       if (resourceType){
           this.set('rule.resource_type',resourceType);
           if (!this.ruleType) {
@@ -986,8 +987,8 @@ Polymer({
           if (this.model[key]) {
               resources = Object.values(this.model[key]);
               // order machines, show monitored first
-              if (this.resourceType == "machine")
-                  resources.sort(function(a,b){
+              if (this.resourceType === "machine")
+                  resources.sort((a,b) => {
                       if ((a.monitoring && !b.monitoring) || (a.monitoring.hasmonitoring && !b.monitoring.hasmonitoring))
                           return -1;
                       if ((!a.monitoring && b.monitoring) || (!a.monitoring.hasmonitoring && b.monitoring.hasmonitoring))
@@ -998,8 +999,8 @@ Polymer({
           } else {
               // Subnets and records can NOT be found under model.subnets model.records
               // We must track them in each model.network and model.zone and join
-              const parentKey = (key == 'subnets' ? 'networks' : 'zones');
-                  let parentResources = []; var resources = [];
+              const parentKey = (key === 'subnets' ? 'networks' : 'zones');
+              let parentResources = [];
               if (this.model[parentKey]) {
                   parentResources = Object.values(this.model[parentKey]);
                   for (let i = 0; i < parentResources.length; i++) {
@@ -1023,7 +1024,7 @@ Polymer({
       return string && string.replace(/{/g, "").replace(/}/g, "").replace(/"/g, "").replace(/:/g, "=").replace(/=null/g, "");
   },
 
-  _currentRuleUpdated(event) {
+  _currentRuleUpdated(_event) {
       this.set('rule', {
           id: this.currentRule.id,
           title: this.currentRule.title,
@@ -1032,7 +1033,7 @@ Polymer({
           selectors: this.currentRule.selectors || null,
           actions: this._transformActions(this.currentRule.actions),
           queries: this.currentRule.queries.slice(),
-          aggregation: this.currentRule.queries[0].aggregation == 'any' ? '' : this.currentRule
+          aggregation: this.currentRule.queries[0].aggregation === 'any' ? '' : this.currentRule
               .queries[0].aggregation,
           window: {
               period: this.currentRule.window.period || 'minutes',
@@ -1053,7 +1054,7 @@ Polymer({
   _transformActions(actions) {
       const result = [];
       for (let i = 0; i < actions.length; i++) {
-          if (actions[i].type == 'notification') {
+          if (actions[i].type === 'notification') {
               result.push({
                   type: 'alert',
                   level: actions[i].level,
@@ -1062,23 +1063,23 @@ Polymer({
                   emails: actions[i].emails.slice(),
                   description: actions[i].description
               });
-          } else if (actions[i].type == 'machine_action') {
+          } else if (actions[i].type === 'machine_action') {
               result.push({
                   type: actions[i].action
               });
-          } else if (actions[i].type == 'command') {
+          } else if (actions[i].type === 'command') {
               result.push({
                   type: 'run',
                   command: actions[i].command
               });
-          } else if (actions[i].type == 'no_data') {
+          } else if (actions[i].type === 'no_data') {
               result.push({
                   type: 'no_data',
                   users: actions[i].users.slice(),
                   teams: actions[i].teams.slice(),
                   emails: actions[i].emails.slice()
               });
-          } else if (actions[i].type == 'webhook') {
+          } else if (actions[i].type === 'webhook') {
               result.push({
                   type: 'webhook',
                   method: actions[i].method,
@@ -1097,14 +1098,14 @@ Polymer({
       return title ? `edit ${  title}` : 'new rule';
   },
 
-  _computeUnits(metric, metrics) {
+  _computeUnits(metric, _metrics) {
       let ref;
       if (this.availableMetrics && this.availableMetrics[metric])
           ref = this.availableMetrics[metric].unit;
       return ref || '';
   },
 
-  _resetRule(event) {
+  _resetRule(_event) {
       this.set('rule', {});
       this.set('rule', {
           actions: [{
@@ -1130,7 +1131,7 @@ Polymer({
       // console.log('close length', this.rule.queries.length);
       // if (this.rule.queries.length) {
       //     var queriesLength = this.rule.queries.length;
-      //     for (var i = 0; i < queriesLength; i++) {
+      //     for (let i = 0; i < queriesLength; i++) {
       //         console.log('close i', this.querySelector('paper-input#threshold-'+i));
       //         this.querySelector('paper-input#threshold-'+i).value = ""; 
       //     }
@@ -1140,19 +1141,19 @@ Polymer({
   },
 
   _isCommandSelected(selectedAction) {
-      return selectedAction == 'run';
+      return selectedAction === 'run';
   },
 
   _isAlertSelected(selectedAction) {
-      return selectedAction == 'alert';
+      return selectedAction === 'alert';
   },
 
   _isWebhookSelected(selectedAction) {
-      return selectedAction == 'webhook';
+      return selectedAction === 'webhook';
   },
 
   _validateConditionDebounce() {
-      this.debounce('_validateCondition', function () {
+      this.debounce('_validateCondition', () => {
           this._validateCondition();
       }, 200);
   },
@@ -1163,7 +1164,7 @@ Polymer({
       if (this.rule.queries) {
           for (let i = 0; i < this.rule.queries.length; i++) {
               const {target} = this.rule.queries[i];
-              if (target == undefined) {
+              if (target === undefined) {
                   allTargetsDefined = false;
                   break;
               }
@@ -1171,17 +1172,17 @@ Polymer({
           this.set('targetValid', this.rule.queries.length && allTargetsDefined);
       }
       // Currently only count is supported for logs
-      if (e.model.index != undefined) {
+      if (e.model.index !== undefined) {
           this.set('rule.aggregation','count');
       }
   },
 
-  _validateCondition (e) {
+  _validateCondition(_e) {
       // console.log('validateCondition', this.rule.queries && this.rule.queries[0].threshold, this.rule.queries);
       let allThresholdsDefined = true;
       if (this.rule.queries) {
           for (let i = 0; i < this.rule.queries.length; i++) {
-              if (this.rule.queries[i].threshold == undefined) {
+              if (this.rule.queries[i].threshold === undefined) {
                   allThresholdsDefined = false;
                   break;
               }
@@ -1192,7 +1193,7 @@ Polymer({
       this._validateRule();
   },
 
-  _focusOnType(e) {
+  _focusOnType(_e) {
       if (this.rule && this.resourceType)
           if (this.active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.type')) {
               this.shadowRoot.querySelector('paper-dropdown-menu.type').open();
@@ -1202,7 +1203,7 @@ Polymer({
   },
 
   _focusOnMetricName(active) {
-      if (this.rule && this.resource && this.rule.data_type != 'logs')
+      if (this.rule && this.resource && this.rule.data_type !== 'logs')
           if (active && !this.rule.id && this.shadowRoot.querySelector('paper-dropdown-menu.target')) {
               this.shadowRoot.querySelector('paper-dropdown-menu.target').open();
               if (this.shadowRoot.querySelector('paper-dropdown-menu.target').$.menuButton)
@@ -1213,10 +1214,10 @@ Polymer({
   _focusOnIdOrTags(ruleType) {
       if (!this.hidden) {
           let selector;
-          if (ruleType == 'specific') {
+          if (ruleType === 'specific') {
               selector = '#resources-rule-type-id';
           }
-          if (ruleType == 'tagged') {
+          if (ruleType === 'tagged') {
               selector = '#resources-rule-type-tags';
           }
           if (this.shadowRoot.querySelector(selector)) {
@@ -1279,8 +1280,8 @@ Polymer({
 
   _focusOnThreshold(e) {
       if (!this.hidden && e.detail.value) {
+          const selector = `#${  e.currentTarget.id.replace("operator-", "threshold-")}`;
           console.log('_focusOnOperator', selector, this.shadowRoot.querySelector(selector));
-          var selector = `#${  e.currentTarget.id.replace("operator-", "threshold-")}`;
           if (selector && this.shadowRoot.querySelector(selector)) {
               this.shadowRoot.querySelector(selector).focus();
           }
@@ -1300,7 +1301,7 @@ Polymer({
               const resources = ['clouds','machines','volumes','networks',
                   'zones','keys','images','scripts','templates',
                   'schedules','teams','members'];
-              type = resources.find(function(res){
+              type = resources.find((res) => {
                   return that.model && that.model[res] && Object.values(that.model[res]).map(x=>x.id).indexOf(that.resource.id) > -1;
               });
           }
@@ -1308,42 +1309,42 @@ Polymer({
               type: 'resources',
               ids: [this.resource.id]
           }];
-      } else if (this.ruleType == 'specific') {
+      } else if (this.ruleType === 'specific') {
               payload.selectors = [{
                   type:'resources',
                   ids: [this.resourceId]
               }];
-          } else if (this.ruleType == 'tagged') {
+          } else if (this.ruleType === 'tagged') {
               payload.selectors = [{
                   type: 'tags',
                   include: this._computeTagsFromString(this.tags)
-              }];
-          } else if (this.ruleType == 'every') {
+              }]; 
+          } else if (this.ruleType === 'every') {
               payload.selectors = [];
           }
-      if (this.resourceType != "organization" && !this.rule.id){
+      if (this.resourceType !== "organization" && !this.rule.id){
           payload.resource_type = this.resourceType;
       }
       payload.data_type = this.rule.data_type;
       payload.window = {
           period: this.rule.window.period || 'minutes',
-          start: parseInt(this.rule.window.start) || 1
+          start: parseInt(this.rule.window.start, 10) || 1
       };
       payload.frequency = {
           period: this.rule.frequency.period || 'minutes',
-          every: parseInt(this.rule.frequency.every) || 1
+          every: parseInt(this.rule.frequency.every, 10) || 1
       };
-      for (var i = 0; i < this.rule.queries.length; i++) {
+      for (let i = 0; i < this.rule.queries.length; i++) {
           payload.queries[i] = {
               target: this.rule.queries[i].target,
               operator: this.rule.queries[i].operator,
-              threshold: parseInt(this.rule.queries[i].threshold),
+              threshold: parseInt(this.rule.queries[i].threshold, 10),
               aggregation: this.rule.aggregation ? this.rule.aggregation : 'any'
           };
       }
-      for (var i = 0; i < this.rule.actions.length; i++) {
-          if (this.rule.actions[i].type == 'alert') {
-              var emails;
+      for (let i = 0; i < this.rule.actions.length; i++) {
+          if (this.rule.actions[i].type === 'alert') {
+              let emails;
               if (this.rule.actions[i].emails && this.rule.actions[i].emails.length && !this.rule.actions[i].emailsInvalid) {
                   if (this.rule.actions[i].emails instanceof Array) {
                       emails = this.rule.actions[i].emails;
@@ -1366,21 +1367,21 @@ Polymer({
               if (emails && emails.length) {
                   payload.actions[i].emails = emails;
               }
-          } else if (this.rule.actions[i].type == 'run') {
+          } else if (this.rule.actions[i].type === 'run') {
               payload.actions[i] = {
                   type: 'command',
                   command: this.rule.actions[i].command
               };
-          } else if (this.rule.actions[i].type == 'reboot' || this.rule.actions[i].type ==
+          } else if (this.rule.actions[i].type === 'reboot' || this.rule.actions[i].type ===
               'destroy') {
               payload.actions[i] = {
                   type: 'machine_action',
                   action: this.rule.actions[i].type
               };
-          } else if (this.rule.actions[i].type == 'no_data') {
+          } else if (this.rule.actions[i].type === 'no_data') {
               delete payload.actions;
               delete payload.queries;
-          } else if (this.rule.actions[i].type == 'webhook') {
+          } else if (this.rule.actions[i].type === 'webhook') {
               payload.actions[i] = {
                   type: 'webhook',
                   method: this.rule.actions[i].method,
@@ -1429,30 +1430,30 @@ Polymer({
       this.set('formError', true);
   },
 
-  _hideAction(action, isNoData) {
-      return action == "no_data" && !this.isNoData;
+  _hideAction(action, _isNoData) {
+      return action === "no_data" && !this.isNoData;
   },
 
   _actionName(action) {
-      return action == "no_data" ? 'no data alert' : action;
+      return action === "no_data" ? 'no data alert' : action;
   },
 
   isDataTypeLogs(dt) {
       if (!dt)
           return false;
-      return dt == 'logs';
+      return dt === 'logs';
   },
 
   isCountAggregation(t) {
       if (!t)
           return false;
-      return t == 'count';
+      return t === 'count';
   },
 
   _setActionDefaults(e) {
-      if (e.detail.value == 'alert') {
+      if (e.detail.value === 'alert') {
           e.model.__data.ruleAction.level = 'warning';
-      } else if (e.detail.value == 'webhook'){
+      } else if (e.detail.value === 'webhook'){
           e.model.__data.ruleAction.method = 'post';
       }
   }

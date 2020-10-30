@@ -285,15 +285,15 @@ Polymer({
 
   arrayTags(tag) {
       const arr = [];
-          var str;
+      let str;
       if (tag) {
-          for (const p in tag) {
-              var str = p;
+          Object.keys(tag).forEach((p) => {
+              str = p;
               if (tag[p]) {
                   str = `${p  }=${  tag[p]}`;
               }
               arr.push(str)
-          }
+          });
       }
       return arr;
   },
@@ -302,38 +302,38 @@ Polymer({
       return type.replace('specific_','');
   },
 
-  printResource(id, model, type) {
+  printResource(id, _model, type) {
       const resourceType = type.replace('specific_','');
       return this.model && this.model[resourceType] && this.model[resourceType][id] ?
               this.model[resourceType][id].title || this.model[resourceType][id].name ||
               this.model[resourceType][id].domain || this.model[resourceType][id].id : '';
   },
 
-  _computeResourceRulesArray(rules, resource, category) {
+  _computeResourceRulesArray(_rules, _resource, _category) {
       const rulesArray = [];
       if (this.rules) {
-          for (const p in this.rules) {
+          Object.keys(this.rules || {}).forEach((p) => {
               // this.rules[rule].edit = false;
               rulesArray.push(this.rules[p]);
-          }
+          });
       }
       return rulesArray;
   },
 
   _ruleInCategory(r, category) {
-      if (category.type == 'specific_machines') {
-          for (var p in r.selectors) {
-              if (r.selectors[p].type == 'machines' && r.selectors[p].ids.length == 1) {
+      if (category.type === 'specific_machines') {
+          for (const p of Object.keys(r.selectors || {})){
+              if (r.selectors[p].type === 'machines' && r.selectors[p].ids.length === 1) {
                   return true;
               }
           }
-      } else if (category.type == 'all_machines') {
+      } else if (category.type === 'all_machines') {
           if (!r.selectors || !r.selectors.length) {
               return true;
           }
-      } else if (category.type == 'tagged_machines') {
-          for (var p in r.selectors) {
-              if (r.selectors[p].type == 'tags') {
+      } else if (category.type === 'tagged_machines') {
+          for(const p of Object.keys(r.selectors || {})){
+              if (r.selectors[p].type === 'tags') {
                   return true;
               }
           }
@@ -346,7 +346,7 @@ Polymer({
   },
 
   _categoryHasNoRules(rules, category) {
-      for (const p in rules) {
+      for (const p of Object.keys(rules || {})){
           if (this._ruleInCategory(rules[p], category)) {
               return false;
           }
@@ -356,38 +356,35 @@ Polymer({
 
   _ruleAppliesOnResource(r, resource) { // FIXME: This is currently unused
       const type = 'machines';
-          const that = this;
-      const m = !r.selectors || !r.selectors.length || r.selectors && r.selectors.find(function(s) {
-          return (s.type == type && s.ids.indexOf(that.resource.id) > -1) || (s.type ==
+      const that = this;
+      const m = !r.selectors || !r.selectors.length || r.selectors && r.selectors.find((s) => {
+          return (s.type === type && s.ids.indexOf(that.resource.id) > -1) || (s.type ===
               'tags' && that._tagsInResource(s.include, resource))
       });
       return !!m;
   },
 
   _tagsInResource(tags, resource) {
-      for (const t in tags) {
-          if (resource.tags[t] && tags[t] && resource.tags[t] != tags[t]) {
+      for (const t of Object.keys(tags || {})){
+          if (resource.tags[t] && tags[t] && resource.tags[t] !== tags[t]) {
               return false;
           }
       }
       return true;
   },
 
-  computeRuleCategories(resource, rules, machines) {
+  computeRuleCategories(resource, rules, _machines) {
       const categories = [];
-          const that = this;
-          const rulesArray = rules ? Object.values(rules) : [];
-      const selectors = rulesArray.map(function(r) {
-          return r.selectors;
-      });
+      const that = this;
+      const rulesArray = rules ? Object.values(rules) : [];
       const resourceTypes = ['clouds','machines','volumes','networks', 'subnets',
           'zones', 'records', 'keys','images','scripts','templates',
           'schedules','members', 'arbitrary'];
-      rulesArray.forEach(function(r) {
+      rulesArray.forEach((r) => {
           const s = r.selectors || [];
           // rule applies on all machines or rule is no-data-rule
           if (r.arbitrary || !r.resource_type) {
-              if (!categories.find(function(c) { return c.type == "arbitrary" })) {
+              if (!categories.find((c) => { return c.type === "arbitrary" })) {
                   categories.push({
                       name: 'Organization Rules',
                       type: 'arbitrary',
@@ -395,13 +392,13 @@ Polymer({
                       selectors: []
                   })
               } else {
-                  categories.find(function(c) { return c.type == "arbitrary" }).rules.push(r);
+                  categories.find((c) => { return c.type === "arbitrary" }).rules.push(r);
               }
           }
           if (!resource || (r.resource_type && that.model && that.model[`${r.resource_type}s`] && Object.values(that.model[`${r.resource_type}s`]).map(x=>x.id).indexOf(resource.id) > -1 )){
               // rule is no-data-rule
-              if (r.title == "NoData") {
-                  var existingCategory = categories.find(function(c) { return c.type == "all_machines" });
+              if (r.title === "NoData") {
+                  const existingCategory = categories.find((c) => { return c.type === "all_machines" });
                   if (!existingCategory) {
                       categories.push({
                           name: 'Apply on all machines',
@@ -416,7 +413,7 @@ Polymer({
               }
               // rule applies on all of a resource_type
               if (s && !s.length && r.resource_type) {
-                  if (!categories.find(function(c) { return c.type == `all_${r.resource_type}s` })) {
+                  if (!categories.find((c) => { return c.type === `all_${r.resource_type}s` })) {
                       categories.push({
                           name: `Apply on all ${ r.resource_type }s`,
                           type: `all_${ r.resource_type }s`,
@@ -425,7 +422,7 @@ Polymer({
                           selectors: []
                       })
                   } else {
-                      categories.find(function(c) { return c.type == `all_${ r.resource_type }s` }).rules.push(r);
+                      categories.find((c) => { return c.type === `all_${ r.resource_type }s` }).rules.push(r);
                   }
               }
 
@@ -433,18 +430,18 @@ Polymer({
           // rule applies on specific or tagged
           if (s) {
               for (let l = 0; l < s.length; l++) {
-                  var sl = s[l];
-                  if (sl.type == "tags") {
-                      var stringifiedTags = that._removeBrackets(JSON.stringify(sl.include));
-                          var existingCategory = categories.find(function(c) { return c.type == `tagged_${ r.resource_type }s` && c.stringifiedTags == stringifiedTags })
+                  const sl = s[l];
+                  if (sl.type === "tags") {
+                      const stringifiedTags = that._removeBrackets(JSON.stringify(sl.include));
+                      const existingCategory = categories.find((c) => { return c.type === `tagged_${ r.resource_type }s` && c.stringifiedTags === stringifiedTags })
                       if (!existingCategory) {
                           categories.push({
-                              id: `apply-on-tags-of-${ r.resource_type }s`,
-                              name: `Apply on ${ r.resource_type }s with tags `,
-                              type: `tagged_${ r.resource_type }s`,
-                              stringifiedTags,
-                              rules: [r],
-                              selectors: [sl.include]
+                          id: `apply-on-tags-of-${ r.resource_type }s`,
+                          name: `Apply on ${ r.resource_type }s with tags `,
+                          type: `tagged_${ r.resource_type }s`,
+                          stringifiedTags,
+                          rules: [r],
+                          selectors: [sl.include]
                           });
                       } else {
                           existingCategory.rules.push(r);
@@ -454,13 +451,13 @@ Polymer({
                   if (resourceTypes.indexOf(sl.type) > -1 ) {
                       if (!resource || sl.ids.indexOf(resource.id) > -1) {
                           const thisResource = resource ? 'this ' : '';
-                          const specificCategory = categories.find(function(c) {
+                          const specificCategory = categories.find((c) => {
                               let allSame = true;
                               for (let n = 0; n < c.selectors.length; n++) {
-                                  if (sl.ids.indexOf(c.selectors[n]) == -1)
+                                  if (sl.ids.indexOf(c.selectors[n]) === -1)
                                       allSame = false;
                               }
-                              return c.type == `specific_${r.resource_type}s` && allSame;
+                              return c.type === `specific_${r.resource_type}s` && allSame;
                           });
                           if (!specificCategory)
                               categories.push({
@@ -481,7 +478,7 @@ Polymer({
           }
       });
 
-      return categories.sort(function(a, b) {
+      return categories.sort((a, b) => {
           const atype = a.type.split('_')[1] || 'arbitrary'; const btype = b.type.split('_')[1] || 'arbitrary';
           if (resourceTypes.indexOf(atype) < resourceTypes.indexOf(btype)) {
               return -1;
@@ -499,7 +496,7 @@ Polymer({
 
   _computeNames(ids, machines, resource) {
       const names = [];
-          var missing = 0;
+      let missing = 0;
 
       if (resource) {
           return resource.name;
@@ -511,27 +508,27 @@ Polymer({
               else
                   missing++;
           }
-          var missing = missing ? `${missing  } missing` : '';
+          missing = missing ? `${missing  } missing` : '';
           return names.join(' ,') + missing;
       }
-
+      return "";
   },
 
-  _computeMetrics(resource, builtinMetrics, customMetrics) {
+  _computeMetrics(_resource, _builtinMetrics, _customMetrics) {
       const metrics = [];
-      for (const p in this.builtinMetrics) {
+      Object.keys(this.builtinMetrics).forEach((p) => {
           metrics.push(this.builtinMetrics[p])
-      }
+      });
       if (this.customMetrics) {
-          for (const q in this.customMetrics) {
+          Object.keys(this.customMetrics).forEach((q) => {
               if (this.customMetrics[q].machines) {
-                  const machineHasCustomMetric = this.resource && this.customMetrics[q].machines.find(function(m) {
-                      return m[0] == this.resource.cloud && m[1] == this.resource.machine_id;
+                  const machineHasCustomMetric = this.resource && this.customMetrics[q].machines.find((m) => {
+                      return m[0] === this.resource.cloud && m[1] === this.resource.machine_id;
                   }, this);
                   if (machineHasCustomMetric || !this.resource)
                       metrics.push(this.customMetrics[q])
               }
-          }
+          });
       }
       return metrics;
   },
@@ -540,10 +537,10 @@ Polymer({
       if (!rule || !incidents) {
           return false;
       }
-      const find = this.incidents.findIndex(function(inc) {
-          return !inc.finished_at && inc.rule_id == rule.id;
+      const find = this.incidents.findIndex((inc) => {
+          return !inc.finished_at && inc.rule_id === rule.id;
       });
-      return find != -1;
+      return find !== -1;
   },
 
   _computeToggleButtonStyle (expanded) {
