@@ -67,7 +67,7 @@ Polymer({
         max-width: 650px;
       }
 
-      div.button {
+      div.buttons {
         margin: 24px 0 0 0;
         display: flex;
         justify-content: flex-end;
@@ -99,7 +99,8 @@ Polymer({
             autofocus=""
             tabindex="0"
           ></paper-input>
-          <div class="button">
+          <div class="buttons">
+            <paper-button on-tap="closeRenameDialog">Cancel</paper-button>
             <paper-button
               id="rename-cloud"
               dialog-confirm=""
