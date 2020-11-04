@@ -6,7 +6,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
         [hidden] {
             display: none !important;
@@ -19,7 +18,6 @@ Polymer({
             </mist-list>
         </template>
         <member-page model="[[model]]" params="[[data]]" section="[[model.sections.teams]]" resource-id="[[data.member]]" hidden$=[[_isListActive(route.path)]]></member-page>
-    </template>
     `,
     is: 'page-members',
 

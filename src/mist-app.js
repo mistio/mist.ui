@@ -42,8 +42,6 @@ import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { _generateMap } from './helpers/utils.js'
 import PROVIDERS from './helpers/providers.js';
 
-// import '../../../fingerprintjs2/fingerprint2.js';
-
 const $_documentContainer = document.createElement('template');
 $_documentContainer.innerHTML = `<dom-module id="mist-app">
     <template>
@@ -1022,27 +1020,27 @@ Polymer({
             return;
         const xhr = new XMLHttpRequest();
         if (!this.fingerprint) {
-            const that = this;
-            new Fingerprint2().get(function(result, components) {
+            (async () => {
+                const obj_ = await import('../node_modules/@fingerprintjs/fingerprintjs');
+                const FingerprintJS = obj_.default;
+                const fp = await FingerprintJS.load();
+                const result = await fp.get();
                 // this will use all available fingerprinting sources
-                that.fingerprint = result;
-                const componentMap = {};
-                components.forEach(function(e) {
-                    componentMap[e.key] = e.value
-                });
+                this.fingerprint = result.visitorId;
+                const componentMap = result.components;
                 const payload = {
                     'action': event.detail,
-                    'fingerprint': result,
-                    'resolution': componentMap.resolution,
-                    'platform': componentMap.navigator_platform,
-                    'browser': that._getBrowser(),
+                    'fingerprint': result.visitorId,
+                    'resolution': componentMap.screenResolution,
+                    'platform': componentMap.platform,
+                    'browser': this._getBrowser(),
                     'tz': componentMap.timezone_offset
                 };
                 if (document.referrer)
                     payload.referrer = document.referrer;
                 xhr.open('GET', `/api/v1/logs/ui?b=${  btoa(JSON.stringify(payload))}`);
                 xhr.send();
-            });
+            })();
         } else {
             const payload = {
                 'action': event.detail,

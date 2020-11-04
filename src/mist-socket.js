@@ -2,7 +2,7 @@ import '@polymer/polymer/polymer-legacy.js';
 import 'sockjs-client/dist/sockjs.min.js';
 import * as jsonpatch from "fast-json-patch/index.mjs"
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { _generateMap , CSRFToken } from './helpers/utils.js'
+import { _generateMap , CSRFToken, stripePublicAPIKey } from './helpers/utils.js'
 
 const DEBUG_SOCKET = false;
 
@@ -552,7 +552,7 @@ Polymer({
         this.set('model.user', data);
         if (data) {
             CSRFToken.value = data.csrf_token;
-            // STRIPE_PUBLIC_APIKEY = data.stripe_public_apikey;
+            stripePublicAPIKey.value = data.stripe_public_apikey;
         }
     },
 
