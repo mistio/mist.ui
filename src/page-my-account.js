@@ -5,7 +5,7 @@ import '@polymer/paper-tooltip/paper-tooltip.js';
 import './account/details-page.js';
 import './account/password-page.js';
 import './account/plans-list.js';
-//import './account/subscriptions-list.js';
+import './account/subscriptions-list.js';
 import './account/sessions-list.js';
 import './account/tokens-list.js';
 import './account/whitelisted-ips.js';

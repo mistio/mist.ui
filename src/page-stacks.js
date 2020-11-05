@@ -11,7 +11,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -45,7 +44,6 @@ Polymer({
         </template>
         <stack-create model="[[model]]" section="[[model.sections.stacks]]" params="[[route.__queryParams]]" hidden$=[[!_isAddPageActive(route.path)]]></stack-create>
         <stack-page model="[[model]]" stack="[[_getStack(data.stack, model.stacks, model.stacks.*)]]" resource-id="[[data.stack]]" section="[[model.sections.stacks]]" hidden$=[[!_isDetailsPageActive(route.path)]]></stack-page>
-    </template>
     `,
     is: 'page-stacks',
     behaviors: [

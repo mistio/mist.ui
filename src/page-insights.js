@@ -13,7 +13,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
     <style include="shared-styles forms single-page tags-and-labels">
         :host {
             /*--insights-general-font*/
@@ -106,8 +105,6 @@ Polymer({
     <div id="content" hidden="[[!insightsEnabled]]">
         <mist-insights model="[[model]]" period="week" currency=[[currency]]></mist-insights>
     </div>
-
-    </template>
     `,
     is: 'page-insights',
     behaviors: [
