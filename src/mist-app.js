@@ -600,7 +600,7 @@ Polymer({
         this.set('count','');
         this.set('loading', true);
         // Load page import on demand. Show 404 page if fails
-        console.log(`LOADING PAGE ${page}`);
+
         import(`./page-${page}.js`).then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason); this._showPage404();});
     },
 
@@ -613,6 +613,7 @@ Polymer({
     _showPage404() {
         // this.importHref(this.resolveUrl('page-not-found.html'), null, null, true);
         // this.page = 'not-found';
+        this._hideLoader();
         import('./page-not-found.js').then(null);
     },
 
