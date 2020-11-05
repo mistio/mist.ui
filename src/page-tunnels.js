@@ -12,7 +12,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -46,7 +45,6 @@ Polymer({
         <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
         <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></tunnel-page>
             </key-page>
-    </template>
     `,
     is: 'page-tunnels',
     behaviors: [

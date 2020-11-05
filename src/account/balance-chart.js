@@ -5,9 +5,10 @@ import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizabl
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../../node_modules/echarts/dist/echarts.common.min.js';
+import * as echarts from  'echarts/echarts.all.js';
+import moment from 'moment/src/moment.js';
 
-BALANCE_GRAPH_OPTIONS = {
+const BALANCE_GRAPH_OPTIONS = {
     tooltip: {
         trigger: 'axis',
         extraCssText: 'text-align: left',

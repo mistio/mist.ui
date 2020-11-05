@@ -4,8 +4,10 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../node_modules/@polymer/gold-cc-input/gold-cc-input.js';
 import '../../node_modules/@polymer/gold-cc-cvc-input/gold-cc-cvc-input.js';
+import { stripePublicAPIKey } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+
 
 Polymer({
   _template: html`
@@ -169,9 +171,13 @@ Polymer({
   ],
 
   ready(){
-
   },
-
+  attached(){
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://js.stripe.com/v2/';    
+    document.getElementsByTagName('head')[0].appendChild(script);
+  },
   reset(){
       this.set('errors', '');
       this.set('token', null);
@@ -194,7 +200,7 @@ Polymer({
               Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
 
           if (isValid){
-              Stripe.setPublishableKey(STRIPE_PUBLIC_APIKEY);
+              Stripe.setPublishableKey(stripePublicAPIKey.value);
               Stripe.card.createToken(this.payload, stripeResponseHandler);
               const that = this;
               function stripeResponseHandler(status, response){
@@ -224,7 +230,7 @@ Polymer({
           }
           this.dispatchEvent(new CustomEvent('card-response'));
       }
-  },
+    },
 
   _setToken(status, response) {
       this.set('token', response.id);

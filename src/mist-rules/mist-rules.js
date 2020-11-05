@@ -516,7 +516,7 @@ Polymer({
 
   _computeMetrics(_resource, _builtinMetrics, _customMetrics) {
       const metrics = [];
-      Object.keys(this.builtinMetrics).forEach((p) => {
+      Object.keys(this.builtinMetrics || {}).forEach((p) => {
           metrics.push(this.builtinMetrics[p])
       });
       if (this.customMetrics) {
