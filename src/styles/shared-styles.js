@@ -1642,7 +1642,7 @@ iron-dropdown paper-material {
          :host([class$="Resource"]) schedule-date,
          :host([class$="Resource"]) team-policy,
          :host([class$="Resource"]) .flex > span,
-         :host([class$="Resource"]) .sub, 
+         :host([class$="Resource"]) .sub,
          :host([class$="Resource"]) .page-block {
             display: none !important;
         }
@@ -2008,7 +2008,7 @@ iron-dropdown paper-material {
             justify-content: flex-end;
             margin: 16px 0;
         }
-        
+
         </style>
     </template>
 </dom-module><dom-module id="info-table-style">
@@ -2080,7 +2080,7 @@ iron-dropdown paper-material {
                 font-family: 'Roboto', 'Noto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             }
             :host [part~="content"] {
-                padding: 0 25px;
+                padding: 1px 25px;
                 width: 450px;
             }
         </style>
@@ -2096,4 +2096,3 @@ document.head.appendChild(documentContainer.content);
   from HTML and may be out of place here. Review them and
   then delete this comment!
 */
-;
