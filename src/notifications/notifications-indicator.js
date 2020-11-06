@@ -10,9 +10,11 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-// import  '../../node_modules/dayjs/plugin/relativeTime.js'
+import relativeTime from '../../node_modules/dayjs/esm/plugin/relativeTime/index.js'
 import dayjs from '../../node_modules/dayjs/esm/index.js';
 import { CSRFToken } from '../helpers/utils.js';
+
+dayjs.extend(relativeTime)
 
 Polymer({
   _template: html`
