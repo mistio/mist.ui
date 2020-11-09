@@ -7,13 +7,12 @@ import '../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../node_modules/@mistio/mist-list/mist-list.js';
 import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
 import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-// import '../node_modules/@mistio/mist-insights/mist-insights.js';
+import '../node_modules/@mistio/mist-insights/mist-insights.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
     <style include="shared-styles forms single-page tags-and-labels">
         :host {
             /*--insights-general-font*/
@@ -106,8 +105,6 @@ Polymer({
     <div id="content" hidden="[[!insightsEnabled]]">
         <mist-insights model="[[model]]" period="week" currency=[[currency]]></mist-insights>
     </div>
-
-    </template>
     `,
     is: 'page-insights',
     behaviors: [

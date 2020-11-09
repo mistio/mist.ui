@@ -37,7 +37,7 @@ import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import '../../node_modules/@fooloomanzoo/datetime-picker/datetime-picker.js';
-// import YAML from '../../node_modules/yaml/browser/dist/index.js';
+import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`

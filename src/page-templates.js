@@ -12,7 +12,6 @@ import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-    <template>
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -46,7 +45,6 @@ Polymer({
         </template>
         <template-add model="[[model]]" section="[[model.sections.templates]]" hidden$=[[!_isAddPageActive(route.path)]]></template-add>
         <template-page model="[[model]]" template-id="[[data.template]]" resource-id="[[data.template]]" stacks="[[_getTemplateStacks(data.template, model.templates, model.stacks, model.templates.*, model.stacks.*)]]" section="[[model.sections.templates]]" hidden$=[[!_isDetailsPageActive(route.path)]]></template-page>
-    </template>
     `,
     is: 'page-templates',
     behaviors: [

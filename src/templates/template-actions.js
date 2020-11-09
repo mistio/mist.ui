@@ -261,18 +261,16 @@ Polymer({
           actions = new Set(this.itemActions(this.items[0]) || []);
           for (let i = 1; i < this.items.length; i++) {
               isection = new Set();
-              // isection.addItems(actions.intersection(this.itemActions(this.items[i])));
               isection = intersection(actions, this.itemActions(this.items[i]));
-              // actions.addItems(isection.items());
               actions = new Set(isection);
           }
 
           if (this.items.length > 1) {
-              multiActions = this.actionDetails(actions.items()).filter((a) => {
+              multiActions = this.actionDetails(Array.from(actions)).filter((a) => {
                   return a.multi;
               });
           } else {
-              multiActions = this.actionDetails(actions.items());
+              multiActions = this.actionDetails(Array.from(actions));
           }
       }
       this.set('actions', multiActions);

@@ -1338,10 +1338,8 @@ Polymer({
   },
 
   _makeString (info) {
-      // console.log(YAML.dump(info));
-      // console.log(anchorme.js(YAML.dump(info)));
       if (info)
-          return anchorme(YAML.dump(info).replace(/'/g, ""));
+          return anchorme(YAML.stringify(info).replace(/'/g, ""));
       return '';
   },
 
