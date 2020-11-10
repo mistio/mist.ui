@@ -1437,7 +1437,9 @@ Polymer({
   _computeMachineImage(machine, cloud) {
       const item = this.machine;
       if (!item) return;
-      if (item && item.image && typeof(item.image) !== "object") {
+      if (item && item.extra.image && typeof(item.extra.image) === "string") {
+        return item.extra.image;
+      } else if (item && item.image && typeof(item.image) !== "object") {
           if (this.model.images && this.model.images[item.image]) {
               return this.model.images[item.image].name;
           } 
