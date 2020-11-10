@@ -8,6 +8,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../helpers/card-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from "../helpers/utils.js"
 
 Polymer({
   _template: html`
@@ -267,18 +268,18 @@ Polymer({
       return (price == 0 || hasCard) && !addCard;
   },
 
-  _computeFormReady(hasCard, cardValid, hideCardFields){
+  _computeFormReady(_hasCard, cardValid, hideCardFields){
       return cardValid || hideCardFields;
   },
 
-  _submit(e){
+  _submit(_e){
       if (this.cardValid) {
           this.shadowRoot.querySelector('card-form#inPlanPurchase').verify();
       }
       if ((this.org && this.org.card) || (this.plan && this.plan.price == 0)) {
-          const payload = { plan: this.plan.title };
+          const payload = { plan: this.plan.title || ""};
           this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
-          this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.purchasePlanRequest.body = payload;
           this.$.purchasePlanRequest.generateRequest();
       }
@@ -303,7 +304,7 @@ Polymer({
                   payload.plan = this.plan.title
               console.log('_gotCardResponse', this.$.purchasePlanRequest.url);
               this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
-              this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+              this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRFToken.value;
               this.$.purchasePlanRequest.body = payload;
               this.$.purchasePlanRequest.generateRequest();
           } else if (card.errors) {

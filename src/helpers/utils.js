@@ -52,7 +52,6 @@ function intersection(a, b){
     return new Set( [ ..._a ].filter(v => _b.has(v)) );
 }
 
-const CSRFToken = { value: undefined };
-
-export { ratedCost, itemUid, mapToArray, _generateMap, intersection, CSRFToken };
-
+const CSRFToken = { value: "" };
+const stripePublicAPIKey = { value: ""};
+export { ratedCost, itemUid, mapToArray, _generateMap, intersection, CSRFToken, stripePublicAPIKey };

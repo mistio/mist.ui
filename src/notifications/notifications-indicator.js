@@ -10,13 +10,15 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-// import  '../../node_modules/dayjs/plugin/relativeTime.js'
+import relativeTime from '../../node_modules/dayjs/esm/plugin/relativeTime/index.js'
 import dayjs from '../../node_modules/dayjs/esm/index.js';
 import { CSRFToken } from '../helpers/utils.js';
 
+dayjs.extend(relativeTime)
+
 Polymer({
   _template: html`
-        <style include="shared-styles">
+        <style>
             :host {
                 position: relative;
                 height: 56px;
@@ -56,7 +58,15 @@ Polymer({
             }
 
             h4 {
-                margin-left: 16px
+                margin-left: 8px;
+                margin-right: 8px;
+                text-rendering: optimizeLegibility;
+                text-decoration: none;
+                letter-spacing: 0;
+                font-size: 16px;
+                font-weight: 400;
+                line-height: 24px;
+
             }
 
             .grid-row {
@@ -158,35 +168,35 @@ Polymer({
                             <iron-icon slot="item-icon" icon="[[_computeNotificationIcon(item)]]" type\$="[[_computeNotificationType(item)]]"></iron-icon>
                             <paper-item-body two-line="">
                                 <div class="summary">[[item.summary]]</div>
-                                <div secondary="" inner-h-t-m-l="[[item.html_body]]" class="body"></div>
+                                <div secondary="" class="body">[[item.body]]</div>
                                 <div secondary="" class="time">[[_computeRelativeTime(item, timestampCounter)]]</div>
                             </paper-item-body>
                             <paper-menu-button id="actions" close-on-activate="" horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
                                 <paper-icon-button class="dismiss-icon dropdown-trigger" icon="icons:icons:more-horiz" slot="dropdown-trigger"></paper-icon-button>
                                 <div class="notification-actions dropdown-content" slot="dropdown-content">
                                     <paper-listbox id="notification-actions-menu" selectable="none">
-                                        <paper-item class="notification-action context" hidden\$="[[!isNotification(item)]]" on-tap="_dismissNotification">
+                                        <paper-item class="notification-action context" hidden$="[[!isNotification(item)]]" on-tap="_dismissNotification">
                                             Dismiss this notification
                                         </paper-item>
-                                        <paper-item class="notification-action context" hidden\$="[[isNotification(item)]]" on-tap="_dismissNotification">
+                                        <paper-item class="notification-action context" hidden$="[[isNotification(item)]]" on-tap="_dismissNotification">
                                             Dismiss this recommendation
                                         </paper-item>
-                                        <paper-item class="notification-action context" hidden\$="[[!isMachineRecommendation(item)]]" on-tap="_disableNotificationsForMachine" _id="[[item._id]]">
+                                        <paper-item class="notification-action context" hidden$="[[!isMachineRecommendation(item)]]" on-tap="_disableNotificationsForMachine" _id="[[item._id]]">
                                             Disable recommendations for this machine
                                         </paper-item>
-                                        <paper-item class="notification-action context" hidden\$="[[!isMachineNotification(item)]]" on-tap="_disableNotificationsForMachine" _id="[[item._id]]">
+                                        <paper-item class="notification-action context" hidden$="[[!isMachineNotification(item)]]" on-tap="_disableNotificationsForMachine" _id="[[item._id]]">
                                             Disable all notifications for this machine
                                         </paper-item>
                                     </paper-listbox>
                                 </div>
                             </paper-menu-button>
             
-            </paper-item>
-            </template>
-            <div id="spinner" hidden\$="[[!activeSpinner]]">
-                <paper-spinner active="[[activeSpinner]]"></paper-spinner>
-            </div>
-            </paper-listbox>
+                        </paper-item>
+                    </template>
+                    <div id="spinner" hidden\$="[[!activeSpinner]]">
+                        <paper-spinner active="[[activeSpinner]]"></paper-spinner>
+                    </div>
+                </paper-listbox>
             </div>
         </paper-menu-button>
         <paper-badge hidden="[[hidden]]" id="indicatorBadge" label="[[notifications.length]]"></paper-badge>
@@ -365,7 +375,7 @@ Polymer({
       } else if (event.model.item.tag) {
           path = `/${  event.model.item.tag._ref.$ref  }/${  event.model.item.tag._ref.$id}`;
       } else {
-          event.model._children[1].querySelector('paper-menu-button').open();
+          event.model.children[1].querySelector('paper-menu-button').open();
           return;
       }
 
@@ -393,11 +403,12 @@ Polymer({
       event.stopPropagation();
   },
 
-  _dismissNotification (event) {
+  _dismissNotification(event) {
       const dismissURL = `/api/v1/notifications/${  event.model.item._id}`;
       this.$.requestDismiss.url = dismissURL;
       this.$.requestDismiss.headers["Csrf-Token"] = CSRFToken.value;
       this.$.requestDismiss.generateRequest();
+      debugger;
       event.target.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.close()
   },
 
@@ -405,7 +416,7 @@ Polymer({
       console.log("Notifications: Received dismiss response");
   },
 
-  _disableNotificationsForMachine (event) {
+  _disableNotificationsForMachine(event) {
       const dismissURL = "/api/v1/notification-overrides";
       const payload = {
           notification_id: event.model.item._id

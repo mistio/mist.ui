@@ -141,7 +141,7 @@ Polymer({
             ></paper-input>
             <p>* Password is required to create a token</p>
             <div class="buttons">
-              <paper-button dialog-dismiss="">Cancel</paper-button>
+              <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog">Cancel</paper-button>
               <paper-button
                 id="Create"
                 autofocus=""
@@ -234,6 +234,10 @@ Polymer({
 
   createToken() {
     this.$.createTokenDialog.opened = true;
+  },
+
+  _dismissCreateTokenDialog() {
+    this.$.createTokenDialog.opened = false;
   },
 
   createTokenSubmit() {

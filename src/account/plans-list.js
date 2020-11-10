@@ -8,6 +8,7 @@ import './plan-item.js';
 import './plan-purchase.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import moment from 'moment/src/moment.js';
 
 Polymer({
   _template: html`
