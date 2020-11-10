@@ -103,7 +103,7 @@ Polymer({
                     <div class="field-helptext xs12">
                         Add your private key in openssh format, or use the generator to create one for you.
                         <a href="http://docs.mist.io/article/34-importing-your-ssh-keys-in-mist-io" target="new" hidden\$="[[!docs]]">
-                            <paper-icon-button suffix="" icon="icons:help" alt="open docs" title="open docs" class="docs">
+                            <paper-icon-button suffix="" icon="icons:help" alt="Open docs" title="Open docs" class="docs">
                             </paper-icon-button>
                         </a>
                     </div>
@@ -223,16 +223,16 @@ Polymer({
 
   isUniqueValidator (value) {
       const isUnique = this.model.keysArray.every(function (key) {
-          return key.name != value;
+          return key.name !== value;
       });
       return isUnique;
   },
 
-  _openAddKeyModal (e) {
+  _openAddKeyModal () {
       this.$.addKeyModal.open();
   },
 
-  _closeAddKeyModal (e) {
+  _closeAddKeyModal () {
       this.$.addKeyModal.close();
   },
 
@@ -249,7 +249,7 @@ Polymer({
 
   _fileUploadedResponse (e) {
       const {file} = e.detail;
-      if (file.type == 'ssh_key') {
+      if (file.type === 'ssh_key') {
           this.set('key.privateKey', file.value);
       }
   },
@@ -284,7 +284,7 @@ Polymer({
 
       } else {
           // if origin machines/machine_id reopen associate key dialog
-          if (this.origin.startsWith('/machines/') && this.origin != '/machines/+create') {
+          if (this.origin.startsWith('/machines/') && this.origin !== '/machines/+create') {
               this.dispatchEvent(new CustomEvent('open-and-select', {
                   bubbles: true,
                   composed: true,
@@ -292,7 +292,7 @@ Polymer({
                       key: keyID
                   }
               }));
-          } else if (this.origin == '/machines/+create' || this.origin == '/clouds/+add' || this.origin
+          } else if (this.origin === '/machines/+create' || this.origin === '/clouds/+add' || this.origin
               .startsWith('/stacks/') || this.origin.startsWith('/clouds/')) {
               this.dispatchEvent(new CustomEvent('update-keys', {
                   bubbles: true,
@@ -301,7 +301,7 @@ Polymer({
                       key: keyID
                   }
               }));
-              if (this.origin.startsWith('/clouds/') && this.origin != '/clouds/+add')
+              if (this.origin.startsWith('/clouds/') && this.origin !== '/clouds/+add')
                   this.dispatchEvent(new CustomEvent('cloud-edit-key', {
                       bubbles: true,
                       composed: true,
@@ -363,7 +363,7 @@ Polymer({
       this.set('showPublicKey', true);
   },
 
-  _handleKeyGenerateAjaxError (e) {
+  _handleKeyGenerateAjaxError () {
       this.set('sendingData', false);
   }
 });
