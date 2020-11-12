@@ -2081,7 +2081,7 @@ iron-dropdown paper-material {
             }
             :host [part~="content"] {
                 padding: 1px 25px;
-                max-width: 450px;
+                width: 450px;
             }
         </style>
     </template>
