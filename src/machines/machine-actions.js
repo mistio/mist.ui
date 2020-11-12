@@ -580,16 +580,12 @@ Polymer({
                       const app_location = document.querySelector('app-location');
                       if (["destroy","remove"].indexOf(action.name) > -1 && document.location.pathname && document.location.pathname.split(
                               '/machines/')[1] == item.id) {
-                          // kvm machines
-                          if (item.provider != 'kvm') {
+
                               this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                                   url: '/machines'
                               } }));
-
-                          }
                       }
-                      if (item.provider == 'kvm' && action.name == "undefine" && document.querySelector('app-location').path.split(
-                              '/machines/')[1] == item.id) {
+                      if (item.provider == 'libvirt' && action.name == "undefine") {
                           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                               url: '/machines'
                           } }));
