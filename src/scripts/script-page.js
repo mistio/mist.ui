@@ -6,7 +6,7 @@ import '../../node_modules/@mistio/mist-list/mist-list.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../mist-rules/mist-rules.js';
 import '../helpers/dialog-element.js';
-import{ mistRulesBehavior } from  '../helpers/mist-rules-behavior.js';
+import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
 import './script-run.js';
@@ -62,7 +62,7 @@ Polymer({
             }
 
             a {
-                color: black;
+                color: var(--mist-blue);
                 text-decoration: none;
             }
 
@@ -99,7 +99,7 @@ Polymer({
                 border-top: 1px solid #ddd;
             }
             a.inherit {
-                color: inherit;
+                color:inherit;
                 font-size: inherit;
                 line-height: inherit;
                 padding: inherit;
@@ -124,6 +124,9 @@ Polymer({
             script-actions {
                 width: 50%;
             }
+            .subtitle {
+                text-transform: capitalize;
+            }
         </style>
 
         <div id="content">
@@ -134,8 +137,8 @@ Polymer({
                         [[script.name]]
                     </h2>
                     <div class="subtitle">
-                        <span hidden\$="[[!isInline]]">Inline Script. <a class="inherit" href\$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download\$="script-[[script.name]].sh.txt">Download</a></span>
-                        <span hidden\$="[[isInline]]">Script source <a class="regular" href\$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]] <iron-icon icon="icons:link" hidden\$="[[isMissing]]"></iron-icon></a>
+                    [[script.location.type]] Script
+                        <span hidden\$="[[!isInline]]"><a class="inherit" href\$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download\$="script-[[script.name]].sh.txt">Download</a></span>
                         </span>
                     </div>
                 </div>
@@ -190,7 +193,7 @@ Polymer({
                             <template is="dom-if" if="[[!isInline]]">
                                 <div class="info-item flex-horizontal-with-ratios">
                                     <div class="flexchild">Url</div>
-                                    <div class="flexchild"><a class="regular" href\$="[[script.script]]" target="_blank"> [[script.script]] <iron-icon icon="icons:link" hidden\$="[[isMissing]]"></iron-icon></a></div>
+                                    <div class="flexchild"><a class="regular" href\$="[[_computeLink(script.location)]]" target="_blank"> [[_computeLink(script.location)]]</a></div>
                                 </div>
                             </template>
                         </div>
@@ -219,143 +222,170 @@ Polymer({
 
   is: 'script-page',
 
-  behaviors: [
-      mistLoadingBehavior,
-      mistRulesBehavior
-  ],
+  behaviors: [mistLoadingBehavior, mistRulesBehavior],
 
   properties: {
-      section: {
-          type: Object
-      },
-      color: {
-          type: String,
-          computed: '_getHeaderStyle(section)'
-      },
-      model: {
-          type: Object
-      },
-      script: {
-          type: Object
-      },
-      scriptTags: {
-          type: Array,
-          computed: '_computeScriptTags(script, script.tags, script.tags.*, model.scripts.*)'
-      },
-      isInline: {
-          type: Boolean,
-          value: false,
-          computed: '_computeIsInline(script.location)'
-      },
-      isLoading: {
-          type: Boolean,
-          computed: '_computeIsloading(script)',
-          value: true
-      },
-      actions: {
-          type: Array
-      },
-      itemArray: {
-          type: Array
-      }
+    section: {
+      type: Object,
+    },
+    color: {
+      type: String,
+      computed: '_getHeaderStyle(section)',
+    },
+    model: {
+      type: Object,
+    },
+    script: {
+      type: Object,
+    },
+    scriptTags: {
+      type: Array,
+      computed:
+        '_computeScriptTags(script, script.tags, script.tags.*, model.scripts.*)',
+    },
+    isInline: {
+      type: Boolean,
+      value: false,
+      computed: '_computeIsInline(script.location)',
+    },
+    isLoading: {
+      type: Boolean,
+      computed: '_computeIsloading(script)',
+      value: true,
+    },
+    actions: {
+      type: Array,
+    },
+    itemArray: {
+      type: Array,
+    },
   },
 
-  observers: [
-      '_changed(script)'
-  ],
+  observers: ['_changed(script)'],
 
   _getHeaderStyle(section) {
-      return `background-color: ${  section.color  }; color: #fff;`;
+    return `background-color: ${section.color}; color: #fff;`;
   },
 
-  _displayUser (id, _members) {
-      return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
+  _displayUser(id, _members) {
+    return this.model && id && this.model.members && this.model.members[id]
+      ? this.model.members[id].name ||
+          this.model.members[id].email ||
+          this.model.members[id].username
+      : '';
   },
 
   _computeIsInline(location) {
-      if (location)
-          return !!location.source_code;
-      return false;
+    if (location) return !!location.source_code;
+    return false;
   },
 
   _runScript(e) {
-      e.stopImmediatePropagation();
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${  this.script.id  }/+run`} }));
+    e.stopImmediatePropagation();
+    this.dispatchEvent(
+      new CustomEvent('go-to', {
+        bubbles: true,
+        composed: true,
+        detail: { url: `/scripts/${this.script.id}/+run` },
+      })
+    );
   },
 
   _handleScriptDeleteAjaxResponse(_e) {
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/scripts'} }));
+    this.dispatchEvent(
+      new CustomEvent('go-to', {
+        bubbles: true,
+        composed: true,
+        detail: { url: '/scripts' },
+      })
+    );
   },
 
   _encode(script) {
-      return encodeURIComponent(script);
+    return encodeURIComponent(script);
   },
 
   _computeLink(location) {
-      if (location)
-          return location.repo || location.url;
-      return null;
+    if (location) return location.repo || location.url;
+    return null;
   },
 
   _computeIsloading(_script) {
-      return !this.script;
+    return !this.script;
   },
 
-  _computeScriptTags (_script, _scriptTags) {
-      if (this.script) {
-          return Object.entries(this.script.tags).map(([key, value]) => ({key,value}));
-      }
-      return [];
+  _computeScriptTags(_script, _scriptTags) {
+    if (this.script) {
+      return Object.entries(this.script.tags).map(([key, value]) => ({
+        key,
+        value,
+      }));
+    }
+    return [];
   },
 
-  _getVisibleColumns () {
-      return ['type', 'action', 'machine_id', 'user_id']
+  _getVisibleColumns() {
+    return ['type', 'action', 'machine_id', 'user_id'];
   },
 
-  _getFrozenLogColumn () {
-      return ['time']
+  _getFrozenLogColumn() {
+    return ['time'];
   },
 
-  _getRenderers () {
-      const _this = this;
-      return {
-          'time': {
-              'body': (item, row) => {
-                  let ret = `<span title="${  moment(item*1000).format()  }">${  moment(item*1000).fromNow()  }</span>`;
-                  if (row.error)
-                      ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
-                  return ret;
-              }
-          },
-          'user_id': {
-              'title': () => { return 'user';},
-              'body': (item) => {
-                  if (_this.model && _this.model.members && item in _this.model.members &&
-                      _this.model.members[item] && _this.model.members[item].name &&
-                      _this.model.members[item].name !== undefined){
-                      const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
-                      const ret = `<a href="/members/${  item  }">${  displayUser  }</a>`;
-                      return ret;
-                  }
-                  return item || '';
-              }
-          },
-          'machine_id': {
-              'title': 'machine',
-              'body': (item, _row) => {
-                  if (_this.model && _this.model.machines &&
-                      item in _this.model.machines) {
-                      const ret = `<a href="/machines/${  _this.model.machines[item].uuid  }">${  _this.model.machines[item].name  }</a>`;
-                      return ret;
-                  }
-                  return item || '';
-              }
+  _getRenderers() {
+    const _this = this;
+    return {
+      time: {
+        body: (item, row) => {
+          let ret = `<span title="${moment(item * 1000).format()}">${moment(
+            item * 1000
+          ).fromNow()}</span>`;
+          if (row.error)
+            ret += '<iron-icon icon="error" style="float: right"></iron-icon>';
+          return ret;
+        },
+      },
+      user_id: {
+        title: () => {
+          return 'user';
+        },
+        body: item => {
+          if (
+            _this.model &&
+            _this.model.members &&
+            item in _this.model.members &&
+            _this.model.members[item] &&
+            _this.model.members[item].name &&
+            _this.model.members[item].name !== undefined
+          ) {
+            const displayUser =
+              _this.model.members[item].name ||
+              _this.model.members[item].email ||
+              _this.model.members[item].username;
+            const ret = `<a href="/members/${item}">${displayUser}</a>`;
+            return ret;
           }
-      };
+          return item || '';
+        },
+      },
+      machine_id: {
+        title: 'machine',
+        body: (item, _row) => {
+          if (
+            _this.model &&
+            _this.model.machines &&
+            item in _this.model.machines
+          ) {
+            const ret = `<a href="/machines/${_this.model.machines[item].uuid}">${_this.model.machines[item].name}</a>`;
+            return ret;
+          }
+          return item || '';
+        },
+      },
+    };
   },
 
   _changed(_item) {
-      if (this.script)
-          this.set('itemArray', [this.script]);
-  }
+    if (this.script) this.set('itemArray', [this.script]);
+  },
 });
