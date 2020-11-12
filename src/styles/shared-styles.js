@@ -2081,7 +2081,7 @@ iron-dropdown paper-material {
                 font-family: 'Roboto', 'Noto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             }
             :host [part~="content"] {
-                padding: 0 25px;
+                padding: 1px 25px;
                 width: 450px;
             }
         </style>
