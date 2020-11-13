@@ -183,28 +183,28 @@ Polymer({
       '_preselectSnapshot(snapshots, isCreate)'
   ],
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.clearError();
       this._preselectSnapshot();
       this.$.createSnapshotModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.createSnapshotModal.close();
       this.clearError();
       this.set('action', "");
   },
 
-  _computeIsCreate(action) {
-      return this.action == 'create snapshot';
+  _computeIsCreate(_action) {
+      return this.action === 'create snapshot';
   },
 
-  _computeIsRemove(action) {
-      return this.action == 'remove snapshot';
+  _computeIsRemove(_action) {
+      return this.action === 'remove snapshot';
   },
 
-  _computeIsRevertTo(action) {
-      return this.action == 'revert to snapshot';
+  _computeIsRevertTo(_action) {
+      return this.action === 'revert to snapshot';
   },
 
   _preselectSnapshot() {
@@ -215,7 +215,7 @@ Polymer({
       }
   },
 
-  createSnapshot(e) {
+  createSnapshot(_e) {
       const request = this.$.snapshotRequest;
       request.url = `/api/v1/machines/${  this.machine.id}`;
       request.headers["Content-Type"] = 'application/json';
@@ -274,6 +274,6 @@ Polymer({
   },
 
   _getClass(action) {
-      return action == "remove snapshot" ? "red" : "blue";
+      return action === "remove snapshot" ? "red" : "blue";
   }
 });

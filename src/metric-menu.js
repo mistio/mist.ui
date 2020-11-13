@@ -52,13 +52,13 @@ Polymer({
       }
   },
 
-  toggle(e) {
+  toggle(_e) {
       this.shadowRoot.querySelector('iron-collapse').toggle();
   },
-
-  addGraph(e) {
+  /* eslint-disable no-param-reassign */
+  addGraph(_e) {
       console.log('addGraph', this.machine);
-      document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+      document.querySelectorAll('vaadin-dialog-overlay').forEach((el) => {el.opened = false;})
       const metric = this.metric.name;
       const payload = {
           metric_id: metric
@@ -68,7 +68,7 @@ Polymer({
       this.$.associateMetric.params = payload;
       this.$.associateMetric.generateRequest();
   },
-
+  /* eslint-enable no-param-reassign */
   _handleAssociateResponse(e) {
       console.log('event in add-graph');
       e.stopPropagation();
