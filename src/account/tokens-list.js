@@ -56,7 +56,13 @@ Polymer({
         margin-top: 24px;
       }
       .buttons {
-        padding: 8px 24px 16px 24px;
+        margin: 24px 0 0 0;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .bottom-actions {
+        text-align: right;
+        width: 100%;
       }
       .error {
         color: var(--red-color);
@@ -140,8 +146,10 @@ Polymer({
               type="password"
             ></paper-input>
             <p>* Password is required to create a token</p>
-            <div class="buttons">
-              <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog">Cancel</paper-button>
+            <div class="bottom-actions">
+              <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog"
+                >Cancel</paper-button
+              >
               <paper-button
                 id="Create"
                 autofocus=""
@@ -163,7 +171,7 @@ Polymer({
           visible to anybody.
         </p>
         <paper-textarea id="tokenValue" value="[[tokenValue]]"></paper-textarea>
-        <div class="buttons">
+        <div class="bottom-actions">
           <paper-button class="blue" dialog-dismiss="" on-tap="copied"
             >OK</paper-button
           >
