@@ -306,7 +306,7 @@ Polymer({
                       </template>
                       <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]" initial-count="10">
                           <paper-item value="[[item.id]]">
-                              <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="monitored machine"></iron-icon>
+                              <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="Monitored machine"></iron-icon>
                               [[_displayItemName(item, resourceType)]]</paper-item>
                       </template>
                   </paper-listbox>
@@ -847,8 +847,8 @@ Polymer({
       } else if (type === 'subnet') {
           // TODO find a comprehensive way to display subnets across providers
           console.log('_displayItemNameByType', type, item);
-      } 
-      return false;      
+      }
+      return false;
   },
 
   _computeShowCheckEvery(ruleType, resourceType, resourceId, tags, _resource) {
@@ -857,9 +857,9 @@ Polymer({
 
   _targetIsValid(_ruleType, _resourceType, _resourceId, _tags){
       return (this.ruleType || this.resourceType) &&
-          // is Arbitrary 
+          // is Arbitrary
           (this._isArbitrary(this.ruleType) || this._isOrg(this.resourceType) ||
-          // is every 
+          // is every
           (this.ruleType === "every" && this.resourceType) ||
           // is tagged
           (this.ruleType === "tagged" && this.tags) ||
@@ -903,15 +903,15 @@ Polymer({
       // Must either be a machine group, or a single monitored machine
       if (this.ruleType !== "specific") {
           return true;
-      } 
+      }
           return (this.resourceId && this._resourceIsMonitored(this.resourceId, this.model.monitoring))
               || (this.resource && this._resourceIsMonitored(this.resource.id, this.model.monitoring))
-      
+
   },
 
   _resourceIsMonitored(resourceId, _modelMonitoring) {
       // Compute based on model.monitoring.monitored_machines
-      return this.model && this.model.monitoring && 
+      return this.model && this.model.monitoring &&
           this.model.monitoring.monitored_machines && this.model.monitoring.monitored_machines[resourceId];
   },
 
@@ -949,8 +949,8 @@ Polymer({
   _initialiseEdit(rule, resource) {
       // console.log("======", rule, this.ruleType);
       if (!resource) {
-          if (!rule) 
-              return; 
+          if (!rule)
+              return;
           if (!rule.resource_type || rule.arbitrary) {
               this.set('ruleType', "arbitrary");
           }
@@ -973,7 +973,7 @@ Polymer({
   },
 
   _computeResourcesAndActions(_model, resourceType) {
-      let resources = []; 
+      let resources = [];
       const key = `${resourceType}s`;
       if (resourceType){
           this.set('rule.resource_type',resourceType);
@@ -1133,7 +1133,7 @@ Polymer({
       //     var queriesLength = this.rule.queries.length;
       //     for (let i = 0; i < queriesLength; i++) {
       //         console.log('close i', this.querySelector('paper-input#threshold-'+i));
-      //         this.querySelector('paper-input#threshold-'+i).value = ""; 
+      //         this.querySelector('paper-input#threshold-'+i).value = "";
       //     }
       // }
       this._resetRule(event);
@@ -1318,7 +1318,7 @@ Polymer({
               payload.selectors = [{
                   type: 'tags',
                   include: this._computeTagsFromString(this.tags)
-              }]; 
+              }];
           } else if (this.ruleType === 'every') {
               payload.selectors = [];
           }

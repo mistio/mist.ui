@@ -355,7 +355,7 @@ Polymer({
 
             paper-checkbox {
                 position: relative;
-                margin-bottom: 8px; 
+                margin-bottom: 8px;
             }
             paper-checkbox.single-checkbox {
                 margin: 16px 0;
@@ -681,7 +681,7 @@ Polymer({
                         </template>
                         <div class\$="field-helptext xs12 m6 [[field.class]]" hidden="[[!_hasHelptext(field)]]">[[field.helptext]]
                             <a hidden\$="[[!field.helpHref]]" href\$="[[field.helpHref]]" target="new" class="helpHref" on-tap="_helpTap">
-                                <paper-icon-button icon="icons:help" alt="open docs" title="open docs" class="docs">
+                                <paper-icon-button icon="icons:help" alt="Open docs" title="Open docs" class="docs">
                                 </paper-icon-button>
                             </a>
                             <p hidden\$="[[!field.warning]]">
@@ -881,7 +881,7 @@ Polymer({
   _clearDateTimeInput(e) {
       if (e && e.model && e.model.field) {
           const fieldName = e.model.field.name;
-          const ind = this.fields.findIndex(function(f){ return f.name == fieldName})
+          const ind = this.fields.findIndex(function(f){ return f.name === fieldName})
           if (ind > -1) {
               this.set(`fields.${ ind }.value`, "");
           }
@@ -915,10 +915,10 @@ Polymer({
   },
 
   _compareFieldType (fieldType, value, fieldVisibility, index) {
-      // if (fieldType == 'fieldgroup') {
-      //     console.log('fieldgroup visibility', fieldVisibility[index],fieldType == value)
+      // if (fieldType === 'fieldgroup') {
+      //     console.log('fieldgroup visibility', fieldVisibility[index],fieldType === value)
       // }
-      return fieldVisibility[index] && fieldType == value;
+      return fieldVisibility[index] && fieldType === value;
   },
 
   _handleRequest (e) {
@@ -962,7 +962,7 @@ Polymer({
   _updateScheme(fieldname, value) {
       if (value) {
           const fieldIndex = this.fields.findIndex(function(f){
-              return f.name == fieldname;
+              return f.name === fieldname;
           });
           if (fieldIndex > -1) {
               this.set('fieldIndex', fieldIndex);
@@ -981,7 +981,7 @@ Polymer({
       if (this.fieldIndex > -1 ) {
           const field = this.get(`fields.${  this.fieldIndex}`);
           let options = 'options'
-          if (field.type == 'fieldgroup'){
+          if (field.type === 'fieldgroup'){
               options = 'subfields';
           }
 
@@ -1013,11 +1013,11 @@ Polymer({
       if (!this.fields)
           return;
 
-      if (fields && fields.path && fields.path == 'fields') {
+      if (fields && fields.path && fields.path === 'fields') {
           // console.log('app form - fields changed. changerecord', fields);
           if (!this.noAutoUpdate)
               this._updateForm();
-          // construct fieldVisibility 
+          // construct fieldVisibility
           const fv = {};
           for (let i = this.fields.length - 1; i >= 0; i--) {
               fv[i] = this.fields[i].show;
@@ -1042,31 +1042,31 @@ Polymer({
 
               // Update show field flag after calculating dependencies
               that.fields.forEach(function (el, index) {
-                  
+
                   if (el.eventOnChange) {
-                      if(el.previousValue != el.value){
+                      if(el.previousValue !== el.value){
                           el.previousValue = el.value
-                          that.dispatchEvent(new CustomEvent(el.eventOnChange, {bubbles: true, composed: true})); 
+                          that.dispatchEvent(new CustomEvent(el.eventOnChange, {bubbles: true, composed: true}));
                       }
                   }
-                  if (el.name == "expiration") {
+                  if (el.name === "expiration") {
                       // console.log(el.value);
                   }
-                  if (el.type == "fieldgroup") {
+                  if (el.type === "fieldgroup") {
                       console.log('fieldgroup', that.id, 'el', el.name, el.value);
                   }
                   if (el.loadScheme && el.schemeName) {
                       // console.log('fieldgroup', that.id, 'el', el.name, el.value);
                   }
                   // if field determines a scheme for another field
-                  if (el.schemeLoaderFor && (fields.path == 'fields' || fields.path == `fields.${ index }.value`)) {
+                  if (el.schemeLoaderFor && (fields.path === 'fields' || fields.path === `fields.${ index }.value`)) {
                       that._updateScheme(el.schemeLoaderFor, el.value);
                   }
                   // if field has a dependency
                   if (el.showIf) {
                       dependency = form[el.showIf.fieldName];
                       if (el.showIf.fieldExists) {
-                          show = (dependency != undefined);
+                          show = (dependency !== undefined);
                       } else {
                           show = el.showIf.fieldValues.indexOf(dependency) !=
                               -1;
@@ -1074,7 +1074,7 @@ Polymer({
 
                       // check for second level dependency
                       const parent = that.fields.find(function (f) {
-                          return f.name == el.showIf.fieldName;
+                          return f.name === el.showIf.fieldName;
                       });
 
                       if (parent && parent.showIf) {
@@ -1085,7 +1085,7 @@ Polymer({
                               parentShow = !!parentDependency;
                           } else {
                               parentShow = parent.showIf.fieldValues.indexOf(
-                                  parentDependency) != -1;
+                                  parentDependency) !== -1;
                           }
                           show = show && parentShow;
                       }
@@ -1094,7 +1094,7 @@ Polymer({
                       // console.log('form set visibility', el.name , show);
 
                       // update form values regardless of el.show
-                      if (el.type == 'list') {
+                      if (el.type === 'list') {
                           var subformPayload = [];
                           if (el.items && el.items.length) {
                               for (var i = 0; i < el.items.length; i++) {
@@ -1109,23 +1109,23 @@ Polymer({
                           }
                           el.value = subformPayload;
                           that.set(`form.${  el.name}`, el.value);
-                      } else if (el.type == "ip_textarea") {
+                      } else if (el.type === "ip_textarea") {
                           var textToArray = el.value.split('\n');
                           that.set(`form.${  el.name}`, textToArray);
-                      } else if (el.name == "machines_tags") {
+                      } else if (el.name === "machines_tags") {
                           var textToArray = el.value.split(',');
                           that.set(`form.${  el.name}`, that._constructTagsValue(
                               textToArray));
-                      } else if (el.type == "checkboxes") {
+                      } else if (el.type === "checkboxes") {
                           that.set(`form.${  el.name}`, el.value || []);
-                      } else if (el.type == "number") {
+                      } else if (el.type === "number") {
                           that.set(`form.${  el.name}`, parseInt(el.value));
-                      } else if (el.type == "date" && el.value) {
+                      } else if (el.type === "date" && el.value) {
                           that.set(`form.${  el.name}`, el.value);
                       } else {
                           that.set(`form.${  el.name}`, el.value);
                       }
-                  } else if (el.type == 'list') {
+                  } else if (el.type === 'list') {
                           var subformPayload = [];
                           if (el.items && el.items.length) {
                               for (var i = 0; i < el.items.length; i++) {
@@ -1140,18 +1140,18 @@ Polymer({
                           }
                           el.value = subformPayload;
                           that.set(`form.${  el.name}`, el.value);
-                      } else if (el.type == "ip_textarea") {
+                      } else if (el.type === "ip_textarea") {
                           var textToArray = el.value.split('\n');
                           that.set(`form.${  el.name}`, textToArray);
-                      } else if (el.name == "machines_tags") {
+                      } else if (el.name === "machines_tags") {
                           var textToArray = el.value.split(',');
                           that.set(`form.${  el.name}`, that._constructTagsValue(
                               textToArray));
-                      } else if (el.type == "checkboxes") {
+                      } else if (el.type === "checkboxes") {
                           that.set(`form.${  el.name}`, el.value || []);
-                      } else if (el.type == "number") {
+                      } else if (el.type === "number") {
                           that.set(`form.${  el.name}`, parseInt(el.value));
-                      } else if (el.type == "date" && el.value) {
+                      } else if (el.type === "date" && el.value) {
                           that.set(`form.${  el.name}`, el.value);
                       } else {
                           that.set(`form.${  el.name}`, el.value);
@@ -1160,8 +1160,8 @@ Polymer({
                   // if field is a dependency of another field
                   that.fields.forEach(function (depel, index) {
                       if (depel.showIf &&
-                          depel.showIf.fieldName != 'yaml_or_form' &&
-                          depel.showIf.fieldName == el.name) {
+                          depel.showIf.fieldName !== 'yaml_or_form' &&
+                          depel.showIf.fieldName === el.name) {
                           if (depel.options) {
                               that.set(`fields.${  index  }.options`,
                                   depel.options);
@@ -1210,20 +1210,20 @@ Polymer({
           if (el.pattern) return this._validatePatternedField(el);
 
           // Required checkboxes should be selected
-          if (el.type == "checkboxes") {
+          if (el.type === "checkboxes") {
               return !!el.value;
           }
 
-          if (el.name == "cloud_init") {
+          if (el.name === "cloud_init") {
               return typeof el.value === "string" && (el.value.startsWith("#!/bin/bash") || el.value.startsWith(
-                                          "#cloud-config") || el.value.trim() == "");
+                                          "#cloud-config") || el.value.trim() === "");
           }
 
-          if (el.type == "mist_machine" || el.type == "mist_networks") {
+          if (el.type === "mist_machine" || el.type === "mist_networks") {
               return el.valid;
           }
 
-          if (el.name == "admin_state_up" || el.type == "toggle" || el.type == "radio"){
+          if (el.name === "admin_state_up" || el.type === "toggle" || el.type === "radio"){
               return  true;
           }
 
@@ -1269,7 +1269,7 @@ Polymer({
           return !el.required || !el.show;
 
       let valid;
-      if (el.validate == "inFuture") {
+      if (el.validate === "inFuture") {
           const now = moment();
           valid = moment(el.value).isValid() && !moment(el.value).isBefore(now);
       } else {
@@ -1284,14 +1284,14 @@ Polymer({
   },
 
   _validateMistSize (el) {
-      return el.value == "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length; 
+      return el.value === "custom" ? this._validateCustomValue(el.customSizeFields, el.customValue) : el.value.length;
   },
 
   _validateCustomValue (customSizeFields, customValue) {
       // console.log('_validateCustomValue',customSizeFields, customValue);
       if (customSizeFields && customValue) {
           for (let i=0; i<customSizeFields.length; i++) {
-              if (customValue[customSizeFields[i].name] == undefined || customValue[customSizeFields[i].name] == ""){
+              if (customValue[customSizeFields[i].name] === undefined || customValue[customSizeFields[i].name] === ""){
                   console.warn(customValue[customSizeFields[i].name], ' not valid')
                   return false;
               }
@@ -1321,19 +1321,19 @@ Polymer({
       if (this.workflow) {
           const inps = YAML.parse(this.form.stackinputs) || {};
           for (var p in inps) {
-              const field = this.fields.find(function(f) { return f.name == p });
-              if (field.excludeFromPayload == true) {
+              const field = this.fields.find(function(f) { return f.name === p });
+              if (field.excludeFromPayload === true) {
                   delete inps[p];
               } else {
                   if (p.startsWith('mist_location')) {
-                      inps[p] = inps[p] != undefined ? inps[p].toString() : '';
+                      inps[p] = inps[p] !== undefined ? inps[p].toString() : '';
                   }
                   if (p.startsWith('mist_size')) {
-                      if (field && field.type == 'mist_size' && field.value == 'custom') {
+                      if (field && field.type === 'mist_size' && field.value === 'custom') {
                           inps[p] = field.customValue;
                       }
                   }
-                  if (field.preformatPayloadValue != undefined && field.preformatPayloadValue.apply) {
+                  if (field.preformatPayloadValue !== undefined && field.preformatPayloadValue.apply) {
                       inps[p] = field.preformatPayloadValue.apply(field.value);
                   }
               }
@@ -1355,20 +1355,20 @@ Polymer({
 
           // clean up form for payload
           const excludeFields = this.fields.filter(function (el) {
-              return el.excludeFromPayload == true;
+              return el.excludeFromPayload === true;
           });
 
           // if there's a list field add it as a nested object under the subform title.
           this.fields.forEach(function (field) {
-              if (field.type == 'mist_size' && field.value == "custom") {
+              if (field.type === 'mist_size' && field.value === "custom") {
                   payload[field.name] = field.customValue;
               }
-              if (field.type == 'fieldgroup') {
+              if (field.type === 'fieldgroup') {
                   if (!field.enabled) {
                       excludeFields.push(field);
                   } else {
                       for(const subfield of field.subfields){
-                      if(subfield.type == 'list'){
+                      if(subfield.type === 'list'){
                           const list = subfield;
                           var subformPayload = [];
                           if (list && list.items.length) {
@@ -1387,10 +1387,10 @@ Polymer({
                       payload[field.name] = field.value;
                   }
               }
-              if (field.type == 'duration-field' && field.value && field.valueType == 'date') {
+              if (field.type === 'duration-field' && field.value && field.valueType === 'date') {
                   payload[field.name] = this._updateDateCalculationOnRequest(field.value);
               }
-              if (field.type == 'list') {
+              if (field.type === 'list') {
                   var subformPayload = [];
                   if (field.items && field.items.length) {
                       for (let i = 0; i < field.items.length; i++) {
@@ -1404,7 +1404,7 @@ Polymer({
                       }
                   }
                   payload[field.name] = subformPayload;
-              } else if (field.type == 'date' && field.value) {
+              } else if (field.type === 'date' && field.value) {
                   payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:mm:ss");
               }
           }.bind(this));
@@ -1432,11 +1432,11 @@ Polymer({
           return true;
       if (field.showIf && (field.showIf.fieldExists || field.showIf.fieldName)) {
           let d = list.find(function (f) {
-              return f.name == field.showIf.fieldName;
+              return f.name === field.showIf.fieldName;
           });
           // try in fields
           if (!d) {
-              d = this.fields.find(function (l) {return l.name == field.showIf.fieldName;})
+              d = this.fields.find(function (l) {return l.name === field.showIf.fieldName;})
           }
           if (d && (field.showIf.fieldExists && d.value) || (field.showIf.fieldValues && field.showIf.fieldValues.indexOf(
                   d.value) > -1))
@@ -1462,10 +1462,10 @@ Polymer({
           if (el.showIf) {
               this.set(`fields.${  index  }.show`, false);
           }
-          if (el.type == 'list') {
+          if (el.type === 'list') {
               for (let i = 0; i < el.options.length; i++) {
                   this.set(`fields.${  index  }.options.${  i  }.value`, this.get(
-                      `fields.${  index  }.options.${  i 
+                      `fields.${  index  }.options.${  i
                       }.defaultValue`) || '')
               }
           }
@@ -1486,7 +1486,7 @@ Polymer({
 
   _assertShowIfQuery (name) {
       this.fields.forEach(function (el, index) {
-          if (el.showIf && el.showIf.fieldName == name) {
+          if (el.showIf && el.showIf.fieldName === name) {
               if (this._query(el.showIf.query) in el.showIf.queryResult) {
                   this.set(`fields.${  index  }.options`, []);
               }
@@ -1496,7 +1496,7 @@ Polymer({
 
   _recomputeDependentFields (name) {
       this.fields.forEach(function (el, index) {
-          if (el.showIf && el.showIf.fieldName == name) {
+          if (el.showIf && el.showIf.fieldName === name) {
               this.set(`fields.${  index  }.options`, []);
           }
       }.bind(this));
@@ -1516,16 +1516,16 @@ Polymer({
 
   _validateCidrArray (field) {
       const {value} = field;
-      if (value == '' || value == undefined)
+      if (value === '' || value === undefined)
           return false;
 
       const ipArray = value.split('\n');
-      if (ipArray.length == 0)
+      if (ipArray.length === 0)
           return false;
 
       const ret = true;
       for (let i = 0; i < ipArray.length; i++) {
-          ret == ret && this._validateCidr(ipArray[i]);
+          ret === ret && this._validateCidr(ipArray[i]);
       }
       return ret;
   },
@@ -1571,7 +1571,7 @@ Polymer({
 
   _computeResourceTypeForField (str, length) {
       let ret = str ? str.replace(/_[0-9]/g, " ").replace(/_/g, " ").replace(/mist/g, "").replace("*", "").replace("uuids", "").replace("ids", "").replace("id", "").replace(/s$/,'').trim() : '';
-      if (length != undefined && length > 1)
+      if (length !== undefined && length > 1)
           ret += 's';
       return ret;
 
@@ -1580,9 +1580,9 @@ Polymer({
   _displayDate (field, value) {
       if (!field.value || !moment.unix(field.value/1000).isValid()) {
           return field.placeholder ? field.placeholder : "SELECT DATE";
-      } 
+      }
           return moment.unix(field.value/1000).utc().fromNow();
-      
+
   },
 
   _constructCheckboxValue (fieldname) {
@@ -1598,11 +1598,11 @@ Polymer({
   _updateCheckboxesField (e) {
       // console.log('_updateCheckboxesField', e, e.model);
       const fieldInd = this.fields.findIndex(function (f) {
-          return f.name == e.model.field.name;
+          return f.name === e.model.field.name;
       })
       const arr = this.get(`fields.${  fieldInd  }.value`) || [];
       if (fieldInd > -1) {
-          if (e.target.checked && arr.indexOf(e.model.option.id) == -1)
+          if (e.target.checked && arr.indexOf(e.model.option.id) === -1)
               arr.push(e.model.option.id);
           else if (!e.target.checked && arr.indexOf(e.model.option.id) > -1)
               arr.splice(arr.indexOf(e.model.option.id),1)
@@ -1631,15 +1631,15 @@ Polymer({
   },
 
   _noOptions (options, length, loader) {
-      return !loader && (!options || options.length == 0);
+      return !loader && (!options || options.length === 0);
   },
 
   _getPayloadValue(field, option) {
       if (!field.payloadValue){
           return option.id;
-      } 
+      }
           return option[field.payloadValue];
-      
+
   },
 
   _filter (options, search) {
