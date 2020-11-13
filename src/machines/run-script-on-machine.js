@@ -86,9 +86,9 @@ Polymer({
 
   listeners: {},
   ready() {},
-  computedSelectedScriptId(selected) {},
+  computedSelectedScriptId(_selected) {},
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.set('selected', false);
       this.set('selectedScriptId', false);
       this.set('params', '');
@@ -102,15 +102,14 @@ Polymer({
   runScript(_e) {
       const request = this.$.runScriptRequest;
       const scriptparams = this.params || '';
-
+      const items = this.items.slice(0);
       console.log('runScript', request.id, items, scriptparams);
-      var items = this.items.slice(0);
-      var run = function(el) {
+      const run = (el) => {
           const item = items.shift();
           let itemId;
           if (item.length) {
               const chunks = item.split(':');
-              itemId = chunks[2];
+              [, , itemId] = chunks;
           } else {
               itemId = item.id;
           }
