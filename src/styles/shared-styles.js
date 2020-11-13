@@ -598,6 +598,9 @@ h2 {
     letter-spacing: 0;
     line-height: 48px;
     margin: 8px 0;
+}
+
+h2::first-letter {
     text-transform: capitalize;
 }
 
