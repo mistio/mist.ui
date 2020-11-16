@@ -155,8 +155,8 @@ Polymer({
         </style>
 
         <!-- local DOM goes here -->
-        <paper-menu-button id="notes" hidden="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
-            <paper-icon-button icon\$="[[indicatorIcon]]" type\$="[[indicatorType]]" class="notification-icon dropdown-trigger" slot="dropdown-trigger"></paper-icon-button>
+        <paper-menu-button id="notes" hidden$="[[hidden]]" horizontal-align="right" vertical-offset="56" opened="{{opened}}" ignore-select="true">
+            <paper-icon-button hidden$="[[hidden]]" icon\$="[[indicatorIcon]]" type\$="[[indicatorType]]" class="notification-icon dropdown-trigger" slot="dropdown-trigger"></paper-icon-button>
             <div class="dropdown-content" slot="dropdown-content">
                 <div class="grid-row">
                     <h4>[[_computeTitle(notifications)]]</h4>
@@ -408,7 +408,6 @@ Polymer({
       this.$.requestDismiss.url = dismissURL;
       this.$.requestDismiss.headers["Csrf-Token"] = CSRFToken.value;
       this.$.requestDismiss.generateRequest();
-      debugger;
       event.target.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.close()
   },
 
