@@ -408,7 +408,6 @@ Polymer({
       this.$.requestDismiss.url = dismissURL;
       this.$.requestDismiss.headers["Csrf-Token"] = CSRFToken.value;
       this.$.requestDismiss.generateRequest();
-      debugger;
       event.target.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.parentElement.close()
   },
 

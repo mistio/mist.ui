@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner-lite.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../helpers/dialog-element.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import moment from 'moment/src/moment.js';
@@ -528,7 +529,7 @@ Polymer({
 
       if (response == 'confirm' && reason == "plan.cancel") {
           this.$.cancelPlanAjaxRequest.headers["Content-Type"] = 'application/json';
-          this.$.cancelPlanAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.cancelPlanAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.cancelPlanAjaxRequest.generateRequest();
       }
   },

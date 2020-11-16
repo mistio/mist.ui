@@ -42,8 +42,8 @@ import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { _generateMap } from './helpers/utils.js'
 import PROVIDERS from './helpers/providers.js';
 
-const $_documentContainer = document.createElement('template');
-$_documentContainer.innerHTML = `<dom-module id="mist-app">
+const documentContainer = document.createElement('template');
+documentContainer.innerHTML = `<dom-module id="mist-app">
     <template>
         <style include="custom-style">
         :host [hidden] {
@@ -178,11 +178,11 @@ $_documentContainer.innerHTML = `<dom-module id="mist-app">
         <app-route route="{{route}}" pattern="/:page" data="{{routeData}}" tail="{{subroute}}"></app-route>
         <app-header-layout mode="standard" class="fit" fullbleed="">
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
-            <app-header slot="header" fixed="" shadow="" hidden\$="[[fullscreen]]">
+            <app-header slot="header" fixed="" shadow="" hidden$="[[fullscreen]]">
                 <mist-header sticky="" model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened="{{userMenuOpened}}" ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer="" smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]" isclosed="{{sidebarIsClosed}}"></mist-sidebar>
-            <div id="main-loader" class\$="is-loading-html active-[[loading]]">
+            <div id="main-loader" class$="is-loading-html active-[[loading]]">
                 <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
@@ -195,16 +195,16 @@ $_documentContainer.innerHTML = `<dom-module id="mist-app">
                     <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
                     <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                     <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
-                    <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden\$="[[!config.features.tunnels]]"></page-tunnels>
+                    <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
                     <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
                     <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-schedules>
                     <page-rules name="rules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" features="[[config.features]]"></page-rules>
-                    <page-templates name="templates" route="{{subroute}}" model="[[model]]" hidden\$="[[!config.features.orchestration]]"></page-templates>
-                    <page-stacks name="stacks" route="{{subroute}}" model="[[model]]" hidden\$="[[!config.features.orchestration]]"></page-stacks>
+                    <page-templates name="templates" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-templates>
+                    <page-stacks name="stacks" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-stacks>
                     <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac="[[config.features.rbac]]" billing="[[config.features.billing]]" cta="[[config.cta.rbac]]" email="[[config.email]]" docs="[[config.features.docs]]"></page-teams>
                     <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
                     <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
-                    <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" currency="[[config.features.currency]]" insights-enabled="[[model.org.insights_enabled]]" hidden\$="[[!config.features.insights]]"></page-insights>
+                    <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" currency="[[config.features.currency]]" insights-enabled="[[model.org.insights_enabled]]" hidden$="[[!config.features.insights]]"></page-insights>
                 </template>
                 <page-my-account name="my-account" route="{{subroute}}" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" config="[[config]]"></page-my-account>
                 <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
@@ -219,7 +219,7 @@ $_documentContainer.innerHTML = `<dom-module id="mist-app">
     
 </dom-module>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);
 
 /*
   FIXME(polymer-modulizer): the above comments were extracted
@@ -392,15 +392,15 @@ Polymer({
         }
     },
 
-    _observeKeys(keysSplices) {
+    _observeKeys(_keysSplices) {
         this.fire('update-keys');
     },
 
-    _observeScripts(scriptsSplices) {
+    _observeScripts(_scriptsSplices) {
         this.fire('update-scripts');
     },
 
-    _forwardEvent (e) {
+    _forwardEvent (_e) {
         this.shadowRoot.querySelector('page-machines').shadowRoot.querySelector('machine-page').shadowRoot.querySelector('mist-monitoring').fire('update-dashboard');
     },
 
@@ -410,7 +410,7 @@ Polymer({
         }  
     },
 
-    _computeCcRequired(org, clouds) {
+    _computeCcRequired(_org, _clouds) {
         if (!this.config || !this.config.features || !this.config.features.billing || !this.model.org || this.model.org.card || this.model.org.current_plan)
             return false;
         return !!this.model.cloudsArray.length;
@@ -423,13 +423,13 @@ Polymer({
 
     _ccDismissed() {
         if (this.ccRequired)
-            this.async(function() {
+            this.async(() => {
                 if (this.ccRequired)
                     this.$.mistAppCcRequired.open();
-            }.bind(this), 1000 * 60);
+            }, 1000 * 60);
     },
 
-    _sizeChanged(smallscreen) {
+    _sizeChanged(_smallscreen) {
         if (this.$.sidebar) {
             if (this.smallscreen) {
                 this.$.sidebar.closeSidebar();
@@ -439,7 +439,7 @@ Polymer({
         }
     },
 
-    _computeCenterContent(sidebarIsClosed, smallscreen) {
+    _computeCenterContent(_sidebarIsClosed, _smallscreen) {
         return this.sidebarIsClosed || this.smallscreen;
     },
 
@@ -460,7 +460,7 @@ Polymer({
             }
             // use in redirects to filtered lists, ex from ec2 cloud page to ec2 filtered machine list
             if (e.detail.search) {
-                this.async(function() {
+                this.async(() => {
                     this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail: {page: e.detail.url.replace('/',''), q:e.detail.search} }));
                 }, 400);
             }
@@ -508,17 +508,17 @@ Polymer({
         }
     },
 
-    openAndSelect(e) {
-        document.addEventListener('open-and-select', function(e) {
+    openAndSelect(_e) {
+        document.addEventListener('open-and-select', (e) => {
             this.shadowRoot.querySelector('machine-page machine-actions associate-key').openAndSelect(
                 e);
-        }.bind(this), {passive: true});
+        }, {passive: true});
     },
 
-    openCloudEdit(e) {
-        document.addEventListener('cloud-edit-key', function(e) {
+    openCloudEdit(_e) {
+        document.addEventListener('cloud-edit-key', (e) => {
             this.shadowRoot.querySelector('cloud-page cloud-actions').openEditDialog(e);
-        }.bind(this), {passive: true});
+        }, {passive: true});
     },
 
     updateKeys(e) {
@@ -556,8 +556,8 @@ Polymer({
             pagesElement.querySelector('page-schedules').shadowRoot.querySelector('schedule-add').updateScripts(e);
         }
     },
-
-    _routePageChanged(page, subpath) {
+    /* eslint-disable no-param-reassign */
+    _routePageChanged(page, _subpath) {
         this.set('count','');
         if (this.smallscreen) {
             this.$.sidebar.closeSidebar();
@@ -567,18 +567,18 @@ Polymer({
         this.page = page || 'dashboard';
         this.set('visibleSuggestions', false);
     },
-
+    /* eslint-enable no-param-reassign */ 
     clearSearch() {
         document.querySelector('top-search').clearSearch();
         this.set('q', '');
         if (this.model && this.model.sections) {
-            for (const sec in this.model.sections) {
+            Object.keys(this.model.sections || {}).forEach((sec) => {
                 this.set(`model.sections.${  sec  }.q`, '');
-            }
+            });
         }
     },
 
-    clearSearchPreservingFilters(e) {
+    clearSearchPreservingFilters(_e) {
         let q = this.q || '';
             const filterOwner = q.indexOf('owner:') > -1;
             const ownerRegex = /owner:(\S*)\s?/;
@@ -589,9 +589,9 @@ Polymer({
         }
         this.set('q', this.q.replace(q, ''));
         if (this.model && this.model.sections) {
-            for (const sec in this.model.sections) {
+            Object.keys(this.model.sections || {}).forEach((sec) => {
                 this.set(`model.sections.${  sec  }.q`, this.q.replace(q, ''));
-            }
+            });
         }
         this.dispatchEvent(new CustomEvent('search', { bubbles: true, composed: true, detail:  this.q.replace(q, '') }));
     },
@@ -618,13 +618,13 @@ Polymer({
     },
 
     _isPage(page) {
-        return this.page == page;
+        return this.page === page;
     },
 
     updateSearchQuery(e) {
-        if (e.detail != undefined && e.detail.q != undefined) {
+        if (e.detail !== undefined && e.detail.q !== undefined) {
             console.log('search: update Search Query', e.detail);
-            if (e.detail.page && this.page == e.detail.page) {
+            if (e.detail.page && this.page === e.detail.page) {
                 this.set(`model.sections.${  this.page  }.q`, e.detail.q || '');
             }
             this.set('q', e.detail.q);
@@ -1054,8 +1054,6 @@ Polymer({
 
     _getBrowser() {
         const userAgent = navigator.userAgent.toLowerCase();
-        const {productSub} = navigator;
-
         // we extract the browser from the user agent (respect the order of the tests)
         let browser;
         if (userAgent.indexOf("firefox") >= 0) {
@@ -1075,8 +1073,8 @@ Polymer({
     },
 
     _computeViewingList(subroute) {
-        return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) == -1 &&
-            subroute.path == "";
+        return ["/", "/dashboard", "/my-account", "/insights"].indexOf(subroute.prefix) === -1 &&
+            subroute.path === "";
     },
 
     _exportCsvMessage(e) {
@@ -1094,7 +1092,7 @@ Polymer({
     },
 
     closeIfClickedElsewhere(e) {
-        if (this.visibleSuggestions && e.path.indexOf(this.shadowRoot.querySelector('mist-header')) == -1)
+        if (this.visibleSuggestions && e.path.indexOf(this.shadowRoot.querySelector('mist-header')) === -1)
             this.set('visibleSuggestions', false);
     },
 
@@ -1111,7 +1109,7 @@ Polymer({
     },
 
     _registerStreamingTarget (e) {
-        if (this.streamingTargets.indexOf(e.detail) == -1) {
+        if (this.streamingTargets.indexOf(e.detail) === -1) {
             this.streamingTargets.push(e.detail);
         }
     },
@@ -1124,7 +1122,7 @@ Polymer({
     },
 
     _logReceived (e) {
-        this.streamingTargets.forEach(function (stream) {
+        this.streamingTargets.forEach((stream) => {
             stream.fire('receive-log', e.detail);
         });
     },
@@ -1157,48 +1155,48 @@ Polymer({
         }
     },
     _restoreSectionsCounts() {
-        const that = this;
-        for (const prop in this.model) {
+        Object.keys(this.model || {}).forEach((prop) => {
             if (this.model.sections[prop] && this.model[prop]) {
                 // set counts to full model resources length
                 this.set(`model.sections.${prop}.count`, Object.values(this.model[prop]).length);
             }
-        }
+        });
     },
     _updateSectionsCounts(q) {
         const that = this;
-        for (const prop in this.model) {
+        Object.keys(this.model || {}).forEach((prop) => {
             if (this.model.sections[prop] && this.model[prop]) {
                 // set counts to filtered model resources length
-                this.set(`model.sections.${prop}.count`, Object.values(this.model[prop]).filter(function(r){
+                this.set(`model.sections.${prop}.count`, Object.values(this.model[prop]).filter((r) => {
                     return that._filterModel(r, q);
                 }).length);
             }
-        }
+        });
     },
+    /* eslint-disable no-param-reassign */
     _filterModel(item,q) {
-        var q = q || '';
-            const filterOwner = q.indexOf('owner:') > -1;
-            const ownerRegex = /owner:(\S*)\s?/;
-            const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-            let queryTerms; let str;
+        q = q || '';
+        const filterOwner = q.indexOf('owner:') > -1;
+        const ownerRegex = /owner:(\S*)\s?/;
+        const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+        let str;
 
         if (filterOwner && owner && owner.length) {
             q = q.replace('owner:', '').replace(`${owner  }`, '');
 
-            if (owner == "$me") {
-                if (!item.owned_by || item.owned_by != this.model.user.id)
+            if (owner === "$me") {
+                if (!item.owned_by || item.owned_by !== this.model.user.id)
                     return false;
             } else {
-                const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find(function(m) {
+                const ownerObj = this.model && this.model.membersArray && this.model.membersArray.find((m) => {
                     return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
                 });
-                if (!ownerObj || !item.owned_by || item.owned_by != ownerObj.id)
+                if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
                     return false;
             }
         }
 
-        queryTerms = q.split(' ');
+        const queryTerms = q.split(' ');
         str = JSON.stringify(item);
         if (this.model && this.model.clouds && item && item.cloud && this.model.clouds[item.cloud]) {
             str += `${this.model.clouds[item.cloud].provider  }${  this.model.clouds[item.cloud].title}`;
@@ -1215,24 +1213,24 @@ Polymer({
         }
         return true;
     },
-
+    /* eslint-enable no-param-reassign */
     _stopPropagation(e) {
         e.stopPropagation();
     }
 });
-
-Number.prototype.formatMoney = function(c, d, t) {
+// What is this??
+Number.prototype.formatMoney = (c, d, t) => {
     let n = this;
-        var c = isNaN(c = Math.abs(c)) ? 2 : c;
-        var d = d == undefined ? "." : d;
-        var t = t == undefined ? "," : t;
-        const s = n < 0 ? "-" : "";
-        const i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c)));
-        var j = (j = i.length) > 3 ? j % 3 : 0;
+    c = isNaN(c = Math.abs(c)) ? 2 : c;
+    d = d === undefined ? "." : d;
+    t = t === undefined ? "," : t;
+    const s = n < 0 ? "-" : "";
+    const i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c), 10));
+    let j = i.length
+    j = j > 3 ? j % 3 : 0;
     return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, `$1${  t}`) + (c ? d +
         Math.abs(n - i).toFixed(c).slice(2) : "");
 };
-
 document.addEventListener('iron-overlay-opened', function moveBackdrop(event) {
   const dialog = dom(event).rootTarget;
   if (dialog.withBackdrop) {

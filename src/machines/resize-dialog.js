@@ -5,6 +5,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -207,20 +208,20 @@ Polymer({
   resizeMachine() {
       if (this.showCustomSizeForm) {
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
-          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRFToken.value;
           this.$.resizeMachine.body = { "action": "resize", "cpus": this.cpus, "memory": this.memory };
           this.$.resizeMachine.generateRequest();
       } else if (!this.showCustomSizeForm) {
           this.$.resizeMachine.headers["Content-Type"] = 'application/json';
-          this.$.resizeMachine.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.resizeMachine.headers["Csrf-Token"] = CSRFToken.value;
           this.$.resizeMachine.body = { "action": "resize", "size": this.selectedSize };
           this.$.resizeMachine.generateRequest();
       }
   },
 
-  _updateShowNotification(machine, memory) {
+  _updateShowNotification(_machine, _memory) {
       if (this.machine && this.machine.extra.hypervisor_type) {
-          if (this.machine.extra.hypervisor_type == 'kvm' && this.current_memory >= this.memory) {
+          if (this.machine.extra.hypervisor_type === 'kvm' && this.current_memory >= this.memory) {
               this.set('showNotification', false);
               this.set('buttonColor', 'blue');
           } else {
@@ -230,12 +231,12 @@ Polymer({
       }
   },
 
-  updateValues(machine) {
+  updateValues(_machine) {
       if (this.machine) {
           if (this.showCustomSizeForm) {
               this.set('size', `Current ${  this.machine.extra.size}`);
           } else {
-              const currentSize = this.sizes.find(function(p) { return p.id == this.machine.size }.bind(this));
+              const currentSize = this.sizes.find((p) => { return p.id === this.machine.size });
                   const name = currentSize ? currentSize.name : "";
               this.set('size', name.length ? `Current ${  name}` : '');
           }
@@ -243,47 +244,50 @@ Polymer({
       this.clearError();
   },
 
-  computeCurrentCpus(machine) {
+  computeCurrentCpus(_machine) {
       if (this.machine && this.machine.extra && this.machine.extra.cpus) {
           this.cpus = this.machine.extra.cpus;
           return this.machine.extra.cpus;
       }
+      return "";
   },
 
-  computeCurrentMemory(machine) {
+  computeCurrentMemory(_machine) {
       if (this.machine && this.machine.extra && this.machine.extra.memory) {
           this.memory = this.machine.extra.memory;
           return this.machine.extra.memory;
       }
+      return "";
   },
 
-  computeShowCustomSizeForm(machine_cloud, clouds) {
+  computeShowCustomSizeForm(_machineCloud, _clouds) {
       if (this.machine && this.machine.cloud && this.clouds && this.clouds[this.machine.cloud] && this.clouds[this.machine.cloud].provider)
           return ['onapp'].indexOf(this.clouds[this.machine.cloud].provider) > -1;
+      return false;
   },
 
   _updateSizes(machine, clouds) {
-      if (this.machine && this.clouds && this.clouds[this.machine.cloud] && (clouds.path == 'clouds' || clouds.path.startsWith(`clouds.${  this.machine.cloud  }.sizes`))) {
+      if (this.machine && this.clouds && this.clouds[this.machine.cloud] && (clouds.path === 'clouds' || clouds.path.startsWith(`clouds.${  this.machine.cloud  }.sizes`))) {
           // console.log('update sizes', clouds.path);
           let sizes = [];
           if (this.clouds[this.machine.cloud].provider.startsWith("aliyun")) {
               const machineLocationID = this.machine.location;
               const machineLocation = this.clouds[this.machine.cloud].locations[machineLocationID];
-              const availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter(function(size){
+              const availableLocationSizes = this.clouds[this.machine.cloud].sizesArray.filter((size) => {
                   return machineLocation.extra.available_instance_types.indexOf(size.external_id) > -1;
               })
               sizes = availableLocationSizes || [];
-              // console.log("sizes", this.clouds[this.machine.cloud].locations[machineLocationID].extra.available_instance_types.length == this.sizes.length);
+              // console.log("sizes", this.clouds[this.machine.cloud].locations[machineLocationID].extra.available_instance_types.length === this.sizes.length);
           } else {
               sizes = this.clouds[this.machine.cloud].sizesArray || [];
           }
-          this.set('sizes', sizes.sort(function(a,b){
+          this.set('sizes', sizes.sort((a,b) => {
                   if (this.isCurrent(a,machine.size))
                       return -1;
                   if (this.isCurrent(b,machine.size))
                       return 1;
                   return 0;
-              }.bind(this)));
+              }));
           this.$.dialogModal.refit();
       }
   },
@@ -298,25 +302,25 @@ Polymer({
       this.$.dialogModal.refit();
   },
 
-  _updateFormReadyOnapp(current_cpus, current_memory, cpus, memory) {
+  _updateFormReadyOnapp(currentCpus, currentMemory, cpus, memory) {
       if (this.showCustomSizeForm) {
-          this.set('formReady', (cpus && memory) && (current_cpus != cpus || current_memory != memory));
+          this.set('formReady', (cpus && memory) && (currentCpus !== cpus || currentMemory !== memory));
       }
   },
 
-  _updateFormReady(machine, selectedSize) {
-      if (!this.showCustomSizeForm && this.selectedSize != undefined) {
+  _updateFormReady(_machine, _selectedSize) {
+      if (!this.showCustomSizeForm && this.selectedSize !== undefined) {
           this.set('formReady', true);
       }
   },
 
-  _openDialog(e) {
+  _openDialog(_e) {
       // reset
       this.updateValues(this.machine);
       this.$.dialogModal.open();
   },
 
-  _resizeMachineResponse(e) {
+  _resizeMachineResponse(_e) {
       this.$.dialogModal.close();
       this.clearSelection();
       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: { success: true } }));
@@ -331,10 +335,10 @@ Polymer({
       this.$.dialogModal.refit();
   },
 
-  _resizeMachineRequest(e) {},
+  _resizeMachineRequest(_e) {},
 
   isCurrent(size, machineSize) {
-      return size.id == machineSize || size.name == machineSize;
+      return size.id === machineSize || size.name === machineSize;
   },
 
   clearSelection() {
@@ -348,6 +352,7 @@ Polymer({
       } if (typeof(n) === 'number') {
           return n.formatMoney(0, ',', '.');
       }
+      return null;
   },
 
   displayPrice(size) {
@@ -357,10 +362,10 @@ Polymer({
           return price;
       } if (typeof(price) === 'number') {
           return price.formatMoney();
-      } if (typeof(price) === 'object' && this.machine.os_type == 'windows' && price.mswin) {
+      } if (typeof(price) === 'object' && this.machine.os_type === 'windows' && price.mswin) {
           return price.mswin;
       } if (price && typeof(price) === 'object' && price.linux) {
-          // && this.machine.os_type == 'unix' //show linux price for all other machines
+          // && this.machine.os_type === 'unix' //show linux price for all other machines
           return price.linux;
       } 
           return price ? JSON.stringify(price) : false;

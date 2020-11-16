@@ -12,8 +12,7 @@ import './machine-expiration-edit.js';
 import './machine-actions.js';
 import './machine-r12ns.js';
 import moment from '../../node_modules/moment/src/moment.js';
-import { CSRFToken } from '../helpers/utils.js';
-import { ratedCost, itemUid } from '../helpers/utils.js';
+import { ratedCost, itemUid, CSRFToken } from '../helpers/utils.js';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -997,69 +996,69 @@ Polymer({
   _hasInfo(data) {
       if (!data)
           return false;
-      for (const p in data) {
+      for(const p of Object.keys(data || {})){
           if (data[p])
               return true;
       }
       return false;
   },
 
-  _computeCanEditMachine (machineId, model) {
+  _computeCanEditMachine (machineId, _model) {
       const perm = this.check_perm('edit', 'machine', machineId);
-      return perm != false;
+      return perm !== false;
   },
 
-  _computeCanDeleteExpiration (machineId, model) {
+  _computeCanDeleteExpiration (machineId, _model) {
       const perm = this.check_perm('edit', 'machine', machineId);
-      return perm == true || !perm.expiration || (perm.expiration && !perm.expiration.max);
+      return perm === true || !perm.expiration || (perm.expiration && !perm.expiration.max);
   },
 
   _renderMachineKeys () {
       this.$.machineKeysDomRepeat.render();
   },
 
-  _rulesApplyOnMachine(rules, machineId, machineTags) {
+  _rulesApplyOnMachine(rules, machineId, _machineTags) {
       const machineRules = {};
           let check;
       if (rules && machineId) {
-          for (const p in rules) {
-              const noData = rules[p].actions.find(function(a) { return a.type == 'no_data' }) != undefined;
+          Object.keys(rules || {}).forEach((p) => {
+              const noData = rules[p].actions.find((a) => { return a.type === 'no_data' }) !== undefined;
               // applies on all machines
               if (!rules[p].selectors || !rules[p].selectors.length || noData) {
                   check = true;
-              } else if (rules[p].data_type == "logs" && rules[p].queries.find(function(q) { return q.target.indexOf(`machine_id:${machineId}`) > -1 }) != undefined) {
+              } else if (rules[p].data_type === "logs" && rules[p].queries.find((q) => { return q.target.indexOf(`machine_id:${machineId}`) > -1 }) !== undefined) {
                   check = true;
               } else if (rules[p].selectors && rules[p].selectors.length > 0) {
                   for (let i = 0; i < rules[p].selectors.length; i++) {
                       const selector = rules[p].selectors[i];
                       // applies on specific machines
-                      if (selector.type == 'machines') {
+                      if (selector.type === 'machines') {
                           if (selector.ids.indexOf(machineId) > -1)
                               check = true;
                           else
                               check = false;
-                      } else if (selector.type == 'tags') { // applies on tags
+                      } else if (selector.type === 'tags') { // applies on tags
                           if (!this.machineTags.length)
                               check = false; // machine has no tags
                           else {
-                              for (var q in selector.include) {
-                                  const mtag = this.machineTags.find(function(t) { return t.key == q });
+                              for(const q of Object.keys(selector.include || {})) {
+                                  const mtag = this.machineTags.find((t) => { return t.key === q });
                                   if (!mtag) { // machine has no such tag
                                       check = false;
                                   } else if (!selector.include[q]) {
-                                          check = mtag.value == ""; // if tag value is null machine tag value must be empty string
+                                          check = mtag.value === ""; // if tag value is null machine tag value must be empty string
                                       } else if (selector.include[q]) {
-                                          check = selector.include[q] == mtag.value; // if tag value is !null machine tag value must be equal 
+                                          check = selector.include[q] === mtag.value; // if tag value is !null machine tag value must be equal 
                                       }
                               }
                           }
                       }
                   }
               }
-              if (check == true) {
+              if (check === true) {
                   machineRules[p] = rules[p];
               }
-          }
+          });
       }
       return machineRules;
   },
@@ -1070,16 +1069,17 @@ Polymer({
       }
   },
 
-  _getMachineVolumes(volumes, machine) {
+  _getMachineVolumes(_volumes, _machine) {
       const that = this;
       if (this.machine) {
-          return Object.keys(that.model.volumes).filter(function(k) {
+          return Object.keys(that.model.volumes).filter((k) => {
               return that.model.volumes[k] && that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1;
           });
       }
+      return [];
   },
 
-  _displayUser(id, members) {
+  _displayUser(id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
   },
 
@@ -1091,11 +1091,11 @@ Polymer({
       } }))
   },
 
-  _machineChanged(machine) {
+  _machineChanged(_machine) {
       if (this.machine) {
           this.set('itemArray', [this.machine]);
           // Check if tags changed, update if they did
-          if (this._transformTagsToArray(this.machine.tags).join(',') != this.machineTags.join(','))
+          if (this._transformTagsToArray(this.machine.tags).join(',') !== this.machineTags.join(','))
               this._machineTagsChanged(this.machine, this.machine.tags);
       }
   },
@@ -1107,25 +1107,27 @@ Polymer({
   _computeKeyName(keyid) {
       if (this.model.keys && this.model.keys[keyid])
           return this.model.keys[keyid].name || 'not found';
+      return "not found";
   },
 
   _computeVolumeName(id) {
       if (this.model.volumes[id])
           return this.model.volumes[id] && (this.model.volumes[id].name || this.model.volumes[id].external_id) || 'not found';
+      return "not found";
   },
 
-  _computeThisItemUid(machine) {
+  _computeThisItemUid(_machine) {
       const itemUidInArray = [];
       itemUidInArray.push(itemUid(this.machine, this.model.sections.machines));
       return itemUidInArray;
   },
 
-  _computeAssociatedKeys(machine, keys, keyLength, machineChangeRecord) {
-      this.async(function () {this._renderMachineKeys()}, 500);
+  _computeAssociatedKeys(_machine, _keys, _keyLength, _machineChangeRecord) {
+      this.async(() => {this._renderMachineKeys()}, 500);
       return this.machine && this.machine.key_associations ? this.machine.key_associations : [];
   },
 
-  _computeVNFs(machine) {
+  _computeVNFs(_machine) {
       return this.machine && this.machine.extra && this.machine.extra.vnfs || [];
   },
 
@@ -1147,7 +1149,7 @@ Polymer({
       return '';
   },
 
-  computeMachineIp(machineips) {
+  computeMachineIp(_machineips) {
       return this.machine && this.machine.public_ips ? this.machine.public_ips[0] : '';
   },
 
@@ -1159,7 +1161,7 @@ Polymer({
       return machineIsMonitored;
   },
 
-  _computeIsActivated(machine, monitoring) {
+  _computeIsActivated(machine, _monitoring) {
       if (!this.machine || !this.model.monitoring || !this.model.monitoring.monitored_machines || !
           this.model.monitoring.monitored_machines[machine.id] || !this.model.monitoring.monitored_machines[
               machine.id].installation_status.activated_at) {
@@ -1171,17 +1173,18 @@ Polymer({
           console.warn('machine monitoring is activated at: ', this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at);
           return this.model.monitoring.monitored_machines[machine.id].installation_status.activated_at;
       }
+      return "";
   },
 
-  _computeMachineName(machine) {
+  _computeMachineName(_machine) {
       return this.machine && this.machine.name || '';
   },
 
-  _computeMachineState(machine) {
+  _computeMachineState(_machine) {
       return this.machine && this.machine.state || '';
   },
 
-  _machineTagsChanged(machine, tags) {
+  _machineTagsChanged(_machine, _tags) {
       if (this.machine) {
           this.set('machineTags', this._transformTagsToArray(this.machine.tags));
       }
@@ -1204,9 +1207,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element#machinedialog');
       if (info) {
-          for (const i in info) {
+          Object.keys(info || {}).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -1219,14 +1222,15 @@ Polymer({
 
   _hasExtraStatus(machine) {
       if (machine && machine.state && machine.extra.status)
-          return machine.state.toLowerCase() == machine.extra.status.toLowerCase();
+          return machine.state.toLowerCase() === machine.extra.status.toLowerCase();
+      return false;
   },
 
   _computeExtraStatus(machine) {
       return machine && machine.extra && machine.extra.status && machine.extra.status.toLowerCase();
   },
 
-  _computeIsloading(machine) {
+  _computeIsloading(_machine) {
       return !this.machine;
   },
 
@@ -1247,11 +1251,11 @@ Polymer({
       });
   },
 
-  _disassociateKeyRequest(e) {
+  _disassociateKeyRequest(_e) {
       this.set('isPendingKeyRequest', true);
   },
 
-  _disassociateKeyResponse(e) {
+  _disassociateKeyResponse(_e) {
       this.set('isPendingKeyRequest', false);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Key was removed from machine',
@@ -1286,7 +1290,7 @@ Polymer({
       });
   },
 
-  _detachVolumeResponse(e) {
+  _detachVolumeResponse(_e) {
       this.set('isPendingVolumeRequest', false);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: 'Volume was detached from machine',
@@ -1304,23 +1308,23 @@ Polymer({
   },
 
   _machineActionConfirmation(e) {
-      if (e.detail.response == "confirm" && e.detail.reason == "machine.expiration_delete") {
+      if (e.detail.response === "confirm" && e.detail.reason === "machine.expiration_delete") {
           this.set('isPendingExpirationRequest', true);
           const emptyExpDate = {expiration: {date:false}};
           this.shadowRoot.querySelector('#deleteExpirationDate').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#deleteExpirationDate').headers["Content-Type"] = 'application/json';
           this.shadowRoot.querySelector('#deleteExpirationDate').body = emptyExpDate;
           this.shadowRoot.querySelector('#deleteExpirationDate').generateRequest();
-      } else if (e.detail.response == "confirm" && e.detail.reason == "disassociate.key") {
+      } else if (e.detail.response === "confirm" && e.detail.reason === "disassociate.key") {
           this.shadowRoot.querySelector('#disassociateKeyRequest').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#disassociateKeyRequest').generateRequest();
-      } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
+      } else if (e.detail.response === "confirm" && e.detail.reason === "detach.volume") {
           this.shadowRoot.querySelector('#detachVolumeRequest').headers["Csrf-Token"] = CSRFToken.value;
           this.shadowRoot.querySelector('#detachVolumeRequest').headers["Content-Type"] = 'application/json';
           this.shadowRoot.querySelector('#detachVolumeRequest').body = { action: 'detach', machine: this.machine.id };
           this.shadowRoot.querySelector('#detachVolumeRequest').generateRequest();
-      } else if (e.detail.response == "confirm" && e.detail.reason == "detach.volume") {
-
+      } else if (e.detail.response === "confirm" && e.detail.reason === "detach.volume") {
+          // did the modulizer eat the statement?
       }
   },
 
@@ -1338,7 +1342,7 @@ Polymer({
       }
   },
 
-  _updateExpirationLoader(e) {
+  _updateExpirationLoader(_e) {
       this.set('isPendingExpirationRequest', true);
   },
 
@@ -1396,16 +1400,15 @@ Polymer({
               return false;
           } 
               const probe = machine.probe.ssh.loadavg;
-              const cores = parseInt(machine.probe.ssh.cores);
+              const cores = parseInt(machine.probe.ssh.cores, 10);
               let classes = '';
-              const prefix = '';
 
               classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
               classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
               classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
 
               // has probe data
-              if (classes != "")
+              if (classes !== "")
                   classes += "hasprobe "
 
               return classes;
@@ -1434,19 +1437,18 @@ Polymer({
 
   },
 
-  _computeMachineImage(machine, cloud) {
+  _computeMachineImage(_machine, _cloud) {
       const item = this.machine;
-      if (!item) return;
+      if (!item) 
+        return null;
       if (item && item.extra.image && typeof(item.extra.image) === "string") {
         return item.extra.image;
-      } else if (item && item.image && typeof(item.image) !== "object") {
+      } if (item && item.image && typeof(item.image) !== "object") {
           if (this.model.images && this.model.images[item.image]) {
               return this.model.images[item.image].name;
           } 
               return item.image;
           
-      } if (item && item.extra.image && typeof(item.extra.image) === "string") {
-          return item.extra.image;
       } if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
           return `${item.extra.image.distribution  } ${  item.extra.image.name}`;
       } if (item && item.extra && item.image_id && this.model.images[item.image_id]) {
@@ -1460,7 +1462,7 @@ Polymer({
       } return "not found";
   },
 
-  _computeMachineSize(item, itemChangeRecord, machines, clouds) {
+  _computeMachineSize(item, _itemChangeRecord, _machines, _clouds) {
       // field could be in the 'extra' section, but should not be an object
       if (item) {
           let ret = item.size;
@@ -1504,22 +1506,24 @@ Polymer({
           return '';
       if (this.machine) {
           return this.model.clouds[machine.cloud].locations && this.model.clouds[machine.cloud].locations[
-              machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name != undefined ?
+              machine.location] && this.model.clouds[machine.cloud].locations[machine.location].name !== undefined ?
           this.model.clouds[machine.cloud].locations[machine.location].name : machine.location;
       }
+      return '';
   },
 
   _getNetworkName(machine) {
       if (!machine)
-          return;
+          return '';
       if (this.machine) {
           return this.model &&
                   this.model.networks &&
                   this.model.networks[machine.network] &&
-                  this.model.networks[machine.network].name != undefined ?
+                  this.model.networks[machine.network].name !== undefined ?
           this.model.networks[machine.network].name : machine.network;
 
       }
+      return '';
   },
 
   _canLinkToNetwork(network) {
@@ -1531,14 +1535,14 @@ Polymer({
       return false;
   },
 
-  _probeMachine(e) {
+  _probeMachine(_e) {
       const payload = {
           'key': this.machineKeys[0].key
       };
       this.$.probeMachine.headers["Csrf-Token"] = CSRFToken.value;
       this.$.probeMachine.params = payload;
       this.$.probeMachine.generateRequest();
-      this.async(function() {
+      this.async(() => {
           this.notifyPath('machine.probe.ssh')
       }, 5000);
   },
@@ -1557,6 +1561,7 @@ Polymer({
               "cloud_id": machine.cloud,
               "machine_id": machine.machine_id
           }
+      return {};
   },
 
   _existsImage(extra) {
@@ -1574,7 +1579,7 @@ Polymer({
       
   },
 
-  _computeImageIcon(machine, probe) {
+  _computeImageIcon(machine, _probe) {
       if (!machine) {
           return false;
       } 
@@ -1584,45 +1589,45 @@ Polymer({
           image = image.toLowerCase();
 
           if (machine.probe && machine.probe.ssh && machine.probe.ssh.distro && machine.probe.ssh.distro
-              .toLowerCase().indexOf('clearos') != -1) {
+              .toLowerCase().indexOf('clearos') !== -1) {
               imageIcon = "clearos";
               this.enableWebconfig();
-          } else if (image.indexOf('ubuntu') != -1)
+          } else if (image.indexOf('ubuntu') !== -1)
               imageIcon = "ubuntu";
-          else if (image.indexOf('netbsd') != -1)
+          else if (image.indexOf('netbsd') !== -1)
               imageIcon = "netbsd";
-          else if (image.indexOf('freebsd') != -1)
+          else if (image.indexOf('freebsd') !== -1)
               imageIcon = "freebsd";
-          else if (image.indexOf('openbsd') != -1)
+          else if (image.indexOf('openbsd') !== -1)
               imageIcon = "openbsd";
-          else if (image.indexOf('alpine') != -1)
+          else if (image.indexOf('alpine') !== -1)
               imageIcon = "alpine";
-          else if (image.indexOf('red hat') != -1)
+          else if (image.indexOf('red hat') !== -1)
               imageIcon = "red-hat";
-          else if (image.indexOf('gentoo') != -1)
+          else if (image.indexOf('gentoo') !== -1)
               imageIcon = "gentoo";
-          else if (image.indexOf('arch') != -1)
+          else if (image.indexOf('arch') !== -1)
               imageIcon = "arch";
-          else if (image.indexOf('coreos') != -1)
+          else if (image.indexOf('coreos') !== -1)
               imageIcon = "coreos";
-          else if (image.indexOf('mongo') != -1)
+          else if (image.indexOf('mongo') !== -1)
               imageIcon = "mongo";
-          else if (image.indexOf('clearos') != -1) {
+          else if (image.indexOf('clearos') !== -1) {
               imageIcon = "clearos";
               this.enableWebconfig();
-          } else if (image.indexOf('ami-') != -1)
+          } else if (image.indexOf('ami-') !== -1)
               imageIcon = "aws";
-          else if (image.indexOf('centos') != -1)
+          else if (image.indexOf('centos') !== -1)
               imageIcon = "centos";
-          else if (image.indexOf('debian') != -1)
+          else if (image.indexOf('debian') !== -1)
               imageIcon = "debian";
-          else if (image.indexOf('fedora') != -1)
+          else if (image.indexOf('fedora') !== -1)
               imageIcon = "fedora";
-          else if (image.indexOf('suse') != -1)
+          else if (image.indexOf('suse') !== -1)
               imageIcon = "suse";
-          else if (image.indexOf('linux') != -1)
+          else if (image.indexOf('linux') !== -1)
               imageIcon = "linux";
-          else if (image.indexOf('windows') != -1)
+          else if (image.indexOf('windows') !== -1)
               imageIcon = "windows";
 
           if (imageIcon.length)
@@ -1647,7 +1652,7 @@ Polymer({
       const _this = this;
       return {
           'time': {
-              'body': function(item, row) {
+              'body': (item, row) => {
                   let ret = `<span title="${  moment(item * 1000).format()  }">${  moment(item *
                       1000).fromNow()  }</span>`;
                   if (row.error)
@@ -1656,13 +1661,13 @@ Polymer({
               }
           },
           'user_id': {
-              'title': function() {
+              'title': () => {
                   return 'user';
               },
-              'body': function(item) {
+              'body': (item) => {
                   if (_this.model && _this.model.members && item in _this.model.members &&
                       _this.model.members[item] && _this.model.members[item].name &&
-                      _this.model.members[item].name != undefined) {
+                      _this.model.members[item].name !== undefined) {
                       const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
                       const ret = `<a href="/members/${  item  }">${  displayUser 
                           }</a>`;
@@ -1678,7 +1683,7 @@ Polymer({
       return ratedCost(cost, rate);
   },
 
-  _hasExtra(machine) {
+  _hasExtra(_machine) {
       if (this.machine && this.machine.extra)
           return Object.keys(this.machine.extra).length
       return false
@@ -1690,16 +1695,18 @@ Polymer({
           this.machine.extra.power_supply_info);
   },
 
-  _filterMachinesIncidents(incarray) {
+  _filterMachinesIncidents(_incarray) {
       if (this.model && this.model.incidentsArray)
-          return this.model.incidentsArray.filter(function(inc) {
+          return this.model.incidentsArray.filter((inc) => {
               return this._isMachinesIncident(inc);
-          }.bind(this));
+          });
+      return [];
   },
 
   _isMachinesIncident(inc) {
       if (this.machine)
-          return this.machine.id == inc.machine_id;
+          return this.machine.id === inc.machine_id;
+      return false
   },
 
   // redirect events
@@ -1714,10 +1721,10 @@ Polymer({
       const ret = [];
           const _this = this;
       if (this.machine && this.model.notificationsArray.length) {
-          this.model.notificationsArray.forEach(function(i) {
-              if (i.machine && i.machine._ref.$id == _this.machine.id && i.machine._ref.$ref ==
+          this.model.notificationsArray.forEach((i) => {
+              if (i.machine && i.machine._ref.$id === _this.machine.id && i.machine._ref.$ref ===
                   'machines' &&
-                  i._cls == 'Notification.InAppNotification.InAppRecommendation') {
+                  i._cls === 'Notification.InAppNotification.InAppRecommendation') {
                   ret.push(i);
               }
           });
@@ -1740,14 +1747,14 @@ Polymer({
       let sshFrom = '';
           let icmpFrom = '';
       if (!this.machine || !this.machine.probe)
-          return;
+          return null;
       const sshLastUpdate = this.machine.probe.ssh && this.machine.probe.ssh.updated_at;
           const icmpLastUpdate = this.machine.probe.ping && this.machine.probe.ping.updated_at;
       sshFrom = sshLastUpdate && moment.utc(sshLastUpdate).fromNow() || '';
       icmpFrom = icmpLastUpdate && moment.utc(icmpLastUpdate).fromNow() || '';
       if (!sshFrom && !icmpFrom)
           return '';
-      if (sshFrom == icmpFrom)
+      if (sshFrom === icmpFrom)
           return `${sshFrom  } over ssh & icmp`;
       if (sshFrom && icmpFrom)
           return `${sshFrom  } over ssh, ${  icmpFrom  } over icmp`;
@@ -1755,13 +1762,14 @@ Polymer({
           return `${sshFrom  } over ssh`;
       if (icmpFrom)
           return `${icmpFrom  } over icmp`;
+      return '';
   },
 
   _expirationVerb(time, action) {
       if (moment().isBefore(time)) {
-          return action == "stop" ? 'Will stop' : 'Will be destroyed'
+          return action === "stop" ? 'Will stop' : 'Will be destroyed'
       } 
-          return action == "stop" ? 'Stopped' : 'Destroyed';
+          return action === "stop" ? 'Stopped' : 'Destroyed';
       
   },
 
@@ -1784,13 +1792,14 @@ Polymer({
               return moment.duration(seconds,'weeks').humanize();
           return moment.duration(seconds,'months').humanize();
       }
+      return "";
   },
 
-  _isEmptyExpiration(machine) {
+  _isEmptyExpiration(_machine) {
       return !this.machine.expiration;
   },
 
-  _computeMachineExpiration(machine) {
+  _computeMachineExpiration(_machine) {
       if  (this.isPendingExpirationRequest) {
           this.set('isPendingExpirationRequest', false);
       }

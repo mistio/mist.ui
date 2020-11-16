@@ -277,7 +277,7 @@ Polymer({
           this.shadowRoot.querySelector('card-form#inPlanPurchase').verify();
       }
       if ((this.org && this.org.card) || (this.plan && this.plan.price == 0)) {
-          const payload = { plan: this.plan.title || ""};
+          const payload = this.plan ? { plan: this.plan.title } : "";
           this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
           this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.purchasePlanRequest.body = payload;
