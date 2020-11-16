@@ -148,10 +148,10 @@ Polymer({
               const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
                   const plural = this.items.length === 1 ? '' : 's';
                   const count = this.items.length > 1 ? `${this.items.length  } ` : '';
-              // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+              // this.tense(this.action.name) + " " + this.type + "s can not be undone.
               this._showDialog({
                   title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
-                  body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural  }.`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural  }:`,
                   list: this._makeList(this.items, property),
                   action: action.name,
                   danger: true,

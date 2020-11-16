@@ -38,11 +38,11 @@ Polymer({
   behaviors: [MistListActionsBehavior],
 
   properties: {
-    items: { 
+    items: {
       type: Array,
       value () { return [] },
     },
-    actions: { 
+    actions: {
       type: Array,
       value () { return [] },
       notify: true
@@ -99,9 +99,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element#other-confirm');
       if (info) {
-        for (const i in info) {
-            dialog[i] = info[i];
-        }
+        Object.keys(info || {}).forEach((i) => {
+          dialog[i] = info[i];
+          });
       }
       dialog._openDialog();
   },
@@ -116,14 +116,14 @@ Polymer({
       const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
-      if (action.confirm && action.name != 'tag') {
-        const property = ['machine'].indexOf(this.type) == -1 ? "name" : "domain";
-            const plural = this.items.length == 1 ? '' : 's';
+      if (action.confirm && action.name !== 'tag') {
+        const property = ['machine'].indexOf(this.type) === -1 ? "name" : "domain";
+            const plural = this.items.length === 1 ? '' : 's';
             const count = this.items.length > 1 ? `${this.items.length} ` : '';
-        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone.
         this._showDialog({
             title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
-            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}.`,
+            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}:`,
             list: this._makeList(this.items, property),
             action: action.name,
             danger: true,
@@ -135,14 +135,14 @@ Polymer({
     }
   },
 
-  performAction(action, items) {
+  performAction(action) {
     // console.log('perform action ',action)
-    if (action && action.name == 'remove') {
+    if (action && action.name === 'remove') {
       this._remove();
     }
   },
 
-  handleResponse(e) {
+  handleResponse() {
     if (this.$.request && this.$.request.body && this.$.request.body.action)
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Action: ${this.$.request.body.action} successfull`, duration: 3000} }));
   },
@@ -154,9 +154,6 @@ Polymer({
   },
 
   _makeList(items, property){
-    if (items && items.length)
-      return items.map(function(item){
-        return item[property];
-      });
+    return items && items.length && items.map(item => item[property]);
   }
 });
