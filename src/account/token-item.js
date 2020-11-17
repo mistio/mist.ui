@@ -118,10 +118,6 @@ Polymer({
     csrfToken: {
       type: String,
     },
-    loading: {
-      type: Boolean,
-      value: false,
-    },
   },
 
   ready() {},
