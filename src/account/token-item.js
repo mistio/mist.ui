@@ -67,14 +67,10 @@ Polymer({
         [[token.last_accessed_at]]
       </div>
       <div class="flexchild plan-action text-left">
-        <paper-button
-          id="revokeButton"
-          disabled="[[loading]]"
-          class="red"
-          on-tap="revokeToken"
+        <paper-button disabled="[[loading]]" class="red" on-tap="revokeToken"
           >Revoke</paper-button
         >
-        <paper-spinner id="revokeSpinner" active="[[loading]]"></paper-spinner>
+        <paper-spinner active="[[loading]]"></paper-spinner>
       </div>
       <paper-icon-button
         icon="icons:expand-more"
