@@ -31,6 +31,9 @@ Polymer({
         background: var(--base-background-color);
         border-bottom: 2px solid #ddd;
       }
+      .info-head .flexchild:nth-child(3) {
+        margin-right: 40px;
+      }
       .grid-row {
         padding: 24px 24px 0 24px;
       }
@@ -79,7 +82,7 @@ Polymer({
           <div class="info-head flex-horizontal-with-ratios">
             <div class="flexchild">Name</div>
             <div class="flexchild text-left">Last Accessed</div>
-            <div class="flexchild text-right">Action</div>
+            <div class="flexchild text-left">Action</div>
           </div>
           <div class="info-body" id="tokens-list">
             <template is="dom-repeat" items="[[tokens]]" as="token">
