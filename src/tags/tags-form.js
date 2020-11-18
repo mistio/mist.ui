@@ -97,6 +97,7 @@ Polymer({
         <style>
           :host {
             max-width: 520px !important;
+            --vaadin-text-field-default-width: auto;
           }
         </style>
         <h2>Tags</h2>
