@@ -340,9 +340,9 @@ Polymer({
             'indicator': {
                 'body': (_item, row) => {
                     const green = "#69b46c";
-                        const pending = "#eee";
-                        const red = "#d96557";
-                        let color = 'transparent';
+                    const pending = "#eee";
+                    const red = "#d96557";
+                    let color = 'transparent';
                     // 'background:  repeating-linear-gradient(-45deg,#ddd,#ddd 2px,#eee 2px,#eee 4px);'
                     if (row.monitoring && row.monitoring.hasmonitoring) {
                         color = green;
@@ -371,12 +371,15 @@ Polymer({
             'name': {
                 'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
+                },
+                'cmp': (row1, row2) => {
+                    return row1['name'].localeCompare(row2['name'], 'en', {sensitivity: 'base'});
                 }
             },
             'state': {
                 'body': (item, row) => {
                     let ret = '';
-                        let prefix = '';
+                    let prefix = '';
                     if (_this.itemRecommendation(row)) {
                         prefix =
                             '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
@@ -395,13 +398,13 @@ Polymer({
 
                     return prefix + ret;
                 },
-                'cmp': (item1, item2, row1, row2) => {
+                'cmp': (row1, row2) => {
                     if (row1.monitoring && !row2.monitoring) {
                         return -1;
                     } if (!row1.monitoring && row2.monitoring) {
                         return 1;
                     }
-                    return item1.localeCompare(item2);
+                    return row1['state'].localeCompare(row2['state']);
                 }
             },
             'cloud': {
@@ -410,7 +413,9 @@ Polymer({
                         return _this.model.clouds[item] ? _this.model.clouds[item].title : '';
                     return '';
                 },
-                'cmp': (item1, item2, _row1, _row2) => {
+                'cmp': (row1, row2) => {
+                    const item1 = row1['cloud'];
+                    const item2 = row2['cloud'];
                     if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
                         _this.model.clouds[item2.id]) {
                         if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
@@ -434,7 +439,9 @@ Polymer({
                 'body': (item, _row) => {
                     return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(parseFloat(item.monthly), _this.currency.rate) : '';
                 },
-                'cmp': (item1, item2, _row1, _row2) => {
+                'cmp': (row1, row2) => {
+                    const item1 = row1['cost'];
+                    const item2 = row2['cost'];
                     if (item1.monthly < item2.monthly)
                         return -1;
                     if (item1.monthly > item2.monthly)
@@ -467,7 +474,9 @@ Polymer({
                 'body': (item, row) => {
                     return _this.computeSize(row, item);
                 },
-                'cmp': (item1, item2, row1, row2) => {
+                'cmp': (row1, row2) => {
+                    const item1 = row1['size'];
+                    const item2 = row2['size'];
                     const s1 = _this.computeSize(row1, item1);
                     const s2 = _this.computeSize(row2, item2);
 
@@ -493,7 +502,9 @@ Polymer({
                 'body': (item, row) => {
                     return _this._computeImage(row, item);
                 },
-                'cmp': (item1, item2, row1, row2) => {
+                'cmp': (row1, row2) => {
+                    const item1 = row1['image_id'];
+                    const item2 = row2['image_id'];
                     const im1 = _this._computeImage(row1, item1);
                     const im2 = _this._computeImage(row2, item2);
 
@@ -518,7 +529,9 @@ Polymer({
                 'body': (item, _row) => {
                     return item && item.date ? moment.utc(item.date).fromNow() : '';
                 },
-                'cmp': (item1, item2, _row1, _row2) => {
+                'cmp': (row1, row2) => {
+                    const item1 = row1['expiration'];
+                    const item2 = row2['expiration'];
                     const exp1 = item1 && item1.date ? moment(item1.date) : moment('');
                     const exp2 = item2 && item2.date ? moment(item2.date) : moment('');
 
