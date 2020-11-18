@@ -53,7 +53,7 @@ Polymer({
         width: 100%;
       }
     </style>
-    
+
     <dialog-element id="confirm"></dialog-element>
     <tags-form id="tagsdialog" model="[[model]]" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership id="ownershipdialog" user="[[user]]" members="[[_otherMembers(members,items.length)]]" items="[[items]]" type="[[type]]"></transfer-ownership>
@@ -80,11 +80,11 @@ Polymer({
     org: {
       type: Object
     },
-    items: { 
+    items: {
       type: Array,
       value () { return []; }
     },
-    actions: { 
+    actions: {
       type: Array,
       value () { return []; },
       notify: true
@@ -118,15 +118,15 @@ Polymer({
       this.$.actions._updateVisibleActions();
   },
 
-  _otherMembers (members,items) {
+  _otherMembers (members) {
     if (this.items && members) {
-      const owners = this.items.map(function(i){return i.owned_by;})
-                        .filter(function(value,index,self){return self.indexOf(value) === index;});
+      const owners = this.items.map(i => i.owned_by)
+                        .filter((value,index,self)=>self.indexOf(value) === index);
       // filter out pending users and the single owner of the item-set if that is the case
-      return members.filter(function(m) {
-          return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
-      });
+      return members.filter(m => owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending
+      );
     }
+    return false;
   },
 
   computeItemActions(key) {
@@ -138,7 +138,7 @@ Polymer({
       if (this.inSingleView)
         arr.push('rename');
       arr.push('tag');
-      if (this.org.ownership_enabled && (key.owned_by == this.user || this.org.is_owner)) {
+      if (this.org.ownership_enabled && (key.owned_by === this.user || this.org.is_owner)) {
         arr.push('transfer-ownership');
       }
       arr.push('delete');
@@ -164,27 +164,27 @@ Polymer({
       const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
-      if (action.confirm && action.name != 'tag') {
-        const property = ['zone'].indexOf(this.type) == -1 ? "name" : "domain";
-            const plural = this.items.length == 1 ? '' : 's';
+      if (action.confirm && action.name !== 'tag') {
+        const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
+            const plural = this.items.length === 1 ? '' : 's';
             const count = this.items.length > 1 ? `${this.items.length} ` : '';
-        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone.
         this._showDialog({
             title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
-            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}.`,
+            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}:`,
             list: this._makeList(this.items, property),
             action: action.name,
             danger: true,
             reason: `${this.type  }.${  this.action.name}`
         });
       }
-      else if (action.name == 'make default') {
+      else if (action.name === 'make default') {
         this._makeDefault();
       }
-      else if (action.name == "tag") {
+      else if (action.name === "tag") {
         this.$.tagsdialog._openDialog();
       }
-      else if (action.name == 'transfer ownership') {
+      else if (action.name === 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
       }
       else {
@@ -198,7 +198,7 @@ Polymer({
       user_id: e.detail.user_id, // new owner
       resources: {}
     };
-    payload.resources[this.type] = this.items.map(function(i){return i.id});
+    payload.resources[this.type] = this.items.map(i => i.id);
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers["Content-Type"] = 'application/json';
@@ -238,18 +238,18 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-        for (const i in info) {
-            dialog[i] = info[i];
-        }
+        Object.keys(info || {}).forEach((i) => {
+          dialog[i] = info[i];
+          });
       }
       dialog._openDialog();
   },
 
-  performAction(action, items) {
-    if (action.name == 'delete') {
+  performAction(action) {
+    if (action.name === 'delete') {
       this._delete();
     }
-    else if (action.name == 'rename') {
+    else if (action.name === 'rename') {
       this.dispatchEvent(new CustomEvent('rename'));
     }
   },
@@ -269,7 +269,7 @@ Polymer({
     } else if (this.$.request && !this.$.request.body) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: '/keys'} }));
     }
-    if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200 ) {
+    if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status === 200 ) {
       this.$.ownershipdialog._closeDialog();
       this.dispatchEvent(new CustomEvent('action-finished'));
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
@@ -290,9 +290,6 @@ Polymer({
   },
 
   _makeList(items, property){
-    if (items && items.length)
-      return items.map(function(item){
-        return item[property];
-      });
+    return items && items.length && items.map(item => item[property]);
   }
 });

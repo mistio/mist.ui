@@ -57,11 +57,11 @@ Polymer({
   is: 'image-actions',
 
   properties: {
-    items: { 
+    items: {
       type: Array,
       value: []
     },
-    actions: { 
+    actions: {
       type: Array,
       notify: true
     },
@@ -130,14 +130,14 @@ Polymer({
       const {action} = e.detail;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
-      if (action.confirm && action.name != 'tag') {
+      if (action.confirm && action.name !== 'tag') {
         const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
             const plural = this.items.length === 1 ? '' : 's';
             const count = this.items.length > 1 ? `${this.items.length} ` : '';
-        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone.
         this._showDialog({
             title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
-            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}.`,
+            body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type  }${plural}:`,
             list: this._makeList(this.items, property),
             action: action.name,
             danger: true,
@@ -174,14 +174,14 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-        for (const i in info) {
-            dialog[i] = info[i];
-        }
+        Object.keys(info || {}).forEach((i) => {
+          dialog[i] = info[i];
+          });
       }
       dialog._openDialog();
   },
 
-  handleResponse(e) {
+  handleResponse() {
     this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Successfully ${this.action.name}ed image.`, duration: 3000} }));
     this.dispatchEvent(new CustomEvent('action-finished'));
 
@@ -189,11 +189,11 @@ Polymer({
 
   },
 
-  _mapPolicyToActions (items) {
+  _mapPolicyToActions () {
     // recompute the actions array property as the intersection
     // of the available actions of the selected items
     this.set('actions', []);
-    let actions = new Set(); 
+    let actions = new Set();
         let isection = new Set();
     if (this.items.length > 0) {
       actions= new Set(this.itemActions(this.items[0]) || []);
@@ -203,12 +203,10 @@ Polymer({
           actions= new Set(isection);
       }
 
-      var multiActions;
+      let multiActions;
 
       if (this.items.length > 1) {
-          multiActions = this.actionDetails(Array.from(actions)).filter(function(a){
-              return a.multi;
-          });
+          multiActions = this.actionDetails(Array.from(actions)).filter(a => a.multi);
       }
       else {
           multiActions = this.actionDetails(Array.from(actions));
@@ -224,9 +222,7 @@ Polymer({
   },
 
   _makeList(items, property){
-    if (items && items.length)
-      return items.map(function(item){
-        return item[property];
-      });
+    return items && items.length && items.map(item => item[property]);
   }
+
 });
