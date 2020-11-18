@@ -107,7 +107,6 @@ const MACHINE_ACTIONS = {
             type: 'text',
             name: 'name',
             label: "Clone's Name",
-            type: 'text',
             value: '',
             defaultValue: '',
             show: true,
@@ -160,12 +159,6 @@ const MACHINE_ACTIONS = {
         'name': 'transfer ownership',
         'icon': 'icons:redo',
         'confirm': false,
-        'multi': true
-    },
-    'tag': {
-        'name': 'tag',
-        'icon': 'label',
-        'confirm': true,
         'multi': true
     },
     'webconfig': {
@@ -276,17 +269,18 @@ Polymer({
       if (machine && this.model && this.model.clouds && this.model.clouds[machine.cloud]) {
           return this.model.clouds[machine.cloud].provider;
       }
+      return false;
   },
 
   computeItemActions(machine) {
       const arr = [];
       if (this.model && this.model.clouds && ['vsphere', 'openstack', 'libvirt'].indexOf(this.model.clouds[machine.cloud].provider) > -1){
-          if(machine.state == "running" && (this.model.clouds[machine.cloud].provider != 'libvirt' || machine.parent)) {
+          if(machine.state === "running" && (this.model.clouds[machine.cloud].provider !== 'libvirt' || machine.parent)) {
               arr.push('console');
           }
       }
       if (machine) {
-          if (machine.os_type != 'windows' && machine.machine_type != 'ilo-host' && ["terminated", "stopped"].indexOf(machine.state) == -1) {
+          if (machine.os_type !== 'windows' && machine.machine_type !== 'ilo-host' && ["terminated", "stopped"].indexOf(machine.state) === -1) {
               arr.push('shell');
               arr.push('associate-key');
           }
@@ -303,7 +297,7 @@ Polymer({
       if (machine.key_associations && machine.key_associations.length) {
           arr.push('run-script');
       }
-      if (this.model && this.model.org.ownership_enabled && (machine.owned_by == this.model.user.id || this.model.org.is_owner)) {
+      if (this.model && this.model.org.ownership_enabled && (machine.owned_by === this.model.user.id || this.model.org.is_owner)) {
           arr.push('transfer-ownership');
       }
       return arr.sort(this._sortActions.bind(this));
@@ -346,18 +340,17 @@ Polymer({
       return 0;
   },
 
-  _otherMembers(members, items) {
+  _otherMembers(members) {
       if (this.items && members) {
-          const owners = this.items.map(function(i) { return i.owned_by; })
-              .filter(function(value, index, self) { return self.indexOf(value) === index; });
+          const owners = this.items.map(i => i.owned_by)
+              .filter((value, index, self) => self.indexOf(value) === index);
           // filter out pending users and the single owner of the item-set if that is the case
-          return members.filter(function(m) {
-              return owners.length == 1 ? m.id != owners[0] && !m.pending : !m.pending;
-          });
+          return members.filter(m => owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending
+          );
       }
   },
 
-  _getMachine(length) {
+  _getMachine() {
       if (this.items.length)
           return this.get('items.0');
       return undefined;
@@ -371,7 +364,7 @@ Polymer({
       return ret;
   },
 
-  _delete(items) {
+  _delete() {
       // set up iron ajax
       this.$.request.headers["Content-Type"] = 'application/json';
       this.$.request.headers["Csrf-Token"] = CSRFToken.value;
@@ -403,53 +396,53 @@ Polymer({
           const {action} = e.detail;
           this.set('action', action);
           // console.log('perform action mist-action', this.items);
-          if (action.confirm && ['tag', 'rename', 'expose', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ==
+          if (action.confirm && ['tag', 'rename', 'expose', 'run script', 'associate key', 'resize', 'webconfig', 'create snapshot', 'remove snapshot', 'revert to snapshot'].indexOf(action.name) ===
               -1) {
-              const plural = this.items.length == 1 ? '' : 's';
+              const plural = this.items.length === 1 ? '' : 's';
                   const count = this.items.length > 1 ? `${this.items.length  } ` : '';
-              if (action.name == "clone" && this.action.fields) {
+              if (action.name === "clone" && this.action.fields) {
                   this.set('action.fields.0.value', this.items[0].value || `${this.items[0].name  }-clone`);
               }
               this._showDialog({
                   title: `${this.action.name  } ${  count  }machine${  plural  }?`,
-                  body: `You are about to ${  this.action.name  } ${  this.items.length  } machine${ 
-                      plural  }.`,
+                  body: `You are about to ${  this.action.name  } ${  this.items.length  } machine${
+                      plural  }:`,
                   list: this._makeList(this.items, "name"),
                   action: action.name,
                   danger: true,
                   hideText: !!this.action.fields,
                   reason: `machine.${  this.action.name}`
               });
-          } else if (action.name == 'delete') {
+          } else if (action.name === 'delete') {
               this._delete(this.items);
-          } else if (action.name == 'resize') {
+          } else if (action.name === 'resize') {
               this.$.resizedialog._openDialog();
-          } else if (action.name == 'tag') {
+          } else if (action.name === 'tag') {
               this.$.tagsdialog._openDialog();
-          } else if (action.name == 'attach volume') {
+          } else if (action.name === 'attach volume') {
               this.$.attachvolumedialog._openDialog();
-          } else if (action.name == 'transfer ownership') {
+          } else if (action.name === 'transfer ownership') {
               this.$.ownershipdialog._openDialog();
-          } else if (action.name == 'create snapshot') {
+          } else if (action.name === 'create snapshot') {
               this.$.snapshotdialog.action = action.name;
               this.$.snapshotdialog._openDialog();
-          } else if (action.name == 'remove snapshot') {
+          } else if (action.name === 'remove snapshot') {
               this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
               this.$.snapshotdialog.action = action.name;
               this.$.snapshotdialog._openDialog();
-          } else if (action.name == 'revert to snapshot') {
+          } else if (action.name === 'revert to snapshot') {
               this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
               this.$.snapshotdialog.action = action.name;
               this.$.snapshotdialog._openDialog();
-          } else if (action.name == 'rename') {
+          } else if (action.name === 'rename') {
               this.$.renamedialog._openDialog();
-          } else if (action.name == 'webconfig') {
+          } else if (action.name === 'webconfig') {
               this._openWebconfig(this.items);
-          } else if (action.name == 'run script') {
+          } else if (action.name === 'run script') {
               this.$.runscriptdialog._openDialog();
-          } else if (action.name == 'associate key') {
+          } else if (action.name === 'associate key') {
               this.$.associatekeydialog._openDialog();
-          } else if (action.name == 'expose') {
+          } else if (action.name === 'expose') {
               this.$.exposePortsdialog._openDialog();
           } else if (!action.confirm) {
               this.performMachineAction(action, this.items);
@@ -457,7 +450,7 @@ Polymer({
       }
   },
 
-  _openWebconfig(items) {
+  _openWebconfig() {
       const machine = this.items[0];
       const url = `https://${  machine.hostname  }:81`;
       window.open(url, "view");
@@ -478,7 +471,7 @@ Polymer({
           user_id: e.detail.user_id, // new owner
           resources: {}
       };
-      payload.resources.machine = this.items.map(function(i) { return i.id });
+      payload.resources.machine = this.items.map(i => i.id );
       console.log('transferOwnership', e.detail, payload);
       this.$.request.url = '/api/v1/ownership';
       this.$.request.headers["Content-Type"] = 'application/json';
@@ -491,12 +484,12 @@ Polymer({
   performMachineAction(action, items, name) {
       const runitems = items.slice();
       // console.log('perform action machine',items);
-      var run = function(el) {
+      const run = function(el) {
           let uri; let payload; const item = runitems.shift();
               const method = 'POST';
           // console.log('renameAction', item.name, action.name, name);
           // machines
-          if (action.name == 'shell') {
+          if (action.name === 'shell') {
               console.warn('opening shell');
               // load page import on demand.
               // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
@@ -522,25 +515,25 @@ Polymer({
               payload = {
                   'action': action.name
               };
-          } else if (action.name == 'rename') {
+          } else if (action.name === 'rename') {
               uri = `/api/v1/machines/${  item.id}`;
               payload = {
                   'action': action.name,
                   'name': name
               };
-          } else if (action.name == 'clone') {
+          } else if (action.name === 'clone') {
               uri = `/api/v1/machines/${  item.id}`;
               payload = {
                   'action': action.name,
                   'name': action.fields[0].value
               };
-          } else if (action.name == 'probe') {
+          } else if (action.name === 'probe') {
               uri = `/api/v1/machines/${  item.id  }/probe`;
               payload = {
                   'host': item.public_ips[0],
                   'key': item.key_associations[0]
               };
-          } else if (action.name == 'console') {
+          } else if (action.name === 'console') {
               uri = `/api/v1/machines/${  item.id  }/console`;
               // window.open(uri, 'view');
               const form = document.createElement("form");
@@ -558,7 +551,7 @@ Polymer({
 
               form.submit();
               return;
-          } else if (action.name == 'transfer ownership') {
+          } else if (action.name === 'transfer ownership') {
               return;
           } else {
               console.error('unknown action', action, 'on item', item);
@@ -567,9 +560,9 @@ Polymer({
 
           const xhr = new XMLHttpRequest();
           xhr.onreadystatechange = function() {
-              if (xhr.readyState == XMLHttpRequest.DONE) {
+              if (xhr.readyState === XMLHttpRequest.DONE) {
                   let message = '';
-                  if (xhr.status == 200) {
+                  if (xhr.status === 200) {
                       console.log(action, 'success');
                       message = `Successfully ${  this.inPast(action.name)  } machine. Updating...`;
                       this.dispatchEvent(new CustomEvent('action-finished', { bubbles: true, composed: true, detail: {
@@ -579,13 +572,13 @@ Polymer({
                       // for machines destroy only and only if in machine page
                       const app_location = document.querySelector('app-location');
                       if (["destroy","remove"].indexOf(action.name) > -1 && document.location.pathname && document.location.pathname.split(
-                              '/machines/')[1] == item.id) {
+                              '/machines/')[1] === item.id) {
 
                               this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                                   url: '/machines'
                               } }));
                       }
-                      if (item.provider == 'libvirt' && action.name == "undefine") {
+                      if (item.provider === 'libvirt' && action.name === "undefine") {
                           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {
                               url: '/machines'
                           } }));
@@ -641,10 +634,10 @@ Polymer({
               duration: 3000
           } }));
 
-      if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status == 200) {
+      if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status === 200) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
-          
+
           if (this.querySelector('mist-list-actions')) {
               this.querySelector('mist-list-actions').fire('action-finished');
           }
@@ -669,63 +662,60 @@ Polymer({
       }
   },
 
-  _makeList(items, property) {
-      if (items && items.length)
-          return items.map(function(item) {
-              return item[property];
-          });
+  _makeList(items, property){
+    return items && items.length && items.map(item => item[property]);
   },
 
   inPast(action) {
-      if (action == 'shell')
+      if (action === 'shell')
           return 'opened shell'
-      if (action == 'expose')
+      if (action === 'expose')
           return 'exposed'
-      if (action == 'tag')
+      if (action === 'tag')
           return 'tagged'
-      if (action == 'associate key')
+      if (action === 'associate key')
           return 'associated key'
-      if (action == 'run-script')
+      if (action === 'run-script')
           return 'run script'
-      if (action == 'reboot')
+      if (action === 'reboot')
           return 'rebooted'
-      if (action == 'start')
+      if (action === 'start')
           return 'started'
-      if (action == 'stop')
+      if (action === 'stop')
           return 'stopped'
-      if (action == 'suspend')
+      if (action === 'suspend')
           return 'suspended'
-      if (action == 'rename')
+      if (action === 'rename')
           return 'renamed'
-      if (action == 'resume')
+      if (action === 'resume')
           return 'resumed'
-      if (action == 'clone')
+      if (action === 'clone')
           return 'cloned'
-      if (action == 'undefine')
+      if (action === 'undefine')
           return 'undefined'
-      if (action == 'suspend')
+      if (action === 'suspend')
           return 'suspended'
-      if (action == 'destroy')
+      if (action === 'destroy')
           return 'destroyed'
-      if (action == 'remove')
+      if (action === 'remove')
           return 'removed'
-      if (action == 'star')
+      if (action === 'star')
           return 'starred'
-      if (action == 'unstar')
+      if (action === 'unstar')
           return 'unstarred'
-      if (action == 'destroy')
+      if (action === 'destroy')
           return 'destroyed'
-      if (action == 'make default')
+      if (action === 'make default')
           return 'made default'
-      if (action == 'run')
+      if (action === 'run')
           return 'run'
-      if (action == 'enable')
+      if (action === 'enable')
           return 'enabled'
-      if (action == 'disable')
+      if (action === 'disable')
           return 'disabled'
-      if (action == 'disable')
+      if (action === 'disable')
           return 'disabled'
-      if (action == 'delete')
+      if (action === 'delete')
           return 'deleted'
       return ''
   }
