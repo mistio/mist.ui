@@ -1321,7 +1321,7 @@ Polymer({
       if (this.workflow) {
           const inps = YAML.parse(this.form.stackinputs) || {};
           for (var p in inps) {
-              const field = this.fields.find(function(f) { return f.name === p });
+              const field = this.fields.find((f) => { return f.name === p });
               if (field.excludeFromPayload === true) {
                   delete inps[p];
               } else {
@@ -1359,7 +1359,7 @@ Polymer({
           });
 
           // if there's a list field add it as a nested object under the subform title.
-          this.fields.forEach(function (field) {
+          this.fields.forEach((field) => {
               if (field.type === 'mist_size' && field.value === "custom") {
                   payload[field.name] = field.customValue;
               }
@@ -1368,22 +1368,23 @@ Polymer({
                       excludeFields.push(field);
                   } else {
                       for(const subfield of field.subfields){
-                      if(subfield.type === 'list'){
-                          const list = subfield;
-                          var subformPayload = [];
-                          if (list && list.items.length) {
-                              for (let k = 0; k < list.items.length; k++) {
-                                  var o = {};
-                                  for (var j = 0; j < list.items[k].length; j++) {
-                                      o[list.items[k][j].name] = list.items[k][j].value;
-                                  }
-                                  subformPayload.push(o);
-                              }
-                          }
-                          field.value[subfield.name] = subformPayload;
-                      } else
-                          field.value[subfield.name] = subfield.value;
-                  }
+                        if(subfield.type === 'list'){
+                            const list = subfield;
+                            var subformPayload = [];
+                            if (list && list.items.length) {
+                                for (let k = 0; k < list.items.length; k++) {
+                                    var o = {};
+                                    for (var j = 0; j < list.items[k].length; j++) {
+                                        o[list.items[k][j].name] = list.items[k][j].value;
+                                    }
+                                    subformPayload.push(o);
+                                }
+                            }
+                            field.value[subfield.name] = subformPayload;
+                        } if (typeof field.value === "object") {
+                            field.value[subfield.name] = subfield.value;
+                            }
+                      }
                       payload[field.name] = field.value;
                   }
               }
@@ -1407,7 +1408,7 @@ Polymer({
               } else if (field.type === 'date' && field.value) {
                   payload[field.name] = moment.unix(field.value/1000).utc().format("YYYY-MM-DD HH:mm:ss");
               }
-          }.bind(this));
+          });
 
           for (let i = 0; i < excludeFields.length; i++) {
               delete payload[excludeFields[i].name];
