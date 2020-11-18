@@ -6,7 +6,7 @@ import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-item/paper-item-body.js';
 import '../../node_modules/@polymer/paper-badge/paper-badge.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -121,17 +121,18 @@ Polymer({
   },
 
   _computeR12nIcon(item) {
-      if (item._cls == "Notification.InAppNotification.InAppRecommendation" &&
-          item.model_id == "autoscale_v1") {
-          if (item.model_output.direction == "up") {
+      if (item._cls === "Notification.InAppNotification.InAppRecommendation" &&
+          item.model_id === "autoscale_v1") {
+          if (item.model_output.direction === "up") {
               return "icons:arrow-upward";
-          } if (item.model_output.direction == "down") {
+          } if (item.model_output.direction === "down") {
               return "icons:arrow-downward";
           }
       }
+      return null;
   },
 
-  _resizeTap(e) {
+  _resizeTap(_e) {
       const action = {
           'name': 'resize',
           'icon': 'device:signal-cellular-2-bar',
@@ -144,13 +145,13 @@ Polymer({
   },
 
   _dismiss(e) {
-      this.$.requestDismiss.url = `/api/v1/notifications/${  event.model.item._id}`;
-      this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.requestDismiss.url = `/api/v1/notifications/${  e.model.item._id}`;
+      this.$.requestDismiss.headers["Csrf-Token"] = CSRFToken.value;
       this.$.requestDismiss.generateRequest();
-      event.stopPropagation();
+      e.stopPropagation();
   },
 
-  handleDismissResponse(event) {
+  handleDismissResponse(_event) {
       console.log("Machine R12ns: Received dismiss response");
   }
 });

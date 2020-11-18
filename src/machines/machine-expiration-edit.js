@@ -82,13 +82,12 @@ Polymer({
                       {
                           name: 'action',
                           type: 'dropdown',
-                          class: 'bind-both',
                           value: 'stop',
                           defaultValue: 'stop',
                           helptext: '',
                           show: true,
                           required: false,
-                          class: 'width-150 inline-block',
+                          class: 'bind-both width-150 inline-block',
                           options: [
                               {val: 'stop', title: 'STOP'},
                               {val: 'destroy', title: 'DESTROY'}
@@ -164,15 +163,15 @@ Polymer({
       console.log('permissions', 'edit','machine', machine, perm);
   },
 
-  _expirationRequest(e) {
+  _expirationRequest(_e) {
       this.dispatchEvent(new CustomEvent('pending-expiration-request', { bubbles: true, composed: true, detail: 'edit' }));
   },
 
-  _openDialog(e) {
-      if (this.permissions == false) {
+  _openDialog(_e) {
+      if (this.permissions === false) {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"You are not authorized to edit the expiration date.",duration:3000} }));
       } else {
-          if (this.permissions == true) {
+          if (this.permissions === true) {
               this._initialiseValues(this.machine)
           } else { 
               this._applyPermissions(this.machine, this.permissions);
@@ -181,7 +180,7 @@ Polymer({
       }
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.dialogModal.opened = false;
   },
 
@@ -192,22 +191,18 @@ Polymer({
       this._initialiseValues(this.machine);
 
       const currentExpiration = this.machine.expiration;
-          const permissionsExpiration = this.permissions.expiration;
+      const permissionsExpiration = this.permissions.expiration;
 
       const expirationPath = 'fields.0.subfields.1.'; // expiration date
-          const actionPath = 'fields.0.subfields.0.';
-          const notifyPath = 'fields.0.subfields.2.';
-
-      if (currentExpiration) {
-          const {date} = currentExpiration;
-              var fromNow = this._dateToDurationFromNow(date);
-          var notify = currentExpiration.notify || 0;
-              const before = this._secondsToDuration(notify);
-      }
+      const actionPath = 'fields.0.subfields.0.';
+      const notifyPath = 'fields.0.subfields.2.';
       // Apply either current values or permission forced values
       // Current values overweigh permission defaults but not max, and permission defaults overweight field defaults 
       if (currentExpiration || permissionsExpiration) {
           // EXPIRATION
+          const {date} = currentExpiration;
+          const fromNow = this._dateToDurationFromNow(date);
+          const notify = currentExpiration.notify || 0;
           this.set(`${expirationPath  }defaultValue`, currentExpiration ? fromNow : permissionsExpiration.default);
           this.set(`${expirationPath  }max`, permissionsExpiration.max);
           this.notifyPath(`${expirationPath  }defaultValue`);
@@ -223,10 +218,10 @@ Polymer({
               if (permissionsExpiration.actions.available) {
                   // construct dropdown of actions, allow the selection of only available by permissions
                   const permAvailable = this._toOptionsFormat(permissionsExpiration.actions.available);
-                  available = options.filter(function(a) {
-                          return permissionsExpiration.actions.available.indexOf(a.val) == -1;
+                  available = options.filter((a) => {
+                          return permissionsExpiration.actions.available.indexOf(a.val) === -1;
                       });
-                  available.forEach(function(a) {
+                  available.forEach((a) => {
                           a.disabled = true;
                       });
                   available = available.concat(permAvailable);
@@ -242,7 +237,7 @@ Polymer({
 
           // override if permissions dictate
           if (permissionsExpiration.notify) {
-              if (permissionsExpiration.notify.require != undefined)
+              if (permissionsExpiration.notify.require !== undefined)
                   defCheck = permissionsExpiration.notify.require;
               if (permissionsExpiration.notify.default)
                   notValue = permissionsExpiration.notify.default;
@@ -270,12 +265,12 @@ Polymer({
   _toOptionsFormat(arr) {
       if (!arr)
           return [];
-      return arr.map(function(x){
+      return arr.map((x) => {
           return {"val": x, "title": x.toUpperCase()}
       })
   },
 
-  _initialiseValues(machine) {
+  _initialiseValues(_machine) {
       if (!this.machine) return;
       const date = (this.machine && this.machine.expiration) ? this.machine.expiration.date : '';
           const fromNow = this._dateToDurationFromNow(date);
@@ -295,7 +290,7 @@ Polymer({
       }
   },
 
-  _expirationDateChanged(date) {
+  _expirationDateChanged(_date) {
       // update notify max
       const notifyPath = 'fields.0.subfields.2.';
           const expirationPath = 'fields.0.subfields.1.';
@@ -309,15 +304,15 @@ Polymer({
           let span; let unit;
           const fromNow = moment.utc(date).fromNow(true);
           const chunks = fromNow.split(' ');
-          span = chunks[0];
-          unit = chunks[1];
+          [span] = chunks;
+          [, unit] = chunks;
           if (['a','an'].indexOf(span)>-1) {
               span = '1';
           }
           if (['month','months'].indexOf(unit)>-1) {
               unit = 'mo';
           } else {
-              unit = unit[0]
+              [unit] = unit;
           }
           return span+unit;
       }
@@ -327,22 +322,22 @@ Polymer({
   _secondsToDuration(seconds) {
       if (seconds) {
           let span; let unit;
-          if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
-              if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);
-              if (seconds % (3600*24*29) == 0) span = seconds / (3600*24*29);
-              if (seconds % (3600*24*30) == 0) span = seconds / (3600*24*30);
-              if (seconds % (3600*24*31) == 0) span = seconds / (3600*24*31);
+          if (seconds % (3600*24*28) === 0 || seconds % (3600*24*29) === 0 || seconds % (3600*24*30) === 0 || seconds % (3600*24*31) === 0) {
+              if (seconds % (3600*24*28) === 0) span = seconds / (3600*24*28);
+              if (seconds % (3600*24*29) === 0) span = seconds / (3600*24*29);
+              if (seconds % (3600*24*30) === 0) span = seconds / (3600*24*30);
+              if (seconds % (3600*24*31) === 0) span = seconds / (3600*24*31);
               unit = 'mo';
-          } else if (seconds % (3600*24*7) == 0) {
+          } else if (seconds % (3600*24*7) === 0) {
               span = seconds / (3600*24*7);
               unit = 'w';
-          } else if (seconds % (3600*24) == 0) {
+          } else if (seconds % (3600*24) === 0) {
               span = seconds / (3600*24);
               unit = 'd';
-          } else if (seconds % 3600 == 0) {
+          } else if (seconds % 3600 === 0) {
               span = seconds / 3600;
               unit = 'h';
-          } else if (seconds % 60 == 0) {
+          } else if (seconds % 60 === 0) {
               span = seconds / 60;
               unit = 'm';
           } else { 
