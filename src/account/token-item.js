@@ -19,7 +19,10 @@ Polymer({
       .plan-action {
         color: var(--green-color);
       }
-
+      .plan-action paper-spinner {
+        position: absolute;
+        margin-top: 2px;
+      }
       .plan-end .plan-action {
         color: var(--red-color);
       }
@@ -35,10 +38,6 @@ Polymer({
         border-bottom-width: 2px;
         border-color: #ccc;
       }
-      h6.absolute-date {
-        display: inline;
-        opacity: 0.32;
-      }
       #moreinfo {
         height: 0;
         transition: height 200ms ease-in;
@@ -51,6 +50,7 @@ Polymer({
       }
       paper-button.red {
         padding: 4px !important;
+        margin: 0 0.29em 0 0 !important;
       }
       element-for-in ::slotted(.info-item > div) {
         word-break: break-all;
@@ -65,11 +65,12 @@ Polymer({
       </div>
       <div class="flexchild plan-date text-left">
         [[token.last_accessed_at]]
-        <h6 class="absolute-date">[[absoluteDateText]]</h6>
       </div>
-      <div class="flexchild plan-action text-right">
-        <paper-button class="red" on-tap="revokeToken">Revoke</paper-button>
-        <paper-spinner active="{{loading}}"></paper-spinner>
+      <div class="flexchild plan-action text-left">
+        <paper-button disabled="[[loading]]" class="red" on-tap="revokeToken"
+          >Revoke</paper-button
+        >
+        <paper-spinner active="[[loading]]"></paper-spinner>
       </div>
       <paper-icon-button
         icon="icons:expand-more"
@@ -85,7 +86,6 @@ Polymer({
       method="DELETE"
       url="/api/v1/tokens"
       loading="{{loading}}"
-      on-request="revokeTokenReQuest"
       on-response="revokeTokenResponse"
       on-error="revokeTokenError"
     ></iron-ajax>
@@ -111,10 +111,6 @@ Polymer({
       type: String,
       computed: '_computeDateFromNow(token.logs.0.time)',
     },
-    absoluteDateText: {
-      type: String,
-      computed: '_computeAbsoluteDateText(token.started_at)',
-    },
     zebraClasses: {
       type: String,
       computed: '_computeZebraClasses(index, count)',
@@ -139,10 +135,6 @@ Polymer({
     return moment(time * 1000).fromNow();
   },
 
-  _computeAbsoluteDateText(time) {
-    return moment.utc(time).format('MMMM D YYYY');
-  },
-
   toggleInfo() {
     if (this.$.moreinfo.hasAttribute('opened')) {
       this.$.moreinfo.removeAttribute('opened');
@@ -159,10 +151,6 @@ Polymer({
     this.$.revokeTokenAjax.headers['Csrf-Token'] = this.csrfToken;
     this.$.revokeTokenAjax.body = payload;
     this.$.revokeTokenAjax.generateRequest();
-  },
-
-  revokeTokenRequest() {
-    this.$.spinner.setAttribute('active', true);
   },
 
   revokeTokenResponse() {

@@ -103,7 +103,7 @@ Polymer({
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "DELETE";
     for (let i = 0; i < this.items.length; i++) {
-      this.$.request.url = `/api/v1/clouds/${  this.cloud  }/zones/${  this.items[i].zone  }/records/${ 
+      this.$.request.url = `/api/v1/clouds/${  this.cloud  }/zones/${  this.items[i].zone  }/records/${
         this.items[i].id}`
       this.$.request.generateRequest();
       this.dispatchEvent(new CustomEvent('toast', {
@@ -139,11 +139,11 @@ Polymer({
         const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
           const plural = this.items.length === 1 ? '' : 's';
           const count = this.items.length > 1 ? `${this.items.length  } ` : '';
-        // this.tense(this.action.name) + " " + this.type + "s can not be undone. 
+        // this.tense(this.action.name) + " " + this.type + "s can not be undone.
         this._showDialog({
           title: `${this.action.name  } ${  count  }${this.type  }${plural  }?`,
-          body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type 
-            }${plural  }.`,
+          body: `You are about to ${  this.action.name  } ${  this.items.length  } ${  this.type
+            }${plural  }:`,
           list: this._makeList(this.items, property),
           action: action.name,
           danger: true,

@@ -690,23 +690,23 @@ Polymer({
               entryInd = this._fieldIndexByName("schedule_entry");
               this.set(`fields.${  entryInd  }.value`, this._processInterval());
           }
-          const expiresInd = this._fieldIndexByName("expires");
-          if (this.get(changeRecord.path.replace('.value', '')).name === "expires") {
-              const excludeFromPayload = changeRecord.value === "" && true || false;
-              this.set(`fields.${  expiresInd  }.excludeFromPayload`, excludeFromPayload);
-              if (!excludeFromPayload) {
-                  this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
-              }
-          }
+        //   const expiresInd = this._fieldIndexByName("expires");
+        //   if (this.get(changeRecord.path.replace('.value', '')).name === "expires") {
+        //       const excludeFromPayload = changeRecord.value === "" && true || false;
+        //       this.set(`fields.${  expiresInd  }.excludeFromPayload`, excludeFromPayload);
+        //       if (!excludeFromPayload) {
+        //           this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
+        //       }
+        //   }
 
-          if (this.get(changeRecord.path.replace('.value', '')).name === "start_after") {
-              const startAfterInd = this._fieldIndexByName("start_after");
-              const excludeFromPayload = changeRecord.value === "" && true || false;
-              this.set(`fields.${  startAfterInd  }.excludeFromPayload`, excludeFromPayload);
-              if (!excludeFromPayload) {
-                  this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
-              }
-          }
+        //   if (this.get(changeRecord.path.replace('.value', '')).name === "start_after") {
+        //       const startAfterInd = this._fieldIndexByName("start_after");
+        //       const excludeFromPayload = changeRecord.value === "" && true || false;
+        //       this.set(`fields.${  startAfterInd  }.excludeFromPayload`, excludeFromPayload);
+        //       if (!excludeFromPayload) {
+        //           this.set(`fields.${  expiresInd  }.value`, moment.unix(changeRecord.value/1000).utc().format("YYYY-MM-DD HH:mm:ss"));
+        //       }
+        //   }
 
           if (this.get(changeRecord.path.replace('.value', '')).name === "max_run_count") {
               const maxcountInd = this._fieldIndexByName("max_run_count");

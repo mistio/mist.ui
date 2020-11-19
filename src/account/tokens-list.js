@@ -33,6 +33,9 @@ Polymer({
         background: var(--base-background-color);
         border-bottom: 2px solid #ddd;
       }
+      .info-head .flexchild:nth-child(3) {
+        margin-right: 40px;
+      }
       .grid-row {
         padding: 24px 24px 0 24px;
       }
@@ -58,7 +61,13 @@ Polymer({
         margin-top: 24px;
       }
       .buttons {
-        padding: 8px 24px 16px 24px;
+        margin: 24px 0 0 0;
+        display: flex;
+        justify-content: flex-end;
+      }
+      .bottom-actions {
+        text-align: right;
+        width: 100%;
       }
       .error {
         color: var(--red-color);
@@ -75,7 +84,7 @@ Polymer({
           <div class="info-head flex-horizontal-with-ratios">
             <div class="flexchild">Name</div>
             <div class="flexchild text-left">Last Accessed</div>
-            <div class="flexchild text-right">Action</div>
+            <div class="flexchild text-left">Action</div>
           </div>
           <div class="info-body" id="tokens-list">
             <template is="dom-repeat" items="[[tokens]]" as="token">
@@ -142,8 +151,9 @@ Polymer({
               type="password"
             ></paper-input>
             <p>* Password is required to create a token</p>
-            <div class="buttons">
-              <paper-button dialog-dismiss>Cancel</paper-button>
+            <div class="bottom-actions">
+              <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog"
+                >Cancel</paper-button>
               <paper-button
                 id="Create"
                 autofocus=""
@@ -165,7 +175,7 @@ Polymer({
           visible to anybody.
         </p>
         <paper-textarea id="tokenValue" value="[[tokenValue]]"></paper-textarea>
-        <div class="buttons">
+        <div class="bottom-actions">
           <paper-button class="blue" dialog-dismiss="" on-tap="copied"
             >OK</paper-button
           >
@@ -240,6 +250,10 @@ Polymer({
 
   createToken() {
     this.$.createTokenDialog.opened = true;
+  },
+
+  _dismissCreateTokenDialog() {
+    this.$.createTokenDialog.opened = false;
   },
 
   createTokenSubmit() {

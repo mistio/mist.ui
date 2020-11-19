@@ -162,6 +162,9 @@ Polymer({
       if (this.metric.script) {
           this.debounce('_updateMetricScript', function() {
               const lines = this.metric.script.trim().split('\n');
+              if(lines[lines.length-1].startsWith('print')){
+                lines.pop();
+              }
               lines[lines.length] = `print "${  this.metric.name  } value=%s" % read()`;
               this.set('metric.script', lines.join('\n'));
           }, 500);

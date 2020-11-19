@@ -321,7 +321,7 @@ Polymer({
       '_pageChanged(title)'
   ],
 
-  _showDefaultLogoClass (org, avatar) {
+  _showDefaultLogoClass (org, _avatar) {
       if (!org || !org.avatar || !org.avatar.length)
           return "show-default-logo";
       return "";
@@ -344,8 +344,8 @@ Polymer({
       if (!user || !teams || !teams.length) {
           return [];
       }
-      return teams.filter(function (t) {
-          if (t.members.indexOf(user.id) == -1)
+      return teams.filter((t) => {
+          if (t.members.indexOf(user.id) === -1)
               return false;
           return true;
       });
@@ -358,12 +358,12 @@ Polymer({
       return `/api/v1/avatars/${  org.avatar}`;
   },
 
-  clearSearch (e) {
+  clearSearch (_e) {
       this.dispatchEvent(new CustomEvent('clear-search-on-nav'));
   },
 
   _computeHref(title){
       console.log('_computeHref', title);
-      return title == "dashboard" ? "/" : `/${title}`;
+      return title === "dashboard" ? "/" : `/${title}`;
   }
 });
