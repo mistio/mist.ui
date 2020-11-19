@@ -196,7 +196,7 @@ Polymer({
       value: 'cloud',
     },
     portalName: {
-      type: String
+      type: String,
     },
     inSingleView: {
       type: Boolean,
@@ -216,7 +216,7 @@ Polymer({
     },
     providers: {
       type: Array,
-    }
+    },
   },
 
   listeners: {
@@ -275,7 +275,6 @@ Polymer({
   },
 
   selectAction(e) {
-
     if (this.items.length) {
       const { action } = e.detail;
       const deleteExplanation = `Deleting clouds will not affect your resources, but you will no longer be able to manage them with ${this.portalName}.`;
@@ -301,7 +300,9 @@ Polymer({
         this._showDialog({
           title: `${this.action.name} ${count}${this.resourceType}${plural}?`,
           body: `You are about to ${this.action.name} ${this.items.length} ${this.resourceType}${plural}:`,
-          subscript: `${this.action.name === 'delete' ? deleteExplanation : null}`,
+          subscript: `${
+            this.action.name === 'delete' ? deleteExplanation : null
+          }`,
           list: this._makeList(this.items, 'title'),
           action: action.name,
           danger: true,
