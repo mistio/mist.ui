@@ -21,8 +21,8 @@ Polymer({
         </style>
         <app-route route="{{route}}" pattern="/:cloud" data="{{data}}"></app-route>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" providers=[[providers]]>
-                <mist-list selectable resizable column-menu multi-sort 
+            <cloud-actions id="actions" items="[[selectedItems]]" actions="{{actions}}" providers=[[providers]] portal-name=[[portalName]]>
+                <mist-list selectable resizable column-menu multi-sort
                     id="cloudsList"
                     apiurl="/api/v1/clouds"
                     item-map="[[model.clouds]]"
@@ -44,7 +44,7 @@ Polymer({
             </div>
         </template>
         <cloud-add providers="[[providers]]" keys="[[model.keysArray]]" section="[[model.sections.clouds]]" clouds="[[model.cloudsArray]]" enable-monitoring="[[enableMonitoring]]" hidden$=[[!_isAddPageActive(route.path)]] portal-name=[[portalName]] docs=[[docs]] org="[[model.org]]" enable-billing=[[enableBilling]]></cloud-add>
-        <cloud-page model="[[model]]" providers="[[providers]]" cloud="[[cloud]]" section="[[model.sections.clouds]]" resource-id="[[data.cloud]]" hidden$=[[!_isDetailsPageActive(route.path)]]></cloud-page>
+        <cloud-page model="[[model]]" providers="[[providers]]" cloud="[[cloud]]" section="[[model.sections.clouds]]" resource-id="[[data.cloud]]" hidden$=[[!_isDetailsPageActive(route.path)]] portal-name=[[portalName]]></cloud-page>
         `,
     is: 'page-clouds',
     behaviors: [
