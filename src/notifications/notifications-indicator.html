@@ -12,7 +12,7 @@
 
 <dom-module id="notifications-indicator">
     <template>
-        <style include="shared-styles">
+        <style>
             :host {
                 position: relative;
                 height: 56px;
@@ -52,12 +52,21 @@
             }
 
             h4 {
-                margin-left: 16px
+                text-rendering: optimizeLegibility;
+                text-decoration: none;
+                text-align: center;
+                letter-spacing: 0;
+                font-size: 16px;
+                font-weight: 400;
+                line-height: 24px;
+                margin-left: 8px;
+                margin-right: 8px;
             }
 
             .grid-row {
                 padding: 0;
                 margin: 0;
+                text-align: center;
             }
 
             paper-item:not(.context) {
@@ -154,7 +163,7 @@
                             <iron-icon slot="item-icon" icon="[[_computeNotificationIcon(item)]]" type$="[[_computeNotificationType(item)]]"></iron-icon>
                             <paper-item-body two-line>
                                 <div class="summary">[[item.summary]]</div>
-                                <div secondary inner-h-t-m-l="[[item.html_body]]" class="body"></div>
+                                <div secondary class="body">[[item.body]]</div>
                                 <div secondary class="time">[[_computeRelativeTime(item, timestamp_counter)]]</div>
                             </paper-item-body>
                             <paper-menu-button id="actions" close-on-activate horizontal-align="right" vertical-offset="56" horizontal-offset="-36" on-tap="_handleRightButtonTap">
@@ -347,7 +356,7 @@
                 } else if (event.model.item.tag) {
                     path = '/' + event.model.item.tag._ref.$ref + '/' + event.model.item.tag._ref.$id;
                 } else {
-                    event.model._children[1].querySelector('paper-menu-button').open();
+                    event.model.children[1].querySelector('paper-menu-button').open();
                     return;
                 }
 
@@ -375,6 +384,7 @@
                 event.stopPropagation();
             },
             _dismissNotification: function (event) {
+                debugger;
                 var dismissURL = "/api/v1/notifications/" + event.model.item._id;
                 this.$.requestDismiss.url = dismissURL;
                 this.$.requestDismiss.headers["Csrf-Token"] = CSRF_TOKEN;
