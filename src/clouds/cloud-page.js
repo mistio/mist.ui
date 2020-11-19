@@ -519,13 +519,13 @@ Polymer({
       '_cloudArraysChanged(cloud,cloud.*,cloud.imagesArray,cloud.locationsArray,cloud.networks,cloud.machines)'
   ],
 
-  _cloudChanged (cloud) {
+  _cloudChanged () {
       // console.log(this.cloud, this.cloud.enabled, [this.cloud])
       this.set('itemArray', this.cloud ? [this.cloud] : []);
       this._cloudArraysChanged();
   },
 
-  _displayUser (id, members) {
+  _displayUser (id) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email  || this.model.members[id].username : '';
   },
 
@@ -538,10 +538,10 @@ Polymer({
   },
 
   _canShowHostsList(provider) {
-      return provider == "libvirt" || this._isBareMetal(provider);
+      return provider === "libvirt" || this._isBareMetal(provider);
   },
 
-  _cloudArraysChanged (cloud, cloudchange, imagesArray, locationsArray, networks, machines) {
+  _cloudArraysChanged () {
       if (this.cloud) {
           this.async(function () {
               if (this.cloud) {
@@ -587,20 +587,20 @@ Polymer({
 
   _computeShowCount (c) {
       console.log('_computeShowCount', c);
-      return c != 0;
+      return c !== 0;
   },
 
-  _computeRunningMachines (machines) {
+  _computeRunningMachines () {
       const _this = this;
       return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
-          return _this.cloud.machines[m].state == 'running'
+          return _this.cloud.machines[m].state === 'running'
       }).length : 0;
   },
 
-  _computeStoppedMachines (machines) {
+  _computeStoppedMachines () {
       const _this = this;
       return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
-          return _this.cloud.machines[m].state == 'stopped'
+          return _this.cloud.machines[m].state === 'stopped'
       }).length : 0;
   },
 
@@ -609,20 +609,20 @@ Polymer({
           return cloud.title;
   },
 
-  _computeCloudTags (cloud, cloudTags) {
+  _computeCloudTags () {
       if (this.cloud) {
           return Object.entries(this.cloud.tags).map(([key, value]) => ({key,value}));
       }
   },
 
-  _computeIsloading (cloud) {
+  _computeIsloading () {
       return !this.cloud;
   },
 
   _computeItemImage (item) {
       if (item && item.provider) {
           const provider = item.provider.replace('_', '');
-          return `assets/providers/provider-${  provider  }.png`;
+          return `assets/providers-large/provider-${  provider  }.png`;
       }
   },
 
@@ -643,10 +643,10 @@ Polymer({
   },
 
   _isBareMetal (provider) {
-      return provider == 'bare_metal';
+      return provider === 'bare_metal';
   },
 
-  _changeState (e) {
+  _changeState () {
       this.$['enable-disable-cloud'].disabled = true;
       this.$.cloudStateAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudStateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -657,8 +657,8 @@ Polymer({
       this.$.cloudStateAjaxRequest.generateRequest();
   },
 
-  _handleCloudStateAjaxResponse (e) {
-      const message = this.expectedState == true ? `Cloud ${  this.cloud.title 
+  _handleCloudStateAjaxResponse () {
+      const message = this.expectedState === true ? `Cloud ${  this.cloud.title
           } was enabled!` : `Cloud ${  this.cloud.title  } was disabled!`;
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: message,
@@ -674,7 +674,7 @@ Polymer({
       } }));
   },
 
-  _changeOBSLOGSenabled(e) {
+  _changeOBSLOGSenabled() {
       const observation_logs_enabled = this.cloud.observation_logs_enabled ? 0 : 1;
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -694,7 +694,7 @@ Polymer({
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:e.detail.request.xhr.response,duration:10000} }));
   },
 
-  _changeDNSenabled(e) {
+  _changeDNSenabled() {
       const dns_enabled = this.cloud.dns_enabled ? 0 : 1;
       this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
