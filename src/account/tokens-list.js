@@ -6,6 +6,8 @@ import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import './token-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
+// import { PaperDialogBehavior } from "@polymer/paper-dialog-behavior/paper-dialog-behavior.js"
 
 Polymer({
   _template: html`
@@ -151,8 +153,7 @@ Polymer({
             <p>* Password is required to create a token</p>
             <div class="bottom-actions">
               <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog"
-                >Cancel</paper-button
-              >
+                >Cancel</paper-button>
               <paper-button
                 id="Create"
                 autofocus=""
@@ -204,6 +205,10 @@ Polymer({
 
   is: 'tokens-list',
 
+  behaviors: [
+    // PaperDialogBehavior
+  ],
+
   properties: {
     user: {
       type: Object,
@@ -254,7 +259,7 @@ Polymer({
   createTokenSubmit() {
     const payload = this.newToken;
     this.$.createTokenAjax.headers['Content-Type'] = 'application/json';
-    this.$.createTokenAjax.headers['Csrf-Token'] = this.user.csrf_token;
+    this.$.createTokenAjax.headers['Csrf-Token'] = CSRFToken.value;
     this.$.createTokenAjax.body = payload;
     this.$.createTokenAjax.generateRequest();
   },
