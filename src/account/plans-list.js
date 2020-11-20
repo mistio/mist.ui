@@ -235,8 +235,7 @@ Polymer({
   },
 
   purchasePlan(e) {
-      console.log('purchasePlan',e.detail.plan);
-      if (e.detail.plan && e.detail.plan.title) {
+      if (e.detail && e.detail.plan && e.detail.plan.title) {
           this.shadowRoot.querySelector('plan-purchase#purchasePlan').plan = e.detail.plan;
       } else {
           this.$.purchasePlan.plan = false;
