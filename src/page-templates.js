@@ -115,6 +115,9 @@ Polymer({
             'name': {
                 'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
+                },
+                'cmp': (row1, row2) => {
+                    return row1['name'].localeCompare(row2['name'], 'en', {sensitivity: 'base'});
                 }
             },
             'owned_by': {

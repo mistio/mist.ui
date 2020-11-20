@@ -194,7 +194,8 @@ Polymer({
     // of the available actions of the selected items
     this.set('actions', []);
     let actions = new Set();
-        let isection = new Set();
+    let isection = new Set();
+    let multiActions = [];
     if (this.items.length > 0) {
       actions= new Set(this.itemActions(this.items[0]) || []);
 
@@ -203,7 +204,6 @@ Polymer({
           actions= new Set(isection);
       }
 
-      let multiActions;
 
       if (this.items.length > 1) {
           multiActions = this.actionDetails(Array.from(actions)).filter(a => a.multi);
