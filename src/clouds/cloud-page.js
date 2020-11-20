@@ -283,7 +283,7 @@ Polymer({
                         </paper-toggle-button>
                     </div>
                 </div>
-                <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" providers="[[providers]]"></cloud-actions>
+                <cloud-actions id="actions_machine" items="[[itemArray]]" model="[[model]]" actions="{{actions}}" providers="[[providers]]" portal-name=[[portalName]]></cloud-actions>
             </paper-material>
 
             <paper-material hidden\$="[[!isMissing]]">
@@ -592,21 +592,18 @@ Polymer({
 
   _computeRunningMachines () {
       const _this = this;
-      return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
-          return _this.cloud.machines[m].state === 'running'
-      }).length : 0;
+      return this.cloud.machines ? Object.keys(this.cloud.machines).filter(m => _this.cloud.machines[m].state === 'running'
+      ).length : 0;
   },
 
   _computeStoppedMachines () {
       const _this = this;
-      return this.cloud.machines ? Object.keys(this.cloud.machines).filter(function (m) {
-          return _this.cloud.machines[m].state === 'stopped'
-      }).length : 0;
+      return this.cloud.machines ? Object.keys(this.cloud.machines).filter(m => _this.cloud.machines[m].state === 'stopped'
+      ).length : 0;
   },
 
   _computeCloudTitle (cloud) {
-      if (cloud)
-          return cloud.title;
+      return cloud && cloud.title;
   },
 
   _computeCloudTags () {

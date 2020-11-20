@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
 import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -186,7 +187,7 @@ Polymer({
   nextSearch(index){
     console.log('nextSearch', this.clouds.length, index)
     this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRF_TOKEN;
+    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
     if (this.clouds && this.clouds.length && index < this.clouds.length) {
       this.$.request.url = `/api/v1/clouds/${ this.get(`clouds.${index}.id`) }/images`;
