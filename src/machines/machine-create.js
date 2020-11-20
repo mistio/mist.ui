@@ -506,7 +506,7 @@ Polymer({
       let allMachinesFields;
       if (this.selectedCloud) {
           const provider = this.model.clouds[selectedCloud] && this.model.clouds[selectedCloud].provider;
-          allMachinesFields = this.machinesFields.find(function(c) {
+          allMachinesFields = this.machinesFields.find((c) => {
               return c.provider == provider;
           });
       }
@@ -541,11 +541,14 @@ Polymer({
 
   _locationChanged (locationId) {
       if (!locationId) return;
-      const {provider} = this.model.clouds[this.selectedCloud];
-          const location = this.model.clouds[this.selectedCloud].locations[locationId];
-          const sizeIndex = this._fieldIndexByName('size');
-          const selectedSize = this.machineFields[sizeIndex].value;
-          const allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
+      const sizeIndex = this._fieldIndexByName('size');
+      if (sizeIndex === -1){
+          // provider has no size field
+          return;
+      }
+      const location = this.model.clouds[this.selectedCloud].locations[locationId];
+      const selectedSize = this.machineFields[sizeIndex].value;
+      const allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
               if (a.cpus < b.cpus) {
                   return -1;
               } if (a.cpus > b.cpus) {
@@ -563,7 +566,7 @@ Polymer({
           });
       }
       if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
-          this.set(`machineFields${  sizeIndex  }.value`, '');
+          this.set(`machineFields.${  sizeIndex  }.value`, '');
       }
       this.set(`machineFields.${  sizeIndex  }.options`, sizeOptions);
   },

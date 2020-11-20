@@ -1130,7 +1130,7 @@ MACHINE_CREATE_FIELDS.forEach((p) => {
                 fieldExists: true
             }
         });
-    } else { // mist_dropdown for all others
+    } else if(p.provider !== "docker"){ // mist_dropdown for all others except docker which has no size
         p.fields.splice(3, 0, {
             name: 'size',
             label: 'Size *',
