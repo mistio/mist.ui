@@ -600,10 +600,6 @@ h2 {
     margin: 8px 0;
 }
 
-h2::first-letter {
-    text-transform: capitalize;
-}
-
 h3 {
     font-size: 24px;
     font-weight: 400;
