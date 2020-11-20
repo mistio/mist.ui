@@ -339,7 +339,7 @@ Polymer({
           const {response} = e.detail;
       if (response === 'confirm' && reason === "schedule.delete") {
           this._delete(this.items)
-          window.history.back();
+          window.location = "/schedules";
       }
       if (response === 'confirm' && reason === "schedule.run" && this.items.length === 1) {
           this.$.request.url = `/api/v1/schedules/${ this.items[0].id}`

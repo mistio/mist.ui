@@ -7,7 +7,6 @@ import './token-item.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
-// import { PaperDialogBehavior } from "@polymer/paper-dialog-behavior/paper-dialog-behavior.js"
 
 Polymer({
   _template: html`
@@ -206,7 +205,6 @@ Polymer({
   is: 'tokens-list',
 
   behaviors: [
-    // PaperDialogBehavior
   ],
 
   properties: {
