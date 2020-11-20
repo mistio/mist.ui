@@ -738,13 +738,13 @@ Polymer({
                       res[chunks[i]] = {};
                   }
                   if (i === chunks.length - 1) {
-                      res[chunks[i]] = data.detail.response[metric].id;
+                      res[chunks[i]] = chunks[i];
                   }
                   res = res[chunks[i]];
               }
           });
       }
-      this.set('availableMetrics', this._makeArray(output));
+      this.set('availableMetrics', this._computeMetricsArray(output));
       // Store metrics in resource if available, ie we are in a single page, so as to improve performance
       if (!this.model.metrics) {
           this.model.metrics = {};
@@ -755,14 +755,14 @@ Polymer({
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"No metrics available for this resource(s)", duration:3000} }));
       }
   },
-  _makeArray(output) {
+  _computeMetricsArray(output) {
       const arr = [];
       if (output) {
           if (output && typeof(output) === 'object') {
               let obj = {};
               Object.keys(output || {}).forEach((p) => {
                   if (typeof(output[p]) === 'object') {
-                      obj = { name: p, options: this._makeArray(output[p]) };
+                      obj = { name: p, options: this._computeMetricsArray(output[p]) };
                   } else {
                       obj = { name: output[p], options: [] };
                   }
@@ -770,8 +770,20 @@ Polymer({
               });
           }
       }
+      arr.forEach((elem) => {
+        let totalIndex = 0;
+        for(let i=0; i < elem.options.length; i++){
+                if(elem.options[i].name.includes("total")){
+                    totalIndex = i;
+                    break;
+                }
+            }
+            if(totalIndex > 0)
+            elem.options.splice(0, 0, elem.options.splice(totalIndex, 1)[0]);
+        });
       return arr;
   },
+
   _handleMetricError(error) {
       console.error('_handleMetricError', error);
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Error fetching available metrics.", duration:3000} }));

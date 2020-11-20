@@ -195,6 +195,9 @@ Polymer({
       type: String,
       value: 'cloud',
     },
+    portalName: {
+      type: String,
+    },
     inSingleView: {
       type: Boolean,
       reflectToAttribute: true,
@@ -274,6 +277,7 @@ Polymer({
   selectAction(e) {
     if (this.items.length) {
       const { action } = e.detail;
+      const deleteExplanation = `Deleting clouds will not affect your resources, but you will no longer be able to manage them with ${this.portalName}.`;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (
@@ -284,6 +288,7 @@ Polymer({
         this._showDialog({
           title: 'Delete cloud?',
           body: 'Deleting a cloud can not be undone.',
+          subscript: deleteExplanation,
           danger: true,
           list: this._makeList(this.items, 'title'),
           reason: 'cloud.delete',
@@ -291,12 +296,13 @@ Polymer({
       } else if (action.confirm && action.name !== 'tag') {
         const plural = this.items.length === 1 ? '' : 's';
         const count = this.items.length > 1 ? `${this.items.length} ` : '';
-        const deleteExplanation = `Deleting clouds will not affect your resources, but you will no longer be able to manage them with Mist.`;
         // this.tense(this.action.name) + " " + this.resourceType + "s can not be undone.
         this._showDialog({
           title: `${this.action.name} ${count}${this.resourceType}${plural}?`,
           body: `You are about to ${this.action.name} ${this.items.length} ${this.resourceType}${plural}:`,
-          subscript: `${this.action.name === 'delete' ? deleteExplanation : null}`,
+          subscript: `${
+            this.action.name === 'delete' ? deleteExplanation : null
+          }`,
           list: this._makeList(this.items, 'title'),
           action: action.name,
           danger: true,
