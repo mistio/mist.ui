@@ -72,7 +72,7 @@ Polymer({
             }
 
             .icon iron-icon {
-                background-color: rgba(255, 255, 255, 0.50) !important;
+                background-color: rgba(255, 255, 255, 0.90) !important;
             }
 
             .paper-header [paper-drawer-toggle] {
