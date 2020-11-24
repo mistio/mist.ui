@@ -112,7 +112,7 @@ Polymer({
                     return `<strong class="name">${  item || row.external_id  }</strong>`;
                 },
                 'cmp': (row1, row2) => {
-                    return row1['name'].localeCompare(row2['name'], 'en', {sensitivity: 'base'});
+                    return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
                 }
             },
             'icon': {

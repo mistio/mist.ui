@@ -6,9 +6,9 @@ import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import './balance-chart.js';
 import './plan-item.js';
 import './plan-purchase.js';
+import moment from 'moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import moment from 'moment/src/moment.js';
 
 Polymer({
   _template: html`
