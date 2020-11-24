@@ -249,6 +249,10 @@ Polymer({
   .error {
       color: var(--red-color);
   }
+  .secondary {
+    color: var(--secondary-text-color);
+    padding-left: 8px;
+  }
 </style>
 <custom-style>
   <style is="custom-style">
@@ -307,7 +311,11 @@ Polymer({
                       <template id="resourcesRepeat" is="dom-repeat" items="[[resources]]" initial-count="10">
                           <paper-item value="[[item.id]]">
                               <iron-icon class="monitored-icon" icon="image:remove-red-eye" hidden$="[[!item.monitoring.hasmonitoring]]" title="Monitored machine"></iron-icon>
-                              [[_displayItemName(item, resourceType)]]</paper-item>
+                              [[_displayItemName(item, resourceType)]]
+                              <template is="dom-if" if="[[_displayItemSecondary(item, resourceType)]]">
+                                <span class="secondary">[[_displayItemSecondary(item, resourceType)]]</span>
+                              </template>
+                              </paper-item>
                       </template>
                   </paper-listbox>
               </paper-dropdown-menu>
@@ -849,16 +857,33 @@ Polymer({
   _displayItemName(item, type) {
       return item.title || item.name || this._displayItemNameByType(item, type) || item.external_id || item.id;
   },
-
+  _displayItemSecondary(item, type) {
+    switch(type) {
+        case 'zone': {
+          return `${ this._getCloudName(item.cloud) }`;
+        }
+        default:
+          return false;
+    }
+},
+  _getCloudName(id) {
+      return this.model && this.model.clouds && id ? this.model.clouds[id].title : '';
+},
   _displayItemNameByType(item, type) {
-      if (type === 'zone') {
-          return `${item.zone_id}.` === item.domain ? item.zone_id : `${item.domain } ${ item.zone_id}`;
-      } if (type === 'record') {
-          // TODO find a comprehensive way to display records across providers
-          console.log('_displayItemNameByType', type, item);
-      } else if (type === 'subnet') {
-          // TODO find a comprehensive way to display subnets across providers
-          console.log('_displayItemNameByType', type, item);
+      switch(type) {
+          case 'zone': {
+            return `${item.domain }`;
+          }
+          case 'record': {
+            console.log('_displayItemNameByType', type, item);
+            break;
+          }
+          case 'subnet': {
+            console.log('_displayItemNameByType', type, item);
+            break;
+          }
+          default:
+              return '';
       }
       return false;
   },
