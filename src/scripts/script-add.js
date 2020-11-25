@@ -190,7 +190,7 @@ Polymer({
                   fieldName: "location_type",
                   fieldValues: ["inline"]
               },
-              helptext: "Copy paste your script. Make sure the script's format is alligned to the examples"
+              helptext: "Copy paste your script. Make sure the script's format is aligned to the examples"
           }, {
               name: "entrypoint",
               label: "Entry point",

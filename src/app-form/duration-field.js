@@ -57,7 +57,7 @@ Polymer({
             padding-right: 16px;
         }
         </style>
-        
+
         <template is="dom-if" if="[[field.optional]]">
             <paper-checkbox id="checkbox" checked="{{field.defaultCheck}}" disabled="[[field.disabledCheck]]"></paper-checkbox>
         </template>
@@ -154,7 +154,7 @@ Polymer({
   },
 
   _computeOptionDisabled(fieldMax, option) {
-      if (!fieldMax) 
+      if (!fieldMax)
           return false;
       if (fieldMax) {
           // allow max to also be a date
@@ -169,20 +169,20 @@ Polymer({
   _computeMax(fieldMax,unit) {
       if (!fieldMax) return;
       if (!unit) var unit = 'seconds';
-      // compute the max number allowed for each unit 
+      // compute the max number allowed for each unit
       if (typeof(fieldMax) === 'number') {
           return this._secondsToUnitDuration(fieldMax, unit);
       } if (typeof(fieldMax) === 'string' && moment(fieldMax).isValid()){
           // TODO: compute and set value if max is a date
           return this._secondsToUnitDuration(moment.utc(fieldMax).diff(moment(), 'seconds'),unit);
-      } 
+      }
           const duration = this._valueIsRelativeDuration(fieldMax);
           if (duration) {
               const durSpan = duration.span;
               const durUnit = duration.unit;
               return this._secondsToUnitDuration(this._durationToSeconds(durSpan,durUnit),unit);
           }
-      
+
   },
 
   _checkedChanged(defaultCheck){
@@ -269,7 +269,7 @@ Polymer({
           }
           this.set('field.value', newValue);
           this.notifyPath('field.value');
-          this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true, 
+          this.dispatchEvent(new CustomEvent('fields-changed',{ bubbles: true, composed: true,
           detail: {fieldname: this.field.name, parentfield: this.field.parentfield, file: 'duration-field.html'}}));
 
           this.validate();
@@ -304,7 +304,7 @@ Polymer({
   _secondsToDuration(seconds) {
       // turn seconds to duration
       // TODO: duration in seconds is always a product of 60 (*60 (*24 (*7))) for minutes hours days and weeks,
-      // but ammount of months in secs is not directly tracable because of differentiations in month days.
+      // but amount of months in secs is not directly tracable because of differentiations in month days.
       let span; let unit;
       if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
           if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);

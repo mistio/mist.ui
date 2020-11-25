@@ -630,7 +630,7 @@ Polymer({
       console.log('handle response', e, this.$.request.body);
       if (this.$.request && this.$.request.body && this.$.request.body.action)
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-              msg: `Action: ${  this.$.request.body.action || 'ownership transfer'  } successfull`,
+              msg: `Action: ${  this.$.request.body.action || 'ownership transfer'  } successful`,
               duration: 3000
           } }));
 
@@ -643,7 +643,7 @@ Polymer({
           }
 
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-              msg: 'Successfull ownership transfer',
+              msg: 'Successful ownership transfer',
               duration: 3000
           } }));
 

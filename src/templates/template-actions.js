@@ -236,14 +236,14 @@ Polymer({
 
   handleResponse(e) {
       if (this.$.request && this.$.request.body && this.$.request.body.action) {
-          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Action: ${  this.$.request.body.action  } successfull`, duration: 3000 } }))
+          this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  { msg: `Action: ${  this.$.request.body.action  } successful`, duration: 3000 } }))
       } else if (this.$.request && this.$.request.method === "DELETE") {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  { url: '/templates'} }));
       } else if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status === 200) {
           this.$.ownershipdialog._closeDialog();
           this.dispatchEvent(new CustomEvent('action-finished'));
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-              msg: 'Successfull ownership transfer',
+              msg: 'Successful ownership transfer',
               duration: 3000
           } }));
       }
