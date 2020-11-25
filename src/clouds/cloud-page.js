@@ -495,7 +495,7 @@ Polymer({
           value: 0
       },
       expectedState: {
-          type: Boolean
+          type: String
       },
       addMachine: {
           type: Boolean,
@@ -650,13 +650,12 @@ Polymer({
       this.$.cloudStateAjaxRequest.body = {
           new_state: this.cloud.enabled ? '0' : '1'
       };
-      this.expectedState = this.cloud.enabled ? '0' : '1';
+      this.expectedState = this.cloud.enabled ? 'disabled' : 'enabled';
       this.$.cloudStateAjaxRequest.generateRequest();
   },
 
   _handleCloudStateAjaxResponse () {
-      const message = this.expectedState === true ? `Cloud ${  this.cloud.title
-          } was enabled!` : `Cloud ${  this.cloud.title  } was disabled!`;
+      const message = `Cloud ${this.cloud.title} was ${this.expectedState}!`
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
           msg: message,
           duration: 5000
