@@ -169,7 +169,7 @@ Polymer({
         bubbles: true,
         composed: true,
         detail: {
-          msg: `Action: ${  this.$.request.body.action  } successfull`,
+          msg: `Action: ${  this.$.request.body.action  } successful`,
           duration: 3000
         }
       }))

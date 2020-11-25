@@ -25,7 +25,7 @@ const VOLUME_CREATE_FIELDS = []
 //   type: string
 //   description: EC2-specific. Needs to be specified if volume_type='io1'
 
-// AZURE ARM  
+// AZURE ARM
 // https://docs.microsoft.com/en-us/rest/api/dtl/disks/createorupdate
 VOLUME_CREATE_FIELDS.push({
     provider: 'azure_arm',
@@ -121,7 +121,7 @@ VOLUME_CREATE_FIELDS.push({
             val: 'Standard_LRS'
         }, {
             title: 'Standard SSD',
-            val: 'StandardSSD_LRS',	
+            val: 'StandardSSD_LRS',
         }, {
             title: 'Premium SSD',
             val: 'Premium_LRS',
@@ -140,7 +140,7 @@ VOLUME_CREATE_FIELDS.push({
         label: 'Filesystem type',
         value: "",
         defaultValue: "",
-        helptext: "If a filesystem type is selected, the volume will automatically be formated to the specified filesystem type.",
+        helptext: "If a filesystem type is selected, the volume will automatically be formatted to the specified filesystem type.",
         show: true,
         required: false,
         options: [{
@@ -301,7 +301,7 @@ VOLUME_CREATE_FIELDS.push({
             value: "",
             defaultValue: "",
             options: [],
-            helptext: `Select a storage class, it should support dynamic provisioning, unless you intend to create 
+            helptext: `Select a storage class, it should support dynamic provisioning, unless you intend to create
             a static peristent volume. Most storage classes by default support dynamic provisioning.`,
             errorMessage: "Please select a storage class of the cluster.",
             show: true,
@@ -385,7 +385,7 @@ VOLUME_CREATE_FIELDS.push({
             showIf: {
                 fieldName: 'dynamic',
                 fieldValues: [false],
-            },            
+            },
             options: [
                 {val: 'awsElasticBlockStore', title: "AWS ELASTIC BlockStore"},
                 {val: 'azureDisk', title: "Azure Disk"},
@@ -428,7 +428,7 @@ VOLUME_CREATE_FIELDS.push({
         },
         loadSchemeFolder: '/volumes/volume_params/', // where json schemes are located
         subfields: []
-    }        
+    }
     ]
 });
 

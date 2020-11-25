@@ -318,7 +318,7 @@ Polymer({
               pattern: "[0-9]*",
               errorMessage: "Please enter numbers only!",
               excludeFromPayload: true,
-              helptext: `Apply an extra filter of costing more than a certain ammount of ${this.currency.sign} per month`,
+              helptext: `Apply an extra filter of costing more than a certain amount of ${this.currency.sign} per month`,
               class: "bind-top background",
           }, {
               name: "selectors",
@@ -476,7 +476,7 @@ Polymer({
               disabled: true,
               show: true,
               required: false,
-              helptext: "Optional. Integers only. Define a maximum run count, unless it's an one_of schedule.",
+              helptext: "Optional. Integers only. Define a maximum run count, unless it's a one_of schedule.",
               showIf: {
                   fieldName: "schedule_type",
                   fieldValues: ["interval", "crontab"]
@@ -495,9 +495,9 @@ Polymer({
                   fieldValues: ["interval", "crontab"]
               }
           }]
-      } 
+      }
           return [];
-      
+
   },
 
   _computeActions (_machines) {
@@ -549,7 +549,7 @@ Polymer({
 
   _updateCheckboxes () {
       // check if any checkboxes are selected
-      const checkedMachines = this.get(`fields.${  this._fieldIndexByName("machines_uuids") 
+      const checkedMachines = this.get(`fields.${  this._fieldIndexByName("machines_uuids")
           }.value`);
       // if there are selected checkboxes, keep selection on update
       if (checkedMachines && checkedMachines.length) {
@@ -748,7 +748,7 @@ Polymer({
           const index = selectors.indexOf(selectorsField);
       // console.log('index', index);
       if (index > -1) {
-          this.set(`fields.${  this._fieldIndexByName("selectors")  }.value.${  index  }.${ 
+          this.set(`fields.${  this._fieldIndexByName("selectors")  }.value.${  index  }.${
               attr}`, value);
       } else {
           this._addObjectInSelectors(field, value, operator);

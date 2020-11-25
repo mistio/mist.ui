@@ -229,7 +229,7 @@ Polymer({
                 value: "",
                 defaultValue: "",
                 placeholder: "",
-                helptext: "Choose a usefull description for your stack",
+                helptext: "Choose a useful description for your stack",
                 errorMessage: "Please enter stacks's description",
                 show: true,
                 required: false
@@ -415,11 +415,11 @@ Polymer({
             this.set('fields', ret);
 
             return this.model.templates[params.template];
-        } 
+        }
             console.log( "Template is missing" );
             return {
                 name: "Template is missing"
-            }      
+            }
     },
 
   _computeFields (_template, _templateInps, _templateInputs, _modelTemplates, _clouds, _keys,
@@ -457,7 +457,7 @@ Polymer({
       }, this);
 
   },
-    
+
     _updateFields (event) {
         // if a cloud changed
         function copy(o) { // deep copy an array of objects
@@ -536,14 +536,14 @@ Polymer({
                         if (cloudId && this.fieldIndexByName(`mist_size${  xid}`) > -1) {
                             if (["onapp", "vsphere", "libvirt", "gce"].indexOf(this.model.clouds[
                                     cloudId].provider) > -1) {
-                                this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                this.set(`fields.${  this.fieldIndexByName(`mist_size${
                                     xid}`)  }.custom`, true);
-                                this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                this.set(`fields.${  this.fieldIndexByName(`mist_size${
                                     xid}`)  }.customValue`, {});
                             } else {
-                                this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                this.set(`fields.${  this.fieldIndexByName(`mist_size${
                                     xid}`)  }.custom`, false);
-                                this.set(`fields.${  this.fieldIndexByName(`mist_size${ 
+                                this.set(`fields.${  this.fieldIndexByName(`mist_size${
                                     xid}`)  }.customValue`, false);
                             }
                         }
