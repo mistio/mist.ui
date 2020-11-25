@@ -376,8 +376,7 @@ Polymer({
             _this.model.machines &&
             item in _this.model.machines
           ) {
-            const ret = `<a href="/machines/${_this.model.machines[item].uuid}">${_this.model.machines[item].name}</a>`;
-            return ret;
+            return `<a href="/machines/${_this.model.machines[item].id}">${_this.model.machines[item].name}</a>`;
           }
           return item || '';
         },
