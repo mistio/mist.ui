@@ -373,7 +373,7 @@ Polymer({
                     return `<strong class="name">${  item  }</strong>`;
                 },
                 'cmp': (row1, row2) => {
-                    return row1['name'].localeCompare(row2['name'], 'en', {sensitivity: 'base'});
+                    return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
                 }
             },
             'state': {
@@ -404,7 +404,7 @@ Polymer({
                     } if (!row1.monitoring && row2.monitoring) {
                         return 1;
                     }
-                    return row1['state'].localeCompare(row2['state']);
+                    return row1.state.localeCompare(row2.state);
                 }
             },
             'cloud': {
@@ -414,8 +414,8 @@ Polymer({
                     return '';
                 },
                 'cmp': (row1, row2) => {
-                    const item1 = row1['cloud'];
-                    const item2 = row2['cloud'];
+                    const item1 = row1.cloud;
+                    const item2 = row2.cloud;
                     if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
                         _this.model.clouds[item2.id]) {
                         if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
@@ -440,8 +440,8 @@ Polymer({
                     return item && item.monthly && _this.currency? _this.currency.sign + _this._ratedCost(parseFloat(item.monthly), _this.currency.rate) : '';
                 },
                 'cmp': (row1, row2) => {
-                    const item1 = row1['cost'];
-                    const item2 = row2['cost'];
+                    const item1 = row1.cost;
+                    const item2 = row2.cost;
                     if (item1.monthly < item2.monthly)
                         return -1;
                     if (item1.monthly > item2.monthly)
@@ -475,8 +475,8 @@ Polymer({
                     return _this.computeSize(row, item);
                 },
                 'cmp': (row1, row2) => {
-                    const item1 = row1['size'];
-                    const item2 = row2['size'];
+                    const item1 = row1.size;
+                    const item2 = row2.size;
                     const s1 = _this.computeSize(row1, item1);
                     const s2 = _this.computeSize(row2, item2);
 
@@ -503,8 +503,8 @@ Polymer({
                     return _this._computeImage(row, item);
                 },
                 'cmp': (row1, row2) => {
-                    const item1 = row1['image_id'];
-                    const item2 = row2['image_id'];
+                    const item1 = row1.image_id;
+                    const item2 = row2.image_id;
                     const im1 = _this._computeImage(row1, item1);
                     const im2 = _this._computeImage(row2, item2);
 
@@ -530,8 +530,8 @@ Polymer({
                     return item && item.date ? moment.utc(item.date).fromNow() : '';
                 },
                 'cmp': (row1, row2) => {
-                    const item1 = row1['expiration'];
-                    const item2 = row2['expiration'];
+                    const item1 = row1.expiration;
+                    const item2 = row2.expiration;
                     const exp1 = item1 && item1.date ? moment(item1.date) : moment('');
                     const exp2 = item2 && item2.date ? moment(item2.date) : moment('');
 

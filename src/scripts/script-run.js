@@ -57,7 +57,7 @@ Polymer({
             </paper-material>
             <paper-material>
                 <p>
-                    Heads up! Make sure you select a machine you have already associated a key with. Otherwise the the request may be accepted but the script will never finish run.
+                    Heads up! Make sure you select a machine you have already associated a key with. Otherwise the the request may be accepted but the script will never finish running.
                 </p>
                 <p class="error" hidden\$="{{machineHasKeys}}">
                     <iron-icon icon="icons:warning"></iron-icon> Machine [[machine.name]] has no associated keys.
@@ -151,7 +151,7 @@ Polymer({
               value: "",
               defaultValue: "",
               placeholder: "",
-              helptext: "Optional. Fill in the scripts pareameters.",
+              helptext: "Optional. Fill in the script parameters.",
               errorMessage: "Please enter network's name",
               show: true,
               required: false
@@ -212,7 +212,7 @@ Polymer({
   },
 
   _runScriptResponse(_e) {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Run script request was successfull. Redirecting to script...',duration:3000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:'Run script request was successful. Redirecting to script...',duration:3000} }));
 
       this.async(() => {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: `/scripts/${this.script.id}`} }));

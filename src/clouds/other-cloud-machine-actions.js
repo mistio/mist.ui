@@ -144,7 +144,7 @@ Polymer({
 
   handleResponse() {
     if (this.$.request && this.$.request.body && this.$.request.body.action)
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Action: ${this.$.request.body.action} successfull`, duration: 3000} }));
+      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Action: ${this.$.request.body.action} successful`, duration: 3000} }));
   },
 
   handleError(e) {

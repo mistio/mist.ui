@@ -216,13 +216,13 @@ Polymer({
     // console.log('handleResponse',e);
     if (this.$.request && this.$.request.body && this.$.request.body.action)
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
-        msg: `Action: ${  this.$.request.body.action  } successfull`,
+        msg: `Action: ${  this.$.request.body.action  } successful`,
         duration: 3000
       } }))
     if (e.detail.xhr.responseURL.endsWith("api/v1/ownership") && e.detail.xhr.status === 200 ) {
       this.$.ownershipdialog._closeDialog();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {
-        msg: 'Successfull ownership transfer',
+        msg: 'Successful ownership transfer',
         duration: 3000
       } }));
 
