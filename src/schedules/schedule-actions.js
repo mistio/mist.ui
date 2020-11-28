@@ -115,7 +115,7 @@ Polymer({
   ],
 
   listeners: {
-    'confirmation': 'confirmAction',
+    // 'confirmation': 'confirmAction',
     'transfer-ownership': 'transferOwnership',
     'confirmation': '_actionConfirmed',
     'select-action': 'selectAction'

@@ -488,10 +488,10 @@ VOLUME_CREATE_FIELDS.push({
 });
 
 
-VOLUME_CREATE_FIELDS.forEach(function(p) {
+VOLUME_CREATE_FIELDS.forEach((p) => {
 // add common machine properties fields
-    const minimumSize = (p.provider == 'equinixmetal' && 100) ||
-                      (p.provider == 'aliyun_ecs' && 5) || 1;
+    const minimumSize = (p.provider === 'equinixmetal' && 100) ||
+                      (p.provider === 'aliyun_ecs' && 5) || 1;
     p.fields.splice(0, 0, {
         name: 'size',
         label: 'Size in GB *',
@@ -507,7 +507,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         custom: false
     });
 
-    if (p.provider != 'equinixmetal') {
+    if (p.provider !== 'equinixmetal') {
         p.fields.splice(0, 0, {
             name: "name",
             label: "Name *",
@@ -520,7 +520,7 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
             required: true});
     }
 
-    if (p.provider != 'openstack' && p.provider != 'gig_g8') {
+    if (p.provider !== 'openstack' && p.provider !== 'gig_g8') {
         p.fields.splice(1, 0, {
             name: 'location',
             label: 'Location *',
@@ -533,56 +533,5 @@ VOLUME_CREATE_FIELDS.forEach(function(p) {
         });
     }
 });
-
-const SCHEDULEACTIONS = {
-    'reboot': {
-        'name': 'reboot',
-        'icon': 'av:replay',
-        'confirm': true,
-        'multi': true
-    },
-    'start': {
-        'name': 'start',
-        'icon': 'av:replay',
-        'confirm': true,
-        'multi': true
-    },
-    'stop': {
-        'name': 'stop',
-        'icon': 'av:stop',
-        'confirm': true,
-        'multi': true
-    },
-    'suspend': {
-        'name': 'suspend',
-        'icon': 'av:stop',
-        'confirm': true,
-        'multi': true
-    },
-    'resume': {
-        'name': 'resume',
-        'icon': 'av:replay',
-        'confirm': true,
-        'multi': true
-    },
-    'undefine': {
-        'name': 'undefine',
-        'icon': 'image:panorama-fish-eye',
-        'confirm': true,
-        'multi': true
-    },
-    'destroy': {
-        'name': 'destroy',
-        'icon': 'delete',
-        'confirm': true,
-        'multi': true
-    },
-    'run-script': {
-        'name': 'run script',
-        'icon': 'image:movie-creation',
-        'confirm': true,
-        'multi': false
-    }
-};
 
 export { VOLUME_CREATE_FIELDS };

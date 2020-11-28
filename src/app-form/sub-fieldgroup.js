@@ -95,7 +95,7 @@ Polymer({
       '_subfieldsChanged(field.subfields.*)'
   ],
 
-  _enabledChanged(enabled) {
+  _enabledChanged(_enabled) {
       this.set('field.enabled', this.enabled);
       if (!this.enabled) {
           this._resetValue();
@@ -109,24 +109,24 @@ Polymer({
       this.set('field.value', {});
   },
 
-  _computeDisabled(disabled) {
+  _computeDisabled(_disabled) {
       return !!this.field.toggleDisabled;
   },
 
-  _fieldChanged(field) {
+  _fieldChanged(_field) {
       this.set('enabled', this.field.defaultToggleValue);
       this.set('optional', this.field.optional);
       this._fieldsChangedNotifyEvent();
   },
 
-  _subfieldsChanged(subfields) {
+  _subfieldsChanged(_subfields) {
       // console.log('sub fields changed', subfields);
       if (this.field && this.enabled) {
           let fieldValue = {};
           if (!this.field.flatten) {
               for (let i=0; i<this.field.subfields.length; i++) {
                   fieldValue[this.field.subfields[i].name] = this.field.subfields[i].value;
-                  if (this.field.subfields[i].type == 'list') {
+                  if (this.field.subfields[i].type === 'list') {
                       const list = this.field.subfields[i]
                       const subformPayload = [];
                       if (list && list.items.length) {

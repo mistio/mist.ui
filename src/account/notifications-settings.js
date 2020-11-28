@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-item/paper-item.js';
 import '../../node_modules/@polymer/paper-card/paper-card.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -231,15 +232,15 @@ Polymer({
   },
 
   _computeAllowed(override) {
-      return override.value == "ALLOW";
+      return override.value === "ALLOW";
   },
 
   _computeOverrideLabel(override, machines) {
       const channel = override.channel.toLowerCase();
       if (channel.includes("inapp")) {
+          let machineName = "";
           if (channel.includes("recommendation")) {
               if (override.machine) {
-                  var machineName;
                   if (machines && machines[override.machine._ref.$id]) {
                       machineName = machines[override.machine._ref.$id].name;
                   } else {
@@ -260,7 +261,7 @@ Polymer({
                   } else {
                       machineName = override.machine._ref.$id;
                   }
-                  return `Notifications for machine ${  machineName}`;
+                  return `Notifications for machine ${  machineName }`;
               } if (override.cloud) {
                   return `Notifications for cloud ${  override.machine._ref.$id}`;
               } if (override.machine) {
@@ -278,9 +279,10 @@ Polymer({
       } if (channel.includes("emailreport")) {
           return "Email Reports";
       }
+      return null;
   },
 
-  _computeOverrideStateLabel(override, machines) {
+  _computeOverrideStateLabel(override, _machines) {
       const valueString = override.value.toLowerCase();
       return valueString.charAt(0).toUpperCase() + valueString.slice(1);
   },
@@ -297,9 +299,9 @@ Polymer({
       this.splice('notificationOverrides', index, 1, newOverride);
   },
 
-  _getOverrides(e, user) {
+  _getOverrides(_e, _user) {
       this.$.getNotificationOverridesRequest.headers["Content-Type"] = 'application/json';
-      this.$.getNotificationOverridesRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.getNotificationOverridesRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getNotificationOverridesRequest.generateRequest();
   },
 
@@ -308,30 +310,30 @@ Polymer({
   },
 
   _deleteOverrideTapped(e) {
-      const override_id = e.model.override._id.$oid;
+      const overrideId = e.model.override._id.$oid;
       this.$.deleteNotificationOverrideRequest.headers["Content-Type"] = 'application/json';
-      this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRF_TOKEN;
-      this.$.deleteNotificationOverrideRequest.url = `/api/v1/notification-overrides/${  override_id}`;
+      this.$.deleteNotificationOverrideRequest.headers["Csrf-Token"] = CSRFToken.value;
+      this.$.deleteNotificationOverrideRequest.url = `/api/v1/notification-overrides/${  overrideId}`;
       this.$.deleteNotificationOverrideRequest.generateRequest();
   },
 
-  _handleDeleteOverrideResponse(e) {
+  _handleDeleteOverrideResponse(_e) {
       this.$.getNotificationOverridesRequest.generateRequest();
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Notification override deleted succesfully!",duration:3000} }));
 
   },
 
-  _handleDeleteOverrideError() {
+  _handleDeleteOverrideError(e) {
       this.set('overridesError', true);
       this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
   },
 
-  _handleSetOverridesResponse(e) {
+  _handleSetOverridesResponse(_e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:"Changes saved succesfully!",duration:3000} }));
 
   },
 
-  _handleSetOverridesError() {
+  _handleSetOverridesError(e) {
       this.set('overridesError', true);
       this.$.usererrormsg.textContent = e.detail.request.xhr.responseText;
   }

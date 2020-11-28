@@ -128,7 +128,7 @@ Polymer({
     this.$.providerSearch.open();
   },
 
-  updateFormReady(queryTerm, selectedClouds, loading){
+  updateFormReady(queryTerm, _selectedClouds, _loading){
     this.set('formReady', queryTerm && queryTerm.length && this.clouds.length && !this.loading);
   },
 
@@ -157,26 +157,26 @@ Polymer({
     this.nextSearch(this.activeSearchIndex);
   },
 
-  queryTermChanged(queryTerm){
+  queryTermChanged(_queryTerm){
     this.set('formError', false);
   },
 
   toggleSelection(e){
-    if (e.target.tagName == "PAPER-CHECKBOX")
+    if (e.target.tagName === "PAPER-CHECKBOX")
       this._updateSelectedClouds();
   },
 
   _updateSelectedClouds() {
     const checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
     const arr = [];
-    checkboxes.forEach(function(c){
+    checkboxes.forEach((c) => {
         if (c.checked)
             arr.push(c.dataValue);
     })
     this.set('selectedClouds', arr);
   },
 
-  _submitForm(e){
+  _submitForm(_e){
     const payload = {
         'search_term': this.queryTerm
     }

@@ -222,16 +222,16 @@ Polymer({
       'update-payment-method': 'addCard'
   },
 
-  _computePlans(org) {
+  _computePlans(_org) {
       if (!this.org.available_plans)
           return [];
-      return this.org.available_plans.filter(function(p){
+      return this.org.available_plans.filter((p) => {
           if (!p.visible)
               return false;
-          if (this.org.current_plan && p.title == this.org.current_plan.title && !this.org.current_plan.expiration)
+          if (this.org.current_plan && p.title === this.org.current_plan.title && !this.org.current_plan.expiration)
               return false;
           return true;
-      }.bind(this));
+      });
   },
 
   purchasePlan(e) {
@@ -256,7 +256,7 @@ Polymer({
       return moment().add(days,'days').format("dddd MMMM Do");
   },
 
-  _computeHasCard(org) {
+  _computeHasCard(_org) {
       if (this.org && this.org.card && this.org.card.length)
           return true;
       return false;

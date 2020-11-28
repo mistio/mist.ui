@@ -204,13 +204,13 @@ Polymer({
   },
 
   _scriptValue (e) {
-      if (e.target.id == "juicyScript") {
+      if (e.target.id === "juicyScript") {
           this.set("metric.script", e.target.value.trim());
       }
   },
 
   _computeMetricsUri(machineId) {
-    return "/api/v1/metrics?resource_type=machine&resource_id=" + machineId;
+    return `/api/v1/metrics?resource_type=machine&resource_id=${ machineId };`
   },
 
   openDialog() {
@@ -223,14 +223,14 @@ Polymer({
   _handleMetricResponse(data) {
       console.log('_handleMetricResponse', data);
       const output = {};
-      Object.keys(data.detail.response).forEach(function(i) {
+      Object.keys(data.detail.response).forEach((i) => {
           let res = output;
           const splitArray = i.split(".")
           for (let p = 0; p < splitArray.length; p++) {
               if (!res[splitArray[p]]) {
                   res[splitArray[p]] = {};
               }
-              if (p == splitArray.length - 1) {
+              if (p === splitArray.length - 1) {
                   res[splitArray[p]] = data.detail.response[i].id;
               }
               res = res[splitArray[p]];
@@ -245,14 +245,14 @@ Polymer({
       if (output) {
           if (output && typeof(output) === 'object') {
               let obj = {};
-              for (const p in output) {
+              Object.keys(output).forEach((p) => {
                   if (typeof(output[p]) === 'object') {
                       obj = { name: p, options: this._makeArray(output[p]) };
                   } else {
                       obj = { name: output[p], options: [] };
                   }
                   arr.push(obj);
-              }
+              });
           }
       }
       return arr;
@@ -272,7 +272,7 @@ Polymer({
       this.dispatchEvent(new CustomEvent('open-and-select', {bubbles: true, composed: true}));
   },
 
-  _metricScriptChanged(m) {
+  _metricScriptChanged(_m) {
       // make sure long scripts don't push buttons out of the screen
       this.$.customOptions.refit();
   }

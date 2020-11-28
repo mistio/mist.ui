@@ -192,7 +192,7 @@ Polymer({
   },
 
   observers: [
-      '_filedsChanged(key.*, sendingData)'
+      '_fieldsChanged(key.*, sendingData)'
   ],
 
   ready () {
@@ -205,11 +205,11 @@ Polymer({
       }
   },
 
-  _filedsChanged (key, sendingData) {
+  _fieldsChanged (key, sendingData) {
       this.set('formError', false);
-      this.async(function () {
+      this.async(() => {
           const inputs = this.shadowRoot.querySelectorAll("paper-input, paper-textarea");
-              const valid = [].every.call(inputs, function (el) {
+              const valid = [].every.call(inputs, (el) => {
                   return !((el.required && !el.value) || el.invalid);
               });
 
@@ -222,7 +222,7 @@ Polymer({
   },
 
   isUniqueValidator (value) {
-      const isUnique = this.model.keysArray.every(function (key) {
+      const isUnique = this.model.keysArray.every((key) => {
           return key.name !== value;
       });
       return isUnique;
@@ -310,10 +310,10 @@ Polymer({
                       }
                   }));
           }
-          history.back();
+          window.history.back();
       }
 
-      this.debounce('formReset', function () {
+      this.debounce('formReset', () => {
           this._formReset();
       }, 500);
   },
@@ -333,7 +333,7 @@ Polymer({
       this.set('showPublicKey', false);
 
       // reset form validation
-      ['name', 'publicKey', 'privateKey'].forEach(function (el) {
+      ['name', 'publicKey', 'privateKey'].forEach((el) => {
           const input = this.shadowRoot.querySelector(`#${  el}`);
           if (input) {
               input.invalid = false;
@@ -341,7 +341,7 @@ Polymer({
       }, this)
   },
 
-  _generateKey (e) {
+  _generateKey (_e) {
       this.$.keyGenerateAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.keyGenerateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.keyGenerateAjaxRequest.body = {};
@@ -350,7 +350,7 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _generateKeyAjaxRequest () {
+  _generateKeyAjaxRequest (_e) {
       this.set('sendingData', true);
   },
 
@@ -363,7 +363,7 @@ Polymer({
       this.set('showPublicKey', true);
   },
 
-  _handleKeyGenerateAjaxError () {
+  _handleKeyGenerateAjaxError (_e) {
       this.set('sendingData', false);
   }
 });

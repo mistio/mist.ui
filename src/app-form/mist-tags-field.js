@@ -85,10 +85,10 @@ Polymer({
       this.push('tags', newTag);
   },
 
-  _tagsChanged(tags) {
-      const formattedTags = this.tags.filter(function(m){
+  _tagsChanged(_tags) {
+      const formattedTags = this.tags.filter((m) => {
           return m.key.length;
-      }).map(function(t){
+      }).map((t) => {
           console.log('t',t);
           const tag = {};
           tag[t.key] = t.value || null;

@@ -1,4 +1,6 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import moment from '../../node_modules/moment/src/moment.js'
+import { formatMoney } from './utils.js';
 /**
 * Behavior that defines the machine list columns
 *
@@ -12,7 +14,7 @@ export const machinesListBehavior = {
 
     _getVisibleColumns() {
         const ret = ['state', 'cloud', 'cost', 'created', 'created_by', 'tags', 'image_id', 'size', 'location', 'hostname', 'public_ips'];
-        if (this.model.org && this.model.org.ownership_enabled == true)
+        if (this.model.org && this.model.org.ownership_enabled === true)
             ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
         // console.log('parent sets visible', ret);
         return ret;
@@ -22,7 +24,7 @@ export const machinesListBehavior = {
         const _this = this;
         return {
             'indicator': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     const green = "#69b46c";
                         const pending = "#eee";
                         const red = "#d96557";
@@ -32,8 +34,8 @@ export const machinesListBehavior = {
                         color = green;
                         if (_this._machineHasIncidents(row, _this.model.incidentsArray))
                             color = red;
-                        if (row.monitoring.installation_status == "installing" || !row.monitoring
-                            .installation_status == "installing" || !row.monitoring.installation_status
+                        if (row.monitoring.installation_status === "installing" || !row.monitoring
+                            .installation_status === "installing" || !row.monitoring.installation_status
                             .activated_at)
                             color = pending;
                         return `border-left: 8px solid ${  color  }; padding-left: 8px;`;
@@ -42,7 +44,7 @@ export const machinesListBehavior = {
                 }
             },
             'icon': {
-                'body': function(item, row) {
+                'body': (_item, row) => {
                     if (!_this.model.clouds[row.cloud])
                         return '';
                     return `./assets/providers/provider-${  _this.model.clouds[row.cloud].provider.replace("_", "")
@@ -50,25 +52,28 @@ export const machinesListBehavior = {
                 }
             },
             'name': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return `<strong class="name">${  item  }</strong>`;
+                },
+                'cmp': (row1, row2) => {
+                    return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
                 }
             },
             'state': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     let ret = '';
                         let prefix = '';
                     if (_this.itemRecommendation(row)) {
                         prefix =
                             '<iron-icon icon="icons:report-problem" class="recommendation-icon"></iron-icon>';
                     }
-                    if (item == "running")
+                    if (item === "running")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='green'>${  item  }</span></div>`;
-                    else if (item == "error")
+                    else if (item === "error")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='error'>${  item  }</span></div>`;
-                    else if (item == "stopped")
+                    else if (item === "stopped")
                         ret += `<div class='state ${  _this.itemProbeClasses(row) 
                         }'><span class='orange'>${  item  }</span></div>`;
                     else
@@ -76,7 +81,7 @@ export const machinesListBehavior = {
 
                     return prefix + ret;
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (row1, row2) => {
                     if (row1.monitoring && !row2.monitoring) {
                         return -1;
                     } if (!row1.monitoring && row2.monitoring) {
@@ -86,12 +91,15 @@ export const machinesListBehavior = {
                 }
             },
             'cloud': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     if (_this.model && _this.model.clouds)
                         return _this.model.clouds[item] ? _this.model.clouds[item].title :
                             '';
+                    return '';
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (row1, row2) => {
+                    const item1 = row1.cloud;
+                    const item2 = row2.cloud;
                     if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
                         _this.model.clouds[item2.id]) {
                         if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
@@ -103,11 +111,13 @@ export const machinesListBehavior = {
                 }
             },
             'cost': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const cost = parseFloat(item.monthly) * _this.currency.rate;
-                    return item && item.monthly ? _this.currency.sign + cost.formatMoney(0) : '';
+                    return item && item.monthly ? _this.currency.sign + formatMoney(cost, 0) : '';
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (row1, row2) => {
+                    const item1 = row1.cost;
+                    const item2 = row2.cost;
                     if (item1.monthly < item2.monthly)
                         return -1;
                     if (item1.monthly > item2.monthly)
@@ -116,33 +126,35 @@ export const machinesListBehavior = {
                 }
             },
             'owned_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'owner';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email  || _this.model.members[item].username : '';
                 }
             },
             'created_by': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'created by';
                 },
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return _this.model.members[item] ? _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username : '';
                 }
             },
             'created': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     return moment(item).isValid() ? moment.utc(item).fromNow() : "";
                 }
             },
             'size': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     return _this.computeSize(row, item);
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (row1, row2) =>  {
+                    const item1 = row1.size;
+                    const item2 = row2.size;
                     const s1 = _this.computeSize(row1, item1);
-                        const s2 = _this.computeSize(row2, item2);
+                    const s2 = _this.computeSize(row2, item2);
 
                     if (!s1.length && !s2.length)
                         return 0;
@@ -160,15 +172,17 @@ export const machinesListBehavior = {
                 }
             },
             'image_id': {
-                'title': function(item, row) {
+                'title': (_item, _row) => {
                     return 'image';
                 },
-                'body': function(item, row) {
+                'body': (item, row) => {
                     return _this._computeImage(row, item);
                 },
-                'cmp': function(item1, item2, row1, row2) {
+                'cmp': (row1, row2) => {
+                    const item1 = row1.image_id;
+                    const item2 = row2.image_id;
                     const im1 = _this._computeImage(row1, item1);
-                        const im2 = _this._computeImage(row2, item2);
+                    const im2 = _this._computeImage(row2, item2);
 
                     if (!im1.length && !im2.length)
                         return 0;
@@ -185,20 +199,21 @@ export const machinesListBehavior = {
                 }
             },
             'location': {
-                'body': function(item, row) {
+                'body': (item, row) => {
+                    let location;
                     if (_this.model && _this.model.clouds && _this.model.clouds[row.cloud] &&
                         _this.model.clouds[row.cloud].locations)
-                        var location = _this.model.clouds[row.cloud].locations[item];
+                        location = _this.model.clouds[row.cloud].locations[item];
                     return location ? location.name : item || '';
                 }
             },
             'tags': {
-                'body': function(item, row) {
+                'body': (item, _row) => {
                     const tags = item;
                         let display = "";
-                    for (key in tags) {
+                    for (const key of Object.keys(tags)) {
                         display += `<span class='tag'>${  key}`;
-                        if (tags[key] != undefined && tags[key] != "")
+                        if (tags[key] !== undefined && tags[key] !== "")
                             display += `=${  tags[key]}`;
                         display += "</span>";
                     }
@@ -207,24 +222,24 @@ export const machinesListBehavior = {
             },
             'machine_id': {
                 'title': 'id (external)',
-                'body': function(i) {
+                'body': (i) => {
                     return i;
                 }
             },
             'public_ips': {
                 'title': 'public ip\'s',
-                'body': function(ips) {
+                'body': (ips) => {
                     return ips && ips.join(', ');
                 }
             },
             'private_ips': {
                 'title': 'private ip\'s',
-                'body': function(ips) {
+                'body': (ips) => {
                     return ips.join(', ');
                 }
             },
             'hostname': {
-                'body': function(hostname) {
+                'body': (hostname) => {
                     return hostname || '';
                 }
             }
@@ -233,87 +248,87 @@ export const machinesListBehavior = {
 
     _computeImage(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        let image_id = item;
+        let imageId = item;
 
-        if (!image_id && row.extra && row.extra.image) {
+        if (!imageId && row.extra && row.extra.image) {
             if (row.extra.image.distribution && row.extra.image.name) {
                 return `${row.extra.image.distribution  } ${  row.extra.image.name}`;
             }
-            image_id = row.extra.image;
+            imageId = row.extra.image;
         }
-        if (!image_id && row.extra) {
-            image_id = row.extra.image_id || row.imageId || (row.extra.image && (row.extra.image
+        if (!imageId && row.extra) {
+            imageId = row.extra.imageId || row.imageId || (row.extra.image && (row.extra.image
                 .slug || row.extra.image.name));
         }
 
-        if (image_id && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud
-                .id].images && this.model.clouds[row.cloud.id].images[image_id]) {
-            return this.model.clouds[row.cloud.id].images[image_id].name
+        if (imageId && row.cloud.id && this.model.clouds[row.cloud.id] && this.model.clouds[row.cloud
+                .id].images && this.model.clouds[row.cloud.id].images[imageId]) {
+            return this.model.clouds[row.cloud.id].images[imageId].name
         }
 
-        return image_id || "";
+        return imageId || "";
     },
 
     computeSize(row, item) {
         // FIXME This needs to be standarized in the backend to remove the cruft below
-        let size_id = item;
+        let sizeId = item;
 
 
         // Try to figure out size_id
         if (row.size && typeof(row.size) !== 'object') {
-            size_id = row.size || '';
+            sizeId = row.size || '';
         }
 
-        if (!size_id && row.extra) {
+        if (!sizeId && row.extra) {
             if (row.extra.size && typeof(row.extra.size) === 'string') {
-                size_id = row.extra.size;
+                sizeId = row.extra.size;
             } else {
-                size_id = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
+                sizeId = row.extra.instance_type || row.extra.instance_size || row.extra.service_type ||
                     row.extra.PLANID;
             }
         }
 
         // Given size_id, try to figure out actual size name
-        if (size_id && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
+        if (sizeId && this.model.clouds && this.model.clouds[row.cloud.id] && this.model.clouds[
                 row.cloud.id].sizes && this.model.clouds[
-                row.cloud.id].sizes[size_id]) {
-            const size = this.model.clouds[row.cloud.id].sizes[size_id];
+                row.cloud.id].sizes[sizeId]) {
+            const size = this.model.clouds[row.cloud.id].sizes[sizeId];
             return size.name || size.id;
         }
 
         // If that fails look for size info in the extra metadata
         if (row.extra) {
             if (row.extra.size && row.extra.size.vcpus) {
-                var size_name = `${row.extra.size.vcpus  }vCPU`;
+                let sizeName = `${row.extra.size.vcpus  }vCPU`;
                 if (row.extra.size.memory)
-                    size_name += `, ${  row.extra.size.memory  }MB RAM`;
-                return size_name;
+                    sizeName += `, ${  row.extra.size.memory  }MB RAM`;
+                return sizeName;
             } if (row.extra.maxCpu) {
-                size_name = `${row.extra.maxCpu  }vCPU`;
+                let sizeName = `${row.extra.maxCpu  }vCPU`;
                 if (row.extra.maxMemory)
-                    size_name += `, ${  row.extra.maxMemory  }MB RAM`;
-                return size_name;
+                    sizeName += `, ${  row.extra.maxMemory  }MB RAM`;
+                return sizeName;
             }
         }
 
-        return size_id || '';
+        return sizeId || '';
     },
 
-    _getMachineWeight(machine, model) {
+    _getMachineWeight(machine, _model) {
         let weight = 0;
         const machineHasIncidents = this._machineHasIncidents(machine, this.model.incidentsArray);
-            const machineHasMonitor = this._machineHasMonitoring(machine);
-            const machineHasrecommendations = this._machineHasrecommendations(machine);
-            const machineHasProbe = this._machineHasProbe(machine);
-        machineState = this._machineState(machine);
+        const machineHasMonitor = this._machineHasMonitoring(machine);
+        const machineHasrecommendations = this._machineHasrecommendations(machine);
+        const machineHasProbe = this._machineHasProbe(machine);
+        const machineState = this._machineState(machine);
         weight = machineHasIncidents + machineHasMonitor + machineHasrecommendations +
             machineHasProbe + machineState;
-        return weight != NaN ? weight : 0;
+        return !Number.isNaN(weight) ? weight : 0;
     },
 
     _machineHasIncidents(machine, incidents) {
-        const machineIncidents = incidents ? incidents.filter(function(inc) {
-            return inc.machine_id == machine.machine_id && inc.cloud_id == machine.cloud && !inc.finished_at
+        const machineIncidents = incidents ? incidents.filter((inc) => {
+            return inc.machine_id === machine.machine_id && inc.cloud_id === machine.cloud && !inc.finished_at
         }) : [];
         return machineIncidents ? machineIncidents.length * 1000 : 0;
     },
@@ -322,7 +337,7 @@ export const machinesListBehavior = {
         return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
     },
 
-    _machineHasrecommendations(machine, probes) {
+    _machineHasrecommendations(machine, _probes) {
         return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow ? 10 : 0;
     },
 
@@ -333,21 +348,21 @@ export const machinesListBehavior = {
     },
 
     _machineState(machine) {
-        if (machine.state == 'running')
+        if (machine.state === 'running')
             return 5;
-        if (machine.state == 'error')
+        if (machine.state === 'error')
             return 3;
-        if (machine.state == 'stopped')
+        if (machine.state === 'stopped')
             return 2;
-        if (machine.state == 'terminated')
+        if (machine.state === 'terminated')
             return 1;
-        if (machine.state == 'unknown')
+        if (machine.state === 'unknown')
             return 0;
         return 0;
     },
 
     itemRecommendation(item) {
-        if (this.probes == {} || !item || !item.id) {
+        if (this.probes === {} || !item || !item.id) {
             return false;
         } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
@@ -357,23 +372,22 @@ export const machinesListBehavior = {
     },
 
     itemProbeClasses(item) {
-        if (this.probes == {}) {
+        if (this.probes === {}) {
             return '';
         } 
             if (!this.model.probes[item.id] || !this.model.probes[item.id].loadavg) {
                 return "";
             } 
                 const probe = this.model.probes[item.id].loadavg;
-                const cores = parseInt(this.model.probes[item.id].cores);
+                const cores = parseInt(this.model.probes[item.id].cores, 10);
                 let classes = '';
-                const prefix = '';
 
                 classes += this.loadToColor(parseFloat(probe[0] / cores), "short");
                 classes += this.loadToColor(parseFloat(probe[1] / cores), "mid");
                 classes += this.loadToColor(parseFloat(probe[2] / cores), "long");
 
                 // has probe data
-                if (classes != "")
+                if (classes !== "")
                     classes += "hasprobe "
 
                 return classes;

@@ -289,10 +289,10 @@ Polymer({
           }
       }
       if (machine && machine.actions) {
-          for (const action in machine.actions) {
+          Object.keys(machine.actions || {}).forEach((action) => {
               if (machine.actions[action])
                   arr.push(action);
-          }
+          });
       }
       if (machine.key_associations && machine.key_associations.length) {
           arr.push('run-script');
@@ -348,6 +348,7 @@ Polymer({
           return members.filter(m => owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending
           );
       }
+      return [];
   },
 
   _getMachine() {
@@ -383,9 +384,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-          for (const i in info) {
+          Object.keys(info|| {}).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -484,7 +485,7 @@ Polymer({
   performMachineAction(action, items, name) {
       const runitems = items.slice();
       // console.log('perform action machine',items);
-      const run = function(el) {
+      const run = (el) => {
           let uri; let payload; const item = runitems.shift();
               const method = 'POST';
           // console.log('renameAction', item.name, action.name, name);
@@ -559,7 +560,7 @@ Polymer({
           }
 
           const xhr = new XMLHttpRequest();
-          xhr.onreadystatechange = function() {
+          xhr.onreadystatechange = () => {
               if (xhr.readyState === XMLHttpRequest.DONE) {
                   let message = '';
                   if (xhr.status === 200) {
@@ -570,7 +571,6 @@ Polymer({
                       } }));
 
                       // for machines destroy only and only if in machine page
-                      const app_location = document.querySelector('app-location');
                       if (["destroy","remove"].indexOf(action.name) > -1 && document.location.pathname && document.location.pathname.split(
                               '/machines/')[1] === item.id) {
 
@@ -608,7 +608,7 @@ Polymer({
 
                   }
               }
-          }.bind(this);
+          };
 
           xhr.open(method, uri);
           xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -621,7 +621,7 @@ Polymer({
               log: logMessage
           } }));
 
-      }.bind(this);
+      };
 
       run(this);
   },

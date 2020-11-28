@@ -144,18 +144,18 @@ Polymer({
   },
 
   _displayName(item, type) {
-      return type != 'zone' ? item.name : item.domain;
+      return type !== 'zone' ? item.name : item.domain;
   },
 
   _computeType(type, value) {
-      return type == value;
+      return type === value;
   },
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.$.dialogModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.dialogModal.close();
       this.set('sendingData', false)
   },
@@ -183,6 +183,6 @@ Polymer({
 
   _filteredMembers(members, membersFilter) {
       if (!membersFilter) return members;
-      return members.filter(member => member.name.indexOf(membersFilter) != -1)
+      return members.filter(member => member.name.indexOf(membersFilter) !== -1)
   }
 })

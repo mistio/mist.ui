@@ -37,16 +37,17 @@ Polymer({
       '_fillInCreds(cloud)'
   ],
 
-  _computeFields (cloud) {
-      const providerFields = PROVIDERS.filter(function (fields) { // FIXME: Don't depend on global var
+  _computeFields (_cloud) {
+      const providerFields = PROVIDERS.filter((fields) => {
           if (this.cloud && this.cloud.provider)
-              return fields.val == this.cloud.provider;
+              return fields.val === this.cloud.provider;
+          return false;
       }, this);
       // don't allow title and region in the fields
       let fields = [];
       if (providerFields[0] && providerFields[0].options) {
-          fields = providerFields[0].options.filter(function (f) {
-              return f.name != 'title' && f.name != 'region' && f.name != 'dns_enabled'
+          fields = providerFields[0].options.filter( (f) => {
+              return f.name !== 'title' && f.name !== 'region' && f.name !== 'dns_enabled'
           });
 
           for (let i = 0; i < fields.length; i++) {
@@ -55,20 +56,20 @@ Polymer({
                   this.set(`fields.${  i  }.value`, this.cloud[name]);
               }
               // if docker_host, search for clouds host
-              if (name == 'docker_host' && this.cloud.host) {
+              if (name === 'docker_host' && this.cloud.host) {
                   fields[i].value = this.cloud.host
               }
               // if docker_port, search for clouds host
-              else if (name == 'docker_port' && this.cloud.port) {
+              else if (name === 'docker_port' && this.cloud.port) {
                   fields[i].value = this.cloud.port
               }
               // if there is a key
-              else if (fields[i].type == 'ssh_key') {
+              else if (fields[i].type === 'ssh_key') {
                   fields[i].options = this.keys;
-              } else if (fields[i].type == 'list') {
+              } else if (fields[i].type === 'list') {
                   const field = fields[i];
                   for (let j = 0; j < field.options.length; j++) {
-                      if (field.options[j].type == 'ssh_key') {
+                      if (field.options[j].type === 'ssh_key') {
                           field.options[j].options = this.keys;
                       }
                   }
@@ -91,7 +92,7 @@ Polymer({
               this.set(`fields.${  index  }.value`, apikey);
               // if there is apikey and an apisecret we can 'getsecretfromdb'
               const indexp = this._fieldIndexByName('apisecret');
-              if (indexp != undefined) {
+              if (indexp !== undefined) {
                   this.set(`fields.${  indexp  }.value`, 'getsecretfromdb');
               }
           }
@@ -116,10 +117,10 @@ Polymer({
               this._fillIn('url', 'url');
           }
 
-          if (this.cloud.provider == 'bare_metal' && this.cloud.machines) {
-              this.async(function () {
+          if (this.cloud.provider === 'bare_metal' && this.cloud.machines) {
+              this.async(() => {
                   this._fillInHosts(Object.values(this.cloud.machines));
-              }.bind(this), 200);
+              }, 200);
           }
 
       }
@@ -150,18 +151,18 @@ Polymer({
 
   _fillIn (cloudProperty, fieldName) {
       const index = this._fieldIndexByName(fieldName, this.fields);
-      if (this.cloud[cloudProperty] && index != undefined) {
+      if (this.cloud[cloudProperty] && index !== undefined) {
           this.set(`fields.${  index  }.value`, this.cloud[cloudProperty]);
       }
   },
 
-  _fieldIndexByName (name, fields) {
+  _fieldIndexByName (name, _fields) {
       let index;
       if (this.fields) {
-          const passField = this.fields.find(function (f, ind) {
-              if (f.name == name)
+          this.fields.find((f, ind) => {
+              if (f.name === name)
                   index = ind;
-              return f.name == name;
+              return f.name === name;
           });
       }
       return index;
@@ -169,10 +170,9 @@ Polymer({
 
   fieldsOfType (data, type) {
       const typeIndexes = [];
-      const fieldsOfType = data.filter(function (f, ind) {
-          if (f.type == type)
+      data.forEach((f, ind) => {
+          if (f.type === type)
               typeIndexes.push(ind);
-          return f.type == type;
       });
       return typeIndexes;
   },
@@ -180,7 +180,7 @@ Polymer({
   updateKeys (e) {
       const keyFieldsIndexes = this.fieldsOfType(this.fields, 'ssh_key');
       console.log('updateKeys', keyFieldsIndexes);
-      this.async(function () {
+      this.async(() => {
           for (let i = 0; i < keyFieldsIndexes.length; i++) {
               this.set(`fields.${  keyFieldsIndexes[i]  }.options`, this.keys);
               this.set(`fields.${  keyFieldsIndexes[i]  }.value`, e.detail.key);
@@ -188,22 +188,22 @@ Polymer({
           if (this.fieldsOfType(this.fields, 'list')) {
               this.updateKeysInLists(e, this.fieldsOfType(this.fields, 'list'));
           }
-      }.bind(this), 1000);
+      }, 1000);
   },
 
   updateKeysInLists (e, lists) {
       for (let j = 0; j < lists.length; j++) {
-          var keyFieldsIndexes = this.fieldsOfType(this.fields[lists[i]].options, 'ssh_key');
-          console.log('updateKeys', this.fields[lists[i]].options);
+          const keyFieldsIndexes = this.fieldsOfType(this.fields[lists[j]].options, 'ssh_key');
+          console.log('updateKeys', this.fields[lists[j]].options);
 
-          this.async(function () {
+          this.async(() => {
               for (let i = 0; i < keyFieldsIndexes.length; i++) {
                   this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
                       }.options`, this.keys);
                   this.set(`fields.${  lists[i]  }.options.${  keyFieldsIndexes[i] 
                       }.value`, e.detail.key);
               }
-          }.bind(this), 500);
+          }, 500);
       }
   },
 

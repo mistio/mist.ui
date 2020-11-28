@@ -1,8 +1,9 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@advanced-rest-client/json-viewer/json-viewer';
+import '../../node_modules/@advanced-rest-client/json-viewer/json-viewer.js';
 import '../../node_modules/@advanced-rest-client/xml-viewer/xml-viewer.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`
@@ -48,22 +49,21 @@ Polymer({
       }
   },
 
-  _contentChanged(newValue, oldValue) {
+  _contentChanged(newValue, _oldValue) {
       const newObj = [];
-          let el;
-          const obj = newValue;
+      const obj = newValue;
 
       // check if not empty the container object
       if (obj && Object.keys(obj).length > 0) {
           // loop through pairs
-          for (el in obj) {
+          Object.keys(obj).forEach((el) => {
               if (obj[el]) {
                   newObj.push({
                       key: el,
                       value: obj[el]
                   });
               }
-          }
+          });
 
           this.sortArr(newObj);
       }
@@ -72,10 +72,11 @@ Polymer({
   },
 
   sortArr(array) {
-      array.sort(function(a, b) {
+      array.sort((a, b) => {
           const x = a.key;
           const y = b.key;
-          return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+          const res = (x > y) ? 1 : 0;
+          return (x < y) ? -1 : res;
       });
   },
 
@@ -84,7 +85,7 @@ Polymer({
           // console.log('createTpl',text);
           if (!text.replace)
               return text;
-          const exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/i;
+          const exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/i;
           return text.replace(exp, "<a href='$1' target='new'>$1</a>");
       }
       function unescapeHtml(unsafe) {
@@ -99,7 +100,7 @@ Polymer({
 
       for (let i = 0, len = content.length; i < len; i++) {
           if (this.ignore && content[i].key.indexOf(this.ignore) > -1) {
-              continue;
+              continue; // eslint-disable-line no-continue
           }
           tpl += "<div class='info-item flex-horizontal-with-ratios'>";
           tpl += `<div class='flexchild key'>${  this.processKeys(content[i].key)  }</div>`;
@@ -112,15 +113,15 @@ Polymer({
               tpl += `<div class='flexchild'>${  content[i].value.replace('<', '&lt;').replace('>', '&gt;')  }</div>`;
           }
           // if key is state
-          else if (content[i].key.indexOf("power_state") > -1 && content[i].value == 1) {
+          else if (content[i].key.indexOf("power_state") > -1 && content[i].value === 1) {
               tpl += "<div class='flexchild'>running</div>";
           }
           else {
               try {
                   const parserOutputType = new window.DOMParser().parseFromString(unescapeHtml(content[i].value), "text/xml").documentElement.nodeName;
-                  if (parserOutputType == 'html') {
+                  if (parserOutputType === 'html') {
                       tpl += `<div class='flexchild'>${  replaceURLWithHTMLLinks(content[i].value)  }</div>`;
-                  } else if (parserOutputType != 'parsererror'){
+                  } else if (parserOutputType !== 'parsererror'){
                       tpl += `<div class='flexchild'><xml-viewer xml='${  content[i].value.replace(/'/g, '"')  }'></xml-viewer></div>`;
                   } else {
                       tpl += `<div class='flexchild'>${  replaceURLWithHTMLLinks(content[i].value)  }</div>`;    
@@ -139,19 +140,19 @@ Polymer({
       let tpl = '';
       // console.log(obj)
       if (obj) {
-          for (const p in obj) {
+          Object.keys(obj).forEach((p) => {
               tpl += `<div class='info-item'><pre><code>${  YAML.dump(obj[p])  }</code></pre></div>`;
-          }
+          });
       }
       return tpl;
   },
 
   processKeys(str) {
       const words = str.split('_');
-          let result = '';
-          let gap; let word;
+      let result = '';
+      let gap; let word;
       for (let i = 0, len = words.length; i < len; i++) {
-          gap = i == 0 ? '' : ' ';
+          gap = i === 0 ? '' : ' ';
           word = this.toTitleCase(words[i]);
           result += gap.concat(word);
       }
@@ -159,7 +160,7 @@ Polymer({
   },
 
   toTitleCase(str) {
-      return str.replace(/\w\S*/g, function(txt) {
+      return str.replace(/\w\S*/g, (txt) => {
           return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
       });
   }

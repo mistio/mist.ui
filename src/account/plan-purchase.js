@@ -252,11 +252,11 @@ Polymer({
       }
   },
 
-  open(e){
+  open(_e){
       this.shadowRoot.querySelector("#form").open();
   },
 
-  close(e){
+  close(_e){
       this.shadowRoot.querySelector("#form").close();
   },
 
@@ -265,7 +265,7 @@ Polymer({
   },
 
   _computeHideCardFields (price, hasCard, addCard) {
-      return (price == 0 || hasCard) && !addCard;
+      return (price === 0 || hasCard) && !addCard;
   },
 
   _computeFormReady(_hasCard, cardValid, hideCardFields){
@@ -276,7 +276,7 @@ Polymer({
       if (this.cardValid) {
           this.shadowRoot.querySelector('card-form#inPlanPurchase').verify();
       }
-      if ((this.org && this.org.card) || (this.plan && this.plan.price == 0)) {
+      if ((this.org && this.org.card) || (this.plan && this.plan.price === 0)) {
           const payload = this.plan ? { plan: this.plan.title } : "";
           this.$.purchasePlanRequest.headers["Content-Type"] = 'application/json';
           this.$.purchasePlanRequest.headers["Csrf-Token"] = CSRFToken.value;
@@ -285,12 +285,12 @@ Polymer({
       }
   },
 
-  _onEnter(e) {
+  _onEnter(_e) {
       if (this.formReady)
           this._submit()
   },
 
-  validateForm(error){
+  validateForm(_error){
       this.set('formError', false);
   },
 
@@ -317,7 +317,7 @@ Polymer({
           this.$.form.refit();
   },
 
-  purchaseResponse(e){
+  purchaseResponse(_e){
       this._reset();
       if (this.addCard) {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: 'Card added.', duration: 3000} }));
@@ -351,7 +351,7 @@ Polymer({
       
   },
 
-  _computeButtonText(plan, org){
+  _computeButtonText(_plan, _org){
       // if (this.org.current_plan.vcpu_limit > plan.vcpu_limit){
       //     return 'Downgrade';
       // }
@@ -368,8 +368,8 @@ Polymer({
 
   _goBack(e) {
       e.stopImmediatePropagation();
-      if (history) {
-          history.back();
+      if (window.history) {
+          window.history.back();
       } else {
           this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: '/' }));
       }

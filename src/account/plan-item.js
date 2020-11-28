@@ -5,10 +5,10 @@ import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner-lite.js';
 import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
 import '../helpers/dialog-element.js';
-import { CSRFToken } from '../helpers/utils.js';
+import moment from 'moment/src/moment.js';
+import { CSRFToken, formatMoney } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import moment from 'moment/src/moment.js';
 
 Polymer({
   _template: html`
@@ -414,7 +414,7 @@ Polymer({
       },
       discountedPriceText: {
           type: String,
-          computed: '_computeDiscountedPriceText(plan.promo)'
+          computed: '_computeDiscountedPriceText(plan)'
       },
       enterprise: {
           type: Boolean,
@@ -436,33 +436,34 @@ Polymer({
   },
 
   _computeBgClass(plan) {
-      if (this.current == true)
+      if (this.current === true)
           return "title";
-      if (plan.title == "Small")
+      if (plan.title === "Small")
           return "title bg-1";
-      if (plan.title == "Medium")
+      if (plan.title === "Medium")
           return "title bg-2";
-      if (plan.title == "Large")
+      if (plan.title === "Large")
           return "title bg-3";
+      return "";
   },
 
   _computePriceText(price) {
       return price != null ? `$${  price  }/mo` : '';
   },
 
-  _computeDescriptionText(plan) {
+  _computeDescriptionText(_plan) {
       if (!this.plan)
           return '';
       let monitoringFor = '';
       if (this.plan && this.plan.monitor_limit) {
           monitoringFor = `, up to ${  this.plan.monitor_limit  } monitored`;
       }
-      return !this.plan.description || this.plan.description == "" ? `up to ${  this.plan.machine_limit  }  machines${  monitoringFor}` : this.plan.description;
+      return !this.plan.description || this.plan.description === "" ? `up to ${  this.plan.machine_limit  }  machines${  monitoringFor}` : this.plan.description;
   },
 
-  _computeDiscountedPriceText(promo) {
-      if (promo) {
-          const newPrice = Math.round(price * (1 - (promo.discount / 100)));
+  _computeDiscountedPriceText(plan) {
+      if ( plan && plan.promo) {
+          const newPrice = Math.round(plan.price * (1 - (plan.promo.discount / 100)));
           return `$${  newPrice  }/mo`;
       }
       return '';
@@ -472,7 +473,7 @@ Polymer({
       return date ? moment.utc(date * 1000).format("MMMM Do YYYY") : date;
   },
 
-  _selectPlan(e) {
+  _selectPlan(_e) {
       this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
   },
 
@@ -480,15 +481,15 @@ Polymer({
       console.log('info popup');
   },
 
-  _computeIsEnterprise(title) {
-      return this.plan && this.plan.title == "Enterprise";
+  _computeIsEnterprise(_title) {
+      return this.plan && this.plan.title === "Enterprise";
   },
 
-  _addCard(e) {
+  _addCard(_e) {
       this.dispatchEvent(new CustomEvent('add-card', {bubbles: true, composed: true}));
   },
 
-  _purchasePlan(e) {
+  _purchasePlan(_e) {
       console.log('purchasePlan', this.plan)
       if (this.plan && !this.plan.price) {
           this.dispatchEvent(new CustomEvent('plan-selected', { bubbles: true, composed: true, detail:  { plan: this.plan } }));
@@ -508,16 +509,16 @@ Polymer({
       });
   },
 
-  _updatePaymentMethod(e) {
+  _updatePaymentMethod(_e) {
       this.dispatchEvent(new CustomEvent('update-payment-method', {bubbles: true, composed: true}));
   },
 
   _showDialog(info) {
       const dialog = this.$.plancancel;
       if (info) {
-          for (const i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -527,14 +528,14 @@ Polymer({
       const {reason} = e.detail;
           const {response} = e.detail;
 
-      if (response == 'confirm' && reason == "plan.cancel") {
+      if (response === 'confirm' && reason === "plan.cancel") {
           this.$.cancelPlanAjaxRequest.headers["Content-Type"] = 'application/json';
           this.$.cancelPlanAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.cancelPlanAjaxRequest.generateRequest();
       }
   },
 
-  _handleCancelAjaxResponse(e) {
+  _handleCancelAjaxResponse(_e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: 'You cancelled your plan. ', duration: 3000 } }));
   },
 
@@ -542,11 +543,11 @@ Polymer({
       this.dispatchEvent(new CustomEvent('error-on-cancel-plan', { bubbles: true, composed: true, detail:  { error: e.detail.request.xhr.responseText } }));
   },
 
-  showCancel(plan, current) {
+  showCancel(_plan, _current) {
       return this.current && this.plan.title && !this.plan.expiration;
   },
 
-  showPurchase(plan, current) {
+  showPurchase(_plan, _current) {
       return !this.current || !this.plan || this.plan.expiration;
   },
 
@@ -558,7 +559,7 @@ Polymer({
 
   _formatMoney(int) {
       if (int)
-          return int.formatMoney(0,'.',',');
+          return formatMoney(int, 0, '.', ',');
       return int;
   }
 });

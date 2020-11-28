@@ -4,7 +4,7 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../../node_modules/@polymer/gold-cc-input/gold-cc-input.js';
 import '../../node_modules/@polymer/gold-cc-cvc-input/gold-cc-cvc-input.js';
-import { stripePublicAPIKey } from '../helpers/utils.js'
+import { stripePublicAPIKey } from './utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -189,29 +189,34 @@ Polymer({
                   cvc: "",
                   address_zip: ""
               });
-      this.$.cc.invalid = this.$.cvc.invalid = this.$.expirationYear.invalid = this.$.expirationMonth.invalid = this.$.zipCode.invalid = false;
+      this.$.cc.invalid = false;
+      this.$.cvc.invalid = false;
+      this.$.expirationYear.invalid = false;
+      this.$.expirationMonth.invalid = false;
+      this.$.zipCode.invalid = false;
   },
-
+  /* eslint-disable no-undef */
   verify(){
       // extra stripe validation
+      const that = this;
+      function stripeResponseHandler(status, response){
+        if (response.error) {
+            console.error('stripeResponseHandler failed', response.error.message);
+            that._setError(response.error.message);
+        }
+        else {
+            that._setToken(status, response);
+        }
+      }
       if (this.cardValid) {
           const isValid = Stripe.card.validateCardNumber(this.payload.number) &&
               Stripe.card.validateExpiry(this.payload.exp_month, this.payload.exp_year) &&
-              Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip != '' && this.payload.address_zip.length >= 4;
+              Stripe.card.validateCVC(this.payload.cvc) && this.payload.address_zip !== '' && this.payload.address_zip.length >= 4;
 
           if (isValid){
               Stripe.setPublishableKey(stripePublicAPIKey.value);
               Stripe.card.createToken(this.payload, stripeResponseHandler);
-              const that = this;
-              function stripeResponseHandler(status, response){
-                  if (response.error) {
-                      console.error('stripeResponseHandler failed', response.error.message);
-                      that._setError(response.error.message);
-                  }
-                  else {
-                      that._setToken(status, response);
-                  }
-              }
+              
           } else {
               const errorsArray = [];
               if (!Stripe.card.validateCardNumber(this.payload.number))
@@ -223,15 +228,15 @@ Polymer({
               if (!Stripe.card.validateCVC(this.payload.cvc))
                   errorsArray.push('cvc');
 
-              if (this.payload.address_zip == '' || this.payload.address_zip.length < 4){
-                  errorsArray.push(this.payload.address_zip != '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
+              if (this.payload.address_zip === '' || this.payload.address_zip.length < 4){
+                  errorsArray.push(this.payload.address_zip !== '' ? 'zip code. Zip code must be longer than 3 digits' : 'zip code');
               }
               this._setError(`There seems to be an error in ${ errorsArray.join(', ') }.`);
           }
           this.dispatchEvent(new CustomEvent('card-response'));
       }
     },
-
+    /* eslint-enable no-undef */
   _setToken(status, response) {
       this.set('token', response.id);
       this.set('errors', '');
@@ -269,7 +274,7 @@ Polymer({
       this.$.expirationYear.focus();
   },
 
-  _assessValidity(payload) {
+  _assessValidity(_payload) {
       this._setError('');
       if (this._emptyProperty(this.payload) ||
           this.$.cc.invalid ||
@@ -285,7 +290,7 @@ Polymer({
 
   _emptyProperty(obj) {
       if (obj) {
-          for (const p in obj) {
+          for (const p of Object.keys(obj)) {
               if (!obj[p] || !obj[p].trim().length)
                   return true;
           }

@@ -7,6 +7,7 @@ import '../tags/tags-list.js';
 import '../mist-rules/mist-rules.js';
 import {mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import './image-actions.js';
+import { CSRFToken, itemUid } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -228,7 +229,7 @@ Polymer({
   ready() {
   },
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username : '';
   },
 
@@ -242,7 +243,7 @@ Polymer({
   },
 
   _computeImageName(name) {
-      return name == "<none>:<none>" ? this.image.id : name;
+      return name === "<none>:<none>" ? this.image.id : name;
   },
 
   _editTags() {
@@ -253,14 +254,14 @@ Polymer({
       el._openDialog();
   },
 
-  _starImage(e) {
+  _starImage(_e) {
       this.$.imageStarAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.imageStarAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.imageStarAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.imageStarAjaxRequest.body = {};
       this.$.imageStarAjaxRequest.generateRequest();
   },
 
-  _handleImageStarAjaxResponse(e) {
+  _handleImageStarAjaxResponse(_e) {
       const starred = !this.image.star;
       const message = starred ? 'Updating image as starred. It will now appear on top when creating machines' :
       'Updating image as unstarred. It will no longer appear on top when creating machines';
@@ -269,7 +270,7 @@ Polymer({
 
   },
 
-  _handleImageStarAjaxError(e) {
+  _handleImageStarAjaxError(_e) {
       // TODO: Show a toast after request response. Toast text:
       // "There was a problem starring image IMAGE_NAME. It can not yet appear as an option when creating machines"
       // or
@@ -278,11 +279,11 @@ Polymer({
 
   },
 
-  _computeIsloading(image) {
+  _computeIsloading(_image) {
       return !this.image;
   },
 
   _isEmpty(arr) {
-      return !arr || arr.length == 0;
+      return !arr || arr.length === 0;
   }
 });

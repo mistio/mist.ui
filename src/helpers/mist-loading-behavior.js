@@ -31,7 +31,7 @@ export const mistLoadingBehavior = {
         this._updateState(this.resourceId, this.section);
     },
     _updateState (resourceId, section) {
-        if (this.resourceId && this.resourceId.indexOf('+add', '+create') == -1) {
+        if (this.resourceId && this.resourceId.indexOf('+add', '+create') === -1) {
             console.log('load state resourceId', resourceId, section);
             // // initial state
             this.set('state', 'loading');
@@ -71,26 +71,26 @@ export const mistLoadingBehavior = {
             this.set('state', 'missing');
             this.set('isMissing', true);
         } else {
-            setTimeout(function() {
+            setTimeout(() =>{
                 this.updateState();
-            }.bind(this), 1000);
+            }, 1000);
         }
     },
     _updateClasses(state) {
         console.log('load state', this.state);
-        if (state == 'loading') {
+        if (state === 'loading') {
             this.classList.add('loadingResource');
         } else {
             this.classList.remove('loadingResource');
         }
 
-        if (state == 'missing') {
+        if (state === 'missing') {
             this.classList.add('missingResource');
         } else {
             this.classList.remove('missingResource');
         }
 
-        if (state == 'found') {
+        if (state === 'found') {
             this.classList.remove(['loadingResource', 'missingResource']);
         }
     }

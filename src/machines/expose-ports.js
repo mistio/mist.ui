@@ -11,9 +11,9 @@ import '../app-form/app-form.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 
-const $_documentContainer = document.createElement('template');
+const documentContainer = document.createElement('template');
 
-$_documentContainer.innerHTML = `<dom-module id="expose-ports">
+documentContainer.innerHTML = `<dom-module id="expose-ports">
     <template>
         <style include="shared-styles dialogs">
         :host {
@@ -43,7 +43,7 @@ $_documentContainer.innerHTML = `<dom-module id="expose-ports">
         <vaadin-dialog id="exposePortsDialog" with-backdrop="">
             <template>
                 <h2>Expose machine's ports</h2>
-                <p class="grey" hidden\$="[[!ports.length]]">To remove exposed ports, delete them and save.</p>
+                <p class="grey" hidden$="[[!ports.length]]">To remove exposed ports, delete them and save.</p>
                 <app-form id="expose-machines-ports" inline="" single-column="" fields="[[fields]]" form="{{form}}" url="/api/v1/machines/[[machine.id]]" on-request="_handleRequest" on-response="_handleResponse" on-error="_handleError" on-service-type-updated="_serviceTypeUpdated" btncontent="Save" show-cancel="" no-auto-update=""></app-form>
                 <br>
             </template>
@@ -52,7 +52,7 @@ $_documentContainer.innerHTML = `<dom-module id="expose-ports">
     
 </dom-module>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);
 
 Polymer({
     is: 'expose-ports',
@@ -91,7 +91,7 @@ Polymer({
         console.log('Service Type Updated: ', e);
         this._updatePorts();
     },
-    _updatePorts(machine, portForwards) {
+    _updatePorts(_machine, _portForwards) {
         const ports = [];
         if (this.machine && this.machine.extra && this.machine.extra.port_forwards) {
             for (let i=0; i < this.machine.extra.port_forwards.length; i++){
@@ -109,38 +109,37 @@ Polymer({
         this.set('form.action', 'expose');
         this.set('ports', JSON.parse(JSON.stringify(ports)));
     },
-    _computeFields(_machine, provider, ports) {
+    _computeFields(_machine, provider, _ports) {
         const providerFields = MACHINE_CREATE_FIELDS.find((x) => {
-            return x.provider == provider;
+            return x.provider === provider;
         });
         // locate port fieldgroup definition
-        const portFieldGroup = providerFields && providerFields.fields.find(function(f){
-            return f.name == 'port_forwards';
+        const portFieldGroup = providerFields && providerFields.fields.find((f) => {
+            return f.name === 'port_forwards';
         });
         
         if (portFieldGroup) {
             // locate ports field
-            const fields = portFieldGroup.subfields.filter(function(f){
+            const fields = portFieldGroup.subfields.filter((f) => {
         
-                return f.type == 'list';
+                return f.type === 'list';
             });
         
-            const serviceTypeField = portFieldGroup.subfields.filter(function(f){
-                return f.type == 'dropdown';
+            const serviceTypeField = portFieldGroup.subfields.filter((f) => {
+                return f.type === 'dropdown';
             });
             if (fields) {
-                var {ports} = this;
+                const {allPorts} = this;
                 const cleanCopy = JSON.parse(JSON.stringify(fields));
-                if(ports){
-                    for(const port of ports){
-                        if(serviceTypeField[0] && port.service_type != serviceTypeField[0].value){
-                            continue;
+                if(allPorts){
+                    for(const port of allPorts){
+                        if(!serviceTypeField[0] || port.service_type === serviceTypeField[0].value){
+                            const toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
+                            toAdd[0].value = port.port;
+                            toAdd[1].value = port.target_port;
+                            toAdd[2].value = port.protocol.toUpperCase();
+                            cleanCopy[0].items.push(toAdd);
                         }
-                        const toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
-                        toAdd[0].value = port.port;
-                        toAdd[1].value = port.target_port;
-                        toAdd[2].value = port.protocol.toUpperCase();
-                        cleanCopy[0].items.push(toAdd);
                     }
                 }
                 if(serviceTypeField && serviceTypeField.length > 0){
@@ -149,13 +148,14 @@ Polymer({
                 return cleanCopy;
             }
         }
+        return [];
     },
-    _openDialog(e) {
+    _openDialog(_e) {
         // Recompute ports on open to reset when canceled
         this._updatePorts();
         this.$.exposePortsDialog.opened = true;
     },
-    _closeDialog(e) {
+    _closeDialog(_e) {
         this.$.exposePortsDialog.opened = false;
     }
 });

@@ -23,10 +23,10 @@ Polymer({
             const reader = new FileReader();
             const file = e.currentTarget.files[0];
 
-        reader.onloadend = function(e) {
+        reader.onloadend = (ev) => {
             let fileValue;
-            if (e.currentTarget.readyState == FileReader.DONE) {
-                fileValue = e.currentTarget.result;
+            if (ev.currentTarget.readyState === FileReader.DONE) {
+                fileValue = ev.currentTarget.result;
             } else {
                 fileValue = '';
             }

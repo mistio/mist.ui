@@ -2,13 +2,16 @@ import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+/* eslint-disable import/extensions */
+// Linter complains about js extension but these are typescript...
 import "../../node_modules/xterm";
 import "../../node_modules/xterm-addon-fit";
 import '../../node_modules/xterm-addon-attach';
+/* eslint-enable import/extensions */
 
-const $_documentContainer = document.createElement('template');
+const documentContainer = document.createElement('template');
 
-$_documentContainer.innerHTML = `<style>
+documentContainer.innerHTML = `<style>
 
 </style><dom-module id="xterm-dialog">
     
@@ -203,11 +206,11 @@ $_documentContainer.innerHTML = `<style>
                 margin: 0;
             }
         </style>
-        <div class="icon-buttons" hidden\$="[[!controls]]">
+        <div class="icon-buttons" hidden$="[[!controls]]">
             <!--paper-button dialog-confirm><iron-icon icon="icons:remove">minimize</iron-icon></paper-button-->
             <paper-button on-tap="remove"><iron-icon icon="icons:close">close</iron-icon></paper-button>
         </div>
-        <h2 hidden\$="[[!controls]]">
+        <h2 hidden$="[[!controls]]">
             <iron-icon icon="vaadin:terminal"></iron-icon> {{target.name}}
         </h2>
         <div id="terminal-container">
@@ -217,7 +220,7 @@ $_documentContainer.innerHTML = `<style>
     
 </dom-module>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);
 
 Polymer({
     is: 'xterm-dialog',
@@ -248,6 +251,8 @@ Polymer({
     ready() {
         console.debug('xterm loaded');
     },
+    // disablin no undef because of the typescript imports
+    /* eslint-disable no-undef */
     attached() {
         console.debug('xterm attached');
         this.socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
@@ -259,10 +264,8 @@ Polymer({
         this.fitAddon = new FitAddon.FitAddon();
         this.term.loadAddon(this.fitAddon);  
         this.term.open(terminalContainer);
-            
 
-        let newCols; let newRows;
-        [newCols, newRows] = this.resizeTerminal();
+        const [newCols, newRows] = this.resizeTerminal();
 
         const ips = [].concat(this.target.public_ips).concat(this.target.private_ips);
         if (ips[0])
@@ -294,7 +297,7 @@ Polymer({
             this.set("style.position", "fixed");
         }
 
-        if (this.target.provider === 'docker' && this.target.key_associations==false) {
+        if (this.target.provider === 'docker' && this.target.key_associations === false) {
             payload.provider = 'docker';
             payload.host = '';
         } else if (this.target.provider === 'kubevirt') {
@@ -302,11 +305,11 @@ Polymer({
             payload.host = 'kubevirt'; // otherwise an error is thrown in the api
         } else if (this.target.provider === 'lxd'){
             payload.provider = 'lxd';
-            payload.host = ips[0];
+            [payload.host] = ips;
         } else {
             payload.cloud_id = this.target.cloud;
             payload.machine_id = this.target.id;
-            payload.host = ips[0]; // TODO: Remove this
+            [payload.host] = ips; // TODO: Remove this
         }
 
         socket.send('msg', 'shell', 'shell_open', [payload]);
@@ -321,9 +324,11 @@ Polymer({
         const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
         textArea.focus();
     },
-
+    /* eslint-enable no-undef */
+    /* eslint-disable no-param-reassign */
     resizeTerminal(newRows, newCols) {
-        const prevCols = this.term.cols; const prevRows = this.term.rows;
+        const prevCols = this.term.cols;
+        const prevRows = this.term.rows;
         if (newRows && newCols)
             this.term.resize(newCols, newRows);
         else {
@@ -333,7 +338,7 @@ Polymer({
             if (!newCols)
                 newCols = this.term.cols;
         }
-        if (newCols != prevCols || newRows != prevRows) {
+        if (newCols !== prevCols || newRows !== prevRows) {
             console.log('resize term', newCols, newRows);
             this.socket.send(
                 'msg',
@@ -343,18 +348,20 @@ Polymer({
         }
         return [newCols, newRows];
     },
+    /* eslint-enable no-param-reassign */
+
     detached() {
         console.debug('xterm detached');
         const socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
         socket.send('uns', 'shell');
         window.removeEventListener("resize", this.resizeHandler);
     },
-    _closeDialog(e) {
+    _closeDialog(_e) {
         // this.$.dialogModal.close();
         this.remove();
     },
     _modalClosed(e) {
-        if (e.srcElement.id == 'dialogModal') {
+        if (e.srcElement.id === 'dialogModal') {
             console.log(this.$.dialogModal.closingReason);
             this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {
                 response: this.$.dialogModal.closingReason,

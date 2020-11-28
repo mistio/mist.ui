@@ -161,12 +161,12 @@ Polymer({
     }
   },
 
-  _computeIsOnline (enabled, state) {
+  _computeIsOnline (_enabled, _state) {
     if (this.cloud) {
-      if (this.cloud.state == 'online') {
+      if (this.cloud.state === 'online') {
         this.set('online', true);
         this.set('offline', false);
-      } else if (this.cloud.state != 'online') {
+      } else if (this.cloud.state !== 'online') {
         this.set('online', false);
         this.set('offline', true);
       }
