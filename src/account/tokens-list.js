@@ -289,7 +289,7 @@ Polymer({
 
   getTokensAgain() {
     const that = this;
-    this.async(function () {
+    this.async(() => {
       that.$.getTokensAjax.generateRequest();
     }, 100);
   },

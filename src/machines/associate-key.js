@@ -144,11 +144,11 @@ Polymer({
       }
   },
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.$.dialogModal.opened = true;
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.dialogModal.opened = false;
   },
 
@@ -180,17 +180,12 @@ Polymer({
       const items = this.items.slice(0);
       console.log('associateKey', this.items);
 
-      var run = function(el, model) {
+      const run = (el, model) => {
           const item = items.shift();
-              let itemType;
-              let itemCloud;
-              let itemId;
+          let itemId;
           if (item.length) {
-              itemType = item.split(':')[0];
-              itemCloud = item.split(':')[1];
-              itemId = item.split(':')[2];
+              [, ,itemId] = item.split(':');
           } else {
-              itemCloud = item.cloud.id;
               itemId = item.id
           }
           const machineHost = model.machines[itemId].public_ips ? model.machines[itemId].public_ips[0] : '';
@@ -229,11 +224,11 @@ Polymer({
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: { msg: e.detail.request.xhr.responseText, duration: 5000 } }));
   },
 
-  updateInputs(e) {
-      const target = e.target.id;
+  updateInputs(_e) {
+      // const target = e.target.id; FIXME check if this function should do something
   },
 
-  computeKeys(model) {
+  computeKeys(_model) {
       return (this.model && this.model.keysArray) ? this.model.keysArray : [];
   },
 
@@ -241,27 +236,27 @@ Polymer({
       return document.querySelector("app-main") ? document.querySelector("app-main").model : document.querySelector("mist-app").model;
   },
 
-  itemsHaveThisKey(key, items, model) {
+  itemsHaveThisKey(key, _items, _model) {
       // test if all items have this key and if so disable
       let count = 0;
-      var {model} = this;
+      const {model} = this;
       for (let i = 0; i < this.items.length; i++) {
-          var itemCloud;
-              var itemId;
+          let itemCloud;
+          let itemId;
           if (this.items[i].length) {
-              itemCloud = this.items[i].split(':')[1];
-              itemId = this.items[i].split(':')[2];
+              [ ,itemCloud] = this.items[i].split(':');
+              [, ,itemId] = this.items[i].split(':');
           } else {
               itemCloud = this.items[i].cloud.id;
               itemId = this.items[i].machine_id;
           }
           for (let j = 0; j < model.keys[key].machines.length; j++) {
-              if (model.keys[key].machines[j][0] == itemCloud && model.keys[key].machines[j][1] == itemId) {
+              if (model.keys[key].machines[j][0] === itemCloud && model.keys[key].machines[j][1] === itemId) {
                   count++;
               }
           }
       }
-      if (count == this.items.length){
+      if (count === this.items.length){
           return true;
       } 
           return false;

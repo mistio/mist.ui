@@ -8,14 +8,13 @@ import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-
 import '@vaadin/vaadin-upload/vaadin-upload.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-image/iron-image.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -493,7 +492,7 @@ Polymer({
     const that = this;
     this.$.orgAvatarUpload.addEventListener(
       'upload-response',
-      function (e) {
+      (e) => {
         if (e.detail.xhr.status === 200) {
           that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
         }
@@ -502,7 +501,7 @@ Polymer({
     );
     this.$.orgAvatarUpload.addEventListener(
       'file-remove',
-      function () {
+      () => {
         that.orgAvatar = '';
       },
       { passive: true }

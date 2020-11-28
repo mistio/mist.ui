@@ -4,6 +4,7 @@ import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
 import '../machines/machine-page.js';
 import '../section-tile/section-tile.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { getResourceFromIncidentBehavior } from '../helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -273,9 +274,9 @@ Polymer({
   attached () {
       const rows = this.parentNode.querySelectorAll('block');
       const index = Array.prototype.indexOf.call(rows, this);
-      setTimeout(function () {
+      setTimeout(() => {
           this.classList.add('active');
-      }.bind(this), (index + 1) * 50);
+      }, (index + 1) * 50);
   },
 
   computeHasIncidents(incidents) {
@@ -283,66 +284,67 @@ Polymer({
       return !!(this.openIncidents && this.openIncidents.length);
   },
 
-  _computeOpenIncidents (incidents) {
+  _computeOpenIncidents (_incidents) {
       const all = Object.values(this.model.incidents);
-      return all.filter(function (incident) {
+      return all.filter((incident) => {
           return !incident.finished_at && incident.logs.length && incident.logs[0].condition;
       }, this);
   },
 
-  _openIncidentsChanged(incidents) {
+  _openIncidentsChanged(_incidents) {
       this.set('enhancedIncidents', this._getResources(this.openIncidents));
   },
 
+   /* eslint-disable no-param-reassign */
   _getResources(incidents) {
       if (incidents)
-          return this.openIncidents.map(function(inc) { inc.resource = this._getResource(inc); return inc; }.bind(this));
+          return this.openIncidents.map((inc) => { inc.resource = this._getResource(inc); return inc; });
       return [];
   },
+  /* eslint-enable no-param-reassign */
 
-  _computeResolvedIncidentCount (incidents) {
+  _computeResolvedIncidentCount (_incidents) {
       const all = Object.values(this.model.incidents);
-      const resolved = all.filter(function (incident) {
+      const resolved = all.filter((incident) => {
           return incident.finished_at;
       }, this);
       return resolved.length;
   },
 
-  _incidentColor(item, model) {
+  _incidentColor(item, _model) {
       return item && item.resource && item.resource.id ? 'red' : 'grey';
   },
 
-  _computeIncidentIcon(item, model) {
-      if (item.resource.type != 'organization')
+  _computeIncidentIcon(item, _model) {
+      if (item.resource.type !== 'organization')
           return this.model.sections[`${item.resource.type  }s`].icon;
       return 'social:domain';
   },
 
-  _computeIncidentTitle (item, model) {
+  _computeIncidentTitle (item, _model) {
       if (!item.logs[0].rule_arbitrary) {
           if (item.resource && item.resource.id)
               return `${item.resource.type  } ${  item.resource.name || item.resource.title || item.resource.domain}`;
           if (!item.resource || !item.resource.id)
               return item.logs[0].machine_name || `${item.resource.type } is missing`;
-      } else {
-          return 'Organization';
-      }
+      } 
+      return 'Organization';
   },
 
-  _computeResourceUri (item, model) {
+  _computeResourceUri (item, _model) {
       // give resource url only if resource exists
       return item.resource && item.resource.uri ? item.resource.uri : false;
   },
 
   _getLogQuery(condition) {
       // return log query
-      return condition.replace(/^.+?\(([^\)]+)\).+$/,'$1');
+      return condition.replace(/^.+?\(([^)]+)\).+$/,'$1');
   },
 
   _computeIncidentCondition (item) {
       let condition = item.logs.length && item.logs[0].condition || '';
       // transform log condition
-      if (condition.length && item.logs[0].rule_data_type == 'logs') {
+      if (condition.length && item.logs[0].rule_data_type === 'logs') {
           condition = condition.replace('COUNT(','')
                               .replace('){}','. Log appeared ')
                               .replace('within','times within');
@@ -361,7 +363,7 @@ Polymer({
       console.log('delete', e.model.item.incident_id);
       this.$.deleteIncidentAjax.headers["Content-Type"] = 'application/json';
       this.$.deleteIncidentAjax.url = `/api/v1/stories/${  e.model.item.incident_id}`;
-      this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.deleteIncidentAjax.headers["Csrf-Token"] = CSRFToken.value;
       this.$.deleteIncidentAjax.generateRequest();
   }
 });

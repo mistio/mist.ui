@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-material/paper-material.js';
 import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -182,7 +183,7 @@ Polymer({
   },
 
   _computeFormReady(currentPassword, newPassword, confirmNewPassword, loading) {
-      if (currentPassword && newPassword && confirmNewPassword && newPassword==confirmNewPassword) {
+      if (currentPassword && newPassword && confirmNewPassword && newPassword === confirmNewPassword) {
           this.set('formError', false);
           this.set('formReady', true);
           this.set('dontMatch', false);
@@ -194,14 +195,14 @@ Polymer({
       }
 
 
-      if (newPassword!=confirmNewPassword){
+      if (newPassword !== confirmNewPassword){
           this.set('formReady', false);
           this.set('dontMatch', true);
       }
 
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       const payload = {
           action: 'update_password',
           current_password: this.currentPassword,
@@ -209,12 +210,12 @@ Polymer({
       };
 
       this.$.passwordUpdateAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.passwordUpdateAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.passwordUpdateAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.passwordUpdateAjaxRequest.body = payload;
       this.$.passwordUpdateAjaxRequest.generateRequest();
   },
 
-  _handlePasswordUpdateAjaxResponse(e) {
+  _handlePasswordUpdateAjaxResponse(_e) {
       this.dispatchEvent(new CustomEvent('toast',{ bubbles: true, composed: true, detail: {msg:'Password updated successfully!', duration:3000} }));
 
       this._formReset();
@@ -227,12 +228,12 @@ Polymer({
 
   _setPassword() {
       this.$.passwordSetAjaxRequest.headers["Content-Type"] = 'application/json';
-      this.$.passwordSetAjaxRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+      this.$.passwordSetAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.passwordSetAjaxRequest.body = {};
       this.$.passwordSetAjaxRequest.generateRequest();
   },
 
-  _handlePasswordSetAjaxResponse(e) {
+  _handlePasswordSetAjaxResponse(_e) {
       this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg:`An email was sent to your email account: "${  this.user.email }"`, duration:5000} }));
 
   },

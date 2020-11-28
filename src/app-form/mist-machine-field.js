@@ -325,36 +325,36 @@ Polymer({
       this.initializeValues();
   },
 
-  initializeValues(cr) {},
+  initializeValues(_cr) {},
 
-  computeUseExistingMachine(radioValue) {
-      return  this.radioValue == 'existing';
+  computeUseExistingMachine(_radioValue) {
+      return  this.radioValue === 'existing';
   },
 
-  _fieldChanged(field) {
+  _fieldChanged(_field) {
       this.set('fieldSize.name', `${this.field.name  }Size`);
       this.set('fieldSize.label', `${this.field.label  } size`);
       this.set('multi', this.field.multi || false);
   },
 
-  _fieldCloudsChanged(clouds) {
+  _fieldCloudsChanged(_clouds) {
       this.set('clouds', this._objectToArray(this.field.clouds));
       this.$.cloudsDomRepeat.render();
   },
 
-  _fieldSizeChanged(fieldSizeValue) {
-      this.set('field.size', this.fieldSize.value == "custom" ? this.fieldSize.customValue : this.fieldSize.value);
+  _fieldSizeChanged(_fieldSizeValue) {
+      this.set('field.size', this.fieldSize.value === "custom" ? this.fieldSize.customValue : this.fieldSize.value);
   },
 
-  _fieldKeysChanged(keys) {
+  _fieldKeysChanged(_keys) {
       console.log('field Keys Changed');
       this.set('keys', this._objectToArray(this.field.keys));
-      this.async(function(){
+      this.async(() => {
           this.$.keysDomRepeat.render();
-      }.bind(this), 200);
+      }, 200);
   },
 
-  _selectedCloudChanged(cloud) {
+  _selectedCloudChanged(_cloud) {
       this._fieldKeysChanged(this.field.keys);
       if (this.field.cloud) {
           // clear field.value
@@ -377,15 +377,15 @@ Polymer({
           this.$.locationsDomRepeat.render();
           this.$.networksDomRepeat.render();
 
-          this.set('hideFloatingIp', this.cloud.provider != "openstack" && this.networks.length)
+          this.set('hideFloatingIp', this.cloud.provider !== "openstack" && this.networks.length)
           // update field consumed by mist-size-field
           this.set('fieldSize.options', selectedCloud.sizesArray ? selectedCloud.sizesArray : [])
           if (["onapp", "vsphere", "libvirt"].indexOf(selectedCloud.provider) > -1) {
               const {provider} = selectedCloud;
-                  const {fields} = MACHINE_CREATE_FIELDS.find(function(p) { return p.provider == provider });
+              const {fields} = MACHINE_CREATE_FIELDS.find((p) => { return p.provider === provider });
               this.set('fieldSize.custom', true)
               this.set('fieldSize.value', "custom")
-              this.set('fieldSize.customSizeFields', fields.find(function(f) { return f.type == "mist_size" }).customSizeFields);
+              this.set('fieldSize.customSizeFields', fields.find((f) => { return f.type === "mist_size" }).customSizeFields);
           } else {
               this.set('fieldSize.custom', false);
           }
@@ -403,13 +403,13 @@ Polymer({
           if (this.field[fieldValues[i]]) {
               // this.set('field.'+[fieldValues[i]], null);
               const typeOfVal = typeof this.field[fieldValues[i]];
-              if (typeOfVal == 'string') {
+              if (typeOfVal === 'string') {
                   this.set(`field.${[fieldValues[i]]}`, "");
-              } else if (typeOfVal == 'array') {
+              } else if (typeOfVal === 'array') {
                   this.set(`field.${[fieldValues[i]]}`,[]);
-              } else if (typeOfVal == 'object') {
+              } else if (typeOfVal === 'object') {
                   this.set(`field.${[fieldValues[i]]}`, null);
-              } else if (typeOfVal == 'number') {
+              } else if (typeOfVal === 'number') {
                   this.set(`field.${[fieldValues[i]]}`, 1);
               }
           }
@@ -426,11 +426,11 @@ Polymer({
       this.set('hideSize', false);
   },
 
-  _updateFieldValue(associateFloatingIp,useExistingMachine, cloud, machine, machineList, image, size, location, networks, key, quantity) {
+  _updateFieldValue(_associateFloatingIp, _useExistingMachine, _cloud, _machine, _machineList, _image, _size, _location, _networks, _key, _quantity) {
       // console.log(useExistingMachine, cloud, machine, image, size, location, networks, key);
       if (this.useExistingMachine) {
           if (this.multi) {
-              this.set('field.value', this.field.machinesList.map(function(f) { return { cloud_id: this.field.cloud, machine_id: f.value } }.bind(this)));
+              this.set('field.value', this.field.machinesList.map((f) => { return { cloud_id: this.field.cloud, machine_id: f.value } }));
           } else {
               this.set('field.value', { cloud_id: this.field.cloud, machine_id: this.field.machine })
           }
@@ -442,9 +442,9 @@ Polymer({
                   size_id: this.field.size,
                   location_id: this.field.location,
                   networks: this.field.networks,
-                  quantity: parseInt(this.field.quantity) && parseInt(this.field.quantity) > 0 ? parseInt(this.field.quantity) : 1
+                  quantity: parseInt(this.field.quantity, 10) && parseInt(this.field.quantity, 10) > 0 ? parseInt(this.field.quantity, 10) : 1
               }]);
-              if (this.cloud.provider == "openstack") {
+              if (this.cloud.provider === "openstack") {
                   this.set('field.value.associate_floating_ip', this.associateFloatingIp);
               }
           } else {
@@ -456,7 +456,7 @@ Polymer({
                   location_id: this.field.location,
                   networks: this.field.networks
               });
-              if (this.cloud.provider == "openstack") {
+              if (this.cloud.provider === "openstack") {
                   this.set('field.value.associate_floating_ip', this.associateFloatingIp);
               }
           }
@@ -562,7 +562,7 @@ Polymer({
   },
 
   _noOptions(options) {
-      return !options || options.length == 0;
+      return !options || options.length === 0;
   },
 
   _showOption(option) {
@@ -573,10 +573,11 @@ Polymer({
       } if (option.id) {
           return option.id;
       }
+      return "";
   },
 
   _filter(options, search) {
-      return options.filter(function(op) {
+      return options.filter((op) => {
           return op.name.toLowerCase().indexOf(search.toLowerCase()) > -1;
       });
   },
@@ -584,16 +585,16 @@ Polymer({
   _objectToArray(obj) {
       const arr = [];
       if (obj) {
-          for (const p in obj) {
+          Object.keys(obj).forEach((p) => {
               arr.push(obj[p]);
-          }
+          });
       }
       return arr;
   },
 
   _updateCheckboxesField(e) {
       const fieldNetworks = this.get('field.networks') || [];
-      if (e.target.checked && fieldNetworks.indexOf(e.model.option.id) == -1) {
+      if (e.target.checked && fieldNetworks.indexOf(e.model.option.id) === -1) {
           fieldNetworks.push(e.model.option.id);
       } else if (!e.target.checked && fieldNetworks.indexOf(e.model.option.id) > -1) {
           fieldNetworks.splice(fieldNetworks.indexOf(e.model.option.id), 1)
@@ -602,11 +603,11 @@ Polymer({
   },
 
   _computeMachinesNames(machinesList, machines) {
-      return !machinesList ? 'select' : machinesList.map(function(m) { return this._getName(m.value, machines); }.bind(this))
+      return !machinesList ? 'select' : machinesList.map((m) => { return this._getName(m.value, machines); });
   },
 
-  _getName(m, machines) {
-      const machine = this.machines && this.machines.find(function(item) { return item.machine_id == m });
+  _getName(m, _machines) {
+      const machine = this.machines && this.machines.find((item) => { return item.machine_id === m });
       return machine ? machine.name : 'not found';
   }
 });

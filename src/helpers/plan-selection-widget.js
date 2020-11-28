@@ -177,14 +177,14 @@ Polymer({
       this.$.paygIcon.classList.toggle('open');
   },
 
-  _togglePrepaid(e){
+  _togglePrepaid(_e){
       this.$.viewMethod.classList.toggle('slideleft');
       this.$.viewPrepaid.classList.toggle('slideright');
 
       this.dispatchEvent(new CustomEvent('refit'));
   },
 
-  _selectPayg(e){
+  _selectPayg(_e){
       this.set('selected', 'payg');
   },
 
@@ -192,15 +192,15 @@ Polymer({
       return ['Small','Medium','Large'].indexOf(selected) > -1 ? 'selected' : '';
   },
 
-  _selectSmall(e){
+  _selectSmall(_e){
       this.set('selected', 'Small');
   },
 
-  _selectMedium(e){
+  _selectMedium(_e){
       this.set('selected', 'Medium');
   },
 
-  _selectLarge(e){
+  _selectLarge(_e){
       this.set('selected', 'Large');
   },
 
@@ -212,14 +212,12 @@ Polymer({
       switch (selected){
           case "Small":
               return '$200/mo';
-              break;
           case "Medium":
               return '$700/mo';
-              break;
           case "Large":
               return '$3,000/mo';
-              break;
+          default:
+              return '$200/mo';
       }
-
   }
 });

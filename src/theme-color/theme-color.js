@@ -1,6 +1,6 @@
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
-// import '../../../../color/one-color.js';
+
 Polymer({
     is: 'theme-color',
     properties: {
@@ -40,7 +40,7 @@ Polymer({
         node.style.borderColor = borderColor;
     },
     _outline(node, bgColor) {
-        if (one.color(bgColor).lightness() > 0.9) {
+        if (this._getColorLightness(bgColor) > 0.9) {
             node.style.outline = '1px solid rgba(0,0,0,.25)';
             node.style.outlineOffset = '-1px';
         }
@@ -64,5 +64,30 @@ Polymer({
                 this._colorBorder(nodes[i], this.textColor);
             }
         }
+    },
+    /* eslint-disable no-bitwise */
+    _getColorLightness(rgbColor){
+
+        const RGB_HEX = /^#?(?:([\da-f]{3})[\da-f]?|([\da-f]{6})(?:[\da-f]{2})?)$/i;
+        const hex2RGB = str => {
+            const [ , short, long ] = String(str).match(RGB_HEX) || [];
+
+            if (long) {
+                const value = Number.parseInt(long, 16);
+                return [ value >> 16, value >> 8 & 0xFF, value & 0xFF ];
+            } 
+            if (short) {
+                return Array.from(short, s => Number.parseInt(s, 16)).map(n => (n << 4) | n);
+            } 
+            return str.split(",").map(x => parseInt(x,10));
+            
+        };
+        let [r,g,b] = hex2RGB(rgbColor);
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        const lightness = 0.5 * (Math.max(r,g,b) + Math.min(r,g,b));
+        return lightness;
     }
+    /* eslint-enable no-bitwise */
 });

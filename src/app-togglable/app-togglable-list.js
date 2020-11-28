@@ -57,11 +57,11 @@ Polymer({
           reflectToAttribute: true
       }
   },
-
-  _toggle (e) {
+  /* eslint-disable no-param-reassign */
+  _toggle (_e) {
       this.open = !this.open;
       const els = this.shadowRoot.querySelectorAll('app-togglable');
-      [].forEach.call(els, function (el, index) {
+      [].forEach.call(els, (el, _index) => {
           el.open = this.open;
           if (this.open)
               el.$.infoarea.show();
@@ -69,4 +69,5 @@ Polymer({
               el.$.infoarea.hide();
       }, this);
   }
+  /* eslint-enable no-param-reassign */
 });

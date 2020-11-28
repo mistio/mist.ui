@@ -1497,14 +1497,13 @@ MACHINE_CREATE_FIELDS.forEach((p) => {
         subfields: [{
                 name: 'action',
                 type: 'dropdown',
-                class: 'bind-both',
                 value: 'stop',
                 defaultValue: 'stop',
                 helptext: '',
                 show: true,
                 parentfield: 'expiration',
                 required: false,
-                class: 'width-150 inline-block',
+                class: 'width-150 inline-block bind-both',
                 options: [
                     {val: 'stop', title: 'STOP'},
                     {val: 'destroy', title: 'DESTROY'}

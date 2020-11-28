@@ -210,12 +210,12 @@ Polymer({
                             }
                         } else if (selectors[i].type === "tags") {
                             display += "on tags ";
-                            Object.keys(selectors[i].include || {}).forEach((p) => {
+                            for(const p of Object.keys(selectors[i].include || {})) {
                                 display += `<span class='tag'>${  p}`;
                                 if (selectors[i].include[p]!== undefined && selectors[i].include[p]!== "")
                                     display += `=${  selectors[i].include[p]}`;
                                 display += "</span>";
-                            });
+                            }
                         }
                         if (selectors[i].type === "age")
                             display += `older than ${  selectors[i].minutes  }min `;

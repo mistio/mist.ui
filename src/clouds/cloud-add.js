@@ -252,7 +252,6 @@ Polymer({
   listeners: {
       'iron-select': '_updateCloudTitle',
       'reset-form': '_resetProvider',
-      'reset-form': '_resetProvider',
       'open-cc-required': '_openCcRequired',
       'close-cc-required': '_closeCcRequired'
   },
@@ -318,7 +317,7 @@ Polymer({
       return cols;
   },
 
-  _computeDisableAddCloud (enableBilling, org) {
+  _computeDisableAddCloud (enableBilling, _org) {
       return enableBilling && this.org && !this.org.card && !this.org.current_plan;
   },
 
@@ -331,7 +330,7 @@ Polymer({
       this.$.ccRequired.close();
   },
 
-  _cloudAddAjaxResponse (response) {
+  _cloudAddAjaxResponse (_response) {
       this._unsetProvider();
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail:  {
           url: '/'
@@ -352,11 +351,14 @@ Polymer({
   },
 
   _computeTitle (selectedProvider) {
-      if (this.providers)
-          var p = this.providers.find(function (p) {
-              return p.val == selectedProvider
+      if (this.providers){
+          const p = this.providers.find((f) => {
+              return f.val === selectedProvider
           });
+       
       return p ? p.title : '';
+      }
+      return '';
   },
 
   _providerChanged (selectedProvider, providers) {
@@ -365,8 +367,8 @@ Polymer({
 
       this._resetForm();
       const selectedProviderDetails = providers.
-      filter(function (fields) {
-          return fields.val == selectedProvider;
+      filter((fields) => {
+          return fields.val === selectedProvider;
       });
       const providerFields = selectedProviderDetails.length ? selectedProviderDetails.shift()
           .options : [];
@@ -379,8 +381,8 @@ Polymer({
 
       // replaces _providerFieldsChanged observer and skips provider reset 
       // while reseting the other fields
-      this.providerFields.forEach(function (el, index) {
-          if (el.name != "provider") {
+      this.providerFields.forEach((el, index) => {
+          if (el.name !== "provider") {
               this.set(`providerFields.${  index  }.show`, el.show);
               this._resetField(el, index);
           }
@@ -400,40 +402,40 @@ Polymer({
       const that = this;
       // Scroll down to #cloudFields
       if (this.selectedProvider && fields) {
-          this.async(function(){
+          this.async(() => {
               that.$.content.scrollIntoView({block: "end", behavior: "smooth"});
           },100);
       }
   },
 
-  _keysChanged (keys, providerFields) {
+  _keysChanged (_keys, _providerFields) {
       // Set list of keys in providerFields when model keys change
-      const indexSshKey = this.providerFields.findIndex(function (field) {
-          return field.type == "ssh_key";
+      const indexSshKey = this.providerFields.findIndex((field) => {
+          return field.type === "ssh_key";
       }, this);
 
       if (indexSshKey)
           this.set(`providerFields.${  indexSshKey  }.options`, this.keys);
 
       // Check for nested subforms and update ssh_key fields
-      this.providerFields.forEach(function (field, index) {
-          if (field.type == 'list') {
-              field.options.forEach(function (subfield, subindex) {
-                  if (subfield.type == "ssh_key") {
+      this.providerFields.forEach((field, index) => {
+          if (field.type === 'list') {
+              field.options.forEach((subfield, subindex) => {
+                  if (subfield.type === "ssh_key") {
                       this.set(`providerFields.${index}.options.${subindex}.options`,this.keys);
                   }
-              }.bind(this));
+              });
           }
-      }.bind(this));
+      });
   },
 
   _unsetProvider () {
       this.set('selectedProvider', false);
   },
 
-  _resetForm (e) {
+  _resetForm (_e) {
       // Reset Form Fields
-      this.providerFields.forEach(function (el, index) {
+      this.providerFields.forEach((el, index) => {
           if (el.showIf) {
               this.set(`providerFields.${  index  }.show`, false);
           }
@@ -453,19 +455,18 @@ Polymer({
   },
 
   _goBack () {
-      history.back();
+      window.history.back();
   },
 
   _updateCloudTitle (e) {
-      const form = this.shadowRoot.querySelector('app-form');
       // console.log('_updateCloudTitle',e);
       if (e.target.id.startsWith('app-form-') && e.target.id.endsWith('-region')) {
           const region = e.detail.item.textContent.trim();
           let index;
           let title = '';
-          const titleField = this.providerFields.find(function (f, ind) {
+          const titleField = this.providerFields.find((f, ind) => {
               index = ind;
-              return f.name == "title";
+              return f.name === "title";
           });
           title = titleField.defaultValue;
           this.set(`providerFields.${  index  }.value`, `${title  } ${  region}`);
@@ -473,10 +474,10 @@ Polymer({
 
   },
 
-  fillInKnownData (provider, clouds) {
+  fillInKnownData (provider, _clouds) {
       if (provider) {
-          const cloudInSameProvider = this.clouds.find(function (c) {
-              return c.provider == provider
+          const cloudInSameProvider = this.clouds.find((c) => {
+              return c.provider === provider
           });
           if (cloudInSameProvider) {
               // if there is an apikey we can fill in
@@ -496,31 +497,30 @@ Polymer({
 
   _resetProvider () {
       const indexp = this.fieldIndexByName('provider');
-      if (indexp != undefined) {
+      if (indexp !== undefined) {
           this.set(`providerFields.${  indexp  }.value`, this.selectedProvider);
       }
   },
 
   fieldIndexByName (name) {
-      const passField = this.providerFields.findIndex(function (f) {
-          return f.name == name;
+      const passField = this.providerFields.findIndex((f) => {
+          return f.name === name;
       });
       return passField;
   },
 
   fieldsOfType (data, type) {
       const typeIndexes = [];
-      const fieldsOfType = data.filter(function (f, ind) {
-          if (f.type == type)
+      data.forEach((f, ind) => {
+          if (f.type === type)
               typeIndexes.push(ind);
-          return f.type == type;
       });
       return typeIndexes;
   },
 
   updateKeys (e) {
       const keyFieldsIndexes = this.fieldsOfType(this.providerFields, 'ssh_key');
-      this.async(function () {
+      this.async(() => {
           for (let i = 0; i < keyFieldsIndexes.length; i++) {
               this.set(`providerFields.${  keyFieldsIndexes[i]  }.options`, this
                   .keys);
@@ -531,22 +531,22 @@ Polymer({
               this.updateKeysInLists(e, this.fieldsOfType(this.providerFields,
                   'list'));
           }
-      }.bind(this), 500);
+      }, 500);
   },
 
   updateKeysInLists (e, lists) {
       for (let j = 0; j < lists.length; j++) {
-          var keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[j]].options,
+          const keyFieldsIndexes = this.fieldsOfType(this.providerFields[lists[j]].options,
               'ssh_key');
 
-          this.async(function () {
+          this.async(() => {
               for (let i = 0; i < keyFieldsIndexes.length; i++) {
                   this.set(`providerFields.${  lists[i]  }.options.${ 
                       keyFieldsIndexes[i]  }.options`, this.keys);
                   this.set(`providerFields.${  lists[i]  }.options.${ 
                       keyFieldsIndexes[i]  }.value`, e.detail.key);
               }
-          }.bind(this), 10);
+          }, 10);
       }
   }
 });

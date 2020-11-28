@@ -204,7 +204,6 @@ Polymer({
           actions= new Set(isection);
       }
 
-
       if (this.items.length > 1) {
           multiActions = this.actionDetails(Array.from(actions)).filter(a => a.multi);
       }

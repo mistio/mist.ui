@@ -80,12 +80,13 @@ Polymer({
               name: key.name
           };
       }
+      return {};
   },
 
   _computeFormReady(name, newName, sendingData) {
       let formReady = false;
 
-      if (newName && name != newName) {
+      if (newName && name !== newName) {
           formReady = true;
       }
 
@@ -96,11 +97,11 @@ Polymer({
       return formReady;
   },
 
-  _openEditKeyModal(e) {
+  _openEditKeyModal(_e) {
       this.$.editKeyModal.opened = true;
   },
 
-  _closeEditKeyModal(e) {
+  _closeEditKeyModal(_e) {
       this.$.editKeyModal.opened = false;
   },
 
@@ -108,7 +109,7 @@ Polymer({
       this._formReset();
   },
 
-  _submitForm(e) {
+  _submitForm(_e) {
       // this.dispatchEvent(new CustomEvent('updateSelectedKey', { bubbles: true, composed: true, detail: {
       //     key: this.key
       // } }));
@@ -126,7 +127,7 @@ Polymer({
       //   this.set('key.name', '');
   },
 
-  _handleKeyEditAjaxResponse(e) {
+  _handleKeyEditAjaxResponse(_e) {
       this.set('sendingData', false);
       this._closeEditKeyModal();
   }

@@ -126,10 +126,10 @@ Polymer({
   },
 
   hideAddButton(min, max, itemslength) {
-      return min != undefined && max != undefined && min == max == itemslength;
+      return min !== undefined && max !== undefined && min === max === itemslength;
   },
 
-  _minChanged (min) {
+  _minChanged (_min) {
       for (let i = 1; i <= this.min; i++) {
           if (!this.items[i-1])
               this.addItem();
@@ -138,8 +138,8 @@ Polymer({
 
   _setActiveItem (e) {
       // set changing item
-      const parent = e.path.find(function(p){
-          return p.tagName == 'APP-FORM';
+      const parent = e.path.find((p) => {
+          return p.tagName === 'APP-FORM';
       });
       if (parent && parent.id)
           this.set('activeItem', parent.id.split('sub-form-')[1]);
@@ -180,16 +180,15 @@ Polymer({
   clear() {
       this.set('items', []);
   },
-
+  /* eslint-disable no-param-reassign */
   addItem () {
       function copy(o) { // deep copy an array of objects
-          let output; let v; let key;
-          output = Array.isArray(o) ? [] : {};
+          const output = Array.isArray(o) ? [] : {};
           if (o) {
-              for (key in o) {
-                  v = o[key];
+              Object.keys(o).forEach((key) => {
+                  const v = o[key];
                   output[key] = (typeof v === "object") ? copy(v) : v;
-              }
+              });
           }
           return output;
       }
@@ -197,7 +196,7 @@ Polymer({
       if (this.options) {
           if (!this.max || this.items.length < this.max) {
               const opts = copy(this.options); // deep copy options
-              opts.forEach(function (o) {
+              opts.forEach((o) => {
                   o.value = o.defaultValue;
               })
               this.push('items', opts);
@@ -212,15 +211,15 @@ Polymer({
           this.dispatchEvent(new CustomEvent('fields-changed', { bubbles: true, composed: true, file: 'sub-form.html : addItem()'}));
       }
   },
-
+  /* eslint-enable no-param-reassign */
   deleteItem (e) {
       // console.log('deleteItem', e.model.__data__.index);
       if (!this.min || this.items.length > this.min) {
           this.splice('items', e.model.__data.index, 1);
           this.shadowRoot.querySelector('.add').removeAttribute('disabled');
-          this.async(function () {
+          this.async(() => {
               this.dispatchEvent(new CustomEvent('fields-changed', { bubbles: true, composed: true, file: 'sub-form.html : deleteItem()'}));
-          }.bind(this), 200)
+          }, 200)
       } else {
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {
               msg: `Minimun ${  this.max  } ${  this.itemName  }s are required.`,

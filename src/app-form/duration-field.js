@@ -154,8 +154,6 @@ Polymer({
   },
 
   _computeOptionDisabled(fieldMax, option) {
-      if (!fieldMax)
-          return false;
       if (fieldMax) {
           // allow max to also be a date
           const max = this._secondsToDuration(this._computeMax(fieldMax));
@@ -164,32 +162,38 @@ Polymer({
           const threshold = unitsArr.indexOf(max.unit);
           return threshold < unitsArr.indexOf(option.val);
       }
+      return false;
   },
 
-  _computeMax(fieldMax,unit) {
-      if (!fieldMax) return;
-      if (!unit) var unit = 'seconds';
-      // compute the max number allowed for each unit
+  /* eslint-disable no-param-reassign */
+  _computeMax(fieldMax, unit) {
+      if (!fieldMax) return "";
+      if (!unit){
+        unit = 'seconds';
+      }
+      // compute the max number allowed for each unit 
       if (typeof(fieldMax) === 'number') {
           return this._secondsToUnitDuration(fieldMax, unit);
       } if (typeof(fieldMax) === 'string' && moment(fieldMax).isValid()){
           // TODO: compute and set value if max is a date
-          return this._secondsToUnitDuration(moment.utc(fieldMax).diff(moment(), 'seconds'),unit);
-      }
+          return this._secondsToUnitDuration(moment.utc(fieldMax).diff(moment(), 'seconds'), unit);
+      } 
           const duration = this._valueIsRelativeDuration(fieldMax);
           if (duration) {
               const durSpan = duration.span;
               const durUnit = duration.unit;
-              return this._secondsToUnitDuration(this._durationToSeconds(durSpan,durUnit),unit);
+              return this._secondsToUnitDuration(this._durationToSeconds(durSpan,durUnit), unit);
           }
-
+      return "";
+      
   },
+  /* eslint-enable no-param-reassign */
 
   _checkedChanged(defaultCheck){
       // console.log('_checkedChanged',defaultCheck);
       if (defaultCheck) {
           this.set('field.disabled', false);
-      } else if (defaultCheck ==  false) {
+      } else if (defaultCheck ===  false) {
           this.set('field.disabled', true);
       }
       this._durationChanged();
@@ -231,16 +235,16 @@ Polymer({
   _valueIsRelativeDuration(value) {
       let span; let unit;
       const durationRegex = /([0-9]+)([mohdwy]{1,2})/;
-      if (durationRegex.exec(value).length == 3) {
-          span = durationRegex.exec(value)[1];
-          unit = durationRegex.exec(value)[2];
+      if (durationRegex.exec(value).length === 3) {
+          [,span] = durationRegex.exec(value);
+          [, ,unit] = durationRegex.exec(value);
 
-          if (unit == 'm') unit = 'minutes';
-          if (unit == 'h') unit = 'hours';
-          if (unit == 'd') unit = 'days';
-          if (unit == 'w') unit = 'weeks';
-          if (unit == 'mo') unit = 'months';
-          if (unit == 'y') unit = 'years';
+          if (unit === 'm') unit = 'minutes';
+          if (unit === 'h') unit = 'hours';
+          if (unit === 'd') unit = 'days';
+          if (unit === 'w') unit = 'weeks';
+          if (unit === 'mo') unit = 'months';
+          if (unit === 'y') unit = 'years';
 
           return {span,unit};
 
@@ -248,22 +252,23 @@ Polymer({
       return false;
   },
 
+  /* eslint-disable no-param-reassign */
   _durationChanged(span,unit,type) {
       this.shadowRoot.querySelector('paper-input').validate();
       // this._computePlurals(span);
       const emptyValue = this.field.optional && !this.field.defaultCheck;
       if (this.span && this.unit && this.field.valueType) {
-          let newValue;
-              var span = span || this.span;
-              var unit = unit || this.unit;
-              var type = type || this.field.valueType;
-          if (type == 'secs') {
+          let newValue = "";
+          span = span || this.span;
+          unit = unit || this.unit;
+          type = type || this.field.valueType;
+          if (type === 'secs') {
               newValue = emptyValue ? 0 : this._durationToSeconds(span,unit);
-          } else if (type == 'period')  {
+          } else if (type === 'period')  {
               newValue = {every: span, period: unit}
-          } else if (type == 'date')  {
+          } else if (type === 'date')  {
               newValue = emptyValue ? '' : moment().add(span,unit).utc().format("YYYY-MM-DD HH:mm:ss");
-          } else if (type == 'relative') {
+          } else if (type === 'relative') {
               const relativeUnit = ['mo'].indexOf(unit) >= -1 ? unit.substring(0,2) : unit.substring(0,1);
               newValue = emptyValue ? '' : `${span}${relativeUnit}`;
           }
@@ -278,6 +283,7 @@ Polymer({
           this.set('field.valid', false);
       }
   },
+  /* eslint-enable no-param-reassign */
 
   validate() {
       const valid = !this.shadowRoot.querySelector('paper-input').invalid;
@@ -286,16 +292,16 @@ Polymer({
 
   _durationToSeconds(span,unit) {
       let step = 1;
-      if (unit=='months'){
+      if (unit === 'months'){
           // special case
           return moment().add(span,unit).diff(moment(), 'seconds');
-      } if (unit=='minutes'){
+      } if (unit === 'minutes'){
           step = 60;
-      } else if (unit=='hours'){
+      } else if (unit === 'hours'){
           step = 3600;
-      } else  if (unit=='days'){
+      } else  if (unit === 'days'){
           step = 3600*24;
-      } else  if (unit=='weeks'){
+      } else  if (unit === 'weeks'){
           step = 3600*24*7;
       }
       return span*step;
@@ -306,71 +312,70 @@ Polymer({
       // TODO: duration in seconds is always a product of 60 (*60 (*24 (*7))) for minutes hours days and weeks,
       // but amount of months in secs is not directly tracable because of differentiations in month days.
       let span; let unit;
-      if (seconds % (3600*24*28) == 0 || seconds % (3600*24*29) == 0 || seconds % (3600*24*30) == 0 || seconds % (3600*24*31) == 0) {
-          if (seconds % (3600*24*28) == 0) span = seconds / (3600*24*28);
-          if (seconds % (3600*24*29) == 0) span = seconds / (3600*24*29);
-          if (seconds % (3600*24*30) == 0) span = seconds / (3600*24*30);
-          if (seconds % (3600*24*31) == 0) span = seconds / (3600*24*31);
+      if (seconds % (3600*24*28) === 0 || seconds % (3600*24*29) === 0 || seconds % (3600*24*30) === 0 || seconds % (3600*24*31) === 0) {
+          if (seconds % (3600*24*28) === 0) span = seconds / (3600*24*28);
+          if (seconds % (3600*24*29) === 0) span = seconds / (3600*24*29);
+          if (seconds % (3600*24*30) === 0) span = seconds / (3600*24*30);
+          if (seconds % (3600*24*31) === 0) span = seconds / (3600*24*31);
           unit = 'months';
-      } else if (seconds % (3600*24*7) == 0) {
+      } else if (seconds % (3600*24*7) === 0) {
           span = seconds / (3600*24*7);
           unit = 'weeks';
-      } else if (seconds % (3600*24) == 0) {
+      } else if (seconds % (3600*24) === 0) {
           span = seconds / (3600*24);
           unit = 'days';
-      } else if (seconds % 3600 == 0) {
+      } else if (seconds % 3600 === 0) {
           span = seconds / 3600;
           unit = 'hours';
-      } else if (seconds % 60 == 0) {
+      } else if (seconds % 60 === 0) {
           span = seconds / 60;
           unit = 'minutes';
-      } else { // if nothing divides exactly, try an approximation
-          if (seconds > 3600*24*28) {
-              span =  Math.floor(seconds / (3600*24*28));
-              unit = 'months';
-          } else if (seconds > 3600*24*7) {
-              span =  Math.floor(seconds / (3600*24*7));
-              unit = 'weeks';
-          } else if (seconds > 3600*24) {
-              span =  Math.floor(seconds / (3600*24));
-              unit = 'days';
-          } else if (seconds > 3600) {
-              span = Math.floor(seconds / 3600);
-              unit = 'hours';
-          } else if (seconds > 60) {
-              span =  Math.floor(seconds / 60);
-              unit = 'minutes';
-          } else {
-              span = seconds;
-              unit = 'seconds';
-          }
-      }
+      } // if nothing divides exactly, try an approximation
+        if (seconds > 3600*24*28) {
+            span =  Math.floor(seconds / (3600*24*28));
+            unit = 'months';
+        } else if (seconds > 3600*24*7) {
+            span =  Math.floor(seconds / (3600*24*7));
+            unit = 'weeks';
+        } else if (seconds > 3600*24) {
+            span =  Math.floor(seconds / (3600*24));
+            unit = 'days';
+        } else if (seconds > 3600) {
+            span = Math.floor(seconds / 3600);
+            unit = 'hours';
+        } else if (seconds > 60) {
+            span =  Math.floor(seconds / 60);
+            unit = 'minutes';
+        } else {
+            span = seconds;
+            unit = 'seconds';
+        }
       return { span, unit };
   },
 
   _secondsToUnitDuration(seconds, unit) {
       // turn seconds to amount of set units (months, weeks, days, hours, minutes)
       // TODO: as above, amount of seconds depends on monthdays, which differentiate accross months
-      let span; let step;
-      if (unit == 'months') {
+      let step = 1;
+      if (unit === 'months') {
           step = 3600*24 * moment().daysInMonth();
-      } else if (unit == 'weeks') {
+      } else if (unit === 'weeks') {
           step = 3600*24*7;
-      } else if (unit == 'days') {
+      } else if (unit === 'days') {
           step = 3600*24;
-      } else if (unit == 'hours') {
+      } else if (unit === 'hours') {
           step = 3600;
-      } else if (unit == 'minutes') {
+      } else if (unit === 'minutes') {
           step = 60;
-      } else if (unit == 'seconds') {
+      } else if (unit === 'seconds') {
           step = 1;
       }
-      span = Math.floor(seconds / step);
+      const span = Math.floor(seconds / step);
       return span;
   },
 
   _computePlurals(valueSpan) {
-      if ((valueSpan == 1 && this.showPlural) || (valueSpan > 1 && !this.showPlural)) {
+      if ((valueSpan === 1 && this.showPlural) || (valueSpan > 1 && !this.showPlural)) {
           this.set('showPlural', valueSpan > 1);
           this._updateOptionTitles(this.showPlural);
       }

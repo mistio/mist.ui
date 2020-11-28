@@ -1,6 +1,7 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/iron-collapse/iron-collapse.js';
+import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 

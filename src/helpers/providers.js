@@ -1110,7 +1110,6 @@ PROVIDERS.push({
         defaultValue: "",
         show: true,
         required: false,
-        helptext: ""
     },
 ]
 });

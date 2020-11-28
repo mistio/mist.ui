@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import './multi-inputs.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from "../helpers/utils.js";
 
 Polymer({
   _template: html`
@@ -148,7 +149,7 @@ Polymer({
       'confirmation': '_proceedToSaveWhitelist',
   },
 
-  _saveWhitelist(e){
+  _saveWhitelist(_e){
       if (this.showAddCurrent && this.whiteIps.length && !this.ipIsWhitelisted('0.0.0.0/0')) {
           const message = {
               title: 'Save IPs',
@@ -167,23 +168,23 @@ Polymer({
   _showDialog(info) {
       const dialog = this.$.saveIps;
       if (info) {
-          for (const i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
 
   _proceedToSaveWhitelist(e){
-      if (!e || (e.detail.response == 'confirm' && e.detail.reason == "proceed.saveips")){
-          const payloadIPs = this.whiteIps.filter(function(ip){
+      if (!e || (e.detail.response === 'confirm' && e.detail.reason === "proceed.saveips")){
+          const payloadIPs = this.whiteIps.filter((ip) => {
                   return ip.cidr && ip.cidr.length;
               });
           const payload = {
               ips: payloadIPs
           };
           this.$.ipsRequest.headers["Content-Type"] = 'application/json';
-          this.$.ipsRequest.headers["Csrf-Token"] = CSRF_TOKEN;
+          this.$.ipsRequest.headers["Csrf-Token"] = CSRFToken.value;
           this.$.ipsRequest.body = payload;
           this.$.ipsRequest.generateRequest();
       }
@@ -195,9 +196,10 @@ Polymer({
   },
 
   _showAddCurrent(ips, currentIp){
-      if (this.whiteIps && this.whiteIps.length)
-          var isInArray = this.whiteIps.find(function(p){ return p.cidr == `${currentIp}/32` || p.cidr == currentIp});
-      this.set('showAddCurrent', !isInArray);
+      if (this.whiteIps && this.whiteIps.length){
+          const isInArray = this.whiteIps.find((p) => { return p.cidr === `${currentIp}/32` || p.cidr === currentIp});
+          this.set('showAddCurrent', !isInArray);
+      }
   },
 
   _userUpdated(user) {
@@ -221,7 +223,7 @@ Polymer({
       this.set('ipsFormReady', true);
   },
 
-  _whitelistedIpsChanged(userIPs) {
+  _whitelistedIpsChanged(_userIPs) {
       if (this.user && this.user.current_ip && this.user.ips.length && !this.ipIsWhitelisted(this.user.current_ip)) {
           window.location.href = '/logout';
       }
@@ -229,8 +231,8 @@ Polymer({
 
   ipIsWhitelisted(currentIp) {
       // allow access, if wildcard ip 0.0.0.0/0 is included
-      return this.user.ips && this.user.ips.find(function(ip){
-          return ip.cidr == `${currentIp}/32` || ip.cidr == '0.0.0.0/0';
+      return this.user.ips && this.user.ips.find((ip) => {
+          return ip.cidr === `${currentIp}/32` || ip.cidr === '0.0.0.0/0';
       });
   },
 

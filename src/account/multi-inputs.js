@@ -102,11 +102,11 @@ Polymer({
       'inputsArrayChanged(inputsArray)'
   ],
 
-  inputsArrayChanged(inputsArray){
+  inputsArrayChanged(_inputsArray){
       // console.log('inputsArray',inputsArray);
   },
 
-  addInput(e){
+  addInput(_e){
       const obj = {};
       obj[this.inputLabel] = '';
       if (this.withDescription)
@@ -117,7 +117,7 @@ Polymer({
   removeInput(e){
       // console.log('removeInput',e.model.index);
       const inputValue = this.get(`inputsArray.${e.model.index}.${this.inputLabel}`);
-      if (this.withConfirmRemove != true || inputValue == '') {
+      if (this.withConfirmRemove !== true || inputValue === '') {
           this.splice('inputsArray', e.model.index, 1);
       }
       else {
@@ -134,9 +134,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector("#confirmRemove");
       if (info) {
-          for (const i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -146,17 +146,17 @@ Polymer({
       const {reason} = e.detail;
           const {response} = e.detail;
 
-      if (response.confirmed == 'confirm' && reason == "input.remove") {
+      if (response.confirmed === 'confirm' && reason === "input.remove") {
           this.splice('inputsArray', this.toRemove, 1);
           this.set('toRemove', null);
       }
   },
 
-  saveInputs(e){
+  saveInputs(_e){
       this.dispatchEvent(new CustomEvent(this.eventName, { bubbles: true, composed: true, detail:  {inputs: this.inputsArray} }));
   },
 
-  addCurrentIP(e){
+  addCurrentIP(_e){
       this.dispatchEvent(new CustomEvent('add-current', { bubbles: true, composed: true}));
   }
 });
