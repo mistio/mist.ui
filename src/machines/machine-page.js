@@ -639,7 +639,7 @@ Polymer({
                         <div class="cell" hidden\$="[[!machine]]">
                             [[_fromNow(machine.created)]]
                             <span hidden\$="[[!machine.created_by]]">
-                                by <a class="blue-link" href\$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a> 
+                                by <a class="blue-link" href\$="/members/[[machine.created_by]]">[[_displayUser(machine.created_by,model.members)]]</a>
                             </span>
                         </div>
                         <br>
@@ -687,7 +687,9 @@ Polymer({
                                 <div class="machine-volume">
                                     <a class="regular blue-link flexchild" href\$="/volumes/[[volumeId]]">
                                         <iron-icon icon="device:storage"></iron-icon>[[_computeVolumeName(volumeId)]]</a>
-                                    <iron-icon icon="icons:clear" class="delete" on-tap="detachVolume">
+                                        <template is="dom-if" if="[[_computeCanDetachVolume(volumeId)]]" restamp="">
+                                            <iron-icon icon="icons:clear" class="delete" on-tap="detachVolume">
+                                        </template>
                                 </iron-icon></div>
                             </template>
                             <div class="machine-volume" id="pendingVolumeRequest">
@@ -1012,11 +1014,13 @@ Polymer({
       const perm = this.check_perm('edit', 'machine', machineId);
       return perm === true || !perm.expiration || (perm.expiration && !perm.expiration.max);
   },
-
+  _computeCanDetachVolume(id) {
+    const model = this.model.volumes[id];
+    return model && model.actions && model.actions.detach;
+  },
   _renderMachineKeys () {
       this.$.machineKeysDomRepeat.render();
   },
-
   _rulesApplyOnMachine(rules, machineId, _machineTags) {
       const machineRules = {};
           let check;
@@ -1048,7 +1052,7 @@ Polymer({
                                   } else if (!selector.include[q]) {
                                           check = mtag.value === ""; // if tag value is null machine tag value must be empty string
                                       } else if (selector.include[q]) {
-                                          check = selector.include[q] === mtag.value; // if tag value is !null machine tag value must be equal 
+                                          check = selector.include[q] === mtag.value; // if tag value is !null machine tag value must be equal
                                       }
                               }
                           }
@@ -1242,7 +1246,7 @@ Polymer({
 
       this._showDialog({
           title: 'Disassociate key',
-          body: `Disassociating key '${  keyName 
+          body: `Disassociating key '${  keyName
               }' from machine, will remove the key from the machine.`,
           danger: false,
           reason: "disassociate.key",
@@ -1281,7 +1285,7 @@ Polymer({
 
       this._showDialog({
           title: 'Detach volume',
-          body: `Detaching volume '${  volumeName 
+          body: `Detaching volume '${  volumeName
               }' from machine.`,
           danger: true,
           reason: "detach.volume",
@@ -1395,10 +1399,10 @@ Polymer({
   itemProbeClasses(machine) {
       if (!machine || !machine.probe) {
           return false;
-      } 
+      }
           if (!machine.probe.ssh || !machine.probe.ssh.loadavg) {
               return false;
-          } 
+          }
               const probe = machine.probe.ssh.loadavg;
               const cores = parseInt(machine.probe.ssh.cores, 10);
               let classes = '';
@@ -1412,8 +1416,8 @@ Polymer({
                   classes += "hasprobe "
 
               return classes;
-          
-      
+
+
   },
 
   loadToColor(load, prefix) {
@@ -1439,16 +1443,16 @@ Polymer({
 
   _computeMachineImage(_machine, _cloud) {
       const item = this.machine;
-      if (!item) 
+      if (!item)
         return null;
       if (item && item.extra.image && typeof(item.extra.image) === "string") {
         return item.extra.image;
       } if (item && item.image && typeof(item.image) !== "object") {
           if (this.model.images && this.model.images[item.image]) {
               return this.model.images[item.image].name;
-          } 
+          }
               return item.image;
-          
+
       } if (item && item.extra.image && item.extra.image.distribution && item.extra.image.name) {
           return `${item.extra.image.distribution  } ${  item.extra.image.name}`;
       } if (item && item.extra && item.image_id && this.model.images[item.image_id]) {
@@ -1465,12 +1469,12 @@ Polymer({
   _computeMachineSize(item, _itemChangeRecord, _machines, _clouds) {
       // field could be in the 'extra' section, but should not be an object
       if (item) {
-          let ret = item.size;
+          const itemSize = item.size;
 
-          if (ret && typeof(ret) !== 'object')
-              return this._getSizeName(item, ret);
-          if (!ret && item.extra && item.extra.size && typeof(item.extra.size) !== 'object')
-              ret = item.extra.size;
+          if (itemSize && typeof(itemSize) !== 'object')
+              return this._getSizeName(item, itemSize);
+          if (!itemSize && item.extra && item.extra.size && typeof(item.extra.size) !== 'object')
+              return item.extra.size;
           if (item.extra && item.extra.size && item.extra.size.vcpus)
               return `${item.extra.size.vcpus  }vcpu, ${  item.extra.size.memory  }M ram`;
           if (item.extra && item.extra.size && typeof(item.extra.size) === 'string')
@@ -1486,7 +1490,7 @@ Polymer({
           if (item.extra && item.extra.PLANID) {
               const cloud = this.model.clouds[item.cloud.id];
               return (cloud && cloud.sizes && cloud.sizes[item.extra.PLANID]) ? `${cloud.sizes[item.extra.PLANID].name  }: ${  cloud.sizes[
-                      item.extra.PLANID].ram  } ram, ${  cloud.sizes[item.extra.PLANID].disk 
+                      item.extra.PLANID].ram  } ram, ${  cloud.sizes[item.extra.PLANID].disk
                   } disk, ${  cloud.sizes[item.extra.PLANID].bandwidth  } bandwidth` : item.extra.PLANID
           }
           if (item.extra && item.extra.service_type)
@@ -1573,16 +1577,16 @@ Polymer({
   _computeCloudIcon(cloud) {
       if (!cloud) {
           return '';
-      } 
+      }
           // console.log('cloud', cloud);
           return `./assets/providers/provider-${  cloud.replace(/_/g, "")  }.png`;
-      
+
   },
 
   _computeImageIcon(machine, _probe) {
       if (!machine) {
           return false;
-      } 
+      }
           let image = machine.extra.image_id || machine.extra.software_name || machine.operating_system ||
               machine.operating_system_distro || machine.imageId || machine.os_type;
               let imageIcon = "";
@@ -1633,7 +1637,7 @@ Polymer({
           if (imageIcon.length)
               return `./assets/image-icons/${  imageIcon  }.svg`;
           return false;
-      
+
   },
 
   enableWebconfig() {
@@ -1669,9 +1673,7 @@ Polymer({
                       _this.model.members[item] && _this.model.members[item].name &&
                       _this.model.members[item].name !== undefined) {
                       const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
-                      const ret = `<a href="/members/${  item  }">${  displayUser 
-                          }</a>`;
-                      return ret;
+                      return `<a href="/members/${ item }">${ displayUser }</a>`;
                   } console.log(item);
                   return item || '';
               }
@@ -1768,9 +1770,9 @@ Polymer({
   _expirationVerb(time, action) {
       if (moment().isBefore(time)) {
           return action === "stop" ? 'Will stop' : 'Will be destroyed'
-      } 
+      }
           return action === "stop" ? 'Stopped' : 'Destroyed';
-      
+
   },
 
   _isPast(time) {

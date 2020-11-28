@@ -57,7 +57,7 @@ Polymer({
             </paper-material>
             <paper-material>
                 <p>
-                    Heads up! Make sure you select a machine you have already associated a key with. Otherwise the the request may be accepted but the script will never finish running.
+                    Heads up! Make sure you select a machine you have already associated a key with. Otherwise the request may be accepted but the script will never finish running.
                 </p>
                 <p class="error" hidden\$="{{machineHasKeys}}">
                     <iron-icon icon="icons:warning"></iron-icon> Machine [[machine.name]] has no associated keys.
