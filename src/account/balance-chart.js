@@ -1,22 +1,24 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import * as echarts from  'echarts/echarts.all.js';
 import moment from 'moment/src/moment.js';
+import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import { formatMoney } from '../helpers/utils.js'
+import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
+
+import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 const BALANCE_GRAPH_OPTIONS = {
     tooltip: {
         trigger: 'axis',
         extraCssText: 'text-align: left',
-        formatter (params, ticket, callback) {
-            const title = `${(params[0].data[1] ? (`<strong>$${  params[0].data[1].formatMoney(2,'.',',')  } on ` ) : ' ') + moment(params[0].data[0]).format('DD MMM') }</strong><br />`;
-                const vcpus = params[0].data[2] ? `${params[0].data[2].formatMoney(0,'.',',')  } vcpus<br />` : '';
-                const datapoints = params[0].data[3] ? `${params[0].data[3].formatMoney(0,'.',',')  } datapoints<br />` : '';
-                const checks = params[0].data[4] ? `${params[0].data[4].formatMoney(0,'.',',')  } rule checks<br />` : '';
+        formatter (params, _ticket, _callback) {
+            const title = `${(params[0].data[1] ? (`<strong>$${ formatMoney(params[0].data[1],2,'.',',')  } on ` ) : ' ') + moment(params[0].data[0]).format('DD MMM') }</strong><br />`;
+                const vcpus = params[0].data[2] ? `${ formatMoney(params[0].data[2],0,'.',',')  } vcpus<br />` : '';
+                const datapoints = params[0].data[3] ? `${ formatMoney(params[0].data[3],0,'.',',')  } datapoints<br />` : '';
+                const checks = params[0].data[4] ? `${ formatMoney(params[0].data[4],0,'.',',')  } rule checks<br />` : '';
                 // requests = params[0].data[5] + ' requests';
             return title + vcpus + datapoints + checks; // + requests;
         }
@@ -50,7 +52,7 @@ const BALANCE_GRAPH_OPTIONS = {
     yAxis: {
         type: 'value',
         axisLabel: {
-            formatter: '${value}'
+            formatter: 'value'
         }
     },
     series: [
@@ -235,7 +237,7 @@ Polymer({
       this.set(
           'balanceGraphOptions.series.0.data',
           e.detail.response.series.map(
-              function(d) {
+              (d) => {
                   return [d.date, d.cost, d.usage.cores, d.usage.datapoints, d.usage.checks]
               }
           )
@@ -246,12 +248,12 @@ Polymer({
 
   _formatMoney(i) {
       if (i)
-          return i.formatMoney(2, '.', ',');
+          return formatMoney(i, 2, '.', ',');
       return i;
   },
 
   _isWithinPlan(paygRate) {
-      if (paygRate == 0 && this.plan != undefined)
+      if (paygRate === 0 && this.plan !== undefined)
           return true;
       return false;
   }

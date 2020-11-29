@@ -18,7 +18,7 @@ export const mistLogsBehavior = {
         const _this = this;
         return {
             'time': {
-                'body': function(item, row) {
+                'body': (item, row) => {
                     let ret = `<span title="${  moment(item * 1000).format()  }">${  moment(item *
                         1000).fromNow()  }</span>`;
                     if (row.error)
@@ -27,13 +27,13 @@ export const mistLogsBehavior = {
                 }
             },
             'user_id': {
-                'title': function() {
+                'title': () => {
                     return 'user';
                 },
-                'body': function(item) {
+                'body': (item) => {
                     if (_this.model && _this.model.members && item in _this.model.members &&
                         _this.model.members[item] && _this.model.members[item].name &&
-                        _this.model.members[item].name != undefined) {
+                        _this.model.members[item].name !== undefined) {
                         const displayUser = _this.model.members[item].name || _this.model.members[item].email || _this.model.members[item].username;
                         const ret = `<a href="/members/${  item  }">${  displayUser 
                             }</a>`;

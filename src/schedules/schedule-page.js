@@ -17,7 +17,7 @@ import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { machinesListBehavior } from '../helpers/machines-list-behavior.js';
 import './schedule-date.js';
 import './schedule-actions.js';
-import { CSRFToken } from '../helpers/utils.js'
+import { CSRFToken, formatMoney } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -636,8 +636,8 @@ Polymer({
   },
 
   _ratedCost(cost, _rate){
-      // TODO:  Does COST come in $ from backend? // cost ? (cost/this.currency.rate).formatMoney(2) : '';
-      return cost.formatMoney(2);
+      // TODO:  Does COST come in $ from backend? // cost ? formatMoney((cost/this.currency.rate), 2) : '';
+      return formatMoney(cost, 2);
   },
 
   _computeAgeText(age){

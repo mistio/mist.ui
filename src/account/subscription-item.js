@@ -1,7 +1,7 @@
 import '../../node_modules/@polymer/paper-item/paper-item.js';
+import moment from 'moment/src/moment.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import moment from 'moment/src/moment.js';
 
 Polymer({
   _template: html`
@@ -90,8 +90,8 @@ Polymer({
   _computeZebraClasses(index, count) {
       const classes = [];
       classes.push(
-          (index + 1) % 2 == 0 ? 'even' : 'odd',
-          index + 1 == count ? 'last' : null
+          (index + 1) % 2 === 0 ? 'even' : 'odd',
+          index + 1 === count ? 'last' : null
       );
       return classes.join(' ');
   },
@@ -104,7 +104,6 @@ Polymer({
   },
 
   _computeDateText(time) {
-      const date = new Date(time * 1000);
       return moment(time *1000).fromNow();
 
   },
@@ -116,6 +115,6 @@ Polymer({
   },
 
   _computeIsExpiringClass(action) {
-      return action == 'started' ? null : 'plan-end';
+      return action === 'started' ? null : 'plan-end';
   }
 });

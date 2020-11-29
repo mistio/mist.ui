@@ -230,9 +230,9 @@ Polymer({
   attached() {
       const rows = this.parentNode.querySelectorAll('block');
       const index = Array.prototype.indexOf.call(rows, this);
-      setTimeout(function() {
+      setTimeout(() => {
           this.classList.add('active');
-      }.bind(this), (index + 1) * 50);
+      }, (index + 1) * 50);
   },
 
   _ratedCost(cost, rate) {
@@ -241,29 +241,30 @@ Polymer({
 
   _getFilteredResources(resources, q) {
       let owned;
-      if (q == "owner:$me" && this.model && resources) {
-          owned = Object.values(resources).filter(function(item){
-              return item && item.owned_by && item.owned_by == this.model.user.id;
-          }.bind(this))
+      if (q === "owner:$me" && this.model && resources) {
+          owned = Object.values(resources).filter((item) => {
+              return item && item.owned_by && item.owned_by === this.model.user.id;
+          });
       }
       return owned || Object.values(resources);
   },
 
-  _computeTotalCost(machines,q,currency) {
+  /* eslint-disable no-param-reassign */
+  _computeTotalCost(machines, q, currency) {
       let cost = 0; const rate = !currency ? 1 : currency.rate;
       if (Object.keys(this.model.machines).length > 0){
           // map machines costs in an array
-          const machinesWithCost = this._getFilteredResources(this.model.machines, this.q).map(function(m){
+          const machinesWithCost = this._getFilteredResources(this.model.machines, this.q).map((m) => {
               return m && m.cost && m.cost.monthly ? m.cost.monthly : 0;
           });
           // add all cost values
           if (machinesWithCost.length) {
-              cost = machinesWithCost.reduce(function(previous, current, index){
+              cost = machinesWithCost.reduce((previous, current, _index) => {
                   if (typeof previous !== 'number'){
-                      previous = parseInt(previous);
+                      previous = parseInt(previous, 10);
                   }
                   if (typeof current !== 'number'){
-                      current = parseInt(current);
+                      current = parseInt(current, 10);
                   }
                   return previous + current;
               });
@@ -272,22 +273,22 @@ Polymer({
       return this._ratedCost(cost, rate);
   },
 
-  _computeTopClouds(clouds, machines,q,currency) {
+  _computeTopClouds(clouds, _machines, _q, _currency) {
       const topCloudsArray = [];
-          const zeroCostClouds = [];
-          const that = this;
+      const zeroCostClouds = [];
+      const that = this;
       if (Object.values(clouds).length>0) {
-          var clouds = this._getFilteredResources(this.model.clouds,this.q);
-          clouds.forEach(function(c){
+          clouds = this._getFilteredResources(this.model.clouds, this.q);
+          clouds.forEach((c) => {
               let cloudCost = 0;
               let machinesCount = 0;
               if (c.machines) {
                   const cloudMachines = that._getFilteredResources(c.machines,that.q);
                   for (let i=0; i < cloudMachines.length; i++) {
                       if (cloudMachines[i].cost && cloudMachines[i].cost.monthly) {
-                          var mcost;
+                          let mcost = "";
                           if (typeof cloudMachines[i].cost.monthly !== 'number'){
-                              mcost = parseInt(cloudMachines[i].cost.monthly);
+                              mcost = parseInt(cloudMachines[i].cost.monthly, 10);
                           }
                           else {
                               mcost = cloudMachines[i].cost.monthly;
@@ -310,7 +311,7 @@ Polymer({
       }
       this.set('zeroCostClouds', zeroCostClouds);
       // sort by cost
-      topCloudsArray.sort(function (a, b) {
+      topCloudsArray.sort((a, b) => {
           if (a.cost > b.cost) { return -1; }
           if (a.cost < b.cost) { return 1; }
           return 0;
@@ -318,29 +319,30 @@ Polymer({
       // return all clouds instead of topCloudsArray.slice(0,3);
       return topCloudsArray;
   },
+   /* eslint-enable no-param-reassign */
 
-  _computeTags(clouds, machines,q,currency) {
+  _computeTags(_clouds, _machines, _q, _currency) {
       const tagsArray = [];
       if (this.model && this.model.machines) {
           const that = this;
-          var machines = this._getFilteredResources(this.model.machines,this.q);
-          machines.forEach(function(m){
+          const machines = this._getFilteredResources(this.model.machines,this.q);
+          machines.forEach((m) => {
               let mcost = m && m.cost ? m.cost.monthly : false;
               if (m && m.tags && mcost){
                   mcost = parseFloat(mcost)/(that.currency && that.currency.rate || 1);
-                  for (var t in m.tags) {
-                      const tagExists = tagsArray.find(function(prevt, index){
-                          return prevt.key == t && prevt.value == m.tags[t];
+                  for (const t of Object.keys(m.tags)) {
+                      const tagExists = tagsArray.find((prevt) => {
+                          return prevt.key === t && prevt.value === m.tags[t];
                       });
                       if (tagExists){
                               tagExists.count ++;
-                              tagExists.cost += Math.round(parseInt(mcost));
+                              tagExists.cost += Math.round(parseInt(mcost, 10));
                           }
                       else {
                           const tag = {};
                           tag.key = t;
                           tag.value = m.tags[t];
-                          tag.cost = Math.round(parseInt(mcost));
+                          tag.cost = Math.round(parseInt(mcost, 10));
                           tag.count = 1;
                           tagsArray.push(tag);
                       }                        
@@ -349,7 +351,7 @@ Polymer({
           });
       }
       // sort by cost
-      tagsArray.sort(function (a, b) {
+      tagsArray.sort((a, b) => {
           if (a.cost > b.cost) { return -1; }
           if (a.cost < b.cost) { return 1; }
           return 0;
@@ -366,7 +368,7 @@ Polymer({
   changeTab(e){
       const target = e.target.id;
       if (this.tags && this.tags.length){
-          if ((target == 'cloudsBtn' && !this.showClouds) || (target == 'tagsBtn' && this.showClouds)) {
+          if ((target === 'cloudsBtn' && !this.showClouds) || (target === 'tagsBtn' && this.showClouds)) {
               this.set('showClouds', !this.showClouds);
               this.$.tagsBtn.classList.toggle('active');
               this.$.cloudsBtn.classList.toggle('active');

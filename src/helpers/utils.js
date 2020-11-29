@@ -1,8 +1,43 @@
+function numeral(num){
+    function solveRight(rightPart){
+        let res = `${rightPart.slice(0,2)}.${rightPart.slice(2)}`;
+        res = parseFloat(res);
+        res = Math.round(res);
+        return res;
+    }
+    const suffixes = {"3": "k", "6": "m", "9": "b", "12": "t", "15": "q"};
+    const toFormat = Number.isFinite(num) ? String(num) : num;
+    let res = "";
+    const order = parseInt((toFormat.length-1)/3, 10) * 3;
+    if( order === 0){
+        return `${ toFormat }.00`;
+    }
+    const comma = toFormat.length - order
+    res = `${toFormat.slice(0, comma)}.`;
+    const rightP = solveRight(toFormat.slice(comma));
+    res += String(rightP);
+    res += suffixes[order];
+    return res;
+}
 
 function ratedCost(cost, rate) {
     const c = parseFloat(cost || 0);
     const rc = c * rate;
-    return c && rc ? numeral(rc).format('0,00.00a') : numeral(cost).format('0,00.00a');
+    return c && rc ? numeral(rc) : numeral(cost);
+}
+
+function formatMoney(value, decs_, dot_, comma_){
+    const decs = Number.isNaN(Math.abs(decs_)) ? 2 : decs_;
+    const val = Math.abs(Number(value) || 0).toFixed(decs);
+    const dot = dot_ === undefined ? "." : dot_;
+    const comma = comma_ === undefined ? "," : comma_;
+    const prefix = value < 0 ? "-" : "";
+    const number = String(parseInt(val, 10));
+    let commaIndex = number.length;
+    commaIndex = commaIndex > 3 ? commaIndex % 3: 0;
+    return prefix + (commaIndex ? number.substr(0, commaIndex) + 
+        comma: "") + number.substr( commaIndex).replace(/(\d{3})(?=\d)/g, `$1${ comma }`) + (decs ? dot + 
+            Math.abs(val - number).toFixed(decs).slice(2): "");
 }
 
 function itemUid(item, section) {
@@ -26,9 +61,9 @@ function itemUid(item, section) {
 function mapToArray(obj) {
     const arr = [];
     if (obj) {
-        for (const id in obj) {
+        Object.keys(obj).forEach((id) => {
             arr.push(obj[id]);
-        }
+        });
     }
     return arr;
 }
@@ -54,4 +89,4 @@ function intersection(a, b){
 
 const CSRFToken = { value: "" };
 const stripePublicAPIKey = { value: ""};
-export { ratedCost, itemUid, mapToArray, _generateMap, intersection, CSRFToken, stripePublicAPIKey };
+export { ratedCost, formatMoney, itemUid, mapToArray, _generateMap, intersection, CSRFToken, stripePublicAPIKey };

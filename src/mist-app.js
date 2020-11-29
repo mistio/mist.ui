@@ -1012,8 +1012,8 @@ Polymer({
 
     _onUserAction(event) {
         // console.log('user-action', event);
-        if (typeof gtag === 'function') {
-            gtag('event', event.detail, {
+        if (typeof gtag === 'function') { // eslint-disable-line no-undef
+            gtag('event', event.detail, { // eslint-disable-line no-undef
                 'event_category': 'ui'
             });
         }
@@ -1218,19 +1218,7 @@ Polymer({
         e.stopPropagation();
     }
 });
-// What is this??
-Number.prototype.formatMoney = (c, d, t) => {
-    let n = this;
-    c = isNaN(c = Math.abs(c)) ? 2 : c;
-    d = d === undefined ? "." : d;
-    t = t === undefined ? "," : t;
-    const s = n < 0 ? "-" : "";
-    const i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c), 10));
-    let j = i.length
-    j = j > 3 ? j % 3 : 0;
-    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, `$1${  t}`) + (c ? d +
-        Math.abs(n - i).toFixed(c).slice(2) : "");
-};
+
 document.addEventListener('iron-overlay-opened', function moveBackdrop(event) {
   const dialog = dom(event).rootTarget;
   if (dialog.withBackdrop) {

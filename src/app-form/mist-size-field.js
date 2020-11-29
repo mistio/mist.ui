@@ -90,29 +90,30 @@ Polymer({
           return option.name;
       if (option.id)
           return option.id;
+      return "";
   },
 
-  _showCustomSizeFields(custom, value) {
-      return this.field.custom && (!this.field.value || this.field.value == "custom")
+  _showCustomSizeFields(_custom, _value) {
+      return this.field.custom && (!this.field.value || this.field.value === "custom")
   },
 
   _replaceAsterisk (str) {
       return str.replace(/_/g, " ").replace("*", "").replace("id", "").trim();
   },
 
-  _hideDropdown(options, field) {
-      return field.custom == true && (!this.field.options || this.field.options.length == 0);
+  _hideDropdown(_options, field) {
+      return field.custom === true && (!this.field.options || this.field.options.length === 0);
   },
 
-  _noOptions (options) {
-      return !this.field.options || this.field.options.length == 0;
+  _noOptions (_options) {
+      return !this.field.options || this.field.options.length === 0;
   },
 
   _allowCustom (field) {
-      return field.custom == true || !this.field.options || !this.field.options.length;
+      return field.custom === true || !this.field.options || !this.field.options.length;
   },
 
-  _updateCustomValue (e) {
+  _updateCustomValue (_e) {
       if (!this.field.custom) {
           this.set('field.customValue', false);
       } else if (this.field.custom && this.field.customSizeFields) {
@@ -129,14 +130,14 @@ Polymer({
   },
 
   _filter (options, search) {
-      return options ? this._sort(options.filter(function (op) {
+      return options ? this._sort(options.filter((op) => {
           return op.name && (!search || op.name.toLowerCase().indexOf(search.toLowerCase()) > -1);
       })) : [];
   },
 
   _sort(arr) {
       if (arr && arr.length)
-          return arr.sort(function(a,b){
+          return arr.sort((a,b) => {
               if (a.cpus < b.cpus) {
                   return -1;
               }

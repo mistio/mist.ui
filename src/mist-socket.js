@@ -44,7 +44,7 @@ Polymer({
     connect () {
         console.warn('connecting at ', this.url);
         // Create the SockJS object
-        this.socket = new SockJS(this.url, null, {
+        this.socket = new SockJS(this.url, null, { // eslint-disable-line no-undef
             'transports': ['websocket', 'xhr-polling']
         });
 
@@ -300,7 +300,7 @@ Polymer({
     _patchModel (patch) {
         const _this = this;
         patch.forEach((operation) => {
-            const idleCallbackId = requestIdleCallback(() => {
+            const idleCallbackId = requestIdleCallback(() => { // eslint-disable-line no-unused-vars
                 let cloudId; let resourceType; let resourceExternalId; let path; let propertyPath; let oldCloudResourceExternalIds; let oldCloudResourceIds;
 
                 // Let's figure out if the patch applies to a cloud and which one
@@ -738,7 +738,9 @@ Polymer({
                 this.model.clouds[data.cloud_id][section] = {};
             const oldCloudResourcesExternalIDs = Object.keys(this.model.clouds[data.cloud_id][section]);
             const oldCloudResourcesIDs = oldCloudResourcesExternalIDs.map(i => this.model.clouds[data.cloud_id][section][i].id);
-            const newCloudResources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {});
+            // const newCloudResources = data[section].reduce((map, obj) => (map[obj[externalId]] = obj, map), {});
+            const newCloudResources = {};
+            data[section].forEach((sec) => { newCloudResources[sec[externalId]] = sec });
             const newCloudResourcesExternalIds = Object.keys(newCloudResources);
             const newCloudResourcesIds = newCloudResourcesExternalIds.map(i => newCloudResources[i].id); 
 

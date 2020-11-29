@@ -20,9 +20,9 @@ import './stack-network-item.js';
 import './stack-key-item.js';
 import './orchestration-form.js';
 import moment from 'moment/src/moment';
+import 'anchorme/dist/browser/anchorme.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import 'anchorme/dist/browser/anchorme.min.js';
 import { YAML } from 'yaml/browser/dist/index.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
@@ -1339,7 +1339,7 @@ Polymer({
 
   _makeString (info) {
       if (info)
-          return anchorme(YAML.stringify(info).replace(/'/g, ""));
+          return anchorme(YAML.stringify(info).replace(/'/g, "")); // eslint-disable-line no-undef
       return '';
   },
 

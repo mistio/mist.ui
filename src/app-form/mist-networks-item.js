@@ -152,21 +152,21 @@ Polymer({
 
   ready() {},
 
-  _updateValue(type,checked,network,form,formValid) {
+  _updateValue(_type, _checked, _network, _form, _formValid) {
       if (this.network && this.fields) {
           if (this.checked) {
               // set net id
-              if (this.fields[1].value != this.network.id) {
+              if (this.fields[1].value !== this.network.id) {
                   this.set('fields.1.value', this.network.id);
               }
 	        		// make sure required fields have values, fixes initial formValid issue 
-	        		const requiredFieldsHaveValues = this.fields.filter(function(f){
+	        		const requiredFieldsHaveValues = this.fields.filter((f) => {
                                                           return f.required;
-                                                      }).every(function(el){
+                                                      }).every((el) => {
                                                           return this.form && this.form[el.name] && this.form[el.name].length;
-                                                      }.bind(this));
+                                                      });
               this.set('network.fieldValue', this.type && this.fields ? this.form : this.network.id );
-              this.set('valid', this.type ? requiredFieldsHaveValues && this.formValid : this.network.fieldValue == this.network.id);
+              this.set('valid', this.type ? requiredFieldsHaveValues && this.formValid : this.network.fieldValue === this.network.id);
               console.log('requiredFieldsHaveValues',requiredFieldsHaveValues, this.formValid, this.network.fieldValue);
           } else {
 	        		this.set('network.fieldValue', null);
@@ -176,7 +176,7 @@ Polymer({
       this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
   },
 
-  _networkFieldValueChanged(e) {
+  _networkFieldValueChanged(_e) {
       this.dispatchEvent(new CustomEvent('item-value-changed'), { bubbles: true, composed: true });
   },
 

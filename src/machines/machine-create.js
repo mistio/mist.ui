@@ -6,6 +6,7 @@ import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
 import '../../node_modules/@polymer/paper-input/paper-textarea.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
+import moment from 'moment/src/moment';
 import { rbacBehavior } from '../rbac-behavior.js';
 import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -304,9 +305,10 @@ Polymer({
 
   checkPermissions() {
       const perm = this.check_perm('create','machine');
-      if (perm == true) {
-          
-      } else if (perm == false) {
+      if (perm === true) {
+          // FIXME why is it empty?
+      } else if (perm === false) {
+          // FIXME why is it empty?
           
       } else if (typeof perm === 'object') {
           this.set('constraints', perm);
@@ -314,7 +316,7 @@ Polymer({
       // console.log('checkPermissions', perm);
   },
 
-  _applyConstraints(machinesFields, constraints) {
+  _applyConstraints(_machinesFields, _constraints) {
       if (!this.constraints || !this.machinesFields) {
           return;
       }
@@ -338,7 +340,7 @@ Polymer({
               this.set(`${path  }.customSizeFields.2.min`, constraint.disk.min);
               this.set(`${path  }.customSizeFields.2.value`, constraint.disk.min);
           }
-          if (constraint.disk && constraint.disk.show != undefined) {
+          if (constraint.disk && constraint.disk.show !== undefined) {
               this.set(`${path  }.customSizeFields.2.hidden`, !constraint.disk.show);
               this.set(`${path  }.customSizeFields.2.value`, undefined);
           }
@@ -359,12 +361,11 @@ Polymer({
           for(let c=0; c < constraints.length; c++) {
               // Apply constraint to cloud fields if applicable
               const fieldIndex = this._fieldIndexByName(constraints[c].name, this.machinesFields[i].fields);
-              if (fieldIndex == -1) {
-                  continue;
-              }
-              const path = `machinesFields.${  i  }.fields.${  fieldIndex}`;
-              if (constraints[c].show != undefined) {
-                  this.set(`${path  }.show`, constraints[c].show);
+              if (fieldIndex !== -1) {
+                const path = `machinesFields.${  i  }.fields.${  fieldIndex}`;
+                if (constraints[c].show !== undefined) {
+                    this.set(`${path  }.show`, constraints[c].show);
+                }
               }
           }
       }
@@ -399,8 +400,8 @@ Polymer({
                           this.set(`${path  }.2.max`, this.constraints.expiration.default);
                       }
                   }
-                  if (this.constraints.expiration.notify.require != null
-                      && this.constraints.expiration.notify.require != undefined) {
+                  if (this.constraints.expiration.notify.require !== null
+                      && this.constraints.expiration.notify.require !== undefined) {
                       // notify require (checkbox value)
                       this.set(`${path  }.2.disabled`, !this.constraints.expiration.notify.require);
                   }
@@ -408,7 +409,7 @@ Polymer({
               if (this.constraints.expiration.actions) {
                   if (this.constraints.expiration.actions.available) {
                       // available actions
-                      const actions = this.constraints.expiration.actions.available.map(function(x){
+                      const actions = this.constraints.expiration.actions.available.map((x) => {
                           return {'val':x,'title':x.toUpperCase()};
                       })
                       this.set(`${path  }.0.options`, actions);
@@ -427,15 +428,18 @@ Polymer({
       }
   },
 
-  _updateCloudOptions(cloud) {
+  _updateCloudOptions(_cloud) {
       // console.log('_updateCloudOptions === ', cloud);
       this._updateFields(this.selectedCloud);
   },
 
-  _prefillOptions(location) {
-      if (this.shadowRoot.querySelector('app-location') && this.shadowRoot.querySelector('app-location').queryParams)
-          var {image} = this.shadowRoot.querySelector('app-location').queryParams;
-              const {cloud} = this.shadowRoot.querySelector('app-location').queryParams;
+  _prefillOptions(_location) {
+      let image;
+      let cloud;
+      if (this.shadowRoot.querySelector('app-location') && this.shadowRoot.querySelector('app-location').queryParams){
+          image = this.shadowRoot.querySelector('app-location').queryParams.image;
+          cloud = this.shadowRoot.querySelector('app-location').queryParams.cloud;
+      }
       if (image && cloud)
           this._setOptions({
               cloud,
@@ -443,7 +447,7 @@ Polymer({
           });
   },
 
-  _computeActions(machines) {
+  _computeActions(_machines) {
       const ret = ['start', 'stop', 'reboot', 'destroy', 'run-script']; // 'suspend', 'resume',
 
       const actions = [];
@@ -464,28 +468,29 @@ Polymer({
       return `assets/providers/provider-${  identifier  }.png`;
   },
 
-  _isOnline(cloud, state, clouds) {
-      return this.model.clouds[cloud] && this.model.clouds[cloud].state == 'online';
+  _isOnline(cloud, _state, _clouds) {
+      return this.model.clouds[cloud] && this.model.clouds[cloud].state === 'online';
   },
 
   _setOptions(params) {
       if (params) {
-          for (const p in params) {
-              if (p == 'cloud')
+          Object.keys(params).forEach((p) => {
+              if (p === 'cloud')
                   this.set('selectedCloud', params[p])
               else {
                   const ind = this._fieldIndexByName(p)
                   if (ind)
                       this.set(`machineFields.${  ind  }.value`, params[p]);
               }
-          }
+          });
       }
   },
 
-  _computeFieldType(field, value, show) {
+  _computeFieldType(field, value, _show) {
       if (!(field.showIf && !field.show)) {
-          return field.type == value;
+          return field.type === value;
       }
+      return false;
   },
 
   _cloudChanged(selectedCloud) {
@@ -506,8 +511,8 @@ Polymer({
       let allMachinesFields;
       if (this.selectedCloud) {
           const provider = this.model.clouds[selectedCloud] && this.model.clouds[selectedCloud].provider;
-          allMachinesFields = this.machinesFields.find(function(c) {
-              return c.provider == provider;
+          allMachinesFields = this.machinesFields.find((c) => {
+              return c.provider === provider;
           });
       }
 
@@ -534,18 +539,21 @@ Polymer({
   },
 
   _enableHostname(clouds) {
-      return Object.values(clouds).reduce(function(a,b){
+      return Object.values(clouds).reduce((a,b) => {
                   return a || b.dns_enabled;
               },false);
   },
 
   _locationChanged (locationId) {
       if (!locationId) return;
-      const {provider} = this.model.clouds[this.selectedCloud];
-          const location = this.model.clouds[this.selectedCloud].locations[locationId];
-          const sizeIndex = this._fieldIndexByName('size');
-          const selectedSize = this.machineFields[sizeIndex].value;
-          const allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort(function(a, b) {
+      const sizeIndex = this._fieldIndexByName('size');
+      if (sizeIndex === -1){
+          // provider has no size field
+          return;
+      }
+      const location = this.model.clouds[this.selectedCloud].locations[locationId];
+      const selectedSize = this.machineFields[sizeIndex].value;
+      const allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes).sort((a, b) => {
               if (a.cpus < b.cpus) {
                   return -1;
               } if (a.cpus > b.cpus) {
@@ -553,17 +561,18 @@ Polymer({
               }
               return 0;
           }) || [];
-      if (location.extra && location.extra.available_instance_types) { // provider == "aliyun_ecs"
-          var sizeOptions = allSizes.filter(function(option){
+      let sizeOptions = [];
+      if (location.extra && location.extra.available_instance_types) { // provider === "aliyun_ecs"
+          sizeOptions = allSizes.filter((option) => {
               return location.extra.available_instance_types.indexOf(option.external_id) > -1;
           });
       } else {
-          var sizeOptions = allSizes.filter(function(option){
+          sizeOptions = allSizes.filter((option) => {
               return !option.extra.regions || option.extra.regions.indexOf(location.external_id) > -1;
           });
       }
-      if (sizeOptions.findIndex(function(item){return item.id == selectedSize}) == -1) {
-          this.set(`machineFields${  sizeIndex  }.value`, '');
+      if (sizeOptions.findIndex((item) => {return item.id === selectedSize}) === -1) {
+          this.set(`machineFields.${  sizeIndex  }.value`, '');
       }
       this.set(`machineFields.${  sizeIndex  }.options`, sizeOptions);
   },
@@ -571,13 +580,13 @@ Polymer({
   _resetForm () {
       // Reset Form Fields
       this.set('selectedCloud', false)
-      this.machineFields.forEach(function(el, index) {
+      this.machineFields.forEach((el, index) => {
           if (el.showIf) {
               this.set(`machineFields.${  index  }.show`, false);
           }
           // Reset Form Fields Validation
           this._resetField(el, index);
-      }, this);
+      });
   },
 
   _resetField(el, index) {
@@ -588,8 +597,8 @@ Polymer({
           input.invalid = false;
       }
   },
-
-  _updateFields(selectedCloud) {
+  /* eslint-disable no-param-reassign */
+  _updateFields(_selectedCloud) {
       if (this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this
               .selectedCloud]) {
           const cloudId = this.selectedCloud;
@@ -599,41 +608,41 @@ Polymer({
                   false);
 
           // if is openstack do not require network/locations
-          if (this.model.clouds[this.selectedCloud].provider == "openstack") {
+          if (this.model.clouds[this.selectedCloud].provider === "openstack") {
               this._updateFieldsForOpenstack();
           }
 
           // if is equinix metal construct ip_addresses value
-          if (this.model.clouds[this.selectedCloud].provider == "equinixmetal") {
+          if (this.model.clouds[this.selectedCloud].provider === "equinixmetal") {
               this._updateFieldsForEquinixMetal();
           }
 
           // fetch security groups if necessary
-          if (this.model.clouds[this.selectedCloud].provider == "ec2") {
+          if (this.model.clouds[this.selectedCloud].provider === "ec2") {
               this._updateSecurityGroups(this.selectedCloud);
           }
           const that = this;
-          this.machineFields.forEach(function(f, index) {
+          this.machineFields.forEach((f, index) => {
               // clear options
-              if (['duration_field','dropdown','radio','list'].indexOf(f.type) == -1  && f.options) {
+              if (['duration_field','dropdown','radio','list'].indexOf(f.type) === -1  && f.options) {
                   f.options = [];
               }
 
               if (f.name.endsWith("location")) {
                   const allLocations = this._toArray(this.model.clouds[cloudId].locations);
-                  const locations = allLocations.filter(function(l){
-                          const check_perm = that.check_perm('create_resources', 'location', l.id);
-                          return check_perm != false;
+                  const locations = allLocations.filter((l) => {
+                          const checkPerm = that.check_perm('create_resources', 'location', l.id);
+                          return checkPerm !== false;
                       });
                   // disable maxihost locations that support no sizes
-                  if (this.model.clouds[cloudId].provider == "maxihost") {
+                  if (this.model.clouds[cloudId].provider === "maxihost") {
                       const sizeLocations = this._toArray(this.model.clouds[this.selectedCloud].sizes).map(x=>x.extra.regions).join();
-                      locations.forEach(function(l) {
-                          if (sizeLocations.indexOf(l.external_id) == -1) {l.disabled = true;}
+                      locations.forEach((l) => {
+                          if (sizeLocations.indexOf(l.external_id) === -1) {l.disabled = true;}
                       })
                   }
                   f.options = locations;
-                  if (locations.length == 1 ) {
+                  if (locations.length === 1 ) {
                       // If there's a single location preselect it
                       this.set(`machineFields.${index}.value`, locations[0].id);
                   }
@@ -641,20 +650,20 @@ Polymer({
               if (f.name.endsWith("image")) {
                   let images = this._toArray(this.model.clouds[cloudId].images);
                   // KVM images depend on location
-                  if (this.model.clouds[cloudId].provider == "libvirt"){
+                  if (this.model.clouds[cloudId].provider === "libvirt"){
                       const locInd = this._fieldIndexByName('location');
                       if (locInd > -1) {
                           images = this._getLocationImages(this.get(`machineFields.${  locInd  }.value`));
                       }
                   }
-                  f.options = images.sort(function(ima, imb) {
+                  f.options = images.sort((ima, _imb) => {
                           if (ima.starred) {
                               return -1;
                           }
                           return 0;
                       }
                   );
-                  for (var i = 0; i < f.options.length; i++) {
+                  for (let i = 0; i < f.options.length; i++) {
                       if (f.options[i].starred) {
                           f.options[i].icon = 'icons:star';
                       } else {
@@ -664,7 +673,7 @@ Polymer({
               }
 
               if (f.type.startsWith("mist_") && f.name.endsWith("size")) {
-                  f.options = this._toArray(this.model.clouds[cloudId].sizes).sort(function(a, b) {
+                  f.options = this._toArray(this.model.clouds[cloudId].sizes).sort((a, b) => {
                       if (a.cpus < b.cpus) {
                           return -1;
                       }
@@ -682,21 +691,21 @@ Polymer({
               if (f.name.endsWith("zone")) {
                   f.options = this._toArray(this.model.zones);
                   // If zones share same domain but have differnt zone_id then display zone_id as suffix
-                  f.options.forEach(function(zone) {
-                      if (zone.domain != `${zone.zone_id}.`) {
+                  f.options.forEach((zone) => {
+                      if (zone.domain !== `${zone.zone_id}.`) {
                           zone.suffix = zone.zone_id;
                       }
                   })
               }
 
               // TODO: Run a recursive _updateFields() for fieldgroup subfields
-              if (f.type == "fieldgroup") {
+              if (f.type === "fieldgroup") {
                   for (let k=0; k<f.subfields.length; k++) {
                       const sf = f.subfields[k];
                       if (sf.name && sf.name.endsWith("zone")) {
                           sf.options = this._toArray(this.model.zones);
-                          sf.options.forEach(function(zone) {
-                              if (`${zone.zone_id}.` != zone.domain) {
+                          sf.options.forEach((zone) => {
+                              if (`${zone.zone_id}.` !== zone.domain) {
                                   zone.suffix = zone.zone_id;
                               }
                           })
@@ -711,7 +720,7 @@ Polymer({
                   f.options = this._toArray(this.model.scripts);
               }
 
-              if (f.name == "action") {
+              if (f.name === "action") {
                   f.options = this.scheduleActions || [];
               }
 
@@ -730,10 +739,10 @@ Polymer({
               }
 
               // for ec2 subnet selection
-              if (f.name == "subnet_id") {
+              if (f.name === "subnet_id") {
                   const subnets = [];
                   const networks = this.model.clouds[cloudId].networks ? Object.values(this.model.clouds[cloudId].networks) : [];
-                  for (var i = 0; i < networks.length; i++) {
+                  for (let i = 0; i < networks.length; i++) {
                       const network = networks[i];
                       if (network.subnets && network.subnets.length)
                           for (let j = 0; j < network.subnets.length; j++) {
@@ -748,18 +757,18 @@ Polymer({
               }
 
               // for volumes options
-              if (f.name == 'volumes') {
+              if (f.name === 'volumes') {
                   const {provider} = this.model.clouds[cloudId];
-                  const fieldset = this.volumeFields.find(function (fieldset) {
-                      return fieldset.provider == provider;
+                  const fieldset = this.volumeFields.find((fieldSet) => {
+                      return fieldSet.provider === provider;
                   });
                   // remove location field if it exists,
                   // the location of the machine will be used instead
                   if (fieldset) {
                       const options = this._cleanCopy(fieldset.fields);
-                      if(provider == 'kubevirt'){
+                      if(provider === 'kubevirt'){
                           // update kubernetes/kubevirt storage classes
-                          const storageClassIndex = options.findIndex(function(f){return f.name == 'storage_class_name'});
+                          const storageClassIndex = options.findIndex((entry) => {return entry.name === 'storage_class_name'});
                           if(storageClassIndex > -1) {
                               const storageClassField = options[storageClassIndex];
                               this._updateStorageClasses(cloudId, storageClassField);
@@ -767,17 +776,17 @@ Polymer({
                           // remove the static volume creation
                           const toRemove = ['dynamic', 'volume_type', 'reclaim_policy'];
                           for (const item of toRemove){
-                              const ind = options.findIndex(function(f){return f.name == item});
+                              const ind = options.findIndex((entry) => {return entry.name === item});
                               if(ind>-1){
                                   options.splice(ind,1);
                               }
                           }
                       }
 
-                      const locationIndex = options.findIndex(function(f){return f.name == 'location'});
+                      const locationIndex = options.findIndex((entry) => {return entry.name === 'location'});
 
                       if(provider === "lxd"){
-                          const storagePoolsIdx = options.findIndex(function(f){return f.name == 'pool_id'});
+                          const storagePoolsIdx = options.findIndex((entry) => {return entry.name === 'pool_id'});
 
                           if(storagePoolsIdx > -1){
                               const storagePoolField = options[storagePoolsIdx];
@@ -791,33 +800,33 @@ Polymer({
                       }
                       // remove resource group fields if they exists,
                       // the resource group of the machine will be used instead
-                      const resourceGroupFields = options.filter(function(f){return f.name.indexOf('resource_group')>-1});
+                      const resourceGroupFields = options.filter((entry) => {return entry.name.indexOf('resource_group')>-1});
                       // console.log('resourceGroupFields',resourceGroupFields);
                       if (resourceGroupFields.length > -1) {
-                          for (var i=0; i<resourceGroupFields.length; i++) {
-                              var resourceGroupFieldName = resourceGroupFields[i].name;
-                              const fieldIndex = options.findIndex(function(f){return f.name == resourceGroupFieldName})
+                          for (let i=0; i<resourceGroupFields.length; i++) {
+                              const resourceGroupFieldName = resourceGroupFields[i].name;
+                              const fieldIndex = options.findIndex((entry) => {return entry.name === resourceGroupFieldName})
                               options.splice(fieldIndex,1);
                           }
                       }
                       // Remove new volume name field for now since it's not used by OpenStack
-                      if (provider == "openstack" || provider == "gig_g8"){
-                          const nameIndex = options.findIndex(function(f){return f.name == 'name'})
+                      if (provider === "openstack" || provider === "gig_g8"){
+                          const nameIndex = options.findIndex((entry) => {return entry.name === 'name'})
                           if (nameIndex > -1) {
                               options.splice(nameIndex,1);
                           }
                       }
-                      options.forEach(function(f){
-                          f.showIf = {
+                      options.forEach((entry) => {
+                        entry.showIf = {
                               fieldName: 'new-or-existing-volume',
                               fieldValues: ['new'],
                           }
                       })
-                      const existingIndex = f.options.findIndex(function(f){return f.name == 'volume_id'});
+                      const existingIndex = f.options.findIndex((entry) => {return entry.name === 'volume_id'});
                       // add provider dependent fields if they do yet not exist
-                      const names = f.options.map(f => f.name);
-                      for (var i = options.length-1; i>=0;i--){
-                          if (names.indexOf(options[i].name) == -1 && (options[i].onForm == 'createForm' || !options[i].onForm) ) {
+                      const names = f.options.map(entry => entry.name);
+                      for (let i = options.length-1; i>=0;i--){
+                          if (names.indexOf(options[i].name) === -1 && (options[i].onForm === 'createForm' || !options[i].onForm) ) {
                               f.options.splice(existingIndex, 0, options[i]);
                           }
                       }
@@ -831,41 +840,41 @@ Polymer({
 
               // console.log(this.get('machineFields.' + index + '.options'));
               // console.log('update fields', f.name, f.value)
-          }.bind(this));
+          });
 
           // if cloud is Aliyun ECS update locations
-          if (this.model.clouds[this.selectedCloud].provider == "aliyun_ecs") {
+          if (this.model.clouds[this.selectedCloud].provider === "aliyun_ecs") {
               this._updateFieldsForAliyun();
           }
 
           // if is docker, change required values
-          if (this.model.clouds[this.selectedCloud].provider == "docker") {
+          if (this.model.clouds[this.selectedCloud].provider === "docker") {
               this._updateFieldsForDocker();
           }
 
           // if is lxd, change required values
-          if (this.model.clouds[this.selectedCloud].provider == "lxd") {
+          if (this.model.clouds[this.selectedCloud].provider === "lxd") {
               this._updateFieldsForLxd();
           }
 
           // if is gig_g8 require network
-          if (this.model.clouds[this.selectedCloud].provider == "gig_g8") {
+          if (this.model.clouds[this.selectedCloud].provider === "gig_g8") {
               this._updateFieldsForGigG8();
           }
 
           // if is azure arm, change required values
-          if (this.model.clouds[this.selectedCloud].provider == "azure_arm") {
+          if (this.model.clouds[this.selectedCloud].provider === "azure_arm") {
               this._updateFieldsForAzureArm();
               this._updateStorageAccounts(this.selectedCloud);
               this._updateResourceGroups(this.selectedCloud);
           }
 
           // if is kvm, change helptexts
-          if (this.model.clouds[this.selectedCloud].provider == "libvirt") {
+          if (this.model.clouds[this.selectedCloud].provider === "libvirt") {
               this._updateFieldsForKvm();
           }
           // if it is vsphere add folders
-          if (this.model.clouds[this.selectedCloud].provider == "vsphere") {
+          if (this.model.clouds[this.selectedCloud].provider === "vsphere") {
               const folderFieldInd = this._fieldIndexByName('folders');
               const folderField = this.get(`machineFields.${  folderFieldInd}`);
               const datastoreFieldInd = this._fieldIndexByName('datastore')
@@ -875,47 +884,46 @@ Polymer({
           }
           // default values, hide empty non required, fill in single options
           if (this.machineFields) {
-              this.machineFields.forEach(function(f, ind) {
+              this.machineFields.forEach((f, ind) => {
                   this.set(`machineFields.${  ind  }.value`, this.get(
                       `machineFields.${  ind  }.defaultValue`));
-                  if (f.required && f.options && f.options.length == 1 &&
-                      (f.name!= "image" && this.model.clouds[this.selectedCloud].provider != "vsphere")) {
-                      if (f.type == "dropdown") {
+                  if (f.required && f.options && f.options.length === 1 &&
+                      (f.name !== "image" && this.model.clouds[this.selectedCloud].provider !== "vsphere")) {
+                      if (f.type === "dropdown") {
                           this.set(`machineFields.${  ind  }.value`, f.options[0].val);
                       } else {
                           this.set(`machineFields.${  ind  }.value`, f.options[0].id);
                       }
                   }
 
-                  if (!f.required && f.options && f.options.length == 0) {
+                  if (!f.required && f.options && f.options.length === 0) {
                       this.set(`machineFields.${  ind  }.show`, false);
                   }
-              }.bind(this));
+              });
           }
       }
   },
-
+  /* eslint-enable no-param-reassign */
   fieldsChanged(e) {
       // change notify values if expiration date changes
-      if (e.detail && e.detail.fieldname == "date" && e.detail.parentfield == "expiration") {
+      if (e.detail && e.detail.fieldname === "date" && e.detail.parentfield === "expiration") {
           const expIndex = this._fieldIndexByName('expiration');
-              const parentPath = `machineFields.${ expIndex }.subfields`; const dateIndex = 1; const notifyIndex = 2;
-              const date = this.get(`${parentPath }.${ dateIndex }.value`);
-              const notify = this.get(`${parentPath }.${ notifyIndex }.value`);
+          const parentPath = `machineFields.${ expIndex }.subfields`; const dateIndex = 1; const notifyIndex = 2;
+          const date = this.get(`${parentPath }.${ dateIndex }.value`);
           this.set(`${parentPath }.${ notifyIndex }.max`, date);
       }
   },
-
+   /* eslint-disable no-param-reassign */
   _machineFieldsChanged(changeRecord) {
       // console.log('model, selected cloud or machine fields changed', this.selectedCloud, changeRecord);
       if (this.selectedCloud && this.model && this.model.clouds && this.model.clouds[this
               .selectedCloud]) {
-          // if (changeRecord.path.endsWith('options') && this.get(changeRecord.path).length == 1)
+          // if (changeRecord.path.endsWith('options') && this.get(changeRecord.path).length === 1)
           //     this.set(changeRecord.path.replace('.options', '.value'), changeRecord.path+'.0.id')
 
           // if is docker & ports changed, transform ports to docker_exposed_ports & docker_port_bindings
-          if (this.model.clouds[this.selectedCloud].provider == "docker" && changeRecord.path
-              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+          if (this.model.clouds[this.selectedCloud].provider === "docker" && changeRecord.path
+              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ===
               'ports') {
               // TODO: remove _mapPortsToDockerPorts, when backend is ready to accept docker_port_bindings as string
               // Then also, replace field ports with docker_port_bindings as a textarea and remove docker_exposed_ports and ports altogether in machine-create-fields.js
@@ -923,61 +931,61 @@ Polymer({
           }
 
           // if is gce/linode and image changed, include image extra in payload
-          if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
-                  this.selectedCloud].provider == "gce" || this.model.clouds[
-                  this.selectedCloud].provider == "vsphere") && changeRecord.path.endsWith(
-                  'value') && this.get(changeRecord.path.replace('.value', '')).name ==
+          if ((this.model.clouds[this.selectedCloud].provider === "linode" || this.model.clouds[
+                  this.selectedCloud].provider === "gce" || this.model.clouds[
+                  this.selectedCloud].provider === "vsphere") && changeRecord.path.endsWith(
+                  'value') && this.get(changeRecord.path.replace('.value', '')).name ===
               'image') {
               this._includeImageExtra(changeRecord.value);
           }
 
           // if is gce/linode and image changed, include location name in payload
-          if ((this.model.clouds[this.selectedCloud].provider == "linode" || this.model.clouds[
-                  this.selectedCloud].provider == "gce") && changeRecord.path.endsWith(
-                  'value') && this.get(changeRecord.path.replace('.value', '')).name ==
+          if ((this.model.clouds[this.selectedCloud].provider === "linode" || this.model.clouds[
+                  this.selectedCloud].provider === "gce") && changeRecord.path.endsWith(
+                  'value') && this.get(changeRecord.path.replace('.value', '')).name ===
               'location') {
               this._includeLocationName(changeRecord.value);
           }
 
           // if its ec2 and image changes update size to match the virtualization_type
-          if (this.model.clouds[this.selectedCloud].provider == "ec2" && changeRecord.path
-              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+          if (this.model.clouds[this.selectedCloud].provider === "ec2" && changeRecord.path
+              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ===
               'image') {
               this._updateEc2Sizes(this.get(changeRecord.path.replace('.value', '')).value);
           }
 
           // if it's gce and network changes update subnets
-          if (this.model.clouds[this.selectedCloud].provider == "gce" && changeRecord.path
-              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ==
+          if (this.model.clouds[this.selectedCloud].provider === "gce" && changeRecord.path
+              .endsWith('value') && this.get(changeRecord.path.replace('.value', '')).name ===
               'networks') {
               this._updateGceSubnets(this.get(changeRecord.path.replace('.value', '')).value);
           }
 
           // if image and image is Windows, show password field
           if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                  '.value', '')).name == 'image') {
+                  '.value', '')).name === 'image') {
               this._showPassword(this.get(changeRecord.path));
               this._hideElementsforWin(this.get(changeRecord.path));
           }
 
           // if its kvm
-          if (this.model.clouds[this.selectedCloud].provider == 'libvirt') {
+          if (this.model.clouds[this.selectedCloud].provider === 'libvirt') {
               if (changeRecord
                   .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
-                  .name == 'name') {
+                  .name === 'name') {
                   this._updateKvmDiskPathName(this.get(changeRecord.path.replace('.value', '')).value);
               }
 
               if (changeRecord
                   .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
-                  .name == 'location') {
+                  .name === 'location') {
                   this._updateImagesAndNetworksBasedOnLocation();
                   this._updateKvmDiskPathFolder(this.get(changeRecord.path.replace('.value', '')).value);
               }
           }
 
           // if its equinix metal and ips changed
-          if (this.model.clouds[this.selectedCloud].provider == 'equinixmetal' && changeRecord
+          if (this.model.clouds[this.selectedCloud].provider === 'equinixmetal' && changeRecord
               .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
               .name.includes('_ipv')) {
               this._updateFieldsForEquinixMetal();
@@ -986,7 +994,7 @@ Polymer({
           // if selected image provides size min/max, update them
           if (changeRecord
               .path.endsWith('.value') && this.get(changeRecord.path.replace('.value', ''))
-              .name == "image") {
+              .name === "image") {
               this._updateMinSize(changeRecord.value);
           }
 
@@ -994,9 +1002,9 @@ Polymer({
           if (changeRecord.path.endsWith('value') && ['location', 'volumes'].indexOf(this.get(changeRecord.path.replace(
                   '.value', '')).name) > -1 && this._fieldIndexByName('volumes') > -1) {
               // add existing volume options filtered by location
-              var volumesInd = this._fieldIndexByName('volumes');
+              const volumesInd = this._fieldIndexByName('volumes');
               const volumeField = this.get(`machineFields.${  volumesInd}`);
-              const existingIndex = volumeField.options.findIndex(function(f){return f.name == 'volume_id'});
+              const existingIndex = volumeField.options.findIndex((f) => {return f.name === 'volume_id'});
               // reset
               this.set(`machineFields.${  volumesInd  }.options.${  existingIndex }.options`, []);
               this.set(`machineFields.${  volumesInd  }.options.${  existingIndex }.value`, '');
@@ -1004,8 +1012,8 @@ Polymer({
               // add
               if (existingIndex > -1) {
                   const volumes = this.model.clouds[this.selectedCloud].volumes ? Object.values(this.model.clouds[this.selectedCloud].volumes).filter(
-                      function(v) {
-                          return !v.location || v.location == changeRecord.value
+                      (v) => {
+                          return !v.location || v.location === changeRecord.value
                       }) : [];
                   volumeField.options[existingIndex].options = volumes;
                   this.set(`machineFields.${  volumesInd  }.options.${  existingIndex }.options`, volumes);
@@ -1016,7 +1024,7 @@ Polymer({
           // if add volume toggler changed value
           if (changeRecord.path.endsWith('value') && ['addvolume'].indexOf(this.get(changeRecord.path.replace(
                   '.value', '')).name) > -1) {
-              var volumesInd = this._fieldIndexByName('volumes');
+              const volumesInd = this._fieldIndexByName('volumes');
               if (!changeRecord.value) {
                   this.set(`machineFields.${  volumesInd  }.items`, []);
                   this.set(`machineFields.${  volumesInd  }.value`, null);
@@ -1026,37 +1034,36 @@ Polymer({
 
           // if it's ec2 and location is selected filter subnets
           if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                  '.value', '')).name == 'location' && changeRecord.value.length) {
+                  '.value', '')).name === 'location' && changeRecord.value.length) {
               const subid = this._fieldIndexByName('subnet_id');
               // clear previous selection
               this.set(`machineFields.${  subid  }.value`, '');
               const subnets = [];
               if (this.model.clouds[this.selectedCloud] && this.model.clouds[this.selectedCloud].networks) {
-                  var networks = Object.values(this.model.clouds[this.selectedCloud].networks);
-                  for (var i = 0; i < networks.length; i++) {
+                  const networks = Object.values(this.model.clouds[this.selectedCloud].networks);
+                  for (let i = 0; i < networks.length; i++) {
                       const network = networks[i];
                       if (network.subnets)
-                          for (const subnetId in network.subnets) {
-                              const subnet = network.subnets[subnetId];
-                              if (subnet.availability_zone == this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
+                          Object.values(network.subnets || {}).forEach((subnet) => {
+                              if (subnet.availability_zone === this.model.clouds[this.selectedCloud].locations[changeRecord.value].name) {
                                   subnet.suffix = network.name;
                                   subnets.push(subnet);
                               }
-                          }
+                          });
                   }
               }
               this.set(`machineFields.${  subid  }.options`, subnets);
           }
 
           // if it is maxihost and location changed
-          if (this.model.clouds[this.selectedCloud].provider == 'maxihost') {
-              if (this.get(changeRecord.path.replace('.value', '')).name == 'location' && changeRecord.value.length) {
+          if (this.model.clouds[this.selectedCloud].provider === 'maxihost') {
+              if (this.get(changeRecord.path.replace('.value', '')).name === 'location' && changeRecord.value.length) {
                   this._updateMaxihostSizes(changeRecord.value);
               }
           }
 
           // if it is azure arm update storage accounts & resource groups
-          if (this.model.clouds[this.selectedCloud].provider == 'azure_arm') {
+          if (this.model.clouds[this.selectedCloud].provider === 'azure_arm') {
               // console.log('changeRecord', changeRecord);
               if (changeRecord.path.endsWith('value')) {
                   const fieldName = this.get(changeRecord.path.replace('.value', '')).name;
@@ -1074,7 +1081,7 @@ Polymer({
                   if (['create_resource_group','ex_resource_group','new_resource_group']
                       .indexOf(fieldName) > -1) {
                       this._updateResourceGroupValue(this.selectedCloud);
-                      if (fieldName == "create_resource_group") {
+                      if (fieldName === "create_resource_group") {
                           this._toggleExistingStorageAccounts(changeRecord.value);
                           this._toggleExistingNetworks(changeRecord.value);
                       }
@@ -1088,11 +1095,11 @@ Polymer({
                       this._updateNetworkValue(this.selectedCloud);
                   }
                   // if it is azure arm and location is changed
-                  if (fieldName == 'location') {
+                  if (fieldName === 'location') {
                       // update networks
-                      var networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
-                      const locationNetworks = networks.filter(function(n) {
-                          return n.location == location
+                      const networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
+                      const locationNetworks = networks.filter((n) => {
+                          return n.location === changeRecord.value // FIXME something is wrong here (was location --> changeRecord.value)
                       });
                       const networkInd = this._fieldIndexByName('ex_networks');
                       if (networkInd > -1) {
@@ -1100,7 +1107,7 @@ Polymer({
                       }
                   }
                   // if it is azure arm and machine name is changed
-                  if (fieldName == 'name') {
+                  if (fieldName === 'name') {
                       // autocomplete resource, storage, network fields
                       this._updateAzureFields(this.get(changeRecord.path));
                   }
@@ -1108,24 +1115,24 @@ Polymer({
           }
           // let either script or script_id to pass in the from payload
           if (changeRecord.path.endsWith('value') && this.get(changeRecord.path.replace(
-                  '.value', '')).name == 'run_script') {
+                  '.value', '')).name === 'run_script') {
               this._toggleScriptFields(this.get(changeRecord.path.replace('.value', '')).value);
           }
 
-          if (this.model.clouds[this.selectedCloud].provider == 'onapp' && changeRecord.path
+          if (this.model.clouds[this.selectedCloud].provider === 'onapp' && changeRecord.path
               .endsWith('value')) {
               // if is onapp controll options based on location
-              if (this.get(changeRecord.path.replace('.value', '')).name == 'location')
+              if (this.get(changeRecord.path.replace('.value', '')).name === 'location')
                   this._updateFieldOptionsForOnapp(changeRecord.value);
               // if is onapp controll options based on image
-              if (this.get(changeRecord.path.replace('.value', '')).name == 'image')
+              if (this.get(changeRecord.path.replace('.value', '')).name === 'image')
                   this._updateFieldMinsForOnapp(changeRecord.value);
               // if is onapp controll total size
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   'size_disk_primary')
                   this._updateDiskMax('size_disk_swap', changeRecord.value);
               // if is onapp controll total size
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   'size_disk_swap')
                   this._updateDiskMax('size_disk_primary', changeRecord.value);
           }
@@ -1140,20 +1147,20 @@ Polymer({
                   'schedule_entry', 'start_after', 'expires', 'max_run_count'
               ];
               // toggling scehduler
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   "post_provision_scheduler") {
                   // console.log('schedule changed', changeRecord.value);
-                  if (changeRecord.value == true) {
-                      for (var i = 0; i < scheduleFieldFalse.length; i++) {
-                          var index = this._fieldIndexByName(scheduleFieldFalse[i]);
+                  if (changeRecord.value === true) {
+                      for (let i = 0; i < scheduleFieldFalse.length; i++) {
+                          const index = this._fieldIndexByName(scheduleFieldFalse[i]);
                           if (index > -1) {
                               this.set(`machineFields.${  index  }.excludeFromPayload`,
                                   false);
                           }
                       }
                   } else {
-                      for (var i = 0; i < scheduleFields.length; i++) {
-                          var index = this._fieldIndexByName(scheduleFields[i]);
+                      for (let i = 0; i < scheduleFields.length; i++) {
+                          const index = this._fieldIndexByName(scheduleFields[i]);
                           if (index > -1) {
                               this.set(`machineFields.${  index  }.excludeFromPayload`, true);
                           }
@@ -1162,11 +1169,11 @@ Polymer({
               }
 
               // selecting action or script
-              if (this.get(changeRecord.path.replace('.value', '')).name == "action") {
+              if (this.get(changeRecord.path.replace('.value', '')).name === "action") {
                   const actionInd = this._fieldIndexByName("action");
                   const scriptInd = this._fieldIndexByName("schedule_script_id");
 
-                  if (changeRecord.value == "run script") {
+                  if (changeRecord.value === "run script") {
                       if (scriptInd > -1) {
                           this.set(`machineFields.${  scriptInd  }.excludeFromPayload`,
                               false);
@@ -1176,7 +1183,7 @@ Polymer({
                       }
                   }
 
-                  if (changeRecord.value != "run script") {
+                  if (changeRecord.value !== "run script") {
                       if (scriptInd > -1) {
                           this.set(`machineFields.${  scriptInd  }.excludeFromPayload`, true);
                       }
@@ -1188,26 +1195,26 @@ Polymer({
               }
 
               // initial values in shedule entry
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   "schedule_type") {
-                  var entryInd = this._fieldIndexByName("schedule_entry");
-                      const expInd = this._fieldIndexByName("expires");
-                      const entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab");
-                      var maxcountInd = this._fieldIndexByName("max_run_count");
-                      let entry;
-                  if (changeRecord.value == "interval") {
+                  const entryInd = this._fieldIndexByName("schedule_entry");
+                  const expInd = this._fieldIndexByName("expires");
+                  const entryCronTabInd = this._fieldIndexByName("schedule_entry_crontab");
+                  const maxcountInd = this._fieldIndexByName("max_run_count");
+                  let entry;
+                  if (changeRecord.value === "interval") {
                       entry = this._getInterval();
                       if (expInd > -1) this.set(`machineFields.${  expInd  }.disabled`, false);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.disabled`, false);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.value`, "");
-                  } else if (changeRecord.value == "crontab") {
+                  } else if (changeRecord.value === "crontab") {
                       entry = this._processCrotab(this.get(`machineFields.${ 
                           entryCronTabInd  }.value`)) || this._processCrotab(this.get(
                           `machineFields.${  entryCronTabInd  }.defaultValue`));
                       if (expInd > -1) this.set(`machineFields.${  expInd  }.disabled`, false);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.disabled`, false);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.value`, "");
-                  } else if (changeRecord.value == "one_off") {
+                  } else if (changeRecord.value === "one_off") {
                       if (expInd > -1) this.set(`machineFields.${  expInd  }.disabled`, true);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.value`, 1);
                       if (maxcountInd > -1) this.set(`machineFields.${  maxcountInd  }.disabled`, true);
@@ -1216,16 +1223,16 @@ Polymer({
               }
 
               // date in shedule entry
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   "schedule_entry_one_off") {
-                  var entryInd = this._fieldIndexByName("schedule_entry");
+                  const entryInd = this._fieldIndexByName("schedule_entry");
                   if (entryInd > -1) this.set(`machineFields.${  entryInd  }.value`, changeRecord.value);
               }
 
               // crontab in schedule entry
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   "schedule_entry_crontab") {
-                  var entryInd = this._fieldIndexByName("schedule_entry");
+                  const entryInd = this._fieldIndexByName("schedule_entry");
                   if (entryInd > -1) this.set(`machineFields.${  entryInd  }.value`, this._processCrotab(
                       changeRecord.value));
               }
@@ -1233,22 +1240,22 @@ Polymer({
               // interval changes in schedule entry
               if (this.get(changeRecord.path.replace('.value', '')).name.startsWith(
                       "schedule_entry_interval")) {
-                  var entryInd = this._fieldIndexByName("schedule_entry");
+                  const entryInd = this._fieldIndexByName("schedule_entry");
                   if (entryInd > -1) this.set(`machineFields.${  entryInd  }.value`, this._getInterval());
               }
 
-              if (this.get(changeRecord.path.replace('.value', '')).name == "expires") {
+              if (this.get(changeRecord.path.replace('.value', '')).name === "expires") {
                   const expiresInd = this._fieldIndexByName("expires");
-                  const include = changeRecord.value == "";
+                  const include = changeRecord.value === "";
                   if (expiresInd > -1) this.set(`machineFields.${  expiresInd  }.excludeFromPayload`, include);
               }
 
-              if (this.get(changeRecord.path.replace('.value', '')).name ==
+              if (this.get(changeRecord.path.replace('.value', '')).name ===
                   "max_run_count") {
-                  var maxcountInd = this._fieldIndexByName("max_run_count");
+                  const maxcountInd = this._fieldIndexByName("max_run_count");
                   if (typeof(this.get(`machineFields.${  maxcountInd  }.value`)) !==
                       'number') {
-                      if (parseInt(changeRecord.value) == NaN && maxcountInd > -1) {
+                      if (Number.isNan(parseInt(changeRecord.value, 10)) && maxcountInd > -1) {
                           this.set(`machineFields.${  maxcountInd  }.excludeFromPayload`,
                               true);
                           this.set(`machineFields.${  maxcountInd  }.value`, "");
@@ -1256,7 +1263,7 @@ Polymer({
                           this.set(`machineFields.${  maxcountInd  }.excludeFromPayload`,
                               false);
                           this.set(`machineFields.${  maxcountInd  }.value`, parseInt(
-                              changeRecord.value));
+                              changeRecord.value, 10));
                       }
                   }
               }
@@ -1264,15 +1271,15 @@ Polymer({
       }
       // if is vsphere change fields
       if (this.model && this.model.clouds && this.model.clouds[this.selectedCloud] && this.model.clouds[
-              this.selectedCloud].provider == "vsphere") {
+              this.selectedCloud].provider === "vsphere") {
           this._updateFieldsForVsphere();
       }
   },
-
+   /* eslint-enable no-param-reassign */
   _mapPortsToDockerPorts(input) {
       const lines = input.split('\n');
-      const docker_exposed_ports = {};
-      const docker_port_bindings = {};
+      const dockerExposedPorts = {};
+      const dockerPortBindings = {};
 
       for (let i = 0; i < lines.length; i++) {
           const ports = lines[i].split(':');
@@ -1286,17 +1293,17 @@ Polymer({
           if (p2)
               p2 = p2.trim();
 
-          // update docker_exposed_ports
-          // update docker_port_bindings
+          // update dockerExposedPorts
+          // update dockerPortBindings
           if (p1 && p1.length && p2 && p2.length) {
-              if (p1.indexOf('/') == -1) {
-                  docker_exposed_ports[`${p1  }/tcp`] = {};
-                  docker_port_bindings[`${p1  }/tcp`] = {
+              if (p1.indexOf('/') === -1) {
+                  dockerExposedPorts[`${p1  }/tcp`] = {};
+                  dockerPortBindings[`${p1  }/tcp`] = {
                       "HostPort": p2
                   }
               } else {
-                  docker_exposed_ports[p1] = {};
-                  docker_port_bindings[p1] = [{
+                  dockerExposedPorts[p1] = {};
+                  dockerPortBindings[p1] = [{
                       "HostPort": p2
                   }]
               }
@@ -1307,17 +1314,17 @@ Polymer({
       const indDep = this._fieldIndexByName('docker_exposed_ports');
       const indDpb = this._fieldIndexByName('docker_port_bindings');
 
-      if (indDep != undefined && indDep > -1)
-          this.set(`machineFields.${  indDep  }.value`, docker_exposed_ports);
-      if (indDpb != undefined && indDpb > -1)
-          this.set(`machineFields.${  indDpb  }.value`, docker_port_bindings);
+      if (indDep !== undefined && indDep > -1)
+          this.set(`machineFields.${  indDep  }.value`, dockerExposedPorts);
+      if (indDpb !== undefined && indDpb > -1)
+          this.set(`machineFields.${  indDpb  }.value`, dockerPortBindings);
   },
 
   _includeImageExtra(image) {
       if (image) {
           // save in fields
           const indImEx = this._fieldIndexByName('image_extra');
-          if (indImEx != undefined)
+          if (indImEx !== undefined)
               this.set(`machineFields.${  indImEx  }.value`, this.model.clouds[this.selectedCloud]
                   .images[image].extra);
       }
@@ -1327,33 +1334,34 @@ Polymer({
       if (location) {
           // save in fields
           const indLocName = this._fieldIndexByName('location_name');
-          if (indLocName != undefined && indLocName > -1)
+          if (indLocName !== undefined && indLocName > -1)
               this.set(`machineFields.${  indLocName  }.value`, this.model.clouds[this.selectedCloud]
                   .locations[location].name);
       }
   },
 
+  /* eslint-disable no-param-reassign */
   _updateDiskMax(name, value, total) {
       const sizeInd = this._fieldIndexByName(name);
-          const location = this.model.clouds[this.selectedCloud].locations[this.get(
-              `machineFields.${  this._fieldIndexByName('location')  }.value`)];
+      const location = this.model.clouds[this.selectedCloud].locations[this.get(
+            `machineFields.${  this._fieldIndexByName('location')  }.value`)];
 
       if (!location)
           return;
       if (location && location.extra) {
           if (!total)
-              var total = location.extra.max_disk_size;
+              total = location.extra.max_disk_size;
 
           if (total && total - value > 0 && sizeInd > -1)
               this.set(`machineFields.${  sizeInd  }.max`, total - value);
       }
   },
+  /* eslint-enable no-param-reassign */
 
   _updateFieldsForAliyun () {
       const locationIndex = this._fieldIndexByName('location');
-          const cloudLocations = this.model.clouds[this.selectedCloud].locations;
       if (locationIndex > -1) {
-          const filteredLocations = this.machineFields[locationIndex].options.filter(function (option) {
+          const filteredLocations = this.machineFields[locationIndex].options.filter((option) => {
               return option.extra.available_instance_types.length;
           });
           this.set(`machineFields.${  locationIndex  }.options`, filteredLocations);
@@ -1372,21 +1380,21 @@ Polymer({
           let current;
           for (let i = 0; i < img.options.length; i++) {
               current = img.options[i];
-              if (current.id == img.value) {
+              if (current.id === img.value) {
                   break
               }
           }
           
           const sizeInd = this._fieldIndexByName('size');
-          const min_size = Math.max(current.extra.disk_size, this.machineFields[sizeInd].customSizeFields[2].min);
-          if (current.extra.type == "ovf"){
-              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.min`, min_size);
+          const minSize = Math.max(current.extra.disk_size, this.machineFields[sizeInd].customSizeFields[2].min);
+          if (current.extra.type === "ovf"){
+              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.min`, minSize);
               this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.max`, 1);
-              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.value`, min_size);
+              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.value`, minSize);
           } else {
-              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.min`, min_size);
+              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.min`, minSize);
               this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.max`, 512);
-              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.value`, Math.max(min_size, this.machineFields[sizeInd].customSizeFields[2].value));
+              this.set(`machineFields.${  sizeInd  }.customSizeFields.${  2  }.value`, Math.max(minSize, this.machineFields[sizeInd].customSizeFields[2].value));
           }
       }
       
@@ -1398,7 +1406,7 @@ Polymer({
       if (locInd > -1) {
           this.set(`machineFields.${  locInd  }.required`, false);
           this.set(`machineFields.${  locInd  }.label`, "Location");
-          if (this.get(`machineFields.${  locInd  }.options`).length == 0) {
+          if (this.get(`machineFields.${  locInd  }.options`).length === 0) {
               this.set(`machineFields.${  locInd  }.show`, false);
           }
       }
@@ -1427,9 +1435,9 @@ Polymer({
           let diskInd = this._fieldIndexByName('disk_primary', customSizeFields);
 
           // some providers use size_ prefix
-          if (ramInd ==  -1)
+          if (ramInd ===  -1)
               ramInd = this._fieldIndexByName('size_ram', customSizeFields);
-          if (diskInd ==  -1)
+          if (diskInd ===  -1)
               diskInd = this._fieldIndexByName('size_disk_primary', customSizeFields);
 
           if (minRam && ramInd > -1)
@@ -1442,23 +1450,21 @@ Polymer({
   },
 
   _updateFieldMinsForOnapp(image) {
-      var image = this.model.clouds[this.selectedCloud].images && this.model.clouds[this.selectedCloud]
+      const imageField = this.model.clouds[this.selectedCloud].images && this.model.clouds[this.selectedCloud]
           .images[image] ? this.model.clouds[this.selectedCloud].images[image] : undefined;
 
-      if (!image) {
+      if (!imageField) {
           return;
       }
 
       const sizeInd = this._fieldIndexByName('mist_size');
-          const ramInd = this._fieldIndexByName('size_ram', this.get(`machineFields.${  sizeInd  }.customSizeFields`));
-          const diskInd = this._fieldIndexByName('size_disk_primary', this.get(`machineFields.${  sizeInd  }.customSizeFields`));
+      const ramInd = this._fieldIndexByName('size_ram', this.get(`machineFields.${  sizeInd  }.customSizeFields`));
+      const diskInd = this._fieldIndexByName('size_disk_primary', this.get(`machineFields.${  sizeInd  }.customSizeFields`));
 
       if (sizeInd > -1 && ramInd > -1)
-          this.set(`machineFields.${  sizeInd  }.customSizeFields.${  ramInd  }.min`, image.extra.min_memory_size);
+          this.set(`machineFields.${  sizeInd  }.customSizeFields.${  ramInd  }.min`, imageField.extra.min_memory_size);
       if (sizeInd > -1 && diskInd > -1)
-          this.set(`machineFields.${  sizeInd  }.customSizeFields.${  diskInd  }.min`, image.extra.min_disk_size);
-
-      // console.log('mins', image.extra.min_memory_size, image.extra.min_disk_size);
+          this.set(`machineFields.${  sizeInd  }.customSizeFields.${  diskInd  }.min`, imageField.extra.min_disk_size);
   },
 
   _updateFieldOptionsForOnapp(loc) {
@@ -1471,10 +1477,10 @@ Polymer({
       }
 
       const cpuInd = this._fieldIndexByName('size_cpu');
-          const ramInd = this._fieldIndexByName('size_ram');
-          const hgiInd = this._fieldIndexByName('hypervisor_group_id');
-          const diskInd = this._fieldIndexByName('size_disk_primary');
-          const swapInd = this._fieldIndexByName('size_disk_swap');
+      const ramInd = this._fieldIndexByName('size_ram');
+      const hgiInd = this._fieldIndexByName('hypervisor_group_id');
+      const diskInd = this._fieldIndexByName('size_disk_primary');
+      const swapInd = this._fieldIndexByName('size_disk_swap');
 
       // update mins maxs
       if (location.extra) {
@@ -1493,13 +1499,13 @@ Polymer({
           }
 
           const imagesInd = this._fieldIndexByName('image');
-              const networksInd = this._fieldIndexByName('networks');
+          const networksInd = this._fieldIndexByName('networks');
 
           // update networks
           if (networksInd > -1) this.set(`machineFields.${  networksInd  }.options`, location.extra.networks);
 
           // filter images
-          if (location.extra.federated == true && imagesInd > -1)
+          if (location.extra.federated === true && imagesInd > -1)
               this.set(`machineFields.${  imagesInd  }.options`, this._filterImagesByLoc(
                   location.extra.hypervisor_group_id));
           else
@@ -1509,13 +1515,13 @@ Polymer({
   },
 
   _filterImagesByLoc(location) {
-      return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im) {
-          return im.extra.hypervisor_group_id == location;
+      return this.model.clouds[this.selectedCloud].imagesArray.filter((im) => {
+          return im.extra.hypervisor_group_id === location;
       });
   },
 
-  _filterImagesWithNoHyp(location) {
-      return this.model.clouds[this.selectedCloud].imagesArray.filter(function(im) {
+  _filterImagesWithNoHyp(_location) {
+      return this.model.clouds[this.selectedCloud].imagesArray.filter((im) => {
           return !im.extra.hypervisor_group_id;
       });
   },
@@ -1559,7 +1565,7 @@ Polymer({
       if (selectedCloud) {
           provider = this.model.clouds[this.selectedCloud].provider
       }
-      return provider == 'lxd' ? "Pull image from URL:" : "Create image";
+      return provider === 'lxd' ? "Pull image from URL:" : "Create image";
   },
 
   _computeAddImageLabel(selectedCloud) {
@@ -1567,13 +1573,11 @@ Polymer({
       if (selectedCloud) {
           provider = this.model.clouds[this.selectedCloud].provider
       }
-      return provider == 'lxd' ? "Image URL:" : "Image's path";
+      return provider === 'lxd' ? "Image URL:" : "Image's path";
   },
 
   _updateFieldsForKvm() {
       const keyInd = this._fieldIndexByName('key');
-      const pathInd = this._fieldIndexByName('libvirt_disk_path');
-
       // change key helptexts
       if (keyInd > -1) {
           this.set(`machineFields.${  keyInd  }.helptext`,
@@ -1593,7 +1597,7 @@ Polymer({
       const imgInd = this._fieldIndexByName('image');
       const networkInd = this._fieldIndexByName('networks');
       const vnfInd = this._fieldIndexByName('vnfs');
-      if (locInd == -1 || imgInd == -1 || networkInd == -1) {
+      if (locInd === -1 || imgInd === -1 || networkInd === -1) {
           return;
       }
       const location = this.get(`machineFields.${  locInd  }.value`);
@@ -1605,8 +1609,8 @@ Polymer({
       // update networks
       const networks = this.model.clouds[this.selectedCloud].networks ? Object.values(this.model.clouds[this.selectedCloud].networks).slice() : [];
 
-      const locationNetworks = networks.filter(function(n) {
-          return n.location == location
+      const locationNetworks = networks.filter((n) => {
+          return n.location === location
       });
 
       if (networkInd > -1) {
@@ -1615,7 +1619,7 @@ Polymer({
 
       if (vnfInd > -1) {
           const allVnfs = this.get(`machineFields.${  vnfInd  }.vnfs`) || [];
-              const locationVNFs = allVnfs.filter(function(f) {return f.location == location});
+              const locationVNFs = allVnfs.filter((f) => {return f.location === location});
               const categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
           this.set(`machineFields.${  vnfInd  }.subfields.0.options`, categorisedVNFs);
       }
@@ -1623,7 +1627,7 @@ Polymer({
 
   _getLocationImages(location) {
       if (location && this.model && this.model.clouds)
-          return this.model.imagesArray.filter(function(im){
+          return this.model.imagesArray.filter((im) => {
                   return im.extra && im.extra.locations && im.extra.locations.indexOf(location) > -1 ;
               });
       return [];
@@ -1673,13 +1677,13 @@ Polymer({
   _updateEc2Sizes(imageid) {
       if (this.model.images[imageid] && this.model.images[imageid].extra && this.model.images[
               imageid].extra.virtualization_type) {
-          const {virtualization_type} = this.model.images[imageid].extra;
+          const {virtualizationType} = this.model.images[imageid].extra;
 
           const sizeInd = this._fieldIndexByName('size');
           const sizesOptions = this.model.clouds[this.selectedCloud].sizesArray.filter(
-              function(s) {
+              (s) => {
                   if (s.extra.virtualizationTypes) {
-                      return s.extra.virtualizationTypes.indexOf(virtualization_type) >
+                      return s.extra.virtualizationTypes.indexOf(virtualizationType) >
                           -1
                   } 
                       return 1
@@ -1697,12 +1701,12 @@ Polymer({
       const locationExternalId = this.model.clouds[this.selectedCloud].locations[locationId].external_id;
 
       const allSizes = this._toArray(this.model.clouds[this.selectedCloud].sizes) || [];
-      const filteredSizes = allSizes.filter(function(s) {
+      const filteredSizes = allSizes.filter((s) => {
           return s.extra.regions.indexOf(locationExternalId) > -1
       });
       this.set(`machineFields.${  sizeInd  }.options`, filteredSizes);
       // clear previous value if not in filtered sizes
-      if (this.machineFields[sizeInd].value != '' && filteredSizes.map(x=>x.id).indexOf(this.machineFields[sizeInd].value) == -1) {
+      if (this.machineFields[sizeInd].value !== '' && filteredSizes.map(x=>x.id).indexOf(this.machineFields[sizeInd].value) === -1) {
           this.set(`machineFields.${  sizeInd  }.value`, '');
       }
       // console.log('maxihost ', locationExternalId, filteredSizes.map(x=>x.extra.regions));
@@ -1711,7 +1715,7 @@ Polymer({
   _updateGceSubnets(networkId) {
       const subnetsInd = this._fieldIndexByName('subnetwork');
           const network = networkId && this.model.clouds[this.selectedCloud].networks[networkId];
-      if (subnetsInd && network && network.extra.mode == 'custom') {
+      if (subnetsInd && network && network.extra.mode === 'custom') {
           const subnetsOptions = this.model.clouds[this.selectedCloud].networks[networkId].subnets.map(
               x => x.name).filter((v, i, a) => a.indexOf(v) === i).map(x => {
               return {
@@ -1737,10 +1741,10 @@ Polymer({
       const selectInd = this._fieldIndexByName('script_id');
 
       // if one, exclude the other
-      if (scripttype == "inline") {
+      if (scripttype === "inline") {
           if (inlineInd > -1) this.set(`machineFields.${  inlineInd  }.excludeFromPayload`, false);
           if (selectInd > -1) this.set(`machineFields.${  selectInd  }.excludeFromPayload`, true);
-      } else if (scripttype == "select") {
+      } else if (scripttype === "select") {
           if (selectInd > -1) this.set(`machineFields.${  selectInd  }.excludeFromPayload`, false);
           if (inlineInd > -1) this.set(`machineFields.${  inlineInd  }.excludeFromPayload`, true);
       }
@@ -1749,9 +1753,8 @@ Polymer({
   },
 
   _toggleExistingStorageAccounts(newResourceGroup) {
-      const createResGroupInd = this._fieldIndexByName('create_resource_group');
-          const createStorAccInd = this._fieldIndexByName('create_storage_account');
-          const existingResGroupInd = this._fieldIndexByName('ex_storage_account');
+      const createStorAccInd = this._fieldIndexByName('create_storage_account');
+      const existingResGroupInd = this._fieldIndexByName('ex_storage_account');
       // if user chooses create new resource group, so it must be for storage accounts and networks
       if (newResourceGroup) {
           this.set(`machineFields.${  createStorAccInd  }.value`, newResourceGroup);
@@ -1761,9 +1764,8 @@ Polymer({
   },
 
   _toggleExistingNetworks(newResourceGroup) {
-      const createResGroupInd = this._fieldIndexByName('create_resource_group');
-          const createNetworkInd = this._fieldIndexByName('create_network');
-          const existingNetworkInd = this._fieldIndexByName('ex_networks');
+      const createNetworkInd = this._fieldIndexByName('create_network');
+      const existingNetworkInd = this._fieldIndexByName('ex_networks');
       // if user chooses create new resource group, so it must be for storage accounts and networks
       if (newResourceGroup) {
           this.set(`machineFields.${  createNetworkInd  }.value`, newResourceGroup);
@@ -1772,13 +1774,13 @@ Polymer({
       this.set(`machineFields.${  existingNetworkInd  }.show`, !newResourceGroup);
   },
 
-  _updateStorageAccountValue(cloudId) {
+  _updateStorageAccountValue(_cloudId) {
       const createFieldIndex = this._fieldIndexByName('create_storage_account');
       const existingFieldIndex = this._fieldIndexByName('ex_storage_account');
       const newFieldIndex = this._fieldIndexByName('new_storage_account');
       const storageAccountFieldIndex = this._fieldIndexByName('storage_account');
 
-      if (this.get(`machineFields.${ createFieldIndex }.value`) == true ) {
+      if (this.get(`machineFields.${ createFieldIndex }.value`) === true ) {
           this.set(`machineFields.${ storageAccountFieldIndex }.value`, this.get(`machineFields.${ newFieldIndex }.value`))
       } else {
           this.set(`machineFields.${ storageAccountFieldIndex }.value`, this.get(`machineFields.${ existingFieldIndex }.value`))
@@ -1800,7 +1802,7 @@ Polymer({
       this.$.getStorageAccounts.generateRequest();
   },
 
-  _handleGetStorageAccountsRequest(e) {
+  _handleGetStorageAccountsRequest(_e) {
       this.set(`machineFields.${  this.storageAccountsFieldIndex  }.loader`, true);
   },
 
@@ -1817,8 +1819,8 @@ Polymer({
           const location = this.get(`machineFields.${ locationFieldIndex }.value`);
       let options = [];
       if (resourceGroup && location) {
-          options = this.get(`machineFields.${  this.storageAccountsFieldIndex  }.alloptions`).filter(function(o){
-              return o.resource_group == resourceGroup && o.location == location;
+          options = this.get(`machineFields.${  this.storageAccountsFieldIndex  }.alloptions`).filter((o) => {
+              return o.resource_group === resourceGroup && o.location === location;
           })
       }
       // console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
@@ -1835,8 +1837,8 @@ Polymer({
           const netInd = this._fieldIndexByName('ex_networks');
       let options = [];
       if (resourceGroupFieldIndex > -1 && locationFieldIndex > -1 && resourceGroup && location) {
-          options = this._toArray(this.model.clouds[this.selectedCloud].networks).filter(function(n){
-              return n.location == location && n.resource_group == resourceGroup;
+          options = this._toArray(this.model.clouds[this.selectedCloud].networks).filter((n) => {
+              return n.location === location && n.resource_group === resourceGroup;
           })
       }
       // console.log('_filterNetworksOptions', resourceGroup, location, options.length)
@@ -1849,13 +1851,13 @@ Polymer({
       console.error('Got storage accounts error', e);
   },
 
-  _updateResourceGroupValue(cloudId) {
+  _updateResourceGroupValue(_cloudId) {
       const createFieldIndex = this._fieldIndexByName('create_resource_group');
       const existingFieldIndex = this._fieldIndexByName('ex_resource_group');
       const newFieldIndex = this._fieldIndexByName('new_resource_group');
       const resourceGroupFieldIndex = this._fieldIndexByName('resource_group');
 
-      if (this.get(`machineFields.${ createFieldIndex }.value`) == true ) {
+      if (this.get(`machineFields.${ createFieldIndex }.value`) === true ) {
           this.set(`machineFields.${ resourceGroupFieldIndex }.value`, this.get(`machineFields.${ newFieldIndex }.value`))
       } else {
           this.set(`machineFields.${ resourceGroupFieldIndex }.value`, this.get(`machineFields.${ existingFieldIndex }.value`))
@@ -1877,7 +1879,7 @@ Polymer({
       this.$.getSecurityGroups.generateRequest();
   },
 
-  _handleGetSecurityGroupsRequest(e) {
+  _handleGetSecurityGroupsRequest(_e) {
       this.set(`machineFields.${  this.securityGroupsFieldIndex  }.loader`, true);
   },
 
@@ -1909,7 +1911,7 @@ Polymer({
       this.$.getResourceGroups.generateRequest();
   },
 
-  _handleGetResourceGroupsRequest(e) {
+  _handleGetResourceGroupsRequest(_e) {
       this.set(`machineFields.${  this.resourceGroupsFieldIndex  }.loader`, true);
   },
 
@@ -1937,13 +1939,13 @@ Polymer({
       this.$.getStorageClasses.generateRequest();
   },
 
-  _handleGetStorageClassesRequest(e) {
+  _handleGetStorageClassesRequest(_e) {
      this.storageClassesField.loader = true;
   },
 
   _handleGetStorageClassesResponse(e){
       const options = [];
-      e.detail.response.forEach(function(item, ind){
+      e.detail.response.forEach((item) => {
           options.push({title: item, val: item});
       });
       this.storageClassesField.options = options;
@@ -1969,13 +1971,13 @@ Polymer({
       this.$.getFolders.generateRequest();
   },
 
-  _handleGetFoldersRequest(e){
+  _handleGetFoldersRequest(_e){
       this.foldersField.loader = true;
   },
 
   _handleGetFoldersResponse(e){
       const options = [];
-      e.detail.response.forEach(function(item, ind){
+      e.detail.response.forEach((item) => {
           options.push({title: item.name, val: item.id})
       });
       this.foldersField.options = options;
@@ -2001,15 +2003,15 @@ Polymer({
       this.$.getDatastores.generateRequest();
   },
 
-  _handleGetDatastoresRequest(e){
+  _handleGetDatastoresRequest(_e){
       this.datastoresField.loader = true;
   },
 
   _handleGetDatastoresResponse(e){
       const options = [];
-      e.detail.response.forEach(function(item, ind){
+      e.detail.response.forEach((item) => {
           const space = Math.floor(item.free_space / (1024*1024*1024));
-          const name = `${item.name  }  ` + `Free: ${  space  } GB`;
+          const name = `${item.name  }  Free: ${  space  } GB`;
           options.push({title: name, val: item.id, space: item.free_space});
       });
       this.datastoresField.options = options;
@@ -2019,13 +2021,13 @@ Polymer({
           let showDatastores = true;
           if (this.constraints && this.constraints.field) {
               let fieldConstraints;
-              if (this.constraints.field.length == undefined) {
+              if (this.constraints.field.length === undefined) {
                   fieldConstraints = [this.constraints.field];
               } else {
                   fieldConstraints = this.constraints.field;
               }
-              const datastoreConstraint = fieldConstraints.find(function(c) { return c.name && c.name == 'datastore'});
-              if (datastoreConstraint.show != undefined) {
+              const datastoreConstraint = fieldConstraints.find((c) => { return c.name && c.name === 'datastore'});
+              if (datastoreConstraint.show !== undefined) {
                   showDatastores = datastoreConstraint.show;
               }
           }
@@ -2049,7 +2051,7 @@ Polymer({
       this.$.getLXDStoragePools.generateRequest();
   },
 
-  _handleGetLXDStoragePoolsRequest(e) {
+  _handleGetLXDStoragePoolsRequest(_e) {
       this.lxdStoragePoolsField.loader = true;
   },
 
@@ -2078,7 +2080,7 @@ Polymer({
       this.$.getVirtualNetworkFunctions.generateRequest();
   },
 
-  _handleGetVirtualNetworkFunctionsRequest(e) {
+  _handleGetVirtualNetworkFunctionsRequest(_e) {
       this.set(`machineFields.${  this.virtualNetworkFunctionFieldIndex  }.loader`, true);
   },
 
@@ -2093,7 +2095,7 @@ Polymer({
 
       const locInd = this._fieldIndexByName('location');
           const location = this.get(`machineFields.${  locInd  }.value`);
-          const locationVNFs = location ? vnfs.filter(function(f) {return f.location == location}) : vnfs;
+          const locationVNFs = location ? vnfs.filter((f) => {return f.location === location}) : vnfs;
           const categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(locationVNFs);
 
       this.set(`machineFields.${  this.virtualNetworkFunctionFieldIndex  }.subfields.0.options`,  categorisedVNFs || []);
@@ -2104,7 +2106,7 @@ Polymer({
   _getCategorizedVirtualNetworkFunctions(arr) {
       let categories = []; // store names
           const categoriesObjects = {}; // store items
-      for  (var i=0; i<arr.length; i++) {
+      for  (let i=0; i<arr.length; i++) {
           const catName = `NUMA ${  arr[i].numa}`; // Category name
           if (categories.indexOf(catName) <= -1) {
               // store category name and initialise category
@@ -2124,13 +2126,13 @@ Polymer({
       // merge category names with items
       let categorisedArray = [];
       categories = categories.reverse();
-      for  (var i=0; i<categories.length; i++) {
+      for  (let i=0; i<categories.length; i++) {
           const cat = categories[i];
           categorisedArray.push(cat);
           categorisedArray = categorisedArray.concat(categoriesObjects[cat]);
       }
       // return categorisedArray or default array
-      return categorisedArray || arr.map(function(x){ return {
+      return categorisedArray || arr.map((x) => { return {
           'name': x.interface,
           'id': x.pci_bdf,
           'location': x.location,
@@ -2142,7 +2144,7 @@ Polymer({
   },
 
   _subfieldEnabled(e) {
-      if (e.detail.field.name == 'vnfs')
+      if (e.detail.field.name === 'vnfs')
           this._updateVirtualNetworkFunctions(this.cloud.id)
   },
 
@@ -2152,7 +2154,7 @@ Polymer({
       const newFieldIndex = this._fieldIndexByName('new_network');
       const networksFieldIndex = this._fieldIndexByName('networks');
       const networks = [];
-      if (this.get(`machineFields.${ createFieldIndex }.value`) == true ) {
+      if (this.get(`machineFields.${ createFieldIndex }.value`) === true ) {
           networks.push({name:this.get(`machineFields.${ newFieldIndex }.value`)});
       } else {
           networks.push({id:this.get(`machineFields.${ existingFieldIndex }.value`)});
@@ -2162,7 +2164,6 @@ Polymer({
 
   _hideElementsforWin(value) {
       const scriptInd = this._fieldIndexByName('post_provision_script');
-      const taskInd = this._fieldIndexByName('post_provision_scheduler');
       const monitoringInd = this._fieldIndexByName('monitoring');
 
       if (value && value.toLowerCase().indexOf('win') > -1) {
@@ -2211,12 +2212,12 @@ Polymer({
 
   _fieldIndexByName(name, context) {
       if (!context) {
-          return this.machineFields.findIndex(function(f) {
-              return f.name == name;
+          return this.machineFields.findIndex((f) => {
+              return f.name === name;
           });
       } 
-          return context.findIndex(function(f) {
-              return f.name == name;
+          return context.findIndex((f) => {
+              return f.name === name;
           });
       
   },
@@ -2234,20 +2235,20 @@ Polymer({
       this._resetForm();
   },
 
-  _machineCreateError(e) {
+  _machineCreateError(_e) {
       // console.log('creation failed', e)
   },
 
-  _computeProviders(model, clouds) {
+  _computeProviders(_model, _clouds) {
       // exclude bare metals and not allowed clouds from provider dropdown list
       const that = this;
-      return this._toArray(this.model.clouds).filter(function(c) {
-          return ["bare_metal"].indexOf(c.provider) == -1 && that.check_perm("create_resources","cloud",c.id);
+      return this._toArray(this.model.clouds).filter((c) => {
+          return ["bare_metal"].indexOf(c.provider) === -1 && that.check_perm("create_resources","cloud",c.id);
       });
   },
 
   addInput(e) {
-      if (e.detail.fieldname == 'schedule_script_id' || e.detail.fieldname == 'script_id') {
+      if (e.detail.fieldname === 'schedule_script_id' || e.detail.fieldname === 'script_id') {
           // set attribute origin
           const origin = window.location.pathname;
           const qParams = {
@@ -2258,12 +2259,12 @@ Polymer({
               params: qParams
           } }));
 
-      } else if (e.detail.fieldname == 'image') {
+      } else if (e.detail.fieldname === 'image') {
           this.shadowRoot.querySelector("paper-dialog#addKvmImage").open();
       }
   },
 
-  saveNewImage(e) {
+  saveNewImage(_e) {
       const imaInd = this._fieldIndexByName('image');
       if (imaInd > -1) {
           const opts = this.get(`machineFields.${  imaInd  }.options`);
@@ -2290,17 +2291,17 @@ Polymer({
 
   updateKeys(e) {
       const keyInd = this._fieldIndexByName('key');
-      this.async(function() {
+      this.async(() => {
           if (keyInd > -1) {
               this.set(`machineFields.${  keyInd  }.options`, this.model.keysArray);
               if (e.detail.key)
                   this.set(`machineFields.${  keyInd  }.value`, e.detail.key);
           }
-      }.bind(this), 1000);
+      }, 1000);
   },
 
   _goBack() {
-      history.back();
+      window.history.back();
   },
 
   _getInterval() {
@@ -2322,8 +2323,8 @@ Polymer({
       const ipv4 = ipv4Ind > -1 ? this.get(`machineFields.${  ipv4Ind  }.value`) : false;
       const ipv6 = ipv6Ind > -1 ? this.get(`machineFields.${  ipv6Ind  }.value`) : false;
       const ipv4SubSize = ipv4SubSizeInd > -1 ? this.get(`machineFields.${  ipv4SubSizeInd  }.value`) : '';
-          const ipv6SubSize = ipv6SubSizeInd > -1 ? this.get(`machineFields.${  ipv6SubSizeInd  }.value`) : '';
-          const privateIpv4SubSize = privateIpv4SubSizeInd > -1 ? this.get(`machineFields.${  privateIpv4SubSizeInd  }.value`) : '';
+      const ipv6SubSize = ipv6SubSizeInd > -1 ? this.get(`machineFields.${  ipv6SubSizeInd  }.value`) : '';
+      const privateIpv4SubSize = privateIpv4SubSizeInd > -1 ? this.get(`machineFields.${  privateIpv4SubSizeInd  }.value`) : '';
       const formattedIpAddresses = [];
       if (ipv4) {
           const formattedIpv4 = {
@@ -2355,28 +2356,28 @@ Polymer({
   },
 
   _processCrotab(entry) {
-      var construct = {};
+      let construct = {};
       if (entry) {
           const chunchs = entry.split(" ");
           // fill in missin
-          for (var i = 0; i < 5; i++) {
+          for (let i = 0; i < 5; i++) {
               if (!chunchs[i])
                   chunchs[i] = "*"
           }
           const diff = moment().utcOffset() / 60;
-          for (var i = 0; i < 5; i++) {
+          for (let i = 0; i < 5; i++) {
               if (!chunchs[i])
                   chunchs[i] = "*"
           }
-          var construct = {
+          construct = {
               'minute': chunchs[0],
               'hour': chunchs[1],
               'day_of_month': chunchs[2],
               'month_of_year': chunchs[3],
               'day_of_week': chunchs[4],
           };
-          if (construct.hour != "*" && parseInt(chunchs[1]) && diff) {
-              construct.hour = ((parseInt(chunchs[1]) - diff) % 24).toString();
+          if (construct.hour !== "*" && parseInt(chunchs[1], 10) && diff) {
+              construct.hour = ((parseInt(chunchs[1], 10) - diff) % 24).toString();
           }
       }
       return construct;
@@ -2384,15 +2385,15 @@ Polymer({
 
   updateScripts(e) {
       const scheduleScriptInd = this._fieldIndexByName("schedule_script_id");
-      this.async(function() {
+      this.async(() => {
           if (scheduleScriptInd > -1) {
               this.set(`machineFields.${  scheduleScriptInd  }.options`, this.model.scriptsArray || []);
               this.set(`machineFields.${  scheduleScriptInd  }.value`, e.detail.script);
           }
-      }.bind(this), 1000);
+      }, 1000);
   },
 
-  formatPayload(e) {
+  formatPayload(_e) {
       const hostnameInd = this._fieldIndexByName("hostname");
           let composedHostname = '';
           const hostname =  this.get(`machineFields.${  hostnameInd  }.value`);
@@ -2413,9 +2414,10 @@ Polymer({
   _hasProviders(providers) {
       if (providers && providers.length)
           return true;
+      return false;
   },
 
-  _toArray(x, z) {
+  _toArray(x, _z) {
       if (x) {
           return Object.keys(x).map(y => x[y])
       }
@@ -2424,7 +2426,7 @@ Polymer({
 
   _cleanCopy(value, property) {
       let newValue;
-      if (value == null)
+      if (value === null)
           return null;
       if (typeof value === "string") {
           newValue = "";
@@ -2437,9 +2439,9 @@ Polymer({
               }
           } else {
               newValue = {};
-              for (const q in value) {
+              Object.keys(value || {}).forEach((q) => {
                   newValue[q] = this._cleanCopy(value[q], q);
-              }
+              });
           }
       } else {
           newValue = value;

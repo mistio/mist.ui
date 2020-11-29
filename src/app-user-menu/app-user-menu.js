@@ -328,7 +328,7 @@ Polymer({
   _computeGravatar (email, size, placeholder) {
       let url = '';
       if (email) {
-          const avatarString = email && md5(email);
+          const avatarString = email && md5(email); // eslint-disable-line no-undef
           url = `//www.gravatar.com/avatar/${  avatarString  }.jpg?s=${  size  }&d=${  placeholder}`;
       } else {
           url = placeholder;
@@ -336,8 +336,8 @@ Polymer({
       return url;
   },
 
-  _computeGravatarName (first_name, last_name, email, username) {
-      return first_name && last_name ? `${first_name  } ${  last_name}` : (email || username);
+  _computeGravatarName (firstName, lastName, email, username) {
+      return firstName && lastName ? `${firstName  } ${ lastName }` : (email || username);
   },
 
   _computeUserName (user) {
@@ -357,9 +357,9 @@ Polymer({
       if (!user || !user.orgs || !org)
           return [];
 
-      return user.orgs.filter(function (o) {
-          return o.name != org.name;
-      }, this).sort(function (a, b) {
+      return user.orgs.filter((o) => {
+          return o.name !== org.name;
+      }, this).sort((a, b) => {
           if (a.name > b.name) {
               return 1;
           }
@@ -379,10 +379,10 @@ Polymer({
   },
 
   _isCurrentOrg (organization) {
-      return organization && this.org && organization.id == this.org.id;
+      return organization && this.org && organization.id === this.org.id;
   },
 
-  _addOrg (e) {
+  _addOrg (_e) {
       this.dispatchEvent(new CustomEvent('add-org', {bubbles: true, composed: true, detail: null}));
   },
 
@@ -391,7 +391,7 @@ Polymer({
       window.location.href = orgId ? `/switch_context/${  orgId}` : '/switch_context';
   },
 
-  _logout (e) {
+  _logout (_e) {
       window.location.href = '/logout';
   }
 });

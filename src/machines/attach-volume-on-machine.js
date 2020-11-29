@@ -7,6 +7,7 @@ import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
 import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import { CSRFToken } from '../helpers/utils.js'
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -152,16 +153,16 @@ Polymer({
       }
   },
 
-  computedSelectedMachineId(selected) {
+  computedSelectedMachineId(_selected) {
       this.set('selectedMachineId', this.$.machines.selected || '');
   },
 
-  _computeVolumes(machine, volumes) {
+  _computeVolumes(_machine, _volumes) {
       const that = this;
-      var volumeIds = [];
+      let volumeIds = [];
       if (this.model.clouds && this.machine && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].volumes) {
-          var volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter(function(v) {
-              return that._isOfSameLocation(v) && that.model.clouds[that.machine.cloud].volumes[v].attached_to.indexOf(that.machine.id) == -1;
+          volumeIds = Object.keys(this.model.clouds[this.machine.cloud].volumes).filter((v) => {
+              return that._isOfSameLocation(v) && that.model.clouds[that.machine.cloud].volumes[v].attached_to.indexOf(that.machine.id) === -1;
           });
       }
       return volumeIds;
@@ -170,12 +171,12 @@ Polymer({
   _isOfSameLocation(volumeId) {
       if (this.machine) {
           const volumeLocation = this.model.clouds[this.machine.cloud].volumes[volumeId].location;
-          return !volumeLocation || volumeLocation == this.machine.location;
+          return !volumeLocation || volumeLocation === this.machine.location;
       }
       return false;
   },
 
-  _isAlreadyAttached(volumeId, machine) {
+  _isAlreadyAttached(volumeId, _machine) {
       if (this.machine) {
           return this.model.clouds[this.machine.cloud].volumes[volumeId] && this.model.clouds[this.machine.cloud].volumes[volumeId].attached_to.map(i => i.id).indexOf(this.machine.id) > -1;
       }
@@ -186,25 +187,25 @@ Polymer({
       return this.model.clouds[this.machine.cloud].volumes[volumeId].name;
   },
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.clearError();
       this.set('selectedMachineId', false);
       this.$.attachDialogModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.attachDialogModal.close();
       this.clearError();
   },
 
-  _computeHideDeviceInput(clouds, machine) {
+  _computeHideDeviceInput(_clouds, _machine) {
       if (this.machine && this.machine.cloud) {
-          return this.model.clouds && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].provider != "ec2";
+          return this.model.clouds && this.model.clouds[this.machine.cloud] && this.model.clouds[this.machine.cloud].provider !== "ec2";
       }
       return false;
   },
 
-  attachVolume(e) {
+  attachVolume(_e) {
       const request = this.$.attachVolumeRequest;
       request.url = `/api/v1/clouds/${  this.machine.cloud  }/volumes/${  this.selectedVolumeId}`;
       request.body = { action: 'attach', machine: this.machine.id };
@@ -212,7 +213,7 @@ Polymer({
           request.body.device = this.device;
       }
       request.headers["Content-Type"] = 'application/json';
-      request.headers["Csrf-Token"] = CSRF_TOKEN;
+      request.headers["Csrf-Token"] = CSRFToken.value;
       request.generateRequest();
   },
 

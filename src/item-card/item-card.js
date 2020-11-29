@@ -188,7 +188,7 @@ Polymer({
   attached() {
       this.style.opacity = 0;
 
-      this.async(function() {
+      this.async(() => {
           this.style.opacity = 1;
       }, 1);
   },
@@ -261,8 +261,8 @@ Polymer({
   },
 
   hideActions() {
-      if (sharedActionMenu && sharedActionMenu.element == this.item.name) {
-          sharedActionMenu.debounce('hide', function() {
+      if (sharedActionMenu && sharedActionMenu.element === this.item.name) {
+          sharedActionMenu.debounce('hide', () => {
               sharedActionMenu.classList.add('hidden');
           }, 10);
           this.classList.remove('hover');
@@ -274,7 +274,7 @@ Polymer({
       mouseEnter();
   },
 
-  _mouseLeave(e) {
+  _mouseLeave(_e) {
       mouseLeave();
   },
 

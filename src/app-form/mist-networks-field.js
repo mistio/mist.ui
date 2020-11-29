@@ -117,13 +117,13 @@ Polymer({
       this.set('field.valid', !this.field.required);
   },
 
-  _computeCanConfigure(fieldCc) {
+  _computeCanConfigure(_fieldCc) {
       if (!this.field)
           return false;
       return this.field.canConfigure;
   },
 
-  _fieldChanged(field) {
+  _fieldChanged(_field) {
       this.set('selectedOptions', []);
       this.set('field.value', []);
       this.set('field.valid', !this.field.required);
@@ -137,18 +137,16 @@ Polymer({
       console.log("item changed", e);
       
       const item = e.model.option;
-          const elementId = e.model.option.id;
-
-      const selectedOptionIndex = this.selectedOptions.findIndex(function(option){return option.id == item.id});
-
+      const elementId = e.model.option.id;
+      const selectedOptionIndex = this.selectedOptions.findIndex((option) => {return option.id === item.id});
+      let checked = "";
       if (this.shadowRoot.querySelector(`mist-networks-item[id="${elementId}"]`)) {
           const el = this.shadowRoot.querySelector(`mist-networks-item[id="${elementId}"]`);
-              var {checked} = el;
-              const {valid} = el;
+          ({checked} = el);
       }
 
       // add network
-      if (checked && selectedOptionIndex == -1) {
+      if (checked && selectedOptionIndex === -1) {
           this.push('selectedOptions', item);
       }
       // update network
@@ -156,7 +154,7 @@ Polymer({
           this.splice('selectedOptions', selectedOptionIndex, 1, item);
       }
       // remove network
-      if (!checked && selectedOptionIndex == -1) {
+      if (!checked && selectedOptionIndex === -1) {
           this.splice('selectedOptions', selectedOptionIndex, 1);
       }
 
@@ -170,7 +168,7 @@ Polymer({
 
   _checkValidity() {
       const checkedItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked]');
-          const validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
+      const validItems = this.shadowRoot.querySelectorAll('mist-networks-item[checked][valid]');
       console.log('check valid ', checkedItems.length, validItems.length, this.selectedOptions.length)
       if (!checkedItems){
           return !this.field.required;
@@ -178,11 +176,12 @@ Polymer({
       if (checkedItems && !validItems){
           return false;
       }
-      if (checkedItems.length == validItems.length == this.selectedOptions.length) {
+      if (checkedItems.length === validItems.length === this.selectedOptions.length) {
           return true;
       }
-      if (checkedItems.length != validItems.length || validItems.length != this.selectedOptions.length || checkedItems.length != this.selectedOptions.length) {
+      if (checkedItems.length !== validItems.length || validItems.length !== this.selectedOptions.length || checkedItems.length !== this.selectedOptions.length) {
           return false;
-      }            
+      }
+      return false;        
   }
 });

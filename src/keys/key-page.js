@@ -362,10 +362,10 @@ Polymer({
       // The following returns true if the volume has at least one of the selectors tags
       if (!key || !selectors)
           return false;
-      const bool =  selectors.filter(function(t){return t.type == 'tags'})
+      const bool =  selectors.filter((t) => {return t.type === 'tags'})
                       .map(x=>x.tags)
-                      .findIndex(function(s){
-                          for (const p in s ) {
+                      .findIndex((s) => {
+                          for (const p of Object.keys(s) ) {
                               if (key.tags[p] === s[p] || (key.tags[p] === "" && s[p]=== null)) {
                                   return true;
                               }
@@ -375,7 +375,7 @@ Polymer({
       return bool;
   },
 
-  _hiddenUpdated (hidden) {
+  _hiddenUpdated (_hidden) {
       this.$.keyActions.fire('update');
   },
 
@@ -394,7 +394,7 @@ Polymer({
       this.set('visiblePrivateKey', false);
   },
 
-  _displayUser (id, members) {
+  _displayUser (id, _members) {
       return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
   },
 
@@ -402,10 +402,11 @@ Polymer({
       return `background-color: ${  section.color  }; color: #fff;`;
   },
 
-  _computeKeyTags(key, tags){
+  _computeKeyTags(_key, _tags){
       if (this.key) {
           return Object.entries(this.key.tags).map(([key, value]) => ({key,value}));
       }
+      return [];
   },
 
   computeTagItems(key){
@@ -415,26 +416,30 @@ Polymer({
           arr.push(item);
           return arr;
       }
+      return [];
   },
 
   _computeKeyMachines(key) {
       if (key)
           return key.machines;
+      return [];
   },
 
   _keyHasMachines(keyMachines) {
       if (keyMachines)
           return keyMachines.length > 0;
+      return false;
   },
 
   _keyHasMachinesMoreThanOne(keyMachines) {
       if (keyMachines)
           return keyMachines.length > 1;
+      return false;
   },
 
   getMachineUrl(keymachine) {
       const cloud = this.model.clouds[keymachine[0]];
-      if (!cloud) return;
+      if (!cloud) return false;
       const machine = cloud.machines && cloud.machines[keymachine[1]];
       return machine && `/machines/${  machine.id}`;
   },
@@ -445,7 +450,7 @@ Polymer({
       return cloud.title;
   },
 
-  getMachineName(keymachine, machines) {
+  getMachineName(keymachine, _machines) {
       const cloud = this.model.clouds[keymachine[0]];
       if (!cloud) return '';
       const machine = cloud.machines && cloud.machines[keymachine[1]];
@@ -505,7 +510,7 @@ Polymer({
       el._openDialog();
   },
 
-  _deleteKey(e) {
+  _deleteKey(_e) {
       this._showDialog({
           title: 'Delete Key?',
           body: `Deleting a key can not be undone. You are about to delete key '${  this.key.name  }'.`,
@@ -514,7 +519,7 @@ Polymer({
       });
   },
 
-  _handleKeyDeleteAjaxResponse(e) {
+  _handleKeyDeleteAjaxResponse(_e) {
       this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: {url: '/keys'} }));
 
   },
@@ -522,9 +527,9 @@ Polymer({
   _showDialog(info) {
       const dialog = this.shadowRoot.querySelector('dialog-element');
       if (info) {
-          for (const i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -542,12 +547,13 @@ Polymer({
   },
 
   setSelection(el){
+      let range;
       if (document.selection) {
-          var range = document.body.createTextRange();
-              range.moveToElementText(el);
+          range = document.body.createTextRange();
+          range.moveToElementText(el);
           range.select();
       } else if (window.getSelection) {
-          var range = document.createRange();
+          range = document.createRange();
           range.selectNode(el);
           window.getSelection().addRange(range);
       }

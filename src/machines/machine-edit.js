@@ -83,11 +83,11 @@ Polymer({
       return formReady;
   },
 
-  _openDialog(e) {
+  _openDialog(_e) {
       this.$.editMachineModal.open();
   },
 
-  _closeDialog(e) {
+  _closeDialog(_e) {
       this.$.editMachineModal.close();
   },
 

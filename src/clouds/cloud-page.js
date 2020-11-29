@@ -543,7 +543,7 @@ Polymer({
 
   _cloudArraysChanged () {
       if (this.cloud) {
-          this.async(function () {
+          this.async(() => {
               if (this.cloud) {
                   this.set('imagesArrayLength', this.cloud.imagesArray ? this.cloud
                       .imagesArray.length : 0);
@@ -556,7 +556,7 @@ Polymer({
                   this.set('stoppedMachinesLength', this._computeStoppedMachines(
                       this.cloud.machines));
               }
-          }.bind(this), 1000);
+          }, 1000);
       }
   },
 
@@ -610,6 +610,7 @@ Polymer({
       if (this.cloud) {
           return Object.entries(this.cloud.tags).map(([key, value]) => ({key,value}));
       }
+      return [];
   },
 
   _computeIsloading () {
@@ -621,14 +622,15 @@ Polymer({
           const provider = item.provider.replace('_', '');
           return `assets/providers-large/provider-${  provider  }.png`;
       }
+      return '';
   },
 
   _showDialog (info) {
       const dialog = this.querySelector('dialog-element#confirm');
       if (info) {
-          for (const i in info) {
+          Object.keys(info).forEach((i) => {
               dialog[i] = info[i];
-          }
+          });
       }
       dialog._openDialog();
   },
@@ -671,11 +673,11 @@ Polymer({
   },
 
   _changeOBSLOGSenabled() {
-      const observation_logs_enabled = this.cloud.observation_logs_enabled ? 0 : 1;
+      const observationLogsEnabled = this.cloud.observation_logs_enabled ? 0 : 1;
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditOBSLOGSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditOBSLOGSAjaxRequest.body = {
-          observation_logs_enabled
+          observationLogsEnabled
       };
       this.$.cloudEditOBSLOGSAjaxRequest.generateRequest();
   },
@@ -691,11 +693,11 @@ Polymer({
   },
 
   _changeDNSenabled() {
-      const dns_enabled = this.cloud.dns_enabled ? 0 : 1;
+      const dnsEnabled = this.cloud.dns_enabled ? 0 : 1;
       this.$.cloudEditDNSAjaxRequest.headers["Content-Type"] = 'application/json';
       this.$.cloudEditDNSAjaxRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.cloudEditDNSAjaxRequest.body = {
-          dns_enabled
+          dnsEnabled
       };
       this.$.cloudEditDNSAjaxRequest.generateRequest();
   },

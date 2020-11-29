@@ -86,7 +86,7 @@ Polymer({
     this.$.request.headers["Content-Type"] = 'application/json';
     this.$.request.headers["Csrf-Token"] = CSRFToken.value;
     this.$.request.method = "POST";
-    payload = {'action': 'remove'};
+    const payload = {'action': 'remove'};
     this.$.request.body = payload;
 
     for (let i = 0; i < this.items.length; i++) {

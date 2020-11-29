@@ -5,7 +5,7 @@ import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { CSRFToken } from '../helpers/utils.js';
+import { CSRFToken, formatMoney } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -350,7 +350,7 @@ Polymer({
       if (!n) {
           return n;
       } if (typeof(n) === 'number') {
-          return n.formatMoney(0, ',', '.');
+          return formatMoney(n, 0, ',', '.');
       }
       return null;
   },
@@ -361,7 +361,7 @@ Polymer({
       if (typeof(price) === 'string') {
           return price;
       } if (typeof(price) === 'number') {
-          return price.formatMoney();
+          return formatMoney(price);
       } if (typeof(price) === 'object' && this.machine.os_type === 'windows' && price.mswin) {
           return price.mswin;
       } if (price && typeof(price) === 'object' && price.linux) {

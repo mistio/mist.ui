@@ -111,7 +111,7 @@ Polymer({
 
   getSessionsAgain() {
     const that = this;
-    this.async(function () {
+    this.async(() => {
       that.$.getSessionsAjax.generateRequest();
     }, 100);
   },

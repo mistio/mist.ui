@@ -1,10 +1,10 @@
 import '../../node_modules/@polymer/polymer/polymer-legacy.js';
 import '../../node_modules/@polymer/paper-styles/typography.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import * as echarts from  'echarts/echarts.all.js';
 import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import * as echarts from  'echarts/echarts.all.js';
 
 const GRAPH_OPTIONS = {
     title: {
@@ -305,13 +305,13 @@ Polymer({
   },
 
   _computeData(responseData, graph) {
-      const timeToCores = this.responseData.data.map(function(d) {
+      const timeToCores = this.responseData.data.map((d) => {
           return [d.date, d.usage.cores]
       });
-      const timeToDatapoints = this.responseData.data.map(function(d) {
+      const timeToDatapoints = this.responseData.data.map((d) => {
           return [d.date, d.usage.datapoints]
       });
-      const timeToChecks = this.responseData.data.map(function(d) {
+      const timeToChecks = this.responseData.data.map((d) => {
           return [d.date, d.usage.checks]
       });
 
@@ -324,11 +324,12 @@ Polymer({
       this.set('checksGraphOptions.series.0.data', timeToChecks);
       this.checksGraph.setOption(this.checksGraphOptions);
 
-      if (graph == 'cores')
+      if (graph === 'cores')
           return timeToCores;
-      if (graph == 'datapoints')
+      if (graph === 'datapoints')
           return timeToDatapoints;
-      if (graph == 'checks')
+      if (graph === 'checks')
           return timeToChecks;
+      return "";
   }
 });

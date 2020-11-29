@@ -10,9 +10,9 @@ import '../../node_modules/@polymer/iron-icons/device-icons.js';
 import '../../node_modules/@polymer/iron-icons/social-icons.js';
 import '../../node_modules/@polymer/iron-iconset-svg/iron-iconset-svg.js';
 
-const $_documentContainer = document.createElement('template');
+const documentContainer = document.createElement('template');
 
-$_documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
+documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
     <svg>
         <defs>
             <g id="icon-ubuntu">
@@ -61,4 +61,4 @@ $_documentContainer.innerHTML = `<iron-iconset-svg name="mist-icons" size="24">
     </svg>
 </iron-iconset-svg>`;
 
-document.head.appendChild($_documentContainer.content);
+document.head.appendChild(documentContainer.content);

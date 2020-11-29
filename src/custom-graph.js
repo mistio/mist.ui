@@ -134,21 +134,21 @@ Polymer({
   ],
 
   computeFormReady(metric) {
-      return metric.base.name != '' && metric.base.name != null && typeof metric.base.name !== "undefined" && metric.base.script != '' && typeof metric.base.script !== "undefined";
+      return metric.base.name !== '' && metric.base.name !== null && typeof metric.base.name !== "undefined" && metric.base.script !== '' && typeof metric.base.script !== "undefined";
   },
 
-  toggle(e) {
+  toggle(_e) {
       this.shadowRoot.querySelector('iron-collapse').toggle();
   },
-
+  /* eslint-disable no-param-reassign */
   _customgraphResponse(data) {
       this.set('sendingData', false);
       this.set('formError', false);
       console.log("CUSTOM GRAPH", data.detail.response);
       document.querySelector('mist-app').fire('update-dashboard');
-      document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+      document.querySelectorAll('vaadin-dialog-overlay').forEach((el) => {el.opened = false;})
   },
-
+  /* eslint-enable no-param-reassign */
   _computepluginId(name) {
       if (!this.metric.name) return;
       const newPluginId = this.metric.name
@@ -160,7 +160,7 @@ Polymer({
       this.set('metric.pluginId', newPluginId);
       this.set('metric.name', name);
       if (this.metric.script) {
-          this.debounce('_updateMetricScript', function() {
+          this.debounce('_updateMetricScript', () => {
               const lines = this.metric.script.trim().split('\n');
               if(lines[lines.length-1].startsWith('print')){
                 lines.pop();
@@ -199,15 +199,16 @@ Polymer({
       this.set('sendingData', true);
   },
 
-  _handleError(e, d) {
+  _handleError(e, _d) {
       this.set('sendingData', false);
       this.set('formError', true);
       console.log('error', e, e.detail)
       const errorMessage = e.detail.request.xhr.response || e.detail.error.message || "";
       this.shadowRoot.querySelector("#errormsg").textContent = errorMessage;
   },
-
+  /* eslint-disable no-param-reassign */
   _closeDialog () {
-      document.querySelectorAll('vaadin-dialog-overlay').forEach(function(el){el.opened = false;})
+      document.querySelectorAll('vaadin-dialog-overlay').forEach((el) => {el.opened = false;})
   }
+  /* eslint-enable no-param-reassign */
 });

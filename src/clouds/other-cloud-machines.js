@@ -45,21 +45,21 @@ Polymer({
       'machinesChanged(cloud.*, cloud.machines.*)'
   ],
 
-  machinesChanged(c,m){
+  machinesChanged(_c, _m){
       if (this.shadowRoot.querySelector('mist-list'))
           this.shadowRoot.querySelector('mist-list').fire('resize');
   },
 
     _computeMachines (cloud) {
         if (typeof this.cloud.machines === 'undefined'){
-            return;
+            return {};
         }
-        if (cloud.provider != "libvirt") {
+        if (cloud.provider !== "libvirt") {
             return this.cloud.machines || {};
         }
         // filter kvm hosts and push back to object
         const ms = Object.values(this.cloud.machines).filter((m) => {
-            return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type == "hypervisor";
+            return m.extra && m.extra.tags && m.extra.tags.type && m.extra.tags.type === "hypervisor";
         });
         const ret = {};
         for (let i=0; i<ms.length; i++) {
@@ -78,36 +78,38 @@ Polymer({
   },
 
   _getRenderers() {
-      const _this = this;
       return {
           'name': {
-              'body': function(item) {
+              'body': (item) => {
                   return `<strong class="name">${  item  }</strong>`;
-              }
+              },
+              'cmp': (row1, row2) => {
+                return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
+            }
           },
           'missing_since': {
-              'title': function(item, row){
+              'title': (_item, _row) => {
                   return 'missing since';
               },
-              'body': function(item, row) {
+              'body': (item, _row) => {
                   return item;
               }
           },
           'public_ips': {
-              'title': function(item, row){
+              'title': (_item, _row) => {
                   return 'public IP';
               },
-              'body': function(item, row) {
+              'body': (item, _row) => {
                   return item[0];
               }
           },
           'tags': {
-              'body': function(item, row) {
+              'body': (item, _row) => {
                   const tags = item;
                       let display = "";
                   for (let i=0; i<tags.length; i++){
                       display += `<span class='tag'>${tags[i].key}`;
-                      if (tags[i].value != undefined && tags[i].value != "")
+                      if (tags[i].value !== undefined && tags[i].value !== "")
                       display += `=${  tags[i].value}`;
                       display += "</span>";
                   }
