@@ -6,18 +6,22 @@ function numeral(num){
         return res;
     }
     const suffixes = {"3": "k", "6": "m", "9": "b", "12": "t", "15": "q"};
-    const toFormat = Number.isFinite(num) ? String(num) : num;
+    let toFormat = Number(num);
+    const prefix = toFormat < 0 ? "-" : "";
+    toFormat = Math.abs(toFormat);
+    if(toFormat < 1000){
+        return `${prefix}${String(toFormat.toFixed(2))}`;
+    }
+    toFormat = String(toFormat);
+    [toFormat] = toFormat.split(".");
     let res = "";
     const order = parseInt((toFormat.length-1)/3, 10) * 3;
-    if( order === 0){
-        return `${ toFormat }.00`;
-    }
     const comma = toFormat.length - order
     res = `${toFormat.slice(0, comma)}.`;
     const rightP = solveRight(toFormat.slice(comma));
     res += String(rightP);
     res += suffixes[order];
-    return res;
+    return `${prefix}${res}`;
 }
 
 function ratedCost(cost, rate) {
