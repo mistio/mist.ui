@@ -1,23 +1,37 @@
+/*Helper function to format a number that symbolizes monetary value to a shorter string,
+  eg: 12900000 turns into 12.9M
+  Takes input a Number or a String that can be cast into Number*/
 function numeral(num){
+    // This takes the digits that are on the right of where the . will land in the result
+    // eg 1234 will turn into 1.23 k, this function expects the 234 and returns the 23
     function solveRight(rightPart){
         let res = `${rightPart.slice(0,2)}.${rightPart.slice(2)}`;
         res = parseFloat(res);
         res = Math.round(res);
         return res;
     }
-    const suffixes = {"3": "k", "6": "m", "9": "b", "12": "t", "15": "q"};
-    const toFormat = Number.isFinite(num) ? String(num) : num;
-    let res = "";
-    const order = parseInt((toFormat.length-1)/3, 10) * 3;
-    if( order === 0){
-        return `${ toFormat }.00`;
+    // Map order number of digits to proper metric
+    const suffixes = {"3": "K", "6": "M", "9": "B", "12": "T", "15": "Q"};
+    let toFormat = Number(num);
+    // Check if the number is negative
+    const prefix = toFormat < 0 ? "-" : "";
+    toFormat = Math.abs(toFormat);
+    if(toFormat < 1000){
+        return `${prefix}${String(toFormat.toFixed(2))}`;
     }
+    toFormat = String(toFormat);
+    [toFormat] = toFormat.split(".");
+    let res = "";
+    // This is the order of magnitude, anything between 4 and 6 digits has order 3 and will end in K
+    // 7 and 9 digits will get M and so on
+    const order = parseInt((toFormat.length-1)/3, 10) * 3;
+    // This variable decides were the "." will be placed in the end result
     const comma = toFormat.length - order
     res = `${toFormat.slice(0, comma)}.`;
     const rightP = solveRight(toFormat.slice(comma));
     res += String(rightP);
     res += suffixes[order];
-    return res;
+    return `${prefix}${res}`;
 }
 
 function ratedCost(cost, rate) {
