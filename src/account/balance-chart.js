@@ -52,7 +52,7 @@ const BALANCE_GRAPH_OPTIONS = {
     yAxis: {
         type: 'value',
         axisLabel: {
-            formatter: 'value'
+            formatter: '${value}' // eslint-disable-line no-template-curly-in-string
         }
     },
     series: [
