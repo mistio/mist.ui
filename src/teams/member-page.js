@@ -212,9 +212,6 @@ Polymer({
                             <paper-button on-tap="_deleteMember" class="simple">Delete Member</paper-button>
                         </paper-listbox>
                     </paper-menu-button>
-                    <paper-button on-tap="_addMemberInTeams" class="simple white left-icon" style\$="color: [[section.color]]">
-                        <iron-icon icon="social:people" style\$="color: [[section.color]]"></iron-icon> Add in Teams
-                    </paper-button>
                 </div>
             </paper-material>
             <paper-material>
@@ -382,10 +379,5 @@ Polymer({
           dialog[i] = info[i];
       });
       dialog._openDialog();
-  },
-
-  _addMemberInTeams() {
-      this.dispatchEvent(new CustomEvent('go-to', { bubbles: true, composed: true, detail: { url: `/members/${  this.member.id  }/add-in-teams` } }));
-
   }
 });
