@@ -2,11 +2,8 @@
   eg: 12900000 turns into 12.9M
   Takes input a Number or a String that can be cast into Number*/
 function numeral(num){
-<<<<<<< HEAD
     if(typeof num !== "number" && typeof num !== "string")
         return "0.00"
-=======
->>>>>>> polymer3
     // This takes the digits that are on the right of where the . will land in the result
     // eg 1234 will turn into 1.23 k, this function expects the 234 and returns the 23
     function solveRight(rightPart){
