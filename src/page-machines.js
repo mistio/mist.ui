@@ -416,11 +416,11 @@ Polymer({
                 'cmp': (row1, row2) => {
                     const item1 = row1.cloud;
                     const item2 = row2.cloud;
-                    if (_this.model && _this.model.clouds && _this.model.clouds[item1.id] &&
-                        _this.model.clouds[item2.id]) {
-                        if (_this.model.clouds[item1.id].title < _this.model.clouds[item2.id].title)
+                    if (_this.model && _this.model.clouds && _this.model.clouds[item1] &&
+                        _this.model.clouds[item2]) {
+                        if (_this.model.clouds[item1].title < _this.model.clouds[item2].title)
                             return -1;
-                        if (_this.model.clouds[item1.id].title > _this.model.clouds[item2.id].title)
+                        if (_this.model.clouds[item1].title > _this.model.clouds[item2].title)
                             return 1;
                     }
                     return 0;
