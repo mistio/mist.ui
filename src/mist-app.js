@@ -195,6 +195,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                     <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
                     <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                     <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+                    <page-secrets name="secrets" route="{{subroute}}" model="[[model]]"></page-secrets>
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
                     <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
                     <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-schedules>
@@ -599,8 +600,7 @@ Polymer({
     _pageChanged(page) {
         this.set('count','');
         this.set('loading', true);
-        // Load page import on demand. Show 404 page if fails
-
+        // Load page import on demand. Show 404 page if fails;
         import(`./page-${page}.js`).then(this._hideLoader.bind(this),(reason)=>{console.log("FAILURE!! ", reason); this._showPage404();});
     },
 
@@ -948,6 +948,15 @@ Polymer({
             count: templatesCount,
             hideTileIfZero: true
         }, {
+            id: 'secrets',
+            color: '#000000',
+            icon: 'device:screen-lock-portrait',
+            add: '/secrets/+add',
+            sidebar: true,
+            tile: true,
+            count: 0,
+            hideTileIfZero: false
+        },{
             id: 'tunnels',
             color: '#795548',
             icon: 'editor:merge-type',
