@@ -37,7 +37,7 @@ Polymer({
                     <div id="secretContainer">
                         <paper-button hidden\$="[[visibleSecret]]" id="showSecretbtn" on-tap="showSecret">
                             <iron-icon icon="icons:visibility"></iron-icon> View Secret</paper-button>
-                        <div class="textarea" hidden\$="[[!visibleSecret]]" id="secretPrivate">[[privateKey]]</div>
+                        <div class="textarea" hidden\$="[[!visibleSecret]]" id="secretPrivate">[[secretValue]]</div>
                     </div>
                 </paper-material>
             </div>
@@ -59,6 +59,10 @@ Polymer({
         visibleSecret: {
             type: Boolean,
             value: false
+        },
+        secretValue:{
+            type: Object,
+            value: {}
         }
     },
 
@@ -75,8 +79,7 @@ Polymer({
     },
 
     handleGetSecretDataResponse(resp) {
-        debugger;
-        console.log(resp)
+        this.set('secretValue', resp.detail.response);
     },
 
     hideSecret() {
