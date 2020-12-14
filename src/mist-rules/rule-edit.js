@@ -1135,7 +1135,7 @@ Polymer({
             res[chunks[i]] = {};
           }
           if (i === chunks.length - 1) {
-            res[chunks[i]] = chunks[i];
+            res[chunks[i]] = data.detail.response[metric].id;
           }
           res = res[chunks[i]];
         }
@@ -1254,13 +1254,13 @@ Polymer({
       const { queryIndex } = e.detail;
       this.set(`rule.queries.${queryIndex}.target`, selectedMetric);
       this.shadowRoot
-        .querySelector(`paper-dropdown-menu#target-metrics-+ ${queryIndex}`)
+        .querySelector(`paper-dropdown-menu#target-metrics-${queryIndex}`)
         .shadowRoot.querySelector('paper-input')
         .shadowRoot.querySelector('paper-input-container')
         .querySelector('iron-input')
         .querySelector('input').value = selectedMetric;
       this.shadowRoot.querySelector(
-        `paper-dropdown-menu#target-metrics-+ ${queryIndex}`
+        `paper-dropdown-menu#target-metrics-${queryIndex}`
       ).selected = selectedMetric;
 
       this._focusOnOperator(e, queryIndex);
