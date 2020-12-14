@@ -731,7 +731,7 @@ Polymer({
                   class="inline webhook-url"
                   placeholder="URL to be invoked"
                   on-value-changed="_validateRule"
-                  value="{{ruleAction.params}}"
+                  value="{{ruleAction.url}}"
                   pattern="^https://*"
                 ></paper-input>
                 <paper-dropdown-menu label="method" class="inline">
@@ -1115,7 +1115,7 @@ Polymer({
     let tagsString = '';
     Object.keys(tags || {}).forEach(p => {
       tagsString += p;
-      if (tags[p]) tagsString += `: + ${tags[p]}`;
+      if (tags[p]) tagsString += `:${tags[p]}`;
       tagsString += ',';
     });
     console.log(tagsString);
