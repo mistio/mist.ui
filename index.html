@@ -13,6 +13,21 @@
     <link tal:condition="theme|nothing" rel="shortcut icon" sizes="32x32" tal:attributes="href string:/static/${theme}-favicon.ico">
     <link tal:condition="not theme" rel="shortcut icon" sizes="32x32" tal:attributes="href string:assets/app-icon-32.png">
     <meta name="theme-color" content="#fff">
+    <script>
+        window.rbac = {
+            properties: {},
+            check_perm() {
+                console.log('dummy check perm');
+                return true;
+            },
+        };
+    </script>
+    <script tal:condition="features['rbac']" tal:attributes="type string:module">
+        // eslint-disable-next-line
+        import { rbacBehavior } from "/static/ui/mist-rbac-behavior/mist-rbac-behavior.js";
+
+        window.rbac = rbacBehavior;
+    </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async tal:condition="google_analytics_id" src="https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}"></script>
     <script type="module">
@@ -31,16 +46,6 @@
 <body>
     <mist-app unresolved>
     </mist-app>
-    <script tal:condition="features['rbac']" tal:attributes="type string:module">
-        import {rbacBehavior} from "./src/rbac-behavior.js"
-        // eslint-disable-next-line
-        import {rbacBehavior as rbacTrue} from "/static/ui/mist-rbac-behavior/mist-rbac-behavior.js";
-
-        console.log("Check rbac", rbacBehavior);
-        console.log("Check true", rbacTrue);
-        rbacBehavior.check_perm = rbacTrue.check_perm;
-        rbacBehavior.is_member = rbacTrue.is_member;
-    </script>
     <script type="module">
     /* eslint-disable no-undef */
     import './src/mist-app.js';

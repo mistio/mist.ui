@@ -7,7 +7,6 @@ import './machines/machine-page.js';
 import './machines/machine-actions.js';
 import { ratedCost } from './helpers/utils.js';
 import moment from '../node_modules/moment/src/moment.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -166,7 +165,7 @@ Polymer({
     ></iron-ajax>
   `,
   is: 'page-machines',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {
