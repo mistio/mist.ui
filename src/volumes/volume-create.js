@@ -403,13 +403,11 @@ Polymer({
       `fields.${this.resourceGroupsFieldIndex}.options`,
       e.detail.response || []
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'volume-create.html' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'volume-create.html' },
+      })
+    );
     this.set(`fields.${this.resourceGroupsFieldIndex}.loader`, false);
   },
 
@@ -446,13 +444,11 @@ Polymer({
       options.push({ title: item, val: item });
     });
     this.set(`fields.${this.storageClassesFieldIndex}.options`, options || []);
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'volume-create.html' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'volume-create.html' },
+      })
+    );
     this.set(`fields.${this.storageClassesFieldIndex}.loader`, false);
   },
 
@@ -488,13 +484,11 @@ Polymer({
       `fields.${this.lxdStoragePoolsFieldIndex}.options`,
       e.detail.response || []
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'volume-create.html' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'volume-create.html' },
+      })
+    );
     this.set(`fields.${this.lxdStoragePoolsFieldIndex}.loader`, false);
   },
 

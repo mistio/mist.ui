@@ -13,10 +13,10 @@ Polymer({
       }
     </style>
     <div id="content">
-        <h1>404</h1> 
-        <p>Page can not be found.</p>
-        <a href="/"><paper-button>Back to home</paper-button></a>
+      <h1>404</h1>
+      <p>Page can not be found.</p>
+      <a href="/"><paper-button>Back to home</paper-button></a>
     </div>
   `,
-  is: 'page-not-found'
+  is: 'page-not-found',
 });

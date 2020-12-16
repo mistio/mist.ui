@@ -5,11 +5,11 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  * @polymerBehavior
  */
 export const mistListsBehavior = {
-    properties: {},
-    listeners: {
-        'action-finished': 'clearListSelection'
-    },
-    clearListSelection(){
-        this.set('selectedItems', []);
-    },
+  properties: {},
+  listeners: {
+    'action-finished': 'clearListSelection',
+  },
+  clearListSelection() {
+    this.set('selectedItems', []);
+  },
 };

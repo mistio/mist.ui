@@ -9,36 +9,40 @@ import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js'
 
 Polymer({
   _template: html`
-        <style include="shared-styles dialogs">
-        :host {
-            width: 100%;
-            position: relative;
-        }
-        </style>
-        <vaadin-dialog id="teamAddModal" theme="mist-dialog" with-backdrop="">
-            <template>
-                <team-add-element organization="[[organization]]" rbac="[[rbac]]" referral="[[referral]]"></team-add-element>
-            </template>
-        </vaadin-dialog>
-`,
+    <style include="shared-styles dialogs">
+      :host {
+        width: 100%;
+        position: relative;
+      }
+    </style>
+    <vaadin-dialog id="teamAddModal" theme="mist-dialog" with-backdrop="">
+      <template>
+        <team-add-element
+          organization="[[organization]]"
+          rbac="[[rbac]]"
+          referral="[[referral]]"
+        ></team-add-element>
+      </template>
+    </vaadin-dialog>
+  `,
 
   is: 'team-add',
 
   properties: {
-      organization: {
-          type: Object
-      },
-      referral: {
-          type: String,
-          value: null
-      },
-      rbac: {
-          type: Boolean,
-          value: false
-      }
+    organization: {
+      type: Object,
+    },
+    referral: {
+      type: String,
+      value: null,
+    },
+    rbac: {
+      type: Boolean,
+      value: false,
+    },
   },
 
   openDialog() {
-      this.$.teamAddModal.opened = true;
-  }
+    this.$.teamAddModal.opened = true;
+  },
 });

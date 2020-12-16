@@ -3,11 +3,7 @@ import { IronValidatorBehavior } from '../../node_modules/@polymer/iron-validato
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 
 Polymer({
+  is: 'custom-validator',
 
-    is: 'custom-validator',
-
-    behaviors: [
-        IronValidatorBehavior
-    ]
-
+  behaviors: [IronValidatorBehavior],
 });

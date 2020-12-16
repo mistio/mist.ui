@@ -5,7 +5,6 @@ import '../../node_modules/@polymer/polymer/polymer-legacy.js';
  * @polymerBehavior
  */
 export const stackFormsBehavior = {
-    properties: {},
-    listeners: {
-    },
-}
+  properties: {},
+  listeners: {},
+};
