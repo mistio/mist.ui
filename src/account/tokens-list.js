@@ -152,7 +152,8 @@ Polymer({
             <p>* Password is required to create a token</p>
             <div class="bottom-actions">
               <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog"
-                >Cancel</paper-button>
+                >Cancel</paper-button
+              >
               <paper-button
                 id="Create"
                 autofocus=""
@@ -204,8 +205,7 @@ Polymer({
 
   is: 'tokens-list',
 
-  behaviors: [
-  ],
+  behaviors: [],
 
   properties: {
     user: {

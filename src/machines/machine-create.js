@@ -2953,7 +2953,7 @@ Polymer({
       // set attribute origin
       const origin = window.location.pathname;
       const qParams = {
-        origin: origin,
+        origin,
       };
       this.dispatchEvent(
         new CustomEvent('go-to', {

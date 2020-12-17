@@ -55,107 +55,113 @@ documentContainer.innerHTML = `<dom-module id="expose-ports">
 document.head.appendChild(documentContainer.content);
 
 Polymer({
-    is: 'expose-ports',
+  is: 'expose-ports',
 
-    properties: {
-        machine: {
-            type: Object
-        },
-        form: {
-            type: Object,
-            value(){
-                return {action: 'expose'}
-            }
-        },
-        provider: {
-            type: String
-        },
-        ports: {
-            type: Array,
-        },
-        service_type:{
-            type: String
-        },
-        fields: {
-            type: Array,
-            computed: '_computeFields(machine, provider, ports)'
-        }
+  properties: {
+    machine: {
+      type: Object,
     },
-    listeners: {
-        'app-form-cancel': '_updatePorts',
+    form: {
+      type: Object,
+      value() {
+        return { action: 'expose' };
+      },
     },
-    observers: [
-        '_updatePorts(machine, machine.extra.port_forwards.*)',
-    ],
-    _serviceTypeUpdated(e) {
-        console.log('Service Type Updated: ', e);
-        this._updatePorts();
+    provider: {
+      type: String,
     },
-    _updatePorts(_machine, _portForwards) {
-        const ports = [];
-        if (this.machine && this.machine.extra && this.machine.extra.port_forwards) {
-            for (let i=0; i < this.machine.extra.port_forwards.length; i++){
-                const port = this.machine.extra.port_forwards[i];
-                const newPort = {
-                    port: port.public_port,
-                    target_port: port.local_port,
-                    protocol: port.protocol,
-                    params: port.params || "",
-                    service_type: port.service_type
-                }
-                ports.push(newPort);
-            }
-        }
-        this.set('form.action', 'expose');
-        this.set('ports', JSON.parse(JSON.stringify(ports)));
+    ports: {
+      type: Array,
     },
-    _computeFields(_machine, provider, _ports) {
-        const providerFields = MACHINE_CREATE_FIELDS.find((x) => {
-            return x.provider === provider;
-        });
-        // locate port fieldgroup definition
-        const portFieldGroup = providerFields && providerFields.fields.find((f) => {
-            return f.name === 'port_forwards';
-        });
-        
-        if (portFieldGroup) {
-            // locate ports field
-            const fields = portFieldGroup.subfields.filter((f) => {
-        
-                return f.type === 'list';
-            });
-        
-            const serviceTypeField = portFieldGroup.subfields.filter((f) => {
-                return f.type === 'dropdown';
-            });
-            if (fields) {
-                const {allPorts} = this;
-                const cleanCopy = JSON.parse(JSON.stringify(fields));
-                if(allPorts){
-                    for(const port of allPorts){
-                        if(!serviceTypeField[0] || port.service_type === serviceTypeField[0].value){
-                            const toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
-                            toAdd[0].value = port.port;
-                            toAdd[1].value = port.target_port;
-                            toAdd[2].value = port.protocol.toUpperCase();
-                            cleanCopy[0].items.push(toAdd);
-                        }
-                    }
-                }
-                if(serviceTypeField && serviceTypeField.length > 0){
-                    cleanCopy.unshift(serviceTypeField[0]);
-                }
-                return cleanCopy;
-            }
-        }
-        return [];
+    service_type: {
+      type: String,
     },
-    _openDialog(_e) {
-        // Recompute ports on open to reset when canceled
-        this._updatePorts();
-        this.$.exposePortsDialog.opened = true;
+    fields: {
+      type: Array,
+      computed: '_computeFields(machine, provider, ports)',
     },
-    _closeDialog(_e) {
-        this.$.exposePortsDialog.opened = false;
+  },
+  listeners: {
+    'app-form-cancel': '_updatePorts',
+  },
+  observers: ['_updatePorts(machine, machine.extra.port_forwards.*)'],
+  _serviceTypeUpdated(e) {
+    console.log('Service Type Updated: ', e);
+    this._updatePorts();
+  },
+  _updatePorts(_machine, _portForwards) {
+    const ports = [];
+    if (
+      this.machine &&
+      this.machine.extra &&
+      this.machine.extra.port_forwards
+    ) {
+      for (let i = 0; i < this.machine.extra.port_forwards.length; i++) {
+        const port = this.machine.extra.port_forwards[i];
+        const newPort = {
+          port: port.public_port,
+          target_port: port.local_port,
+          protocol: port.protocol,
+          params: port.params || '',
+          service_type: port.service_type,
+        };
+        ports.push(newPort);
+      }
     }
+    this.set('form.action', 'expose');
+    this.set('ports', JSON.parse(JSON.stringify(ports)));
+  },
+  _computeFields(_machine, provider, _ports) {
+    const providerFields = MACHINE_CREATE_FIELDS.find(x => {
+      return x.provider === provider;
+    });
+    // locate port fieldgroup definition
+    const portFieldGroup =
+      providerFields &&
+      providerFields.fields.find(f => {
+        return f.name === 'port_forwards';
+      });
+
+    if (portFieldGroup) {
+      // locate ports field
+      const fields = portFieldGroup.subfields.filter(f => {
+        return f.type === 'list';
+      });
+
+      const serviceTypeField = portFieldGroup.subfields.filter(f => {
+        return f.type === 'dropdown';
+      });
+      if (fields) {
+        const { allPorts } = this;
+        const cleanCopy = JSON.parse(JSON.stringify(fields));
+        if (allPorts) {
+          for (const port of allPorts) {
+            if (
+              !serviceTypeField[0] ||
+              port.service_type === serviceTypeField[0].value
+            ) {
+              const toAdd = JSON.parse(JSON.stringify(cleanCopy[0].options));
+              toAdd[0].value = port.port;
+              toAdd[1].value = port.target_port;
+              toAdd[2].value = port.protocol.toUpperCase();
+              cleanCopy[0].items.push(toAdd);
+            }
+          }
+        }
+        if (serviceTypeField && serviceTypeField.length > 0) {
+          cleanCopy.unshift(serviceTypeField[0]);
+        }
+        return cleanCopy;
+      }
+    }
+    return [];
+  },
+  _openDialog(_e) {
+    // Recompute ports on open to reset when canceled
+    this._updatePorts();
+    this.$.exposePortsDialog.opened = true;
+  },
+  _closeDialog(_e) {
+    this.$.exposePortsDialog.opened = false;
+  },
 });

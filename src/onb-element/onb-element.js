@@ -416,7 +416,7 @@ Polymer({
     if (emails) {
       this.$.invitePeopleRequest.headers['Content-Type'] = 'application/json';
       this.$.invitePeopleRequest.headers['Csrf-Token'] = CSRFToken.value;
-      this.$.invitePeopleRequest.body = { emails: emails };
+      this.$.invitePeopleRequest.body = { emails, };
       this.$.invitePeopleRequest.generateRequest();
     } else {
       this.invitePeopleError();

@@ -39,6 +39,6 @@ export default merge(baseConfig, {
   plugins: [
     dynamicImportVars({
       // options
-    })
-  ]
+    }),
+  ],
 });

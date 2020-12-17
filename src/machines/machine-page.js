@@ -797,8 +797,8 @@ Polymer({
                     href$="/volumes/[[volumeId]]"
                   >
                     <iron-icon icon="device:storage"></iron-icon
-                    >[[_computeVolumeName(volumeId)]]</a
-                  >
+                    >[[_computeVolumeName(volumeId)]]
+                  </a>
                   <template
                     is="dom-if"
                     if="[[_computeCanDetachVolume(volumeId)]]"
