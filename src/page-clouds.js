@@ -155,6 +155,15 @@ Polymer({
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
         },
+        cmp: (row1, row2) => {
+          const item1 =
+            (row1.machines && Object.keys(row1.machines).length) || 0;
+          const item2 =
+            (row2.machines && Object.keys(row2.machines).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
+        },
       },
       volumes: {
         body: (item, _row) => {
