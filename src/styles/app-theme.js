@@ -397,6 +397,6 @@ http://www.google.com/design/spec/layout/adaptive-ui.html#adaptive-ui-breakpoint
 /* END OF OLD app-theme.css */
 </style>
 </custom-style>
-`
+`;
 
 document.head.appendChild(documentContainer.content);

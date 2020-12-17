@@ -4,8 +4,8 @@ import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 /* eslint-disable import/extensions */
 // Linter complains about js extension but these are typescript...
-import "../../node_modules/xterm";
-import "../../node_modules/xterm-addon-fit";
+import '../../node_modules/xterm';
+import '../../node_modules/xterm-addon-fit';
 import '../../node_modules/xterm-addon-attach';
 /* eslint-enable import/extensions */
 
@@ -223,152 +223,160 @@ documentContainer.innerHTML = `<style>
 document.head.appendChild(documentContainer.content);
 
 Polymer({
-    is: 'xterm-dialog',
+  is: 'xterm-dialog',
 
-    properties: {
-        term: {
-            type: Object
-        },
-        target: {
-            type: Object
-        },
-        height: {
-            type: Number,
-            value: 0
-        },
-        reason: {
-            type: String,
-            value: null
-        },
-        controls: {
-            type: Boolean,
-            value: true
-        }
+  properties: {
+    term: {
+      type: Object,
     },
-    listeners: {
-        'iron-overlay-closed': '_modalClosed'
+    target: {
+      type: Object,
     },
-    ready() {
-        console.debug('xterm loaded');
+    height: {
+      type: Number,
+      value: 0,
     },
-    // disablin no undef because of the typescript imports
-    /* eslint-disable no-undef */
-    attached() {
-        console.debug('xterm attached');
-        this.socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
-        
-        this.term = new Terminal({
-            cursorBlink: true
-        });
-        const terminalContainer = this.shadowRoot.querySelector('#terminal-container');
-        this.fitAddon = new FitAddon.FitAddon();
-        this.term.loadAddon(this.fitAddon);  
-        this.term.open(terminalContainer);
-
-        const [newCols, newRows] = this.resizeTerminal();
-
-        const ips = [].concat(this.target.public_ips).concat(this.target.private_ips);
-        if (ips[0])
-            this.term.write(`Connecting to ${  ips[0]  }...\r\n`);
-
-        const {socket} = this;
-        this.attachAddon = new AttachAddon.AttachAddon(socket);
-        this.term.loadAddon(this.attachAddon);
-        this.term.onData((data, _ev) => {
-            socket.send('msg', 'shell', 'shell_data', [data]);
-        });
-        socket.send('sub', 'shell');
-
-        const payload = {
-            cols: newCols,
-            rows: newRows,
-            cloud_id: '',
-            machine_id: '',
-            host: ''
-        };
-
-        if (this.target.job_id) {
-            payload.job_id = this.target.job_id;
-            payload.provider = 'docker';
-            payload.host = '';
-        } else {
-            payload.cloud_id = this.target.cloud;
-            payload.machine_id = this.target.id;
-            this.set("style.position", "fixed");
-        }
-
-        if (this.target.provider === 'docker' && this.target.key_associations === false) {
-            payload.provider = 'docker';
-            payload.host = '';
-        } else if (this.target.provider === 'kubevirt') {
-            payload.provider = 'kubevirt';
-            payload.host = 'kubevirt'; // otherwise an error is thrown in the api
-        } else if (this.target.provider === 'lxd'){
-            payload.provider = 'lxd';
-            [payload.host] = ips;
-        } else {
-            payload.cloud_id = this.target.cloud;
-            payload.machine_id = this.target.id;
-            [payload.host] = ips; // TODO: Remove this
-        }
-
-        socket.send('msg', 'shell', 'shell_open', [payload]);
-
-        socket.set('term', this.term);
-
-        // Add event handler for window resize
-        this.resizeHandler = () => {
-            this.resizeTerminal();
-        };
-        window.addEventListener("resize", this.resizeHandler,{passive: true});
-        const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
-        textArea.focus();
+    reason: {
+      type: String,
+      value: null,
     },
-    /* eslint-enable no-undef */
-    /* eslint-disable no-param-reassign */
-    resizeTerminal(newRows, newCols) {
-        const prevCols = this.term.cols;
-        const prevRows = this.term.rows;
-        if (newRows && newCols)
-            this.term.resize(newCols, newRows);
-        else {
-            this.fitAddon.fit();
-            if (!newRows)
-                newRows = this.term.rows;
-            if (!newCols)
-                newCols = this.term.cols;
-        }
-        if (newCols !== prevCols || newRows !== prevRows) {
-            console.log('resize term', newCols, newRows);
-            this.socket.send(
-                'msg',
-                'shell',
-                'shell_resize',
-                [newCols, newRows]);
-        }
-        return [newCols, newRows];
+    controls: {
+      type: Boolean,
+      value: true,
     },
-    /* eslint-enable no-param-reassign */
+  },
+  listeners: {
+    'iron-overlay-closed': '_modalClosed',
+  },
+  ready() {
+    console.debug('xterm loaded');
+  },
+  // disablin no undef because of the typescript imports
+  /* eslint-disable no-undef */
+  attached() {
+    console.debug('xterm attached');
+    this.socket = document
+      .querySelector('mist-app')
+      .shadowRoot.querySelector('mist-socket');
 
-    detached() {
-        console.debug('xterm detached');
-        const socket = document.querySelector('mist-app').shadowRoot.querySelector('mist-socket');
-        socket.send('uns', 'shell');
-        window.removeEventListener("resize", this.resizeHandler);
-    },
-    _closeDialog(_e) {
-        // this.$.dialogModal.close();
-        this.remove();
-    },
-    _modalClosed(e) {
-        if (e.srcElement.id === 'dialogModal') {
-            console.log(this.$.dialogModal.closingReason);
-            this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {
-                response: this.$.dialogModal.closingReason,
-                reason: this.reason
-            } }));
+    this.term = new Terminal({
+      cursorBlink: true,
+    });
+    const terminalContainer = this.shadowRoot.querySelector(
+      '#terminal-container'
+    );
+    this.fitAddon = new FitAddon.FitAddon();
+    this.term.loadAddon(this.fitAddon);
+    this.term.open(terminalContainer);
 
-        }
-        this._closeDialog();
+    const [newCols, newRows] = this.resizeTerminal();
+
+    const ips = []
+      .concat(this.target.public_ips)
+      .concat(this.target.private_ips);
+    if (ips[0]) this.term.write(`Connecting to ${ips[0]}...\r\n`);
+
+    const { socket } = this;
+    this.attachAddon = new AttachAddon.AttachAddon(socket);
+    this.term.loadAddon(this.attachAddon);
+    this.term.onData((data, _ev) => {
+      socket.send('msg', 'shell', 'shell_data', [data]);
+    });
+    socket.send('sub', 'shell');
+
+    const payload = {
+      cols: newCols,
+      rows: newRows,
+      cloud_id: '',
+      machine_id: '',
+      host: '',
+    };
+
+    if (this.target.job_id) {
+      payload.job_id = this.target.job_id;
+      payload.provider = 'docker';
+      payload.host = '';
+    } else {
+      payload.cloud_id = this.target.cloud;
+      payload.machine_id = this.target.id;
+      this.set('style.position', 'fixed');
     }
+
+    if (
+      this.target.provider === 'docker' &&
+      this.target.key_associations === false
+    ) {
+      payload.provider = 'docker';
+      payload.host = '';
+    } else if (this.target.provider === 'kubevirt') {
+      payload.provider = 'kubevirt';
+      payload.host = 'kubevirt'; // otherwise an error is thrown in the api
+    } else if (this.target.provider === 'lxd') {
+      payload.provider = 'lxd';
+      [payload.host] = ips;
+    } else {
+      payload.cloud_id = this.target.cloud;
+      payload.machine_id = this.target.id;
+      [payload.host] = ips; // TODO: Remove this
+    }
+
+    socket.send('msg', 'shell', 'shell_open', [payload]);
+
+    socket.set('term', this.term);
+
+    // Add event handler for window resize
+    this.resizeHandler = () => {
+      this.resizeTerminal();
+    };
+    window.addEventListener('resize', this.resizeHandler, { passive: true });
+    const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
+    textArea.focus();
+  },
+  /* eslint-enable no-undef */
+  /* eslint-disable no-param-reassign */
+  resizeTerminal(newRows, newCols) {
+    const prevCols = this.term.cols;
+    const prevRows = this.term.rows;
+    if (newRows && newCols) this.term.resize(newCols, newRows);
+    else {
+      this.fitAddon.fit();
+      if (!newRows) newRows = this.term.rows;
+      if (!newCols) newCols = this.term.cols;
+    }
+    if (newCols !== prevCols || newRows !== prevRows) {
+      console.log('resize term', newCols, newRows);
+      this.socket.send('msg', 'shell', 'shell_resize', [newCols, newRows]);
+    }
+    return [newCols, newRows];
+  },
+  /* eslint-enable no-param-reassign */
+
+  detached() {
+    console.debug('xterm detached');
+    const socket = document
+      .querySelector('mist-app')
+      .shadowRoot.querySelector('mist-socket');
+    socket.send('uns', 'shell');
+    window.removeEventListener('resize', this.resizeHandler);
+  },
+  _closeDialog(_e) {
+    // this.$.dialogModal.close();
+    this.remove();
+  },
+  _modalClosed(e) {
+    if (e.srcElement.id === 'dialogModal') {
+      console.log(this.$.dialogModal.closingReason);
+      this.dispatchEvent(
+        new CustomEvent('confirmation', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            response: this.$.dialogModal.closingReason,
+            reason: this.reason,
+          },
+        })
+      );
+    }
+    this._closeDialog();
+  },
 });

@@ -178,11 +178,11 @@ Polymer({
   },
 
   _computeType(type, value) {
-      return type === value;
+    return type === value;
   },
 
   _openDialog(_e) {
-      this.$.dialogModal.opened = true;
+    this.$.dialogModal.opened = true;
   },
 
   _closeDialog(e) {
@@ -191,15 +191,21 @@ Polymer({
   },
 
   _modalClosed(_e) {
-      // var normalizedEvent = Polymer.dom(e);
-      // if (e.target.id == 'dialogModal') {
-          // console.log(this.$.dialogModal.closingReason);
-          this.dispatchEvent(new CustomEvent('confirmation', { bubbles: true, composed: true, detail: {
-              response: 'confirm',
-              confirmed: true,
-              reason: this.reason
-          } }));
-      // }
+    // var normalizedEvent = Polymer.dom(e);
+    // if (e.target.id == 'dialogModal') {
+    // console.log(this.$.dialogModal.closingReason);
+    this.dispatchEvent(
+      new CustomEvent('confirmation', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          response: 'confirm',
+          confirmed: true,
+          reason: this.reason,
+        },
+      })
+    );
+    // }
   },
 
   _calcDisplayButtons() {

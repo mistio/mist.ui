@@ -38,9 +38,15 @@ Polymer({
       }
 
       #main {
-        background-color: var(--paper-chip-background-color, var(--paper-grey-200));
+        background-color: var(
+          --paper-chip-background-color,
+          var(--paper-grey-200)
+        );
         position: relative;
-        color: var(--paper-chip-secondary-text-color, var(--secondary-text-color));
+        color: var(
+          --paper-chip-secondary-text-color,
+          var(--secondary-text-color)
+        );
         @apply --layout-vertical;
       }
 
@@ -73,7 +79,10 @@ Polymer({
         vertical-align: middle;
         font-size: 16px;
         font-weight: bold;
-        background-color: var(--paper-chip-icon-background-color, var(--paper-grey-500));
+        background-color: var(
+          --paper-chip-icon-background-color,
+          var(--paper-grey-500)
+        );
         color: var(--paper-chip-icon-text-color, var(--text-primary-color));
         /*@apply --layout-flex;*/
         display: block;
@@ -126,34 +135,32 @@ Polymer({
         </div>
       </div>
     </paper-material>
-`,
+  `,
 
   is: 'cloud-chip',
 
   properties: {
     cloud: {
       type: Object,
-      notify: true
+      notify: true,
     },
     online: {
       type: Boolean,
       reflectToAttribute: true,
       notify: true,
-      value: true
+      value: true,
     },
     offline: {
       type: Boolean,
       reflectToAttribute: true,
       notify: true,
-      value: false
+      value: false,
     },
   },
 
-  observers: [
-    '_computeIsOnline(cloud.enabled,cloud.state)',
-  ],
+  observers: ['_computeIsOnline(cloud.enabled,cloud.state)'],
 
-  ready () {
+  ready() {
     this.cloud = {};
     if (this.$.removeBtn) {
       // disable tabindex on remove button so that tabindex can be used for chips
@@ -161,7 +168,7 @@ Polymer({
     }
   },
 
-  _computeIsOnline (_enabled, _state) {
+  _computeIsOnline(_enabled, _state) {
     if (this.cloud) {
       if (this.cloud.state === 'online') {
         this.set('online', true);
@@ -178,10 +185,12 @@ Polymer({
    *
    * @event remove
    */
-  remove () {
-    const e = this.dispatchEvent(new CustomEvent('remove', {}, this, false, true));
+  remove() {
+    const e = this.dispatchEvent(
+      new CustomEvent('remove', {}, this, false, true)
+    );
     if (!e.defaultPrevented) {
       this.parentNode.removeChild(this);
     }
-  }
+  },
 });

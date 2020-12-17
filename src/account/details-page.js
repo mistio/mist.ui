@@ -492,7 +492,7 @@ Polymer({
     const that = this;
     this.$.orgAvatarUpload.addEventListener(
       'upload-response',
-      (e) => {
+      e => {
         if (e.detail.xhr.status === 200) {
           that.orgAvatar = JSON.parse(e.detail.xhr.response).id;
         }

@@ -4,7 +4,7 @@ import '../../node_modules/@polymer/paper-input/paper-input.js';
 import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
 import '../../node_modules/@polymer/paper-input/paper-input-error.js';
 import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import { CSRFToken } from '../helpers/utils.js'
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -13,11 +13,11 @@ Polymer({
     <style include="shared-styles dialogs forms">
       :host {
         display: inline;
-        color: rgba(255,255,255,0.87);
+        color: rgba(255, 255, 255, 0.87);
       }
       paper-checkbox {
-          --paper-checkbox-checked-color: var(--mist-blue) !important;
-          --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        --paper-checkbox-checked-color: var(--mist-blue) !important;
+        --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
       }
       .no-clouds {
         font-style: italic;
@@ -55,145 +55,214 @@ Polymer({
         margin: 24px 0;
       }
     </style>
-    
-    <paper-dialog id="providerSearch" entry-animation="scale-up-animation" exit-animation="fade-out-animation" with-backdrop="">
+
+    <paper-dialog
+      id="providerSearch"
+      entry-animation="scale-up-animation"
+      exit-animation="fade-out-animation"
+      with-backdrop=""
+    >
       <h2>Search and Import Images</h2>
       <paper-dialog-scrollable>
-          <paper-input value="{{queryTerm}}" label="Search term" autofocus=""></paper-input>
-          <p class="no-clouds" hidden\$="[[clouds.length]]">No clouds found.</p>
-          <p class="sup">Image search is supported in EC2 and Docker clouds.</p>
+        <paper-input
+          value="{{queryTerm}}"
+          label="Search term"
+          autofocus=""
+        ></paper-input>
+        <p class="no-clouds" hidden$="[[clouds.length]]">No clouds found.</p>
+        <p class="sup">Image search is supported in EC2 and Docker clouds.</p>
       </paper-dialog-scrollable>
 
       <div class="progress">
-          <paper-progress id="progress" indeterminate="" hidden\$="[[!loading]]"></paper-progress>
-          <paper-progress id="progresserror" class="progresserror" value="100" hidden\$="[[!formError]]"></paper-progress>
-          <hr class="appform">
-          <p id="progressmessage" class="errormsg-container" hidden\$="[[!formError]]"><iron-icon icon="icons:error-outline"></iron-icon><span id="errormsg"></span></p>
+        <paper-progress
+          id="progress"
+          indeterminate=""
+          hidden$="[[!loading]]"
+        ></paper-progress>
+        <paper-progress
+          id="progresserror"
+          class="progresserror"
+          value="100"
+          hidden$="[[!formError]]"
+        ></paper-progress>
+        <hr class="appform" />
+        <p
+          id="progressmessage"
+          class="errormsg-container"
+          hidden$="[[!formError]]"
+        >
+          <iron-icon icon="icons:error-outline"></iron-icon
+          ><span id="errormsg"></span>
+        </p>
       </div>
 
       <div class="btn-group">
-          <paper-button dialog-dismiss="">Cancel</paper-button>
-          <paper-button class="blue" disabled\$="[[!formReady]]" on-tap="_submitForm">Submit</paper-button>
+        <paper-button dialog-dismiss="">Cancel</paper-button>
+        <paper-button
+          class="blue"
+          disabled$="[[!formReady]]"
+          on-tap="_submitForm"
+          >Submit</paper-button
+        >
       </div>
     </paper-dialog>
 
-    <iron-ajax id="request" handle-as="xml" method="GET" loading="{{loading}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
-`,
+    <iron-ajax
+      id="request"
+      handle-as="xml"
+      method="GET"
+      loading="{{loading}}"
+      on-response="handleResponse"
+      on-error="handleError"
+    ></iron-ajax>
+  `,
 
   is: 'image-provider-search',
 
   properties: {
-    queryTerm: { 
+    queryTerm: {
       type: String,
-      value: ''
+      value: '',
     },
     clouds: {
-      type: Array
+      type: Array,
     },
     formReady: {
       type: Boolean,
-      value: true
+      value: true,
     },
     loading: {
       type: Boolean,
-      value: false
+      value: false,
     },
     formError: {
       type: Boolean,
-      value: false
+      value: false,
     },
     selectedClouds: {
-      type: Array
+      type: Array,
     },
     activeSearchIndex: {
       type: Number,
-      value: 0
-    }
+      value: 0,
+    },
   },
 
-  observers:[
+  observers: [
     'updateFormReady(queryTerm, selectedClouds, loading)',
-    'queryTermChanged(queryTerm)'
+    'queryTermChanged(queryTerm)',
   ],
 
   listeners: {
-    'keyup': 'hotkeys',
-    'change': 'toggleSelection'
+    keyup: 'hotkeys',
+    change: 'toggleSelection',
   },
 
-  attached() {
-  },
+  attached() {},
 
   _openDialog() {
     this.$.providerSearch.open();
   },
 
-  updateFormReady(queryTerm, _selectedClouds, _loading){
-    this.set('formReady', queryTerm && queryTerm.length && this.clouds.length && !this.loading);
+  updateFormReady(queryTerm, _selectedClouds, _loading) {
+    this.set(
+      'formReady',
+      queryTerm && queryTerm.length && this.clouds.length && !this.loading
+    );
   },
 
   handleResponse(e) {
     this.$.providerSearch.close();
     const newImages = JSON.parse(e.detail.xhr.response);
-    console.log('handleResponse',e, newImages.length);
+    console.log('handleResponse', e, newImages.length);
     if (newImages.length) {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `${newImages.length} new images in ${this.get(`clouds.${this.activeSearchIndex}.title`)}. Updating..`, duration: 3000} }));
-      this.dispatchEvent(new CustomEvent('add-new-images', { bubbles: true, composed: true, detail: {images: newImages, cloud: this.get(`clouds.${this.activeSearchIndex}`)} }));
-
+      this.dispatchEvent(
+        new CustomEvent('toast', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            msg: `${newImages.length} new images in ${this.get(
+              `clouds.${this.activeSearchIndex}.title`
+            )}. Updating..`,
+            duration: 3000,
+          },
+        })
+      );
+      this.dispatchEvent(
+        new CustomEvent('add-new-images', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            images: newImages,
+            cloud: this.get(`clouds.${this.activeSearchIndex}`),
+          },
+        })
+      );
+    } else {
+      this.dispatchEvent(
+        new CustomEvent('toast', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            msg: `No new images found in ${this.get(
+              `clouds.${this.activeSearchIndex}.title`
+            )}`,
+            duration: 3000,
+          },
+        })
+      );
     }
-    else {
-      this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail: {msg: `No new images found in ${this.get(`clouds.${this.activeSearchIndex}.title`)}`, duration: 3000} }));
-    }
-    this.set('activeSearchIndex', this.activeSearchIndex+1);
+    this.set('activeSearchIndex', this.activeSearchIndex + 1);
     this.nextSearch(this.activeSearchIndex);
   },
 
   handleError(e) {
     this.set('formError', true);
-    console.log('handleError',e)
+    console.log('handleError', e);
     this.$.errormsg.textContent = e.detail.request.xhr.responseText;
 
-    this.set('activeSearchIndex', this.activeSearchIndex+1);
+    this.set('activeSearchIndex', this.activeSearchIndex + 1);
     this.nextSearch(this.activeSearchIndex);
   },
 
-  queryTermChanged(_queryTerm){
+  queryTermChanged(_queryTerm) {
     this.set('formError', false);
   },
 
-  toggleSelection(e){
-    if (e.target.tagName === "PAPER-CHECKBOX")
-      this._updateSelectedClouds();
+  toggleSelection(e) {
+    if (e.target.tagName === 'PAPER-CHECKBOX') this._updateSelectedClouds();
   },
 
   _updateSelectedClouds() {
-    const checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox[name="searchableClouds"]'); // get checkboxes
+    const checkboxes = this.shadowRoot.querySelectorAll(
+      'paper-checkbox[name="searchableClouds"]'
+    ); // get checkboxes
     const arr = [];
-    checkboxes.forEach((c) => {
-        if (c.checked)
-            arr.push(c.dataValue);
-    })
+    checkboxes.forEach(c => {
+      if (c.checked) arr.push(c.dataValue);
+    });
     this.set('selectedClouds', arr);
   },
 
-  _submitForm(_e){
+  _submitForm(_e) {
     const payload = {
-        'search_term': this.queryTerm
-    }
+      search_term: this.queryTerm,
+    };
     this.$.request.body = payload;
     this.nextSearch(0);
   },
 
-  nextSearch(index){
-    console.log('nextSearch', this.clouds.length, index)
-    this.$.request.headers["Content-Type"] = 'application/json';
-    this.$.request.headers["Csrf-Token"] = CSRFToken.value;
-    this.$.request.method = "POST";
+  nextSearch(index) {
+    console.log('nextSearch', this.clouds.length, index);
+    this.$.request.headers['Content-Type'] = 'application/json';
+    this.$.request.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.request.method = 'POST';
     if (this.clouds && this.clouds.length && index < this.clouds.length) {
-      this.$.request.url = `/api/v1/clouds/${ this.get(`clouds.${index}.id`) }/images`;
+      this.$.request.url = `/api/v1/clouds/${this.get(
+        `clouds.${index}.id`
+      )}/images`;
       this.$.request.generateRequest();
-    }
-    else {
+    } else {
       this.set('activeSearchIndex', 0);
     }
   },
@@ -201,7 +270,7 @@ Polymer({
   hotkeys(e) {
     // ENTER
     if (e.keyCode === 13 && this.queryTerm.length) {
-      this._submitForm(e)
+      this._submitForm(e);
     }
-  }
+  },
 });
