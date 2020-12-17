@@ -890,7 +890,7 @@ Polymer({
     this.$.cloudEditDNSAjaxRequest.headers['Content-Type'] = 'application/json';
     this.$.cloudEditDNSAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.cloudEditDNSAjaxRequest.body = {
-      dnsEnabled,
+      dns_enabled: dnsEnabled,
     };
     this.$.cloudEditDNSAjaxRequest.generateRequest();
   },
