@@ -56,7 +56,7 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Packet, Aliyun, Gig G8, Kubevirt, Linode and Digital Ocean clouds
+          Packet, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean clouds
           <br />
           Add a cloud using the
           <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
