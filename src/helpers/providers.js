@@ -374,7 +374,7 @@ PROVIDERS.push({
 
 // DIGITALOCEAN
 PROVIDERS.push({
-  title: 'Digital Ocean',
+  title: 'DigitalOcean',
   val: 'digitalocean',
   className: 'provider-digitalocean',
   options: [
@@ -382,8 +382,8 @@ PROVIDERS.push({
       name: 'title',
       label: 'Title *',
       type: 'text',
-      value: 'Digital Ocean',
-      defaultValue: 'Digital Ocean',
+      value: 'DigitalOcean',
+      defaultValue: 'DigitalOcean',
       show: true,
       required: true,
       errorMessage: 'Please enter title',
