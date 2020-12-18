@@ -401,7 +401,7 @@ Polymer({
   },
 
   checkPermissions() {
-    const perm = this.check_perm('create', 'machine');
+    const perm = this.checkPerm('create', 'machine');
     if (perm === true) {
       // FIXME why is it empty?
     } else if (perm === false) {
@@ -783,7 +783,6 @@ Polymer({
       if (this.model.clouds[this.selectedCloud].provider === 'ec2') {
         this._updateSecurityGroups(this.selectedCloud);
       }
-      const that = this;
       this.machineFields.forEach((f, index) => {
         // clear options
         if (
@@ -799,7 +798,7 @@ Polymer({
             this.model.clouds[cloudId].locations
           );
           const locations = allLocations.filter(l => {
-            const checkPerm = that.check_perm(
+            const checkPerm = this.checkPerm(
               'create_resources',
               'location',
               l.id
@@ -2353,15 +2352,13 @@ Polymer({
       `machineFields.${this.storageAccountsFieldIndex}.options`,
       options
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file: 'machine-create.html : _filterStorageAccountsOptions()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file: 'machine-create.html : _filterStorageAccountsOptions()',
+        },
+      })
+    );
   },
 
   _filterNetworksOptions() {
@@ -2391,13 +2388,11 @@ Polymer({
       this.get(`machineFields.${netInd}.defaultValue`)
     );
     this.set(`machineFields.${netInd}.options`, options);
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'machine-create.html : _filterNetworksOptions()' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'machine-create.html : _filterNetworksOptions()' },
+      })
+    );
   },
 
   _handleGetStorageAccountsError(e) {
@@ -2457,15 +2452,13 @@ Polymer({
       `machineFields.${this.securityGroupsFieldIndex}.options`,
       secGroups || []
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file: 'machine-create.html : _handleGetSecurityGroupsResponse()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file: 'machine-create.html : _handleGetSecurityGroupsResponse()',
+        },
+      })
+    );
     this.set(`machineFields.${this.securityGroupsFieldIndex}.loader`, false);
   },
 
@@ -2501,15 +2494,13 @@ Polymer({
       `machineFields.${this.resourceGroupsFieldIndex}.options`,
       e.detail.response || []
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file: 'machine-create.html : _handleGetResourceGroupsResponse()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file: 'machine-create.html : _handleGetResourceGroupsResponse()',
+        },
+      })
+    );
     this.set(`machineFields.${this.resourceGroupsFieldIndex}.loader`, false);
   },
 
@@ -2541,15 +2532,13 @@ Polymer({
       options.push({ title: item, val: item });
     });
     this.storageClassesField.options = options;
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file: 'machine-create.html : _handleGetStorageClassesResponse()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file: 'machine-create.html : _handleGetStorageClassesResponse()',
+        },
+      })
+    );
     this.storageClassesField.loader = false;
   },
 
@@ -2582,13 +2571,11 @@ Polymer({
     });
     this.foldersField.options = options;
     // this.set('machineFields.'+this.machineFields.indexOf(this.foldersField)+'.options', options);
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'machine-create.html : _handleGetFoldersResponse()' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'machine-create.html : _handleGetFoldersResponse()' },
+      })
+    );
     this.foldersField.loader = false;
     if (options && options.length > 0) {
       // this.foldersField.value= this.foldersField.options[0].val;
@@ -2625,13 +2612,11 @@ Polymer({
       options.push({ title: name, val: item.id, space: item.free_space });
     });
     this.datastoresField.options = options;
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: { file: 'machine-create.html : _handleGetFoldersResponse()' },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: { file: 'machine-create.html : _handleGetFoldersResponse()' },
+      })
+    );
     this.datastoresField.loader = false;
     if (options && options.length > 0) {
       let showDatastores = true;
@@ -2683,15 +2668,13 @@ Polymer({
 
   _handleGetLXDStoragePoolsResponse(e) {
     this.lxdStoragePoolsField.options = e.detail.response || [];
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file: 'machine-create.html : _handleGetLXDStoragePoolsResponse()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file: 'machine-create.html : _handleGetLXDStoragePoolsResponse()',
+        },
+      })
+    );
     this.lxdStoragePoolsField.loader = false;
   },
 
@@ -2753,16 +2736,14 @@ Polymer({
       `machineFields.${this.virtualNetworkFunctionFieldIndex}.subfields.0.options`,
       categorisedVNFs || []
     );
-    this.shadowRoot
-      .querySelector('app-form')
-      .dispatchEvent(
-        new CustomEvent('fields-changed', {
-          detail: {
-            file:
-              'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()',
-          },
-        })
-      );
+    this.shadowRoot.querySelector('app-form').dispatchEvent(
+      new CustomEvent('fields-changed', {
+        detail: {
+          file:
+            'machine-create.html : _handleGetVirtualNetworkFunctionsResponse()',
+        },
+      })
+    );
     this.set(
       `machineFields.${this.virtualNetworkFunctionFieldIndex}.loader`,
       false
@@ -2936,11 +2917,10 @@ Polymer({
 
   _computeProviders(_model, _clouds) {
     // exclude bare metals and not allowed clouds from provider dropdown list
-    const that = this;
     return this._toArray(this.model.clouds).filter(c => {
       return (
         ['bare_metal'].indexOf(c.provider) === -1 &&
-        that.check_perm('create_resources', 'cloud', c.id)
+        this.checkPerm('create_resources', 'cloud', c.id)
       );
     });
   },

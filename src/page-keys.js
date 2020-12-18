@@ -55,7 +55,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','key', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','key', null, model.org, model.user)]]"
       >
         <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>

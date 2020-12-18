@@ -51,7 +51,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','script', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','script', null, model.org, model.user)]]"
       >
         <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>

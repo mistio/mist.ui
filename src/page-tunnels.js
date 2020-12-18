@@ -37,7 +37,7 @@ Polymer({
                     <p slot="no-items-found">No tunnels found.</p>
                 </mist-list>
             </tunnel-actions>
-            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','tunnel', null, model.org, model.user)]]">
+            <div class="absolute-bottom-right" hidden$="[[!checkPerm('add','tunnel', null, model.org, model.user)]]">
                 <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>

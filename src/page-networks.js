@@ -56,7 +56,7 @@ Polymer({
       </network-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','network', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','network', null, model.org, model.user)]]"
       >
         <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>

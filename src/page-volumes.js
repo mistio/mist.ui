@@ -53,7 +53,7 @@ Polymer({
       </volume-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','volume', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','volume', null, model.org, model.user)]]"
       >
         <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>

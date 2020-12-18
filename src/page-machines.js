@@ -126,7 +126,7 @@ Polymer({
       </machine-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('create','machine', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('create','machine', null, model.org, model.user)]]"
       >
         <paper-fab
           id="machinesAdd"

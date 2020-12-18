@@ -449,7 +449,7 @@ Polymer({
       </template>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','cloud')]]"
+        hidden$="[[!checkPerm('add','cloud')]]"
       >
         <a href="/clouds/+add" on-tap="_fabTap">
           <paper-fab id="addBtn" icon="cloud"></paper-fab>

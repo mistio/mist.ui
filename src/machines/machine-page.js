@@ -1231,12 +1231,12 @@ Polymer({
   },
 
   _computeCanEditMachine(machineId, _model) {
-    const perm = this.check_perm('edit', 'machine', machineId);
+    const perm = this.checkPerm('edit', 'machine', machineId);
     return perm !== false;
   },
 
   _computeCanDeleteExpiration(machineId, _model) {
-    const perm = this.check_perm('edit', 'machine', machineId);
+    const perm = this.checkPerm('edit', 'machine', machineId);
     return (
       perm === true ||
       !perm.expiration ||

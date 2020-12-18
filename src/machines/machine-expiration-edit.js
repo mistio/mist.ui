@@ -168,7 +168,7 @@ Polymer({
 
   _checkPermissions(org, machine) {
     if (!org || !machine) return;
-    const perm = this.check_perm(
+    const perm = this.checkPerm(
       'edit',
       'machine',
       machine,

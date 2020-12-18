@@ -172,14 +172,14 @@ Polymer({
               class="wide blue"
               on-tap="goToAddCloud"
               id="addFirstCloudBtn"
-              hidden$="[[!check_perm('add','cloud', null, model.org, model.user)]]"
+              hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
             >
               Add your clouds
             </paper-button>
           </div>
           <p>
             <span
-              hidden$="[[!check_perm('add','cloud', null, model.org, model.user)]]"
+              hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
             ></span
             >or
             <paper-button on-tap="showInviteForm" class="blue-link" noink=""
@@ -416,7 +416,7 @@ Polymer({
     if (emails) {
       this.$.invitePeopleRequest.headers['Content-Type'] = 'application/json';
       this.$.invitePeopleRequest.headers['Csrf-Token'] = CSRFToken.value;
-      this.$.invitePeopleRequest.body = { emails, };
+      this.$.invitePeopleRequest.body = { emails };
       this.$.invitePeopleRequest.generateRequest();
     } else {
       this.invitePeopleError();

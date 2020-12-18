@@ -58,7 +58,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','schedule', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','schedule', null, model.org, model.user)]]"
       >
         <paper-fab
           id="scheduleAdd"
