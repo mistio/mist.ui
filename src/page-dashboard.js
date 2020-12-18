@@ -447,7 +447,7 @@ Polymer({
       <template is="dom-if" if="[[!showDashboard]]">
         <onb-element model="[[model]]"></onb-element>
       </template>
-      <template is="dom-if" if="[[checkPerm('add', 'cloud')]]">
+      <template is="dom-if" if="[[checkPerm('add', 'cloud')]]" restamp>
         <div class="absolute-bottom-right">
           <a href="/clouds/+add" on-tap="_fabTap">
             <paper-fab id="addBtn" icon="cloud"></paper-fab>
