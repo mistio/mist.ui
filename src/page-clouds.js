@@ -169,10 +169,26 @@ Polymer({
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
         },
+        cmp: (row1, row2) => {
+          const item1 = (row1.volumes && Object.keys(row1.volumes).length) || 0;
+          const item2 = (row2.volumes && Object.keys(row2.volumes).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
+        },
       },
       locations: {
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
+        },
+        cmp: (row1, row2) => {
+          const item1 =
+            (row1.locations && Object.keys(row1.locations).length) || 0;
+          const item2 =
+            (row2.locations && Object.keys(row2.locations).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
         },
       },
       owned_by: {
