@@ -443,17 +443,16 @@ Polymer({
             </template>
           </div>
         </div>
-        <div
-          class="absolute-bottom-right"
-          hidden$="[[!checkPerm('add','cloud')]]"
-        >
+      </template>
+      <template is="dom-if" if="[[!showDashboard]]">
+        <onb-element model="[[model]]"></onb-element>
+      </template>
+      <template is="dom-if" if="[[checkPerm('add', 'cloud')]]">
+        <div class="absolute-bottom-right">
           <a href="/clouds/+add" on-tap="_fabTap">
             <paper-fab id="addBtn" icon="cloud"></paper-fab>
           </a>
         </div>
-      </template>
-      <template is="dom-if" if="[[!showDashboard]]">
-        <onb-element model="[[model]]"></onb-element>
       </template>
       <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
         <paper-spinner
