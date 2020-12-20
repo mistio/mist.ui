@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './tunnels/tunnel-add.js';
 import './tunnels/tunnel-actions.js';
 import './tunnels/tunnel-page.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -38,7 +37,7 @@ Polymer({
                     <p slot="no-items-found">No tunnels found.</p>
                 </mist-list>
             </tunnel-actions>
-            <div class="absolute-bottom-right" hidden$="[[!check_perm('add','tunnel', null, model.org, model.user)]]">
+            <div class="absolute-bottom-right" hidden$="[[!checkPerm('add','tunnel', null, model.org, model.user)]]">
                 <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
@@ -47,7 +46,7 @@ Polymer({
             </key-page>
     `,
   is: 'page-tunnels',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, rbacBehavior],
+  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

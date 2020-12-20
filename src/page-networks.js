@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './networks/network-create.js';
 import './networks/network-page.js';
 import './networks/network-actions.js';
-import { rbacBehavior } from './rbac-behavior.js';
 // import './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -57,7 +56,7 @@ Polymer({
       </network-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','network', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','network', null, model.org, model.user)]]"
       >
         <paper-fab id="networkAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -76,7 +75,7 @@ Polymer({
     ></network-page>
   `,
   is: 'page-networks',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

@@ -6,7 +6,6 @@ import './volumes/volume-create.js';
 import './volumes/volume-page.js';
 import './volumes/volume-actions.js';
 // import './helpers/mist-lists-behavior.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -54,7 +53,7 @@ Polymer({
       </volume-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','volume', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','volume', null, model.org, model.user)]]"
       >
         <paper-fab id="volumeAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -73,7 +72,7 @@ Polymer({
     ></volume-page>
   `,
   is: 'page-volumes',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

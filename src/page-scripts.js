@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './scripts/script-add.js';
 import './scripts/script-page.js';
 import './scripts/script-actions.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -52,7 +51,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','script', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','script', null, model.org, model.user)]]"
       >
         <paper-fab id="scriptAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -83,7 +82,7 @@ Polymer({
     </template>
   `,
   is: 'page-scripts',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, rbacBehavior],
+  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

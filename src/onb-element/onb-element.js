@@ -6,7 +6,6 @@ import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
 import '../../node_modules/@polymer/paper-progress/paper-progress.js';
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../teams/team-add.js';
-import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
@@ -173,14 +172,14 @@ Polymer({
               class="wide blue"
               on-tap="goToAddCloud"
               id="addFirstCloudBtn"
-              hidden$="[[!check_perm('add','cloud', null, model.org, model.user)]]"
+              hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
             >
               Add your clouds
             </paper-button>
           </div>
           <p>
             <span
-              hidden$="[[!check_perm('add','cloud', null, model.org, model.user)]]"
+              hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
             ></span
             >or
             <paper-button on-tap="showInviteForm" class="blue-link" noink=""
@@ -275,7 +274,7 @@ Polymer({
   is: 'onb-element',
   enableCustomStyleProperties: true,
 
-  behaviors: [rbacBehavior],
+  behaviors: [window.rbac],
 
   properties: {
     model: {

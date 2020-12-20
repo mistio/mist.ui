@@ -12,15 +12,24 @@
 
     <link tal:condition="theme|nothing" rel="shortcut icon" sizes="32x32" tal:attributes="href string:/static/${theme}-favicon.ico">
     <link tal:condition="not theme" rel="shortcut icon" sizes="32x32" tal:attributes="href string:assets/app-icon-32.png">
-
     <meta name="theme-color" content="#fff">
+    <script>
+        window.rbac = {
+            properties: {},
+            checkPerm() {
+                console.log('dummy check perm');
+                return true;
+            },
+        };
+    </script>
+    <script tal:condition="features['rbac']" tal:content="structure ugly_rbac"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async tal:condition="google_analytics_id" src="https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}"></script>
     <script type="module">
         const dataLayer = window.dataLayer || [];
         function gtag(...args) { dataLayer.push(args); }
         gtag('js', new Date());
-        gtag('config', `${google_analytics_id}`, { // eslint-disable-line
+        gtag('config', '${google_analytics_id}', { // eslint-disable-line
             'custom_map': { 'app': 'ui' }
         });
         gtag('set', { 'content_group1': 'ui' });

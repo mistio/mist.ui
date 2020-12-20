@@ -7,7 +7,6 @@ import './machines/machine-page.js';
 import './machines/machine-actions.js';
 import { ratedCost } from './helpers/utils.js';
 import moment from '../node_modules/moment/src/moment.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -127,7 +126,7 @@ Polymer({
       </machine-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('create','machine', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('create','machine', null, model.org, model.user)]]"
       >
         <paper-fab
           id="machinesAdd"
@@ -166,7 +165,7 @@ Polymer({
     ></iron-ajax>
   `,
   is: 'page-machines',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {
@@ -667,6 +666,17 @@ Polymer({
             location = _this.model.clouds[row.cloud].locations[item];
           return location ? location.name : item || '';
         },
+        cmp: (row1, row2) => {
+          const item1 = row1.location;
+          const item2 = row2.location;
+          if (item1 == null) {
+            return -1;
+          }
+          if (item2 == null) {
+            return 1;
+          }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
@@ -692,11 +702,67 @@ Polymer({
         body: ips => {
           return ips && ips.join(', ');
         },
+        cmp: (row1, row2) => {
+          let item1 = row1.public_ips[0];
+          let item2 = row2.public_ips[0];
+          if (item1 == null) {
+            return -1;
+          }
+          if (item2 == null) {
+            return 1;
+          }
+          const check1 = item1.split(',')[0];
+          const check2 = item2.split(',')[0];
+          if (Number.isNaN(Number(check1)) && Number.isNaN(Number(check1))) {
+            return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+          }
+          if (Number.isNaN(Number(check1)) && !Number.isNaN(Number(check2))) {
+            return 1;
+          }
+          if (Number.isNaN(Number(check1)) && !Number.isNaN(Number(check2))) {
+            return -1;
+          }
+          item1 = item1.split(',');
+          item2 = item2.split(',');
+          for (let i = 0; i < 4; i++) {
+            if (Number(item1[i]) < Number(item2[i])) return -1;
+            if (Number(item1[i]) > Number(item2[i])) return 1;
+          }
+          return 0;
+        },
       },
       private_ips: {
         title: "private ip's",
         body: ips => {
           return ips.join(', ');
+        },
+        cmp: (row1, row2) => {
+          let item1 = row1.private_ips[0];
+          let item2 = row2.private_ips[0];
+          if (item1 == null) {
+            return -1;
+          }
+          if (item2 == null) {
+            return 1;
+          }
+          const check1 = item1.split(',')[0];
+          const check2 = item2.split(',')[0];
+          if (Number.isNaN(Number(check1)) && Number.isNaN(Number(check1))) {
+            return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+          }
+          if (Number.isNaN(Number(check1)) && !Number.isNaN(Number(check2))) {
+            return 1;
+          }
+          if (Number.isNaN(Number(check2)) && !Number.isNaN(Number(check1))) {
+            return -1;
+          }
+          item1 = item1.split(',');
+          item2 = item2.split(',');
+          for (let i = 0; i < 4; i++) {
+            if (Number(item1[i]) < Number(item2[i])) return -1;
+            if (Number(item1[i]) > Number(item2[i])) return 1;
+          }
+          return 0;
         },
       },
       hostname: {

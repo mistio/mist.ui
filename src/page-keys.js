@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './keys/key-actions.js';
 import './keys/key-add.js';
 import './keys/key-page.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -56,7 +55,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','key', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','key', null, model.org, model.user)]]"
       >
         <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -76,7 +75,7 @@ Polymer({
     ></key-page>
   `,
   is: 'page-keys',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, rbacBehavior],
+  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
   properties: {
     model: {
       type: Object,

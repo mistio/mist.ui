@@ -731,7 +731,7 @@ Polymer({
                   class="inline webhook-url"
                   placeholder="URL to be invoked"
                   on-value-changed="_validateRule"
-                  value="{{ruleAction.params}}"
+                  value="{{ruleAction.url}}"
                   pattern="^https://*"
                 ></paper-input>
                 <paper-dropdown-menu label="method" class="inline">
@@ -1115,7 +1115,7 @@ Polymer({
     let tagsString = '';
     Object.keys(tags || {}).forEach(p => {
       tagsString += p;
-      if (tags[p]) tagsString += `: + ${tags[p]}`;
+      if (tags[p]) tagsString += `:${tags[p]}`;
       tagsString += ',';
     });
     console.log(tagsString);
@@ -1135,7 +1135,7 @@ Polymer({
             res[chunks[i]] = {};
           }
           if (i === chunks.length - 1) {
-            res[chunks[i]] = chunks[i];
+            res[chunks[i]] = data.detail.response[metric].id;
           }
           res = res[chunks[i]];
         }
@@ -1254,13 +1254,13 @@ Polymer({
       const { queryIndex } = e.detail;
       this.set(`rule.queries.${queryIndex}.target`, selectedMetric);
       this.shadowRoot
-        .querySelector(`paper-dropdown-menu#target-metrics-+ ${queryIndex}`)
+        .querySelector(`paper-dropdown-menu#target-metrics-${queryIndex}`)
         .shadowRoot.querySelector('paper-input')
         .shadowRoot.querySelector('paper-input-container')
         .querySelector('iron-input')
         .querySelector('input').value = selectedMetric;
       this.shadowRoot.querySelector(
-        `paper-dropdown-menu#target-metrics-+ ${queryIndex}`
+        `paper-dropdown-menu#target-metrics-${queryIndex}`
       ).selected = selectedMetric;
 
       this._focusOnOperator(e, queryIndex);

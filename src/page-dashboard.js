@@ -20,7 +20,6 @@ import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
 import moment from '../node_modules/moment/src/moment.js';
 import { CSRFToken } from './helpers/utils.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -448,14 +447,16 @@ Polymer({
       <template is="dom-if" if="[[!showDashboard]]">
         <onb-element model="[[model]]"></onb-element>
       </template>
-      <div
-        class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','cloud')]]"
-      >
-        <a href="/clouds/+add" on-tap="_fabTap">
-          <paper-fab id="addBtn" icon="cloud"></paper-fab>
-        </a>
-      </div>
+      <template is="dom-if" if="[[model.org]]" restamp>
+        <div
+          class="absolute-bottom-right"
+          hidden$="[[!checkPerm('add','cloud')]]"
+        >
+          <a href="/clouds/+add" on-tap="_fabTap">
+            <paper-fab id="addBtn" icon="cloud"></paper-fab>
+          </a>
+        </div>
+      </template>
       <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
         <paper-spinner
           active="[[model.onboarding.isLoadingClouds]]"
@@ -472,7 +473,7 @@ Polymer({
     ></iron-ajax>
   `,
   enableCustomStyleProperties: true,
-  behaviors: [rbacBehavior],
+  behaviors: [window.rbac],
   properties: {
     model: {
       type: Object,

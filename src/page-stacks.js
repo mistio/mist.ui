@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './stacks/stack-create.js';
 import './stacks/stack-page.js';
 import './stacks/stack-actions.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -69,7 +68,7 @@ Polymer({
     ></stack-page>
   `,
   is: 'page-stacks',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

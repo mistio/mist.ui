@@ -4,7 +4,6 @@ import '../node_modules/@polymer/paper-fab/paper-fab.js';
 import './zones/zone-add.js';
 import './zones/zone-actions.js';
 import './zones/zone-page.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -55,7 +54,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','zone', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','zone', null, model.org, model.user)]]"
       >
         <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -74,7 +73,7 @@ Polymer({
     ></zone-page>
   `,
   is: 'page-zones',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, rbacBehavior],
+  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {

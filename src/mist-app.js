@@ -1164,9 +1164,9 @@ Polymer({
 
   _onUserAction(event) {
     // console.log('user-action', event);
-    // eslint-disable-line no-undef
+    // eslint-disable-next-line no-undef
     if (typeof gtag === 'function') {
-      // eslint-disable-line no-undef
+      // eslint-disable-next-line no-undef
       gtag('event', event.detail, {
         // eslint-disable-line no-undef
         event_category: 'ui',

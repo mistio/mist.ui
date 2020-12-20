@@ -13,7 +13,6 @@ import './machine-actions.js';
 import './machine-r12ns.js';
 import moment from '../../node_modules/moment/src/moment.js';
 import { ratedCost, itemUid, CSRFToken } from '../helpers/utils.js';
-import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -1019,7 +1018,7 @@ Polymer({
 
   is: 'machine-page',
 
-  behaviors: [mistLoadingBehavior, rbacBehavior],
+  behaviors: [mistLoadingBehavior, window.rbac],
 
   properties: {
     model: {
@@ -1232,12 +1231,12 @@ Polymer({
   },
 
   _computeCanEditMachine(machineId, _model) {
-    const perm = this.check_perm('edit', 'machine', machineId);
+    const perm = this.checkPerm('edit', 'machine', machineId);
     return perm !== false;
   },
 
   _computeCanDeleteExpiration(machineId, _model) {
-    const perm = this.check_perm('edit', 'machine', machineId);
+    const perm = this.checkPerm('edit', 'machine', machineId);
     return (
       perm === true ||
       !perm.expiration ||

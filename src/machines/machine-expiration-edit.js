@@ -8,7 +8,6 @@ import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation
 import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
 import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
 import moment from '../../node_modules/moment/src/moment.js';
-import { rbacBehavior } from '../rbac-behavior.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
@@ -62,7 +61,7 @@ Polymer({
   `,
 
   is: 'machine-expiration-edit',
-  behaviors: [rbacBehavior],
+  behaviors: [window.rbac],
 
   properties: {
     model: {
@@ -169,7 +168,7 @@ Polymer({
 
   _checkPermissions(org, machine) {
     if (!org || !machine) return;
-    const perm = this.check_perm(
+    const perm = this.checkPerm(
       'edit',
       'machine',
       machine,

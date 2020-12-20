@@ -6,7 +6,6 @@ import './clouds/cloud-page.js';
 import './clouds/cloud-actions.js';
 import './helpers/mist-lists-behavior.js';
 import PROVIDERS from './helpers/providers.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -51,7 +50,7 @@ Polymer({
       </cloud-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','cloud')]]"
+        hidden$="[[!checkPerm('add','cloud', model.org, model.user)]]"
       >
         <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -79,7 +78,7 @@ Polymer({
     ></cloud-page>
   `,
   is: 'page-clouds',
-  behaviors: [ownerFilterBehavior, rbacBehavior],
+  behaviors: [ownerFilterBehavior, window.rbac],
   properties: {
     model: {
       type: Object,
@@ -156,15 +155,40 @@ Polymer({
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
         },
+        cmp: (row1, row2) => {
+          const item1 =
+            (row1.machines && Object.keys(row1.machines).length) || 0;
+          const item2 =
+            (row2.machines && Object.keys(row2.machines).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
+        },
       },
       volumes: {
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
         },
+        cmp: (row1, row2) => {
+          const item1 = (row1.volumes && Object.keys(row1.volumes).length) || 0;
+          const item2 = (row2.volumes && Object.keys(row2.volumes).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
+        },
       },
       locations: {
         body: (item, _row) => {
           return (item && Object.keys(item).length) || 0;
+        },
+        cmp: (row1, row2) => {
+          const item1 =
+            (row1.locations && Object.keys(row1.locations).length) || 0;
+          const item2 =
+            (row2.locations && Object.keys(row2.locations).length) || 0;
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
         },
       },
       owned_by: {

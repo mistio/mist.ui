@@ -5,7 +5,6 @@ import './schedules/schedule-add.js';
 import './schedules/schedule-page.js';
 import './schedules/schedule-actions.js';
 import moment from '../node_modules/moment/src/moment.js';
-import { rbacBehavior } from './rbac-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
@@ -59,7 +58,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!check_perm('add','schedule', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','schedule', null, model.org, model.user)]]"
       >
         <paper-fab
           id="scheduleAdd"
@@ -86,7 +85,7 @@ Polymer({
   `,
   is: 'page-schedules',
 
-  behaviors: [mistListsBehavior, ownerFilterBehavior, rbacBehavior],
+  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
 
   properties: {
     model: {
