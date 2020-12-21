@@ -854,7 +854,7 @@ Polymer({
       'application/json';
     this.$.cloudEditOBSLOGSAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.cloudEditOBSLOGSAjaxRequest.body = {
-      observationLogsEnabled,
+      observation_logs_enabled: observationLogsEnabled,
     };
     this.$.cloudEditOBSLOGSAjaxRequest.generateRequest();
   },
