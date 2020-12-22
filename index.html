@@ -1,79 +1,53 @@
 <!doctype html>
 <html lang="en" xmlns:tal="http://xml.zope.org/namespaces/tal">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
     <link rel="manifest" href="/ui/manifest.json">
-    <script src="/ui/bower_components/sockjs-client/dist/sockjs.min.js"></script>
-    <script src="/ui/bower_components/fast-json-patch/dist/fast-json-patch.min.js"></script>
-    <base tal:attributes="href string:/ui/${build_path}">
-    </base>
+
+    <base tal:attributes="href string:/ui/${build_path}" tal:condition="build_path"></base>
+    <base tal:attributes="href string:/ui-dev/" tal:condition="not: build_path"></base>
+
     <title tal:content="portal_name|nothing">Mist :: multi cloud management platform</title>
+
     <link tal:condition="theme|nothing" rel="shortcut icon" sizes="32x32" tal:attributes="href string:/static/${theme}-favicon.ico">
     <link tal:condition="not theme" rel="shortcut icon" sizes="32x32" tal:attributes="href string:assets/app-icon-32.png">
     <meta name="theme-color" content="#fff">
+    <script>
+        window.rbac = {
+            properties: {},
+            checkPerm() {
+                console.log('dummy check perm');
+                return true;
+            },
+        };
+    </script>
+    <script tal:condition="features['rbac']" tal:content="structure ugly_rbac"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async tal:condition="google_analytics_id" src="https://www.googletagmanager.com/gtag/js?id=${google_analytics_id}"></script>
-    <script tal:condition="google_analytics_id">
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() { dataLayer.push(arguments); }
+    <script type="module">
+        const dataLayer = window.dataLayer || [];
+        function gtag(...args) { dataLayer.push(args); }
         gtag('js', new Date());
-
-        gtag('config', '${google_analytics_id}', {
+        gtag('config', '${google_analytics_id}', { // eslint-disable-line
             'custom_map': { 'app': 'ui' }
         });
         gtag('set', { 'content_group1': 'ui' });
     </script>
-    <script tal:content="string: var BUILD_PATH='${build_path}'">
-        var BUILD_PATH = '';
+    <script tal:content="string: const True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}, 'theme': '${theme}'};">
+        const CONFIG = false; // eslint-disable-line no-unused-vars
     </script>
-    <script tal:content="string: var True = true, False = false, CONFIG = {'portal_name': '${portal_name}', 'features': ${structure:features}, 'email': ${email}, 'cta': ${cta}}">
-        var CONFIG = false;
-    </script>
-    <script>
-        window.Polymer = { lazyRegister: true };
-        // load pre-caching service worker
-        /*if ('serviceWorker' in navigator) {
-          window.addEventListener('load', function() {
-            navigator.serviceWorker.register('service-worker.js');
-          });
-        }*/
-
-    </script>
-    <script type="text/javascript">
-        /**
-         * Behavior that enables the check-permissions function for users.
-         *
-         * @polymerBehavior
-         */
-        rbacBehavior = {
-            properties: {},
-            check_perm: function() {
-                console.log('dummy check perm');
-                return true;
-            }
-        };
-    </script>
-    <!-- <link rel="import" href="src/styles/app-theme.html"> DEFAULT THEME-->
-    <link tal:condition="theme|nothing" rel="import" tal:attributes="href string:/static/ui/${theme}-theme.html">
-    <link tal:condition="not theme" rel="import" tal:attributes="href string:src/styles/app-theme.html">
-    <link tal:condition="features['rbac']" rel="import" tal:attributes="href string:/static/ui/mist-rbac-behavior/mist-rbac-behavior.html">
-    <link rel="import" href="src/mist-app.html">
 </head>
-
 <body>
     <mist-app unresolved>
     </mist-app>
-    <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-    <script>
-        window.addEventListener('WebComponentsReady', function() {
-            if (CONFIG) {
-                document.querySelector('mist-app').config = CONFIG;
-            }
-        });
+    <script type="module">
+    /* eslint-disable no-undef */
+    import './src/mist-app.js';
+
+    if (CONFIG) {
+        document.querySelector('mist-app').config = CONFIG;
+    }
     </script>
 </body>
-
 </html>
