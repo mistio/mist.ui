@@ -9,6 +9,7 @@ import {
 } from './helpers/utils.js';
 
 const DEBUG_SOCKET = false;
+const loadedResourceCounters = {};
 
 Polymer({
   is: 'mist-socket',
@@ -557,6 +558,15 @@ Polymer({
     }
     return false;
   },
+  _initializeLoadedResourceCounters(clouds) {
+    // If the resource types increase, we should probably store them in an array and iterate over them
+    loadedResourceCounters.machines = clouds.filter(cloud => cloud.enabled).length;
+    loadedResourceCounters.zones = clouds.filter(cloud => cloud.dns_enabled).length;
+    // TODO: Counters for volumes, networks and images
+    // loadedResourceCounters.volumes = clouds.filter(cloud => cloud.hasOwnProperty('volumes')).length;
+    // loadedResourceCounters.networks = clouds.filter(cloud => cloud.hasOwnProperty('networks')).length;
+    // loadedResourceCounters.images = clouds.filter(cloud => cloud.hasOwnProperty('images')).length;
+},
   /* eslint-enable no-param-reassign */
   _updateClouds(data) {
     // console.log('_updateClouds', data);
@@ -567,7 +577,13 @@ Polymer({
       this.set('model.onboarding.isLoadingMachines', false);
       this.set('model.onboarding.isLoadingImages', false);
       this.set('model.onboarding.isLoadingNetworks', false);
-    }
+    } else {
+      this._initializeLoadedResourceCounters([...data]);
+      this.set('model.onboarding.isLoadingMachines', true);
+      this.set('model.onboarding.isLoadingImages', true);
+      this.set('model.onboarding.isLoadingNetworks', true);
+  }
+
     const ret = this._updateModel('clouds', data);
     this.set('model.onboarding.isLoadingClouds', false);
 
@@ -826,7 +842,11 @@ Polymer({
   },
   /* eslint-enable no-param-reassign */
   _updateMachines(data) {
-    this.set('model.onboarding.isLoadingMachines', false);
+    loadedResourceCounters.machines -= 1;
+    if (loadedResourceCounters.machines <= 0) {
+       this.set('model.onboarding.isLoadingMachines', false);
+    }
+
     this._updateCloudResources(data, 'machines', 'machine_id');
   },
 

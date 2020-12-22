@@ -182,8 +182,8 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                 <mist-header sticky="" model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened="{{userMenuOpened}}" ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer="" smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]" isclosed="{{sidebarIsClosed}}"></mist-sidebar>
-            <div id="main-loader" class$="is-loading-html active-[[loading]]">
-                <paper-spinner active="[[loading]]"></paper-spinner>
+            <div id="main-loader" class$="is-loading-html active-[[_dataLoading(model.onboarding.*, pageLoading)]]">
+            <paper-spinner active="[[_dataLoading(model.onboarding.*, pageLoading)]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
                 <page-dashboard name="dashboard" model="[[model]]" q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen="[[xsmallscreen]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-dashboard>
@@ -216,7 +216,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
         <organization-add id="organizationAdd" current-org="[[model.org]]"></organization-add>
         <plan-purchase id="mistAppCcRequired" org="[[model.org]]" button-text="Enable"></plan-purchase>
     </template>
-    
+
 </dom-module>`;
 
 document.head.appendChild(documentContainer.content);
@@ -285,7 +285,7 @@ Polymer({
       type: String,
       value: '',
     },
-    loading: {
+    pageLoading: {
       type: Boolean,
       value: true,
     },
@@ -707,7 +707,7 @@ Polymer({
 
   _pageChanged(page) {
     this.set('count', '');
-    this.set('loading', true);
+    this.set('pageLoading', true);
     // Load page import on demand. Show 404 page if fails
 
     import(`./page-${page}.js`).then(this._hideLoader.bind(this), reason => {
@@ -715,10 +715,17 @@ Polymer({
       this._showPage404();
     });
   },
-
+  _dataLoading() {
+    switch(this.routeData && this.routeData.page) {
+        case 'machines':
+            return this.pageLoading || this.model.onboarding.isLoadingMachines;
+        default:
+            return this.pageLoading;
+    }
+},
   _hideLoader() {
     console.log('success');
-    this.set('loading', false);
+    this.set('pageLoading', false);
     this.$['iron-pages'].selected = this.page;
   },
 
