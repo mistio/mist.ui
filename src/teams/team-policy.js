@@ -563,7 +563,7 @@ Polymer({
       rid: '',
       rtags: {},
       rtype: '',
-      constraints: null,
+      constraints: {},
     };
     this.push('rules', emptyRuleObj);
     this.ruleHasChanges();
@@ -676,7 +676,8 @@ Polymer({
   },
 
   _updateConstraints(e) {
-    this.set(`rules.${e.detail.index}.constraints`, e.detail.constraints);
+    const { index, constraints } = e.detail;
+    this.set(`rules.${index}.constraints`, constraints);
     this.ruleHasChanges();
     this._rulesChanged();
   },

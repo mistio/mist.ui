@@ -75,6 +75,7 @@ Polymer({
           </paper-button>
           <paper-button
             hidden$="[[danger]]"
+            disabled$="[[!formValid]]"
             class$="blue [[btnClass]]"
             dialog-confirm=""
             on-tap="_closeDialog"
@@ -174,6 +175,10 @@ Polymer({
     btnClass: {
       type: String,
       value: '',
+    },
+    formValid: {
+      type: Boolean,
+      value: true,
     },
   },
 

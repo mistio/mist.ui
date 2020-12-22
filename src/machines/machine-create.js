@@ -426,24 +426,64 @@ Polymer({
       this._applySizeConstraints();
     }
   },
-
   _applySizeConstraints() {
+    const customFields = [
+      'cpu',
+      'ram',
+      'disk',
+      'disk_primary',
+      'size_disk_primary',
+      'swap',
+      'disk_swap',
+      'size_disk_swap',
+    ];
     const constraint = this.constraints.size;
-    for (let i = 0; i < this.machinesFields.length; i++) {
-      const sizeIndex = this._fieldIndexByName(
-        'size',
-        this.machinesFields[i].fields
-      );
-      const path = `machinesFields.${i}.fields.${sizeIndex}`;
-      if (constraint.disk && constraint.disk.min) {
-        this.set(`${path}.customSizeFields.2.min`, constraint.disk.min);
-        this.set(`${path}.customSizeFields.2.value`, constraint.disk.min);
-      }
-      if (constraint.disk && constraint.disk.show !== undefined) {
-        this.set(`${path}.customSizeFields.2.hidden`, !constraint.disk.show);
-        this.set(`${path}.customSizeFields.2.value`, undefined);
-      }
+    // If the machine fields are ever simplified, these next 4 assignments won't be needed
+    if (constraint.disk) {
+      constraint.size_disk_primary = constraint.disk;
+      constraint.disk_primary = constraint.disk;
     }
+    if (constraint.swap) {
+      constraint.size_disk_swap = constraint.swap;
+      constraint.disk_swap = constraint.swap;
+    }
+
+    this.machinesFields.forEach((machineField, index) => {
+      const sizeIndex = this._fieldIndexByName('size', machineField.fields);
+      const path = `machinesFields.${index}.fields.${sizeIndex}`;
+      const { customSizeFields } = machineField.fields[sizeIndex];
+
+      customFields.forEach(field => {
+        if (constraint[field] && customSizeFields) {
+          const fieldIndex = this._fieldIndexByName(field, customSizeFields);
+          const customSizeFieldPath = `${path}.customSizeFields.${fieldIndex}`;
+
+          if (constraint[field].min) {
+            this.set(`${customSizeFieldPath}.min`, constraint[field].min);
+            this.set(`${customSizeFieldPath}.value`, constraint[field].min);
+          }
+
+          if (constraint[field].max) {
+            this.set(`${customSizeFieldPath}.max`, constraint[field].max);
+          }
+
+          if (constraint[field].show !== undefined) {
+            const isHidden = !constraint[field].show;
+            this.set(`${customSizeFieldPath}.hidden`, isHidden);
+            if (isHidden) {
+              this.set(`${customSizeFieldPath}.value`, undefined);
+            }
+          }
+        }
+      });
+
+      if (constraint.allowed && !customSizeFields) {
+        this.set(`${path}.allowed`, constraint.allowed);
+      }
+      if (constraint.not_allowed && !customSizeFields) {
+        this.set(`${path}.not_allowed`, constraint.not_allowed);
+      }
+    });
   },
 
   _applyFieldConstraints() {
