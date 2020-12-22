@@ -1,22 +1,24 @@
-import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
-import '../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../node_modules/@polymer/paper-input/paper-input.js';
-// import '../../node_modules/juicy-jsoneditor/juicy-jsoneditor.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-textarea.js';
+// import 'juicy-jsoneditor/juicy-jsoneditor.js';
 import '../element-for-in/element-for-in.js';
 import '../helpers/dialog-element.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 const RBAC_CONSTRAINTS_FIELDS = [
   {
     name: 'constraints',
-    label: 'Constraints in JSON',
-    type: 'jsoneditor',
-    value: {},
-    defaultValue: {},
+    label: '',
+    type: 'textarea',
+    value: '',
+    defaultValue: '',
+    class: 'script',
     show: true,
-    required: false,
+    required: true,
     helptext: 'Add/edit constraints in JSON format',
   },
 ];
@@ -96,9 +98,11 @@ Polymer({
         formid="editConstraints-[[index]]"
         fields="{{fields}}"
         form="{{form}}"
+        form-valid="{{formValid}}"
         single-column-form="[[singleColumnForm]]"
         inline="[[inline]]"
-      ></dialog-element>
+      >
+      </dialog-element>
     </template>
   `,
 
@@ -141,15 +145,18 @@ Polymer({
       type: Boolean,
       value: true,
     },
+    formValid: {
+      type: Boolean,
+    },
   },
 
   listeners: {
     keyup: 'hotkeys',
     confirmation: '_updateRuleConstraints',
+    'fields-changed': '_fieldsChanged',
   },
-
   _computeShowConstraints(_prule) {
-    // emty strings for ALL
+    // empty strings for ALL
     return (
       ['machine', ''].indexOf(this.rule.rtype) > -1 &&
       ['create', 'edit', 'resize', ''].indexOf(this.rule.action) > -1
@@ -193,23 +200,39 @@ Polymer({
 
   _updateRuleConstraints(e) {
     // update rule.constraints
-    const { reason } = e.detail;
-    const { response } = e.detail;
+    const { reason, response } = e.detail;
+
     if (response === 'confirm' && reason === 'edit.constraints') {
-      const newConstraints = this.fields[0].value;
+      const newConstraints = JSON.parse(this.fields[0].value);
       this.dispatchEvent(
         new CustomEvent('update-constraints', {
           bubbles: true,
           composed: true,
-          detail: { index: this.index, constraints: newConstraints },
+          detail: {
+            index: this.index,
+            constraints: newConstraints,
+          },
         })
       );
     }
   },
-
+  _fieldsChanged(e) {
+    // change notify values if expiration date changes
+    const { value } = e.detail;
+    try {
+      JSON.parse(value);
+    } catch (error) {
+      this.formValid = false;
+      return false;
+    }
+    this.formValid = true;
+    return false;
+  },
   _mapValuesToFields() {
+    // console.log("in map ", this.rule)
     // fill in fields with constraints corresponding values
     const constraints = JSON.stringify(this.rule.constraints);
-    this.set('fields.0.value', JSON.parse(constraints) || {});
+    console.log('constraints in map ', constraints);
+    this.set('fields.0.value', constraints || '{}');
   },
 });

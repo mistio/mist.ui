@@ -25,6 +25,11 @@ Polymer({
         background-color: #2196f3 !important;
         color: #fff;
       }
+      paper-slider {
+        --paper-slider-input: {
+          width: 90px;
+        }
+      }
       paper-slider ::slotted(#input) {
         width: 70px;
       }
@@ -71,7 +76,7 @@ Polymer({
           </template>
           <template
             is="dom-repeat"
-            items="[[_filter(field.options, field.search)]]"
+            items="[[_filter(allowedSizes, field.search)]]"
             as="option"
           >
             <paper-item value="[[option.id]]" disabled$="[[option.disabled]]">
@@ -119,14 +124,19 @@ Polymer({
       type: Object,
       notify: true,
     },
+    allowedSizes: {
+      type: Array,
+    },
   },
 
   listeners: {
     change: '_updateCustomValue',
   },
 
-  observers: ['_updateCustomValue(field.customSizeFields.*)'],
-
+  observers: [
+    '_updateCustomValue(field.customSizeFields.*)',
+    '_updateAllowedSizes(field.options)',
+  ],
   showOption(option) {
     if (option.name) return option.name;
     if (option.id) return option.id;
@@ -173,19 +183,52 @@ Polymer({
       this.set('field.customValue', cv);
     }
   },
-
   _resetField() {
     this.set('field.value', this.field.defaultValue);
   },
+  _nameContainsStr(name, string) {
+    // Check if name contains any of the values in an array.
+    // If second parameter is a single value, convert to array
+    const strArray = Array.isArray(string) ? string : [string];
+    return strArray.some(
+      str => name.toLowerCase().indexOf(str.toLowerCase()) > -1
+    );
+  },
+  _allowedInOption(allowed, option) {
+    // A user can only give part of a name in the allowed/not_allowed constraints
+    // the way they would do when searching
+    return (
+      allowed.includes(option.id) ||
+      allowed.includes(option.external_id) ||
+      this._nameContainsStr(option.name, allowed)
+    );
+  },
+  _updateAllowedSizes(options) {
+    const { allowed } = this.field;
+    const notAllowed = this.field.not_allowed;
 
+    if (allowed instanceof Array) {
+      this.set(
+        'allowedSizes',
+        options.filter(option => this._allowedInOption(allowed, option))
+      );
+      return;
+    }
+    if (notAllowed instanceof Array) {
+      this.set(
+        'allowedSizes',
+        options.filter(option => !this._allowedInOption(notAllowed, option))
+      );
+      return;
+    }
+    this.set('allowedSizes', options);
+  },
   _filter(options, search) {
     return options
       ? this._sort(
           options.filter(op => {
             return (
-              op.name &&
-              (!search ||
-                op.name.toLowerCase().indexOf(search.toLowerCase()) > -1)
+              op.name && (!search || this._nameContainsStr(op.name, search))
             );
           })
         )
