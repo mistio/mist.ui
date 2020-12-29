@@ -197,6 +197,13 @@ Polymer({
           });
           return display;
         },
+        cmp: (row1, row2) =>{
+          const keys1 = Object.keys(row1.tags);
+          const keys2 = Object.keys(row2.tags);
+          const item1 = keys1.length > 0 ? keys1[0] : "";
+          const item2 = keys2.length > 0 ? keys2[0] : "";
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        }
       },
       location: {
         title: (_item, _row) => {
