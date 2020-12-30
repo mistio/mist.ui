@@ -177,6 +177,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.owned_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.owned_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -189,6 +202,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.created_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.created_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       tags: {
         body: (item, _row) => {

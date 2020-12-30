@@ -181,6 +181,13 @@ Polymer({
           if (machines) return machines.length;
           return '';
         },
+        cmp: (row1, row2) => {
+          const item1 = Object.values( this.model.machines).filter(m => {return m.network === row1.id;});
+          const item2 = Object.values( this.model.machines).filter(m => {return m.network === row2.id;});
+          if (item1 > item2) return 1;
+          if (item2 > item1) return -1;
+          return 0;
+        },
       },
       owned_by: {
         title: 'owner',
@@ -191,6 +198,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.owned_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.owned_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: 'created by',
@@ -201,11 +221,33 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.created_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.created_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       subnets: {
         body: (item, _row) => {
           return item && Object.keys(item) ? Object.keys(item).length : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = row1.subnets && Object.keys(row1.subnets) ? Object.keys(row1.subnets).length: 0;
+          const item2 = row2.subnets && Object.keys(row2.subnets) ? Object.keys(row2.subnets).length: 0;
+          if( item1 < item2 )
+            return -1;
+          if (item2 < item1)
+            return 1;
+          return 0;
+        }
       },
       state: {
         body: (_item, row) => {

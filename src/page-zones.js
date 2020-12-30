@@ -178,12 +178,31 @@ Polymer({
           }
           return '';
         },
+        cmp: (row1, row2) =>{
+          const providers = [];
+          for (let row of [row1, row2]){
+            providers.push(this.model.clouds[row.cloud]);
+          }
+          const item1 = providerMap[providers[0]] || providers[0];
+          const item2 = providerMap[providers[1]] || providers[1];
+
+          return item1.localeCompare(item2, 'en', {sensivity: 'base'});
+        },
       },
       records: {
         body: (item, _row) => {
           const ids = item ? Object.keys(item) : [];
           return ids.length;
         },
+        cmp: (row1, row2) => {
+          const item1 = row1.records ? Object.keys(row1.recodrds).length : 0;
+          const item2 = row2.records ? Object.keys(row2.recodrds).length : 0;
+          if(item1 < item2)
+            return -1
+          if (item2 < item1)
+            return 1
+          return ;
+        }
       },
       owned_by: {
         title: (_item, _row) => {
@@ -196,6 +215,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.owned_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.owned_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -208,6 +240,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.created_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.created_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       tags: {
         body: (item, _row) => {

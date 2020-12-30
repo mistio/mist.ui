@@ -573,6 +573,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.owned_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.owned_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -585,6 +598,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.created_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.created_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created: {
         body: (item, _row) => {
@@ -667,8 +693,15 @@ Polymer({
           return location ? location.name : item || '';
         },
         cmp: (row1, row2) => {
-          const item1 = row1.location;
-          const item2 = row2.location;
+          const locations = [];
+          for(let row of [row1, row2]){
+            if ( this.model && this.model.clouds && this.model.clouds[row.cloud] && this.model.clouds[row.cloud].locations)
+              locations.push(this.model.clouds[row.cloud].locations[row.location]);
+            else
+              locations.push('');
+          }
+          const item1 = locations[0] ? locations[0].name: row1.location || '';
+          const item2 = locations[1] ? locations[1].name: row2.location || '';
           if (item1 == null) {
             return -1;
           }

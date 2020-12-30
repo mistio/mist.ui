@@ -176,6 +176,24 @@ Polymer({
           }
           return '';
         },
+        cmp: (row1, row2) => {
+          let item1 = "";
+          let item2 = "";
+          let scriptName;
+          if (row1.task_type.action) {
+            item1 = row1.task_type && row1.task_type.action.toUpperCase();
+          } else if (row1.task_type.script_id){
+            scriptName = this.model.scripts[row1.task_type.script_id] ? this.model.scripts[row1.task_type.script_id].name : 'missing script';
+            item1 = `RUN ${scriptName}`;
+          }
+          if (row2.task_type.action){
+            item2 = row2.task_type && row2.task_type.action.toUpperCase();
+          } else if (row2.task_type.script_id){
+            scriptName = this.model.scripts[row2.task_type.script_id] ? this.model.scripts[row2.task_type.script_id].name : 'missing script';
+            item2 = `RUN ${scriptName}`;
+          }
+          return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
+        }
       },
       tags: {
         body: (item, _row) => {
@@ -208,6 +226,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.owned_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.owned_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -220,6 +251,19 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.model.members[row1.created_by] ? 
+            this.model.members[row1.owned_by].name ||
+            this.model.members[row1.owned_by].email ||
+            this.model.members[row1.owned_by].username
+            : '';
+          const item2 = this.model.members[row2.created_by] ? 
+            this.model.members[row2.owned_by].name ||
+            this.model.members[row2.owned_by].email ||
+            this.model.members[row2.owned_by].username
+            : '';
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       schedule: {
         body: (item, _row) => {
