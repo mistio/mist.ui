@@ -121,6 +121,12 @@ const MACHINE_ACTIONS = {
     confirm: true,
     multi: true,
   },
+  power_cycle: {
+    name: 'power_cycle',
+    icon: 'icons:settings-power',
+    confirm: true,
+    multi: true,
+  },
   rename: {
     name: 'rename',
     icon: 'editor:mode-edit',
