@@ -347,6 +347,11 @@ Polymer({
 
           return display;
         },
+        cmp: (row1, row2) => {
+         const item1 = this._getRenderers().selectors.body(row1.selectors);
+         const item2 = this._getRenderers().selectors.body(row2.selectors);
+         return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
+        }
       },
     };
   },
