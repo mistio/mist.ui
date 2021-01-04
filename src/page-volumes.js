@@ -86,6 +86,10 @@ Polymer({
       type: Array,
       notify: true,
     },
+    renderers:{
+      type: Object,
+      computed: '_getRenderers(model.volumes)'
+    }
   },
 
   _isAddPageActive(path) {
@@ -171,18 +175,9 @@ Polymer({
             : item;
         },
         cmp: (row1, row2) => {
-          const item1 = this.model &&
-            this.model.clouds &&
-            this.model.clouds[row1.cloud]
-            ? this.model.clouds[row1.cloud].title
-            : row1.cloud;
-          const item2 = this.model &&
-            this.model.clouds &&
-            this.model.clouds[row2.cloud]
-            ? this.model.clouds[row2.cloud].title
-            : row2.cloud;
-          
-            return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
+          const item1 = this.renderers.provider.body(row1.cloud, row1);
+          const item2 = this.renderers.provider.body(row2.cloud, row2);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
         }
       },
       owned_by: {
@@ -195,16 +190,8 @@ Polymer({
             : '';
         },
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.owned_by] ? 
-            this.model.members[row1.owned_by].name ||
-            this.model.members[row1.owned_by].email ||
-            this.model.members[row1.owned_by].username
-            : '';
-          const item2 = this.model.members[row2.owned_by] ? 
-            this.model.members[row2.owned_by].name ||
-            this.model.members[row2.owned_by].email ||
-            this.model.members[row2.owned_by].username
-            : '';
+          const item1 = this.renderers.owned_by.body(row1.owned_by);
+          const item2 = this.renderers.owned_by.body(row2.owned_by);
           return item1.localeCompare(item2, 'en', {sensitivity: "base"});
         }
       },
@@ -218,16 +205,8 @@ Polymer({
             : '';
         },
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.created_by] ? 
-            this.model.members[row1.owned_by].name ||
-            this.model.members[row1.owned_by].email ||
-            this.model.members[row1.owned_by].username
-            : '';
-          const item2 = this.model.members[row2.created_by] ? 
-            this.model.members[row2.owned_by].name ||
-            this.model.members[row2.owned_by].email ||
-            this.model.members[row2.owned_by].username
-            : '';
+          const item1 = this.renderers.created_by.body(row1.created_by);
+          const item2 = this.renderers.created_by.body(row2.created_by);
           return item1.localeCompare(item2, 'en', {sensitivity: "base"});
         }
       },
@@ -235,6 +214,13 @@ Polymer({
         body: (item, _row) => {
           return `<span style="display:block;text-align:right; padding-right:50px;">${item} GΒ</span>`;
         },
+        cmp: (row1, row2) => {
+          if (row1.size < row2.size)
+            return -1;
+          if (row1.size > row2.size)
+            return 1;
+          return 0;
+        }
       },
       attached_to: {
         title: 'attached to',
@@ -277,15 +263,9 @@ Polymer({
             : item;
         },
         cmp: (row1, row2) => {
-          const locations = [];
-          for(let row of [row1, row2]){
-            if ( this.model && this.model.clouds && this.model.clouds[row.cloud] && this.model.clouds[row.cloud].locations)
-              locations.push(this.model.clouds[row.cloud].locations[row.location]);
-            else
-              locations.push('');
-          }
-          const item1 = locations[0] ? locations[0].name: row1.location || '';
-          const item2 = locations[1] ? locations[1].name: row2.location || '';
+          const item1 = this.renderers.location.body(row1.location, row1);
+          const item2 = this.renderers.location.body(row2.location, row2);
+
           if (item1 == null) {
             return -1;
           }
@@ -299,7 +279,7 @@ Polymer({
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).forEach(key => {
+          Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
             if (tags[key] !== undefined && tags[key] !== '')
               display += `=${tags[key]}`;
@@ -307,9 +287,15 @@ Polymer({
           });
           return display;
         },
+        // sort by number of tags, resources with more tags come first
+        // if two resources have the same number of tags show them in alphabetic order
         cmp: (row1, row2) =>{
-          const keys1 = Object.keys(row1.tags);
-          const keys2 = Object.keys(row2.tags);
+          const keys1 = Object.keys(row1.tags).sort();
+          const keys2 = Object.keys(row2.tags).sort();
+          if( keys1.length > keys2.length)
+            return -1;
+          if (keys1.length < keys2.length)
+            return 1;
           const item1 = keys1.length > 0 ? keys1[0] : "";
           const item2 = keys2.length > 0 ? keys2[0] : "";
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });

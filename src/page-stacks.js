@@ -85,6 +85,10 @@ Polymer({
       type: Array,
       notify: true,
     },
+    renderers:{
+      type: Object,
+      computed: '_getRenderers(model.stacks)'
+    }
   },
 
   listeners: {},
@@ -153,6 +157,12 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        // sort alphabetically by the rendered string value
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.owned_by.body(row1.owned_by);
+          const item2 = this.renderers.owned_by.body(row2.owned_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -165,6 +175,12 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        // sort alphabetically by the rendered string value
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.created_by.body(row1.created_by);
+          const item2 = this.renderers.created_by.body(row2.created_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       status: {
         body: (item, _row) => {
@@ -180,7 +196,7 @@ Polymer({
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).forEach(key => {
+          Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
             if (tags[key] !== undefined && tags[key] !== '')
               display += `=${tags[key]}`;
@@ -188,6 +204,19 @@ Polymer({
           });
           return display;
         },
+        // sort by number of tags, resources with more tags come first
+        // if two resources have the same number of tags show them in alphabetic order
+        cmp: (row1, row2) =>{
+          const keys1 = Object.keys(row1.tags).sort();
+          const keys2 = Object.keys(row2.tags).sort();
+          if( keys1.length > keys2.length)
+            return -1;
+          if (keys1.length < keys2.length)
+            return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : "";
+          const item2 = keys2.length > 0 ? keys2[0] : "";
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        }
       },
     };
   },
