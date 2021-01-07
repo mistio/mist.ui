@@ -430,7 +430,11 @@ Polymer({
         display: inline-block;
         padding: 8px;
       }
-
+      #pageLoadSpinner {
+        display: block;
+        padding-top: 15px;
+        margin: auto;
+      }
       @media screen and (max-width: 900px) {
         table.info-table {
           table-layout: fixed;
@@ -542,6 +546,14 @@ Polymer({
           model="[[model]]"
           in-single-page=""
         ></machine-actions>
+      </paper-material>
+      <paper-material hidden$="[[!isLoading]]">
+        <div class="loading">Loading machine...</div>
+        <paper-spinner
+          id="pageLoadSpinner"
+          active$="[[isLoading]]"
+          hidden$="[[!isLoading]]"
+        ></paper-spinner>
       </paper-material>
       <paper-material hidden$="[[!isMissing]]">
         <div class="missing">Machine not found.</div>
@@ -1093,7 +1105,7 @@ Polymer({
     },
     isLoading: {
       type: Boolean,
-      computed: '_computeIsloading(machine)',
+      computed: '_computeIsloading(machine, isMissing)',
       value: true,
     },
     newKeyId: {
@@ -1526,8 +1538,8 @@ Polymer({
     );
   },
 
-  _computeIsloading(_machine) {
-    return !this.machine;
+  _computeIsloading(_machine, _isMIssing) {
+    return !this.machine && !this.isMissing;
   },
 
   disassociateKey(e) {

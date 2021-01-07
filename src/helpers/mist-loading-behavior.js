@@ -74,7 +74,10 @@ export const mistLoadingBehavior = {
     // Currently we can only tell if machines have loaded. Update this number for other resources in the future
     const trialLimit = 5;
 
-    if (this.section.id === 'machines' && this.model.onboarding.isLoadingMachines) {
+    if (
+      this.section.id === 'machines' &&
+      this.model.onboarding.isLoadingMachines
+    ) {
       setTimeout(() => {
         this.updateState();
       }, 1000);
@@ -85,6 +88,7 @@ export const mistLoadingBehavior = {
     this._clearAsync();
     if (this.trials > trialLimit) {
       this.set('state', 'missing');
+
       this.set('isMissing', true);
     } else {
       setTimeout(() => {

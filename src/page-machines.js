@@ -121,7 +121,9 @@ Polymer({
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
         >
-          <p slot="no-items-found">No machines found.</p>
+          <p hidden$="[[loadingMachines]]" slot="no-items-found">
+            No machines found.
+          </p>
         </mist-list>
       </machine-actions>
       <div
@@ -214,6 +216,10 @@ Polymer({
       type: Object,
       computed: '_getMachine(data.machine, model.machines, model.machines.*)',
     },
+    loadingMachines: {
+      type: Boolean,
+      computed: '_getMachinesLoading(model.onboarding.isLoadingMachines)',
+    },
     portalName: {
       type: String,
       value: 'Mist.io',
@@ -242,7 +248,9 @@ Polymer({
       return this.model.machines[id];
     return '';
   },
-
+  _getMachinesLoading() {
+    return this.model.onboarding.isLoadingMachines;
+  },
   setJobId(e) {
     // console.log('setJobId',e.detail)
     if (e.detail.jobId) {
