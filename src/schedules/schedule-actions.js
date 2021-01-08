@@ -1,11 +1,11 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../node_modules/@polymer/paper-input/paper-input.js';
-import '../../node_modules/@polymer/paper-input/paper-input-error.js';
-import '../../node_modules/@polymer/paper-input/paper-textarea.js';
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-input-error.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@mistio/mist-list/mist-list-actions.js';
+import '@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './schedule-edit.js';
@@ -14,8 +14,8 @@ import './schedule-edit-selector.js';
 import './schedule-edit-task.js';
 import moment from 'moment/src/moment';
 import { CSRFToken, intersection } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 const SCHEDULE_ACTIONS = {
   run: {

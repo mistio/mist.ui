@@ -1,11 +1,11 @@
-import '../../node_modules/@polymer/paper-card/paper-card.js';
-import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-card/paper-card.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import './token-item.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({

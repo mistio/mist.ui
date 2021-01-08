@@ -1,4 +1,4 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '@polymer/polymer/polymer-legacy.js';
 /**
  * Behavior that enables the owner filter behavior for lists.
  *

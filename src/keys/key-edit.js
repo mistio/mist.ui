@@ -1,11 +1,11 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-button/paper-button.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import { MistListActionsBehavior } from '@mistio/mist-list/mist-list-actions-behavior.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

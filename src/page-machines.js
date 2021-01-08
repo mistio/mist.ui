@@ -1,15 +1,15 @@
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
 import { ratedCost } from './helpers/utils.js';
-import moment from '../node_modules/moment/src/moment.js';
+import moment from 'moment/src/moment.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -121,7 +121,10 @@ Polymer({
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
         >
-          <p slot="no-items-found">No machines found.</p>
+          <p slot="no-items-found">
+            <span hidden$="[[loadingMachines]]">No machines found.</span>
+            <span hidden$="[[!loadingMachines]]">Loading machines...</span>
+          </p>
         </mist-list>
       </machine-actions>
       <div
@@ -214,6 +217,10 @@ Polymer({
       type: Object,
       computed: '_getMachine(data.machine, model.machines, model.machines.*)',
     },
+    loadingMachines: {
+      type: Boolean,
+      computed: '_getMachinesLoading(model.onboarding.isLoadingMachines)',
+    },
     portalName: {
       type: String,
       value: 'Mist.io',
@@ -242,7 +249,9 @@ Polymer({
       return this.model.machines[id];
     return '';
   },
-
+  _getMachinesLoading() {
+    return this.model && this.model.onboarding.isLoadingMachines;
+  },
   setJobId(e) {
     // console.log('setJobId',e.detail)
     if (e.detail.jobId) {
