@@ -4,27 +4,27 @@
   from HTML and may be out of place here. Review them and
   then delete this comment!
 */
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
+import '@polymer/polymer/polymer-legacy.js';
 
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../node_modules/@polymer/paper-progress/paper-progress.js';
-import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
-import '../../node_modules/@polymer/paper-radio-button/paper-radio-button.js';
-import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
-import '../../node_modules/@polymer/paper-item/paper-item.js';
-import '../../node_modules/@polymer/paper-menu-button/paper-menu-button.js';
-import '../../node_modules/@polymer/paper-input/paper-input.js';
-import '../../node_modules/@polymer/paper-input/paper-textarea.js';
-import '../../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
-import '../../node_modules/@polymer/paper-input/paper-input-behavior.js';
-import '../../node_modules/@polymer/paper-slider/paper-slider.js';
-import '../../node_modules/@polymer/paper-input/paper-input-addon-behavior.js';
-import '../../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../../node_modules/@polymer/iron-form/iron-form.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/paper-progress/paper-progress.js';
+import '@polymer/paper-radio-group/paper-radio-group.js';
+import '@polymer/paper-radio-button/paper-radio-button.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/paper-checkbox/paper-checkbox.js';
+import '@polymer/paper-input/paper-input-behavior.js';
+import '@polymer/paper-slider/paper-slider.js';
+import '@polymer/paper-input/paper-input-addon-behavior.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-form/iron-form.js';
 import './sub-fieldgroup.js';
 import './sub-form.js';
 import './mist-size-field.js';
@@ -32,12 +32,12 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
-import moment from '../../node_modules/moment/src/moment.js';
+import moment from 'moment/src/moment.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import '../../node_modules/@fooloomanzoo/datetime-picker/datetime-picker.js';
-import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import '@fooloomanzoo/datetime-picker/datetime-picker.js';
+import { YAML } from 'yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`

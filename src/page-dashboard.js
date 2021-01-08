@@ -1,27 +1,27 @@
-import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
-import '../node_modules/@polymer/paper-button/paper-button.js';
-import '../node_modules/@polymer/paper-input/paper-input.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import '@mistio/polyana-dashboard/polyana-dashboard.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-fab/paper-fab.js';
 import './section-tile/section-tile.js';
 import './app-incidents/app-incidents.js';
 import './app-costs/app-costs.js';
-import '../node_modules/@polymer/paper-card/paper-card.js';
-import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../node_modules/@polymer/paper-item/paper-item.js';
-import '../node_modules/@polymer/paper-menu-button/paper-menu-button.js';
-import '../node_modules/@polymer/paper-input/paper-textarea.js';
-import '../node_modules/@polymer/paper-input/paper-input-behavior.js';
-import '../node_modules/@polymer/paper-input/paper-input-addon-behavior.js';
-import '../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
+import '@polymer/paper-card/paper-card.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-menu-button/paper-menu-button.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/paper-input/paper-input-behavior.js';
+import '@polymer/paper-input/paper-input-addon-behavior.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
-import moment from '../node_modules/moment/src/moment.js';
+import moment from 'moment/src/moment.js';
 import { CSRFToken } from './helpers/utils.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   is: 'page-dashboard',

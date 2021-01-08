@@ -1,9 +1,9 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@advanced-rest-client/json-viewer/json-viewer.js';
-import '../../node_modules/@advanced-rest-client/xml-viewer/xml-viewer.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { YAML } from '../../node_modules/yaml/browser/dist/index.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@advanced-rest-client/json-viewer/json-viewer.js';
+import '@advanced-rest-client/xml-viewer/xml-viewer.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { YAML } from 'yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`

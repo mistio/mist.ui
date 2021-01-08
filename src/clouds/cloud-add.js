@@ -1,14 +1,14 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../node_modules/@polymer/paper-tooltip/paper-tooltip.js';
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/paper-tooltip/paper-tooltip.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import '../account/plan-purchase.js';
 import '../app-form/app-form.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

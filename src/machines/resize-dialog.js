@@ -1,10 +1,10 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../node_modules/@polymer/paper-input/paper-input.js';
-import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-progress/paper-progress.js';
 import '../helpers/dialog-element.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken, formatMoney } from '../helpers/utils.js';
 
 Polymer({

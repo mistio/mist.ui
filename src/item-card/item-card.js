@@ -1,9 +1,9 @@
-import '../../node_modules/@polymer/iron-icons/maps-icons.js';
-import '../../node_modules/@polymer/paper-material/paper-material.js';
+import '@polymer/iron-icons/maps-icons.js';
+import '@polymer/paper-material/paper-material.js';
 import '../section-symbol/section-symbol.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 
 let sharedActionMenu = null;
 let activeCard = null;

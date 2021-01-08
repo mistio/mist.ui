@@ -1,10 +1,10 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
