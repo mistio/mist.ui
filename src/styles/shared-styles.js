@@ -1647,12 +1647,21 @@ iron-dropdown paper-material {
             display: none !important;
         }
 
-         :host .missing {
-            background-color: var(--red-color);
+        :host .missing,
+        :host .loading {
+            padding: 5px 0;
             color: #fff;
             font-weight: 500;
             text-align: center;
             width: 100%;
+        }
+
+        :host .missing {
+            background-color: var(--red-color);
+        }
+
+        :host .loading {
+            background-color: var(--green-color);
         }
 
         #content {

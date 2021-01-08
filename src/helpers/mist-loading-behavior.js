@@ -72,7 +72,18 @@ export const mistLoadingBehavior = {
   _tryAgain() {
     console.log('load timeout', this.trials);
     // Currently we can only tell if machines have loaded. Update this number for other resources in the future
-    const trialLimit = this.section.id === 'machines' ? 1 : 5;
+    const trialLimit = 5;
+
+    if (
+      this.section.id === 'machines' &&
+      this.model.onboarding.isLoadingMachines
+    ) {
+      setTimeout(() => {
+        this.updateState();
+      }, 1000);
+      return;
+    }
+
     this.set('trials', this.trials ? this.trials + 1 : 1);
     this._clearAsync();
     if (this.trials > trialLimit) {
