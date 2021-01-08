@@ -1,15 +1,15 @@
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import { ratedCost } from './helpers/utils.js';
-import moment from '../node_modules/moment/src/moment.js';
+import moment from 'moment/src/moment.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { ratedCost } from './helpers/utils.js';
 
 Polymer({
   _template: html`
