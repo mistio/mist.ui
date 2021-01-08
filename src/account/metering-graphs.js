@@ -1,10 +1,10 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 import * as echarts from 'echarts/echarts.all.js';
-import { IronResizableBehavior } from '../../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 const GRAPH_OPTIONS = {
   title: {

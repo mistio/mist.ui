@@ -1,12 +1,12 @@
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/neon-animation/animations/scale-up-animation.js';
-import '../../node_modules/@polymer/neon-animation/animations/fade-out-animation.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/neon-animation/animations/scale-up-animation.js';
+import '@polymer/neon-animation/animations/fade-out-animation.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 /* eslint-disable import/extensions */
 // Linter complains about js extension but these are typescript...
-import '../../node_modules/xterm';
-import '../../node_modules/xterm-addon-fit';
-import '../../node_modules/xterm-addon-attach';
+import 'xterm';
+import 'xterm-addon-fit';
+import 'xterm-addon-attach';
 /* eslint-enable import/extensions */
 
 const documentContainer = document.createElement('template');
@@ -14,7 +14,7 @@ const documentContainer = document.createElement('template');
 documentContainer.innerHTML = `<style>
 
 </style><dom-module id="xterm-dialog">
-    
+
     <template>
         <style>
         .xterm {
@@ -24,12 +24,12 @@ documentContainer.innerHTML = `<style>
             -ms-user-select: none;
             -webkit-user-select: none;
         }
-        
+
         .xterm.focus,
         .xterm:focus {
             outline: none;
         }
-        
+
         .xterm .xterm-helpers {
             position: absolute;
             top: 0;
@@ -39,7 +39,7 @@ documentContainer.innerHTML = `<style>
              */
             z-index: 5;
         }
-        
+
         .xterm .xterm-helper-textarea {
             padding: 0;
             border: 0;
@@ -57,7 +57,7 @@ documentContainer.innerHTML = `<style>
             overflow: hidden;
             resize: none;
         }
-        
+
         .xterm .composition-view {
             /* TODO: Composition position got messed up somewhere */
             background: #000;
@@ -67,11 +67,11 @@ documentContainer.innerHTML = `<style>
             white-space: nowrap;
             z-index: 1;
         }
-        
+
         .xterm .composition-view.active {
             display: block;
         }
-        
+
         .xterm .xterm-viewport {
             /* On OS X this is required in order for the scroll bar to appear fully opaque */
             background-color: #000;
@@ -83,21 +83,21 @@ documentContainer.innerHTML = `<style>
             top: 0;
             bottom: 0;
         }
-        
+
         .xterm .xterm-screen {
             position: relative;
         }
-        
+
         .xterm .xterm-screen canvas {
             position: absolute;
             left: 0;
             top: 0;
         }
-        
+
         .xterm .xterm-scroll-area {
             visibility: hidden;
         }
-        
+
         .xterm-char-measure-element {
             display: inline-block;
             visibility: hidden;
@@ -106,25 +106,25 @@ documentContainer.innerHTML = `<style>
             left: -9999em;
             line-height: normal;
         }
-        
+
         .xterm {
             cursor: text;
         }
-        
+
         .xterm.enable-mouse-events {
             /* When mouse events are enabled (eg. tmux), revert to the standard pointer cursor */
             cursor: default;
         }
-        
+
         .xterm.xterm-cursor-pointer {
             cursor: pointer;
         }
-        
+
         .xterm.column-select.focus {
             /* Column selection mode */
             cursor: crosshair;
         }
-        
+
         .xterm .xterm-accessibility,
         .xterm .xterm-message {
             position: absolute;
@@ -135,7 +135,7 @@ documentContainer.innerHTML = `<style>
             z-index: 10;
             color: transparent;
         }
-        
+
         .xterm .live-region {
             position: absolute;
             left: -9999px;
@@ -143,15 +143,15 @@ documentContainer.innerHTML = `<style>
             height: 1px;
             overflow: hidden;
         }
-        
+
         .xterm-dim {
             opacity: 0.5;
         }
-        
+
         .xterm-underline {
             text-decoration: underline;
         }
-            
+
             :host {
                 display: block;
                 width: 100% !important;
@@ -217,7 +217,7 @@ documentContainer.innerHTML = `<style>
         </div>
     </template>
 
-    
+
 </dom-module>`;
 
 document.head.appendChild(documentContainer.content);

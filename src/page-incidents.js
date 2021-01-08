@@ -1,10 +1,10 @@
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import dayjs from '../node_modules/dayjs/esm/index.js';
+import '@polymer/app-route/app-route.js';
+import '@mistio/mist-list/mist-list.js';
+import dayjs from 'dayjs/esm/index.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

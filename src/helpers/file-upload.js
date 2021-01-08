@@ -1,5 +1,5 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
+import '@polymer/polymer/polymer-legacy.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 
 Polymer({
   is: 'file-upload',
