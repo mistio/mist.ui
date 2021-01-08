@@ -1,13 +1,13 @@
-// import '../../node_modules/@polymer/iron-timeago/iron-timeago.js';
-import '../../node_modules/@polymer/paper-card/paper-card.js';
-import '../../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../../node_modules/@polymer/iron-icons/iron-icons.js';
+// import '@polymer/iron-timeago/iron-timeago.js';
+import '@polymer/paper-card/paper-card.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/iron-icons/iron-icons.js';
 import '../machines/machine-page.js';
 import '../section-tile/section-tile.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { getResourceFromIncidentBehavior } from '../helpers/get-resource-from-incident-behavior.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

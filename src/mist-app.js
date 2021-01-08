@@ -1194,7 +1194,7 @@ Polymer({
     if (!this.fingerprint) {
       (async () => {
         const obj_ = await import(
-          '../node_modules/@fingerprintjs/fingerprintjs'
+          '@fingerprintjs/fingerprintjs'
         );
         const FingerprintJS = obj_.default;
         const fp = await FingerprintJS.load();

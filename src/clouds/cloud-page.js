@@ -1,7 +1,7 @@
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-dialog/paper-dialog.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import '../helpers/dialog-element.js';
@@ -14,8 +14,8 @@ import './cloud-actions.js';
 import './other-cloud-machines.js';
 import './other-cloud-add-machine.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
