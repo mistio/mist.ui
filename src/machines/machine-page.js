@@ -1538,7 +1538,7 @@ Polymer({
     );
   },
 
-  _computeIsloading(_machine, _isMIssing) {
+  _computeIsloading(_machine, _isMissing) {
     return !this.machine && !this.isMissing;
   },
 

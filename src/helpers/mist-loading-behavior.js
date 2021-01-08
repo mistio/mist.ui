@@ -88,7 +88,6 @@ export const mistLoadingBehavior = {
     this._clearAsync();
     if (this.trials > trialLimit) {
       this.set('state', 'missing');
-
       this.set('isMissing', true);
     } else {
       setTimeout(() => {
