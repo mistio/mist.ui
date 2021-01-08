@@ -121,8 +121,9 @@ Polymer({
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
         >
-          <p hidden$="[[loadingMachines]]" slot="no-items-found">
-            No machines found.
+          <p slot="no-items-found">
+            <span hidden$="[[loadingMachines]]">No machines found.</span>
+            <span hidden$="[[!loadingMachines]]">Loading machines...</span>
           </p>
         </mist-list>
       </machine-actions>
@@ -249,7 +250,7 @@ Polymer({
     return '';
   },
   _getMachinesLoading() {
-    return this.model.onboarding.isLoadingMachines;
+    return this.model && this.model.onboarding.isLoadingMachines;
   },
   setJobId(e) {
     // console.log('setJobId',e.detail)
