@@ -5,11 +5,11 @@ import '@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
+import { ratedCost } from './helpers/utils.js';
 import moment from 'moment/src/moment.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { ratedCost } from './helpers/utils.js';
 
 Polymer({
   _template: html`

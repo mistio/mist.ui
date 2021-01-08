@@ -1,8 +1,8 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../../node_modules/@mistio/mist-list/mist-list.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@mistio/mist-list/mist-list.js';
 import '../mist-rules/mist-rules.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
@@ -10,8 +10,8 @@ import '../helpers/dialog-element.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import './volume-actions.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

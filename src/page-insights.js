@@ -1,15 +1,15 @@
-import '../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@polymer/paper-material/paper-material.js';
-import '../node_modules/@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/@polymer/iron-media-query/iron-media-query.js';
-import { IronResizableBehavior } from '../node_modules/@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '../node_modules/@mistio/mist-insights/mist-insights.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/iron-media-query/iron-media-query.js';
+import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
+import '@mistio/mist-insights/mist-insights.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

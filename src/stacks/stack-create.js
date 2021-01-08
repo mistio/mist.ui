@@ -1,15 +1,15 @@
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-toggle-button/paper-toggle-button.js';
-import '../../node_modules/@polymer/paper-styles/typography.js';
-import '../../node_modules/@polymer/paper-radio-group/paper-radio-group.js';
-import '../../node_modules/@polymer/paper-radio-button/paper-radio-button.js';
-import '../../node_modules/@polymer/paper-progress/paper-progress.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-radio-group/paper-radio-group.js';
+import '@polymer/paper-radio-button/paper-radio-button.js';
+import '@polymer/paper-progress/paper-progress.js';
 import '../app-form/app-form.js';
 import { YAML } from 'yaml/browser/dist/index.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { dom } from '../../node_modules/@polymer/polymer/lib/legacy/polymer.dom.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { stackFormsBehavior } from '../helpers/stack-forms-behavior.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 

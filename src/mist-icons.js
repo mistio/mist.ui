@@ -1,6 +1,6 @@
-import '../node_modules/@polymer/iron-icon/iron-icon.js';
-import '../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../node_modules/@polymer/iron-iconset-svg/iron-iconset-svg.js';
+import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-iconset-svg/iron-iconset-svg.js';
 
 const documentContainer = document.createElement('template');
 
