@@ -53,6 +53,9 @@ Polymer({
       value: {},
       observer: '_contentChanged',
     },
+    tabSize: {
+      value: 2,
+    },
     ignore: {
       type: String,
     },
@@ -120,7 +123,9 @@ Polymer({
         content[i].value instanceof Array
       ) {
         tpl += `<div class='flexchild resizable' style='width: 70%'><monaco-element language='json' theme='vs-light' read-only value='${JSON.stringify(
-          content[i].value
+          content[i].value,
+          undefined,
+          this.tabSize
         )}'></monaco-element></div>`;
       }
       // if key is password
