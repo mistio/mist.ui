@@ -1,6 +1,5 @@
 import '@polymer/polymer/polymer-legacy.js';
-import '@advanced-rest-client/json-viewer/json-viewer.js';
-import '@advanced-rest-client/xml-viewer/xml-viewer.js';
+import 'monaco-element';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { YAML } from 'yaml/browser/dist/index.js';
@@ -19,6 +18,16 @@ Polymer({
       .flexchild {
         @apply --layout-flex;
         padding: 16px;
+      }
+
+      .resizable {
+        overflow: auto;
+        resize: both;
+      }
+
+      monaco-element {
+        height: 100%;
+        width: 100%;
       }
 
       .flexchild.key {
@@ -43,6 +52,9 @@ Polymer({
       type: Object,
       value: {},
       observer: '_contentChanged',
+    },
+    tabSize: {
+      value: 2,
     },
     ignore: {
       type: String,
@@ -110,9 +122,11 @@ Polymer({
         content[i].value instanceof Object ||
         content[i].value instanceof Array
       ) {
-        tpl += `<div class='flexchild' style='width: 70%'><json-viewer json='${JSON.stringify(
-          content[i].value
-        )}'></json-viewer></div>`;
+        tpl += `<div class='flexchild resizable' style='width: 70%'><monaco-element language='json' theme='vs-light' read-only value='${JSON.stringify(
+          content[i].value,
+          undefined,
+          this.tabSize
+        )}'></monaco-element></div>`;
       }
       // if key is password
       else if (content[i].key.indexOf('password') > -1) {
@@ -137,9 +151,9 @@ Polymer({
               content[i].value
             )}</div>`;
           } else if (parserOutputType !== 'parsererror') {
-            tpl += `<div class='flexchild'><xml-viewer xml='${content[
+            tpl += `<div class='flexchild resizable'><monaco-element language='xml' theme='vs-light' read-only value='${content[
               i
-            ].value.replace(/'/g, '"')}'></xml-viewer></div>`;
+            ].value.replace(/'/g, '"')}'></monaco-element></div>`;
           } else {
             tpl += `<div class='flexchild'>${replaceURLWithHTMLLinks(
               content[i].value
