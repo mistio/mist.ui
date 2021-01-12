@@ -348,7 +348,7 @@ Polymer({
 
   is: 'mist-sidebar',
 
-  behaviors: [IronOverlayBehavior],
+  behaviors: [IronOverlayBehavior, window.rbac],
 
   properties: {
     model: {
@@ -440,6 +440,19 @@ Polymer({
   },
 
   _isHidden(item) {
+    if (
+      this.model.org &&
+      this.model.user &&
+      !this.checkPerm(
+        '',
+        item.id.slice(0, -1),
+        undefined,
+        this.model.org,
+        this.model.user
+      )
+    ) {
+      return true;
+    }
     if (item.hideZero && item.count === 0) return true;
     return false;
   },
