@@ -25,6 +25,8 @@ import '@polymer/paper-input/paper-input-addon-behavior.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-form/iron-form.js';
+import 'monaco-element';
+import '../element-for-in/element-for-in.js';
 import './sub-fieldgroup.js';
 import './sub-form.js';
 import './mist-size-field.js';
@@ -33,11 +35,11 @@ import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 import { YAML } from 'yaml/browser/dist/index.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -624,13 +626,10 @@ Polymer({
               if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]"
               restamp=""
             >
-              <juicy-jsoneditor
-                class$="xs12 m6 [[field.class]]"
-                id$="app-form-[[id]]-[[field.name]]"
-                name="[[field.name]]"
-                json="{{field.value}}"
-                mode="code"
-              ></juicy-jsoneditor>
+              <div id="jsoneditor"
+              class$="xs12 m6 [[field.class]]"
+
+              name="[[field.name]]"></div>
             </template>
             <template
               is="dom-if"
@@ -1586,6 +1585,18 @@ Polymer({
             }
             if (el.type === 'fieldgroup') {
               console.log('fieldgroup', that.id, 'el', el.name, el.value);
+            }
+            if (el.type === 'jsoneditor') {
+             that.shadowRoot.querySelector('#jsoneditor').innerHTML = `<monaco-element
+             id$="app-form-${that.id}-${el.name}"
+             language="json" theme="vs-light",
+             on-change="${that.runFieldsChanged}"
+             value='${JSON.stringify(
+              el.value,
+              undefined,
+              2
+            )}'
+           ></monaco-element>`;
             }
             if (el.loadScheme && el.schemeName) {
               // console.log('fieldgroup', that.id, 'el', el.name, el.value);
