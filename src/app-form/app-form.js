@@ -32,12 +32,13 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
+import '../helpers/code-viewer.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 import { YAML } from 'yaml/browser/dist/index.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -622,15 +623,17 @@ Polymer({
             <template
               is="dom-if"
               if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]"
-              restamp=""
+
             >
-              <juicy-jsoneditor
+              <code-viewer
+                language='json' theme='vs-light'
                 class$="xs12 m6 [[field.class]]"
                 id$="app-form-[[id]]-[[field.name]]"
                 name="[[field.name]]"
-                json="{{field.value}}"
-                mode="code"
-              ></juicy-jsoneditor>
+                value="[[field.value]]"
+                on-value-changed="_jsonEditorValueChanged"
+                restamp=""
+              ></code-viewer>
             </template>
             <template
               is="dom-if"
@@ -1382,7 +1385,11 @@ Polymer({
   _computeLayoutClass(_layout) {
     return this.horizontalLayout ? 'horizontal-grid' : '';
   },
-
+  _jsonEditorValueChanged(e) {
+    const { name, value } = e.detail;
+    const fieldIndex = this.fields.findIndex(field => field.name === name);
+    this.set(`fields.${fieldIndex}.value`, value);
+   },
   _clearDateTimeInput(e) {
     if (e && e.model && e.model.field) {
       const fieldName = e.model.field.name;
