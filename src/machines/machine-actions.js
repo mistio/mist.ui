@@ -250,12 +250,12 @@ Polymer({
       on-error="handleError"
     ></iron-ajax>
     <slot>
-      <mist-list-actions actions="[[actions]]"></mist-list-actions>
+      <mist-list-actions actions="[[allowedActions]]"></mist-list-actions>
     </slot>
   `,
 
   is: 'machine-actions',
-  behaviors: [MistListActionsBehavior],
+  behaviors: [MistListActionsBehavior, window.rbac],
 
   properties: {
     model: {
@@ -273,6 +273,10 @@ Polymer({
         return [];
       },
       notify: true,
+    },
+    allowedActions: {
+      type: Array,
+      computed: '_computeAllowedActions(actions)',
     },
     inSinglePage: {
       type: Boolean,
@@ -434,7 +438,22 @@ Polymer({
     if (this.items.length) return this.get('items.0');
     return undefined;
   },
-
+  _computeAllowedActions(actions) {
+    if (actions.length > 0) {
+      return actions.filter(action => {
+        let actionName = action.name;
+        if (actionName === 'rename') actionName = 'edit';
+        return this.checkPerm(
+          actionName,
+          'machine',
+          this._getMachine().id,
+          this.model.org,
+          this.model.user
+        );
+      });
+    }
+    return [];
+  },
   computeActionListDetails(actions) {
     const ret = [];
     for (let i = 0; i < actions.length; i++) {
