@@ -13,7 +13,6 @@ Polymer({
         <app-route route="{{route}}" pattern="/:secret" data="{{data}}"></app-route>
 
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-            <h1> Here be Secrets </h1>
             <mist-list selectable resizable column-menu multi-sort
                 id="secretsList"
                 apiurl="/api/v1/secrets"
