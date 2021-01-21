@@ -441,11 +441,12 @@ Polymer({
 
   _isHidden(item) {
     if (
+      this.checkPerm &&
       this.model.org &&
       this.model.user &&
       !this.checkPerm(
-        '',
-        item.id.slice(0, -1),
+        'read',
+        item.id,
         undefined,
         this.model.org,
         this.model.user

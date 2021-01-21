@@ -5,11 +5,11 @@ import '@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import { ratedCost } from './helpers/utils.js';
 import moment from 'moment/src/moment.js';
-import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { ratedCost } from './helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -117,6 +117,7 @@ Polymer({
           user-filter="[[model.sections.machines.q]]"
           primary-field-name="id"
           actions="[[actions]]"
+          check-permissions="[[_checkPermissions()]]"
           filter-method="[[_ownerFilter()]]"
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
@@ -963,5 +964,13 @@ Polymer({
     if (load > 0.6) return `${prefix}eco `;
     if (load > 0.2) return `${prefix}low `;
     return `${prefix}low `;
+  },
+  // wrapper of checkPerm for mist-list with machine set as resource type
+  _checkPermissions() {
+    return {
+      apply: (action, rid) => {
+        return this.checkPerm(action, 'machine', rid);
+      },
+    };
   },
 });

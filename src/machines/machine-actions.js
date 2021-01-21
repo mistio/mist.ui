@@ -443,6 +443,8 @@ Polymer({
       return actions.filter(action => {
         let actionName = action.name;
         if (actionName === 'rename') actionName = 'edit';
+        else if (actionName === 'tag') actionName = 'edit_tags';
+        else if (actionName === 'shell') actionName = 'open_shell';
         return this.checkPerm(
           actionName,
           'machine',
