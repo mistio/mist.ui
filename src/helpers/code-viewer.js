@@ -1,10 +1,12 @@
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-icon/iron-icon.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import 'monaco-element';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-
+  // TODO add styles for fullscreen etc depending on theme
 Polymer({
   _template: html`
     <style include="shared-styles forms">
@@ -14,6 +16,7 @@ Polymer({
 
       :host {
         display: block;
+        width: 100%;
       }
 
       :host([fullscreen]) {
@@ -30,9 +33,13 @@ Polymer({
       }
       .toolbar {
         display: flex;
-        justify-content: flex-end;
-        background-color: var(--code-viewer-background-color);
+        border: 1px solid;
+        background-color: var(--code-viewer-toolbar-background-color);
         color: var(--code-viewer-icons-color, var(--paper-grey-700));
+      }
+      .language {
+        flex: 1;
+        margin-left: 40px;
       }
       #fullscreenBtn,
       #exitFullscreenBtn {
@@ -41,6 +48,17 @@ Polymer({
     </style>
     <div class="code-viewer">
       <div class="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
+      <paper-dropdown-menu selected="1" on-value-changed="_languageChanged">
+        <paper-listbox
+          slot="dropdown-content"
+          class="dropdown-content"
+        >
+          <template is="dom-repeat" items="[[languages]]" as="lang">
+            <paper-item>[[lang.name]]</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <span class="language">[[language]]</span>
         <paper-icon-button
           icon="icons:content-copy"
           on-tap="_copyContents"
@@ -65,9 +83,10 @@ Polymer({
         language="[[language]]"
         theme="[[theme]]"
         name="[[name]]"
-        value="{{value}}"
+        value="[[value]]"
         loading="{{editorLoading}}"
         on-value-changed="_handleValueChanged"
+        readOnly="[[readOnly]]"
       >
         <span slot="loader">Loading...</span>
       </monaco-element>
@@ -82,6 +101,9 @@ Polymer({
     },
     language: {
       type: String,
+    },
+    languages: {
+      type: Array,
     },
     value: {
       type: String,
@@ -105,7 +127,30 @@ Polymer({
     },
   },
   _handleValueChanged(e) {
-    this.dispatchEvent(new CustomEvent('value-changed', { detail: e.detail }));
+    // Added debounce because pressing buttons too quickly caused an endless event feedback loop
+    this.debounce(
+      'valueChanged',
+      () => {
+        this.dispatchEvent(new CustomEvent('editor-value-changed', { detail: e.detail }));
+      },
+      300
+    );
+
+  },
+  _languageChanged(e) {
+    console.log("e ", e)
+    const value = e.detail.value;
+    if (!value) { return; }
+    const newLanguage = this.languages.find(lang => lang.name === value);
+    this.language = newLanguage.type;
+console.log("the language changed in code-viewer")
+    this.dispatchEvent(    new CustomEvent('editor-language-changed', {
+      bubbles: true,
+      composed: true,
+      detail: {
+        language: newLanguage
+      },
+    }));
   },
   _enterFullscreen() {
     this.set('fullscreen', true);

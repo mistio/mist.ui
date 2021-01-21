@@ -622,16 +622,17 @@ Polymer({
             </template>
             <template
               is="dom-if"
-              if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]"
+              if="[[_compareFieldType(field.type, 'codeEditor', fieldVisibility, index)]]"
 
             >
               <code-viewer
-                language='json' theme='vs-light'
+                language="[[field.language]]" theme='vs-light'
+                languages="[[field.languages]]"
                 class$="xs12 m6 [[field.class]]"
                 id$="app-form-[[id]]-[[field.name]]"
                 name="[[field.name]]"
                 value="[[field.value]]"
-                on-value-changed="_jsonEditorValueChanged"
+                on-editor-value-changed="_codeEditorValueChanged"
                 restamp=""
               ></code-viewer>
             </template>
@@ -1385,7 +1386,7 @@ Polymer({
   _computeLayoutClass(_layout) {
     return this.horizontalLayout ? 'horizontal-grid' : '';
   },
-  _jsonEditorValueChanged(e) {
+  _codeEditorValueChanged(e) {
     const { name, value } = e.detail;
     const fieldIndex = this.fields.findIndex(field => field.name === name);
     this.set(`fields.${fieldIndex}.value`, value);

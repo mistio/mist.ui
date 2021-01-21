@@ -12,7 +12,8 @@ const RBAC_CONSTRAINTS_FIELDS = [
   {
     name: 'constraints',
     label: '',
-    type: 'jsoneditor',
+    type: 'codeEditor',
+    language: 'json',
     value: {},
     defaultValue: {},
     class: 'script',

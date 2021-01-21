@@ -9,6 +9,7 @@ import '../helpers/dialog-element.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
+import '../helpers/code-viewer.js';
 import './script-run.js';
 import './script-actions.js';
 import moment from 'moment/src/moment.js';
@@ -51,14 +52,18 @@ Polymer({
             }
 
             .command-container {
-                background-color: #444;
+                background-color: #1e1e1e;
                 color: #fff;
                 font-family: monospace;
-                padding: 10px;
+                padding: 2px 2px;
                 width: 100%;
                 max-width: 100%;
-                overflow-x: scroll;
+                /* overflow-x: scroll; */
                 box-sizing: border-box;
+                position: relative;
+            }
+            code-viewer {
+              --code-viewer-toolbar-background-color: #1e1e1e;
             }
 
             a {
@@ -146,9 +151,14 @@ Polymer({
             </paper-material>
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
-                    <div class="pad2">
-                        <pre><code>[[script.location.source_code]]</code></pre>
-                    </div>
+                    <template is="dom-if" if="[[script]]">
+                        <code-viewer
+                        language='shell' theme='vs-light'
+                        languages="[[scriptLanguages]]"
+                        value="[[script.location.source_code]]"
+                        restamp=""
+                      ></code-viewer>
+                    </template>
                 </div>
                 <paper-material id="rightcolumn" class="right">
                     <div class="missing" hidden\$="[[!isMissing]]">Script not found.</div>
@@ -262,7 +272,16 @@ Polymer({
   },
 
   observers: ['_changed(script)'],
-
+  scriptLanguages: [
+    {name: 'bash', type: 'shell'},
+    {name: 'sh', type:'shell'},
+    {name: 'zsh', type: 'shell'},
+    {name: 'python', type: 'python'},
+    {name: 'node', type:'javascript'},
+    {name: 'perl', type: 'perl'},
+    {name: 'fish', type: 'shell'},
+    {name: 'powershell', type: 'powershell'}
+  ],
   _getHeaderStyle(section) {
     return `background-color: ${section.color}; color: #fff;`;
   },
@@ -309,7 +328,10 @@ Polymer({
     if (location) return location.repo || location.url;
     return null;
   },
-
+  _computeScriptValue() {
+    console.log("this.script ", this.script && this.script.location.source_code)
+    return this.script ? this.script.location.source_code : null;
+  },
   _computeIsloading(_script) {
     return !this.script;
   },
