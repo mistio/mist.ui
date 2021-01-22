@@ -203,9 +203,9 @@ Polymer({
       <div class="loading-data" hidden="{{!sendingData}}"></div>
       <sortable-list
         id="rules"
+        animation="50"
         sortable=".rule-item"
-        dragging="{{dragging}}"
-        on-sort-finish="_onSortFinish"
+        on-sort-end="_onSortFinish"
         on-sort-start="_onSortStart"
       >
         <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
@@ -226,7 +226,7 @@ Polymer({
           <span></span>
           <span></span>
         </div>
-        <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
+        <template is="dom-repeat" items="{{team.policy.rules}}" id="rulesrepeat">
           <rbac-rule-item
             class="rule-item"
             rule="[[item]]"
@@ -367,10 +367,6 @@ Polymer({
     cache: {
       type: String,
     },
-    dragging: {
-      type: Boolean,
-      observer: '_draggingChanged',
-    },
   },
 
   observers: [
@@ -398,13 +394,6 @@ Polymer({
       commonPermissions = intersection(s, that.model.permissions[t]);
     });
     return Array.from(commonPermissions);
-  },
-
-  _draggingChanged(newDragging) {
-    if (newDragging === true) {
-      this.$.ruleHead.remove();
-      this.ruleHasChanges();
-    }
   },
 
   _onSortStart(event) {
@@ -438,7 +427,13 @@ Polymer({
       orderedRules.push(rules[newOrder[i]]);
     }
     this.set('rules', orderedRules);
-    this._submitForm();
+    // change indexes to reflect new order
+    this.shadowRoot.querySelector('sortable-list')
+      .querySelectorAll('rbac-rule-item').forEach((item, ind) =>{
+        item.shadowRoot.querySelector('.index').textContent = `${ind}.`
+      })
+    // commenting for now, user should decide if he wants to save
+    // this._submitForm();
   },
 
   _teamChanged() {
