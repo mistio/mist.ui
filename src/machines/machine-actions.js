@@ -441,12 +441,8 @@ Polymer({
   _computeAllowedActions(actions) {
     if (actions.length > 0) {
       return actions.filter(action => {
-        let actionName = action.name;
-        if (actionName === 'rename') actionName = 'edit';
-        else if (actionName === 'tag') actionName = 'edit_tags';
-        else if (actionName === 'shell') actionName = 'open_shell';
         return this.checkPerm(
-          actionName,
+          action.name,
           'machine',
           this._getMachine().id,
           this.model.org,
