@@ -441,11 +441,13 @@ Polymer({
 
   _isHidden(item) {
     if (
+      ['teams', 'insights', 'rules'].indexOf(item.id) === -1 &&
+      this.checkPerm &&
       this.model.org &&
       this.model.user &&
       !this.checkPerm(
-        '',
-        item.id.slice(0, -1),
+        'read',
+        item.id,
         undefined,
         this.model.org,
         this.model.user
