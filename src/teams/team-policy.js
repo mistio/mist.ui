@@ -6,9 +6,9 @@ import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '@mistio/sortable-list/sortable-list.js';
 import './rbac-rule-item.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -226,7 +226,7 @@ Polymer({
           <span></span>
           <span></span>
         </div>
-        <template is="dom-repeat" items="{{team.policy.rules}}" id="rulesrepeat">
+        <template is="dom-repeat" items="{{rules}}" id="rulesrepeat">
           <rbac-rule-item
             class="rule-item"
             rule="[[item]]"
@@ -421,17 +421,20 @@ Polymer({
   },
 
   _applyReordering(newOrder) {
-    const orderedRules = [];
     const rules = this.rules.splice(0);
     for (let i = 0; i < newOrder.length; i++) {
-      orderedRules.push(rules[newOrder[i]]);
+      this.rules.push(rules[newOrder[i]]);
     }
-    this.set('rules', orderedRules);
+    /* eslint-disable no-param-reassign */
     // change indexes to reflect new order
-    this.shadowRoot.querySelector('sortable-list')
-      .querySelectorAll('rbac-rule-item').forEach((item, ind) =>{
-        item.shadowRoot.querySelector('.index').textContent = `${ind}.`
-      })
+    this.shadowRoot
+      .querySelector('sortable-list')
+      .querySelectorAll('rbac-rule-item')
+      .forEach((item, ind) => {
+        item.shadowRoot.querySelector('.index').textContent = `${ind}.`;
+      });
+    /* eslint-enable no-param-reassign */
+    this._rulesChanged();
     // commenting for now, user should decide if he wants to save
     // this._submitForm();
   },
