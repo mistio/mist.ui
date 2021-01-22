@@ -86,6 +86,10 @@ Polymer({
       type: Array,
       notify: true,
     },
+    renderers:{
+      type: Object,
+      computed: '_getRenderers(model.volumes)'
+    }
   },
 
   _isAddPageActive(path) {
@@ -170,6 +174,11 @@ Polymer({
             ? _this.model.clouds[row.cloud].title
             : item;
         },
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.provider.body(row1.cloud, row1);
+          const item2 = this.renderers.provider.body(row2.cloud, row2);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       owned_by: {
         title: 'owner',
@@ -180,6 +189,11 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.owned_by.body(row1.owned_by);
+          const item2 = this.renderers.owned_by.body(row2.owned_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: 'created by',
@@ -190,11 +204,23 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.created_by.body(row1.created_by);
+          const item2 = this.renderers.created_by.body(row2.created_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       size: {
         body: (item, _row) => {
           return `<span style="display:block;text-align:right; padding-right:50px;">${item} GΒ</span>`;
         },
+        cmp: (row1, row2) => {
+          if (row1.size < row2.size)
+            return -1;
+          if (row1.size > row2.size)
+            return 1;
+          return 0;
+        }
       },
       attached_to: {
         title: 'attached to',
@@ -206,9 +232,14 @@ Polymer({
                   (_this.model.machines[x] && _this.model.machines[x].name) ||
                   ''
               )
-              .join(' ');
+              .sort().join(' ');
           return '';
         },
+        cmp: (row1, row2) =>{
+          const item1 = row1.attached_to.map(x => this.model.machines[x] && this.model.machines[x].name || '').sort().join();
+          const item2 = row2.attached_to.map(x => this.model.machines[x] && this.model.machines[x].name || '').sort().join();
+          return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
+        }
       },
       volume_type: {
         title: 'volume type',
@@ -231,12 +262,24 @@ Polymer({
             ? _this.model.clouds[row.cloud].locations[item].name
             : item;
         },
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.location.body(row1.location, row1);
+          const item2 = this.renderers.location.body(row2.location, row2);
+
+          if (item1 == null) {
+            return -1;
+          }
+          if (item2 == null) {
+            return 1;
+          }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).forEach(key => {
+          Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
             if (tags[key] !== undefined && tags[key] !== '')
               display += `=${tags[key]}`;
@@ -244,6 +287,19 @@ Polymer({
           });
           return display;
         },
+        // sort by number of tags, resources with more tags come first
+        // if two resources have the same number of tags show them in alphabetic order
+        cmp: (row1, row2) =>{
+          const keys1 = Object.keys(row1.tags).sort();
+          const keys2 = Object.keys(row2.tags).sort();
+          if( keys1.length > keys2.length)
+            return -1;
+          if (keys1.length < keys2.length)
+            return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : "";
+          const item2 = keys2.length > 0 ? keys2[0] : "";
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        }
       },
     };
   },
