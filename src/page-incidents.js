@@ -1,48 +1,46 @@
 import '@polymer/app-route/app-route.js';
 import '@mistio/mist-list/mist-list.js';
 import dayjs from 'dayjs/esm/index.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 
 Polymer({
   _template: html`
-    <template>
-      <style include="shared-styles">
-        .error {
-          color: #d96557;
-        }
+    <style include="shared-styles">
+      .error {
+        color: #d96557;
+      }
 
-        h2[slot='header'] {
-          margin: 8px;
-        }
-      </style>
-      <app-route route="{{route}}"></app-route>
-      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-        <mist-list
-          id="incidentsList"
-          expands
-          resizable
-          column-menu
-          multi-sort
-          apiurl="/api/v1/incidents"
-          items="[[model.incidentsArray]]"
-          name="Incidents"
-          selected-items="{{selectedItems}}"
-          filtered-items-length="{{filteredItemsLength}}"
-          combined-filter="{{combinedFilter}}"
-          frozen="[[_getFrozenLogColumn()]]"
-          visible="[[_getVisibleColumns()]]"
-          renderers="[[_getRenderers()]]"
-          user-filter="[[model.sections.incidents.q]]"
-        >
-          <h2 slot="header">
-            [[filteredItemsLength]] [[combinedFilter]] Incidents
-          </h2>
-          <p slot="no-items-found">Hooray! No Incidents found.</p>
-        </mist-list>
-      </template>
+      h2[slot='header'] {
+        margin: 8px;
+      }
+    </style>
+    <app-route route="{{route}}"></app-route>
+    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+      <mist-list
+        id="incidentsList"
+        expands
+        resizable
+        column-menu
+        multi-sort
+        apiurl="/api/v1/incidents"
+        items="[[model.incidentsArray]]"
+        name="Incidents"
+        selected-items="{{selectedItems}}"
+        filtered-items-length="{{filteredItemsLength}}"
+        combined-filter="{{combinedFilter}}"
+        frozen="[[_getFrozenLogColumn()]]"
+        visible="[[_getVisibleColumns()]]"
+        renderers="[[_getRenderers()]]"
+        user-filter="[[model.sections.incidents.q]]"
+      >
+        <h2 slot="header">
+          [[filteredItemsLength]] [[combinedFilter]] Incidents
+        </h2>
+        <p slot="no-items-found">Hooray! No Incidents found.</p>
+      </mist-list>
     </template>
   `,
   is: 'page-incidents',
