@@ -6,9 +6,9 @@ import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '@mistio/sortable-list/sortable-list.js';
 import './rbac-rule-item.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -203,9 +203,9 @@ Polymer({
       <div class="loading-data" hidden="{{!sendingData}}"></div>
       <sortable-list
         id="rules"
+        animation="50"
         sortable=".rule-item"
-        dragging="{{dragging}}"
-        on-sort-finish="_onSortFinish"
+        on-sort-end="_onSortFinish"
         on-sort-start="_onSortStart"
       >
         <div id="ruleHead" class="rule head" hidden="[[!rules.length]]">
@@ -367,10 +367,6 @@ Polymer({
     cache: {
       type: String,
     },
-    dragging: {
-      type: Boolean,
-      observer: '_draggingChanged',
-    },
   },
 
   observers: [
@@ -400,13 +396,6 @@ Polymer({
     return Array.from(commonPermissions);
   },
 
-  _draggingChanged(newDragging) {
-    if (newDragging === true) {
-      this.$.ruleHead.remove();
-      this.ruleHasChanges();
-    }
-  },
-
   _onSortStart(event) {
     console.log('policy start', event);
   },
@@ -432,13 +421,22 @@ Polymer({
   },
 
   _applyReordering(newOrder) {
-    const orderedRules = [];
     const rules = this.rules.splice(0);
     for (let i = 0; i < newOrder.length; i++) {
-      orderedRules.push(rules[newOrder[i]]);
+      this.rules.push(rules[newOrder[i]]);
     }
-    this.set('rules', orderedRules);
-    this._submitForm();
+    /* eslint-disable no-param-reassign */
+    // change indexes to reflect new order
+    this.shadowRoot
+      .querySelector('sortable-list')
+      .querySelectorAll('rbac-rule-item')
+      .forEach((item, ind) => {
+        item.shadowRoot.querySelector('.index').textContent = `${ind}.`;
+      });
+    /* eslint-enable no-param-reassign */
+    this._rulesChanged();
+    // commenting for now, user should decide if he wants to save
+    // this._submitForm();
   },
 
   _teamChanged() {
