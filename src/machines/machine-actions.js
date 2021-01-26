@@ -594,22 +594,34 @@ Polymer({
       // machines
       if (action.name === 'shell') {
         console.warn('opening shell');
+        const newWindow = window.open(
+          'assets/vsphere-console-util-js/shell.html'
+        );
+
         // load page import on demand.
         // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
-        // remove existing terminals from DOM
-        let xterm = document.querySelector('xterm-dialog');
-        if (xterm) {
-          xterm.remove();
-          // console.log('xterm removed', this.items);
-        }
-
-        xterm = el.querySelector('xterm-dialog');
-        if (!xterm) {
-          xterm = document.createElement('xterm-dialog');
-          xterm.target = item;
-          const app = document.querySelector('mist-app');
-          app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
-        }
+        const shellReqBody = {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Csrf-Token': CSRFToken.value,
+          },
+        };
+        const shellReqUri = `/api/v1/machines/${item.id}/ssh`;
+        (async () => {
+          const response = await fetch(shellReqUri, shellReqBody);
+          if (response.ok) {
+            const wsURL = await response.json();
+            const xterm = newWindow.document.createElement('xterm-dialog');
+            xterm.target = item;
+            xterm.wsURL = wsURL;
+            const app = newWindow.document.querySelector('#dialog-container');
+            // app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
+            app.appendChild(xterm);
+          }
+        })();
         // console.log('perform action shell', item);
         return;
       }
