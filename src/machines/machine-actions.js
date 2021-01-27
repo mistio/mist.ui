@@ -594,9 +594,7 @@ Polymer({
       // machines
       if (action.name === 'shell') {
         console.warn('opening shell');
-        const newWindow = window.open(
-          'assets/vsphere-console-util-js/shell.html'
-        );
+        const newWindow = window.open('assets/static-files/shell.html');
         newWindow.onload = () => {
           // load page import on demand.
           // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
