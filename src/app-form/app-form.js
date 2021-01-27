@@ -1157,7 +1157,7 @@ Polymer({
             </template>
             <div
               class$="field-helptext xs12 m6 [[field.class]]"
-              hidden="[[!_hasHelptext(field)]]"
+              hidden="[[!_hasHelptext(field.*)]]"
             >
               [[field.helptext]]
               <a
@@ -2287,7 +2287,7 @@ Polymer({
   },
 
   _hasHelptext(field) {
-    return field ? !field.hidden && (field.helptext || field.helpHref) : false;
+    return field ? !field.hidden && (field.base.helptext || field.base.helpHref) : false;
   },
 
   _getFieldNameById(str) {
