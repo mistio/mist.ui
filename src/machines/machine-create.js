@@ -685,7 +685,7 @@ Polymer({
       }
     }
 
-    const changedProviders = [
+    const updatedProviders = [
       'aliyun_ecs',
       'vsphere',
       'openstack',
@@ -698,7 +698,7 @@ Polymer({
     ];
     if (
       this.cloud &&
-      changedProviders.includes(this.cloud.provider) &&
+      updatedProviders.includes(this.cloud.provider) &&
       this.machineFields.length > 0
     ) {
       this._updateFields(selectedCloud);
