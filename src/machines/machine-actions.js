@@ -597,31 +597,32 @@ Polymer({
         const newWindow = window.open(
           'assets/vsphere-console-util-js/shell.html'
         );
-
-        // load page import on demand.
-        // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
-        const shellReqBody = {
-          method: 'POST',
-          credentials: 'include',
-          cache: 'no-cache',
-          headers: {
-            'Content-Type': 'application/json;charset=UTF-8',
-            'Csrf-Token': CSRFToken.value,
-          },
+        newWindow.onload = () => {
+          // load page import on demand.
+          // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
+          const shellReqBody = {
+            method: 'POST',
+            credentials: 'include',
+            cache: 'no-cache',
+            headers: {
+              'Content-Type': 'application/json;charset=UTF-8',
+              'Csrf-Token': CSRFToken.value,
+            },
+          };
+          const shellReqUri = `/api/v1/machines/${item.id}/ssh`;
+          (async () => {
+            const response = await fetch(shellReqUri, shellReqBody);
+            if (response.ok) {
+              const wsURL = await response.json();
+              const xterm = newWindow.document.createElement('xterm-dialog');
+              xterm.target = item;
+              xterm.wsURL = wsURL;
+              const app = newWindow.document.querySelector('#dialog-container');
+              // app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
+              app.appendChild(xterm);
+            }
+          })();
         };
-        const shellReqUri = `/api/v1/machines/${item.id}/ssh`;
-        (async () => {
-          const response = await fetch(shellReqUri, shellReqBody);
-          if (response.ok) {
-            const wsURL = await response.json();
-            const xterm = newWindow.document.createElement('xterm-dialog');
-            xterm.target = item;
-            xterm.wsURL = wsURL;
-            const app = newWindow.document.querySelector('#dialog-container');
-            // app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
-            app.appendChild(xterm);
-          }
-        })();
         // console.log('perform action shell', item);
         return;
       }

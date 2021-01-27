@@ -278,11 +278,12 @@ Polymer({
       this.term.loadAddon(this.fitAddon);
       this.term.open(terminalContainer);
       this.term.onData((data, _e) => {
-        const msg = this.strToAB(data);
+        const msg = new TextEncoder().encode(`\x00${data}`);
         socket.send(msg);
       });
 
-      // const [newCols, newRows] = this.resizeTerminal();
+      // make sure sizes match on both terminals
+      this.resizeTerminal();
 
       const ips = []
         .concat(this.target.public_ips)
@@ -290,16 +291,15 @@ Polymer({
       if (ips[0]) this.term.write(`Connecting to ${ips[0]}...\r\n`);
       socket.onmessage = ev => {
         const msg = this.ABToStr(ev.data);
-        console.log(msg, ev.data);
         this.term.write(msg);
       };
     };
 
     // TODO: wait for resize to be implemented on the backend
-    // this.resizeHandler = () => {
-    //   this.resizeTerminal();
-    // };
-    // window.addEventListener('resize', this.resizeHandler, { passive: true });
+    this.resizeHandler = () => {
+      this.resizeTerminal();
+    };
+    window.addEventListener('resize', this.resizeHandler, { passive: true });
     // const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
     // textArea.focus();
   },
@@ -316,7 +316,11 @@ Polymer({
     }
     if (newCols !== prevCols || newRows !== prevRows) {
       console.log('resize term', newCols, newRows);
-      // this.socket.send('msg', 'shell', 'shell_resize', [newCols, newRows]);
+      this.socket.send(
+        new TextEncoder().encode(
+          `\x01${JSON.stringify({ height: newRows, width: newCols })}`
+        )
+      );
     }
     return [newCols, newRows];
   },
@@ -352,10 +356,7 @@ Polymer({
     }
     this._closeDialog();
   },
-  strToAB(str) {
-    const ret = new Uint8Array(str.split('').map(c => c.charCodeAt(0))).buffer;
-    return ret;
-  },
+
   ABToStr(ab) {
     const ret = new Uint8Array(ab).reduce(
       (p, c) => p + String.fromCharCode(c),
