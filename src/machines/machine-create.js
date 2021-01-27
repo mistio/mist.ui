@@ -685,12 +685,25 @@ Polymer({
       }
     }
 
-    const changedProviders = ['aliyun_ecs', 'vsphere', 'openstack', 'gig_g8', 'docker', 'lxd', 'libvirt', 'azure_arm', 'equinixmetal'];
-    if (this.cloud && changedProviders.includes(this.cloud.provider) && this.machineFields.length > 0) {
+    const changedProviders = [
+      'aliyun_ecs',
+      'vsphere',
+      'openstack',
+      'gig_g8',
+      'docker',
+      'lxd',
+      'libvirt',
+      'azure_arm',
+      'equinixmetal',
+    ];
+    if (
+      this.cloud &&
+      changedProviders.includes(this.cloud.provider) &&
+      this.machineFields.length > 0
+    ) {
       this._updateFields(selectedCloud);
       return;
     }
-
 
     let allMachinesFields;
     if (this.selectedCloud) {
@@ -2051,14 +2064,8 @@ Polymer({
         `machineFields.${keyInd}.helptext`,
         'Optional. Only valid if image includes ssh server'
       );
-      this.set(
-        `machineFields.${keyInd}.required`,
-        false
-      );
-      this.set(
-        `machineFields.${keyInd}.label`,
-        'Key'
-      );
+      this.set(`machineFields.${keyInd}.required`, false);
+      this.set(`machineFields.${keyInd}.label`, 'Key');
     }
     // disable monitoring by default
     if (monInd > -1) this.set(`machineFields.${monInd}.value`, false);
