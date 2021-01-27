@@ -31,15 +31,18 @@ Polymer({
         height: 100vh !important;
         max-width: 100%;
       }
-      .toolbar {
+      #toolbar {
         display: flex;
-        border: 1px solid;
-        background-color: var(--code-viewer-toolbar-background-color);
-        color: var(--code-viewer-icons-color, var(--paper-grey-700));
+        justify-content: flex-end;
+        align-items: center;
+        margin-bottom: 5px;
+        border: 1px solid var(--code-viewer-toolbar-color, transparent);
+        background-color: var(--code-viewer-toolbar-background-color, transparent);
+        color: var(--code-viewer-icons-color, var(--paper-grey-500));
       }
-      .language {
-        flex: 1;
-        margin-left: 40px;
+      #language, #languageDropdown {
+        margin-left: 30px;
+        margin-right: auto;
       }
       #fullscreenBtn,
       #exitFullscreenBtn {
@@ -47,8 +50,8 @@ Polymer({
       }
     </style>
     <div class="code-viewer">
-      <div class="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
-      <paper-dropdown-menu selected="1" on-value-changed="_languageChanged">
+      <div id="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
+      <paper-dropdown-menu id="languageDropdown" hidden$="[[!showLanguageDropdown]]" selected="1" on-value-changed="_languageChanged">
         <paper-listbox
           slot="dropdown-content"
           class="dropdown-content"
@@ -58,7 +61,7 @@ Polymer({
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
-      <span class="language">[[language]]</span>
+      <span id="language" hidden$="[[!showLanguage]]">[[language]]</span>
         <paper-icon-button
           icon="icons:content-copy"
           on-tap="_copyContents"
@@ -117,6 +120,16 @@ Polymer({
       type: Boolean,
       value: true,
     },
+    showLanguageDropdown: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true
+    },
+    showLanguage: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true
+    },
     editorLoading: {
       type: Boolean,
       value: true,
@@ -138,12 +151,10 @@ Polymer({
 
   },
   _languageChanged(e) {
-    console.log("e ", e)
-    const value = e.detail.value;
+    const {value} = e.detail;
     if (!value) { return; }
     const newLanguage = this.languages.find(lang => lang.name === value);
     this.language = newLanguage.type;
-console.log("the language changed in code-viewer")
     this.dispatchEvent(    new CustomEvent('editor-language-changed', {
       bubbles: true,
       composed: true,

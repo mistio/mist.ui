@@ -207,6 +207,7 @@ Polymer({
               {name: 'fish', type: 'shell'},
               {name: 'powershell', type: 'powershell'}
             ],
+            showLanguageDropdown: true,
             value: '#!/bin/sh\necho "Hello world"',
             class: 'script',
             defaultValue: '',
@@ -277,16 +278,15 @@ Polymer({
       return f.name === name;
     });
   },
-  _editorLanguageChanged (e) {
-console.log("language changed ", e)
+_editorLanguageChanged (e) {
 const {language} = e.detail;
 const index = this._fieldIndexByName('script_inline');
 const strArray = this.fields[index].value.split('\n');
 strArray[0] = `#!/usr/bin/env ${language.name}`;
 console.log("StrArrar ", strArray)
-//const firstLine = this.fields[index].value.split(/\r?\n/)[0];
+// const firstLine = this.fields[index].value.split(/\r?\n/)[0];
 
-//console.log("this.fields ", firstLine.split(" ")[0]);
+// console.log("this.fields ", firstLine.split(" ")[0]);
 this.set(`fields.${index}.value`, strArray.join('\n'));
   },
   _execTypeChanged(type) {

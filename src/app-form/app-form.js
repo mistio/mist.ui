@@ -311,6 +311,13 @@ Polymer({
         overflow-x: hidden;
       }
 
+      code-viewer {
+        background-color: #f6f6f6;
+        border-radius: 5px;
+        padding-left: 2px;
+        padding-right: 2px;
+      }
+
       .date {
         @apply --layout-horizontal;
         align-items: baseline;
@@ -634,6 +641,9 @@ Polymer({
                 value="[[field.value]]"
                 on-editor-value-changed="_codeEditorValueChanged"
                 restamp=""
+                show-language-dropdown="[[field.showLanguageDropdown]]"
+                show-toolbar="[[field.showToolbar]]"
+                show-language="[[field.showLanguage]]"
               ></code-viewer>
             </template>
             <template

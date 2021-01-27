@@ -6,8 +6,6 @@ import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '../mist-rules/mist-rules.js';
 import '../helpers/dialog-element.js';
-import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
-import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
 import '../helpers/code-viewer.js';
 import './script-run.js';
@@ -15,6 +13,8 @@ import './script-actions.js';
 import moment from 'moment/src/moment.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
+import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 
 Polymer({
   _template: html`
@@ -55,7 +55,7 @@ Polymer({
                 background-color: #1e1e1e;
                 color: #fff;
                 font-family: monospace;
-                padding: 2px 2px;
+                padding: 1px 1px;
                 width: 100%;
                 max-width: 100%;
                 /* overflow-x: scroll; */
@@ -153,9 +153,10 @@ Polymer({
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
                     <template is="dom-if" if="[[script]]">
                         <code-viewer
-                        language='shell' theme='vs-light'
+                        language='shell' theme='vs-dark'
                         languages="[[scriptLanguages]]"
                         value="[[script.location.source_code]]"
+                        show-language
                         restamp=""
                       ></code-viewer>
                     </template>
