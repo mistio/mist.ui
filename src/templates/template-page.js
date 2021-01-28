@@ -5,6 +5,9 @@ import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '../mist-rules/mist-rules.js';
+import moment from 'moment/src/moment.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
@@ -13,9 +16,6 @@ import '../app-togglable/app-togglable-list.js';
 import '../tags/tags-list.js';
 import './template-stack-item.js';
 import './template-actions.js';
-import moment from 'moment/src/moment.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -309,9 +309,13 @@ Polymer({
           <div class="section">
             <h3 class="smallcaps">Inline Template</h3>
             <div class="command-container">
-              <pre><code>
-[[template.template]]
-                        </code></pre>
+              <code-viewer
+                language="yaml"
+                theme="vs-dark"
+                value="[[template.template]]"
+                show-language
+                restamp=""
+              ></code-viewer>
             </div>
           </div>
         </div>

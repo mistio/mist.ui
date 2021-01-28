@@ -255,7 +255,10 @@ Polymer({
           {
             name: 'template_inline',
             label: 'Template *',
-            type: 'textarea',
+            type: 'codeEditor',
+            language: 'yaml',
+            showToolbar: true,
+            showLanguage: true,
             value: '',
             defaultValue: '',
             placeholder: '',

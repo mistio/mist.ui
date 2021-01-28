@@ -153,8 +153,7 @@ Polymer({
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
                     <template is="dom-if" if="[[script]]">
                         <code-viewer
-                        language='shell' theme='vs-dark'
-                        languages="[[scriptLanguages]]"
+                        language="[[_getScriptLanguage(script.location.source_code)]]" theme='vs-dark'
                         value="[[script.location.source_code]]"
                         show-language
                         restamp=""
@@ -273,16 +272,6 @@ Polymer({
   },
 
   observers: ['_changed(script)'],
-  scriptLanguages: [
-    {name: 'bash', type: 'shell'},
-    {name: 'sh', type:'shell'},
-    {name: 'zsh', type: 'shell'},
-    {name: 'python', type: 'python'},
-    {name: 'node', type:'javascript'},
-    {name: 'perl', type: 'perl'},
-    {name: 'fish', type: 'shell'},
-    {name: 'powershell', type: 'powershell'}
-  ],
   _getHeaderStyle(section) {
     return `background-color: ${section.color}; color: #fff;`;
   },
@@ -294,7 +283,23 @@ Polymer({
           this.model.members[id].username
       : '';
   },
-
+  _getScriptLanguage(script) {
+    const scriptLanguages = [
+      { name: 'bash', type: 'shell' },
+      { name: 'sh', type: 'shell' },
+      { name: 'zsh', type: 'shell' },
+      { name: 'python', type: 'python' },
+      { name: 'node', type: 'javascript' },
+      { name: 'perl', type: 'perl' },
+      { name: 'fish', type: 'shell' },
+      { name: 'powershell', type: 'powershell' },
+    ];
+    const firstLine = script.split('\n')[0];
+    const language = scriptLanguages.find(lang =>
+      firstLine.includes(lang.name)
+    );
+    return (language && language.type) || 'shell';
+  },
   _computeIsInline(location) {
     if (location) return !!location.source_code;
     return false;
@@ -330,7 +335,10 @@ Polymer({
     return null;
   },
   _computeScriptValue() {
-    console.log("this.script ", this.script && this.script.location.source_code)
+    console.log(
+      'this.script ',
+      this.script && this.script.location.source_code
+    );
     return this.script ? this.script.location.source_code : null;
   },
   _computeIsloading(_script) {

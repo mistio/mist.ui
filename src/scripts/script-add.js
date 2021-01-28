@@ -198,14 +198,14 @@ Polymer({
             type: 'codeEditor',
             language: 'shell',
             languages: [
-              {name: 'bash', type: 'shell'},
-              {name: 'sh', type:'shell'},
-              {name: 'zsh', type: 'shell'},
-              {name: 'python', type: 'python'},
-              {name: 'node', type:'javascript'},
-              {name: 'perl', type: 'perl'},
-              {name: 'fish', type: 'shell'},
-              {name: 'powershell', type: 'powershell'}
+              { name: 'bash', type: 'shell' },
+              { name: 'sh', type: 'shell' },
+              { name: 'zsh', type: 'shell' },
+              { name: 'python', type: 'python' },
+              { name: 'node', type: 'javascript' },
+              { name: 'perl', type: 'perl' },
+              { name: 'fish', type: 'shell' },
+              { name: 'powershell', type: 'powershell' },
             ],
             showLanguageDropdown: true,
             showToolbar: true,
@@ -255,7 +255,7 @@ Polymer({
 
   observers: ['_execTypeChanged(script.exec_type)'],
   listeners: {
-    'editor-language-changed': '_editorLanguageChanged'
+    'editor-language-changed': '_editorLanguageChanged',
   },
   ready() {
     if (
@@ -279,23 +279,19 @@ Polymer({
       return f.name === name;
     });
   },
-_editorLanguageChanged (e) {
-const {language} = e.detail;
-const index = this._fieldIndexByName('script_inline');
-const strArray = this.fields[index].value.split('\n');
-strArray[0] = `#!/usr/bin/env ${language.name}`;
-console.log("StrArrar ", strArray)
-// const firstLine = this.fields[index].value.split(/\r?\n/)[0];
-
-// console.log("this.fields ", firstLine.split(" ")[0]);
-this.set(`fields.${index}.value`, strArray.join('\n'));
+  _editorLanguageChanged(e) {
+    const { language } = e.detail;
+    const index = this._fieldIndexByName('script_inline');
+    const strArray = this.fields[index].value.split('\n');
+    strArray[0] = `#!/usr/bin/env ${language.name}`;
+    this.set(`fields.${index}.value`, strArray.join('\n'));
   },
   _execTypeChanged(type) {
     let placeholder = '';
     let language = '';
     if (type === 'executable') {
       placeholder = "#!/usr/bin/env bash\necho 'hello world'";
-      language = "shell";
+      language = 'shell';
     } else if (type === 'ansible') {
       language = 'yaml';
       placeholder =
