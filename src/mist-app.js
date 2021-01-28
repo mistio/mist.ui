@@ -797,6 +797,7 @@ Polymer({
           'create_resources',
           'edit_tags',
           'read_logs',
+          'read_cost'
         ],
         location: ['read', 'create_resources'],
         machine: [
