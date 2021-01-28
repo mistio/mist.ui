@@ -960,10 +960,17 @@ MACHINE_CREATE_FIELDS.push({
   ],
 });
 
+// CLOUDSIGMA
+MACHINE_CREATE_FIELDS.push({
+  provider: 'cloudsigma',
+  fields: [],
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(p => {
   const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) !== -1;
-  const showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) === -1;
+  const showLocation =
+    ['lxd', 'gig_g8', 'cloudsigma'].indexOf(p.provider) === -1;
 
   // add common machine properties fields
   p.fields.splice(
