@@ -1580,4 +1580,57 @@ PROVIDERS.push({
   ],
 });
 
+// CLOUDSIGMA
+PROVIDERS.push({
+  title: 'CloudSigma',
+  val: 'cloudsigma',
+  className: 'provider-cloudsigma',
+  options: [
+    {
+      name: 'title',
+      label: 'Title *',
+      type: 'text',
+      value: 'CloudSigma',
+      defaultValue: 'CloudSigma',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter title',
+    },
+    {
+      name: 'username',
+      label: 'Username *',
+      type: 'text',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter username',
+      helptext: '',
+    },
+    {
+      name: 'password',
+      label: 'Password *',
+      type: 'password',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter password',
+    },
+    {
+      name: 'region',
+      label: 'Region *',
+      type: 'dropdown',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      options: [
+        { val: 'zrh', title: 'Zurich' },
+        { val: 'sjc', title: 'San Jose, CA' },
+      ],
+    },
+  ],
+});
+
 export default PROVIDERS;
