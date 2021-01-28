@@ -811,6 +811,7 @@ Polymer({
           'stop',
           'reboot',
           'destroy',
+          'power_cycle',
           'resize',
           'run_script',
           'open_shell',
@@ -1177,9 +1178,7 @@ Polymer({
     const xhr = new XMLHttpRequest();
     if (!this.fingerprint) {
       (async () => {
-        const obj_ = await import(
-          '@fingerprintjs/fingerprintjs'
-        );
+        const obj_ = await import('@fingerprintjs/fingerprintjs');
         const FingerprintJS = obj_.default;
         const fp = await FingerprintJS.load();
         const result = await fp.get();

@@ -7,9 +7,9 @@ import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
 import moment from 'moment/src/moment';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
 
@@ -767,7 +767,10 @@ Polymer({
         return item.id === selectedSize;
       }) === -1
     ) {
-      this.set(`machineFields.${sizeIndex}.value`, '');
+      this.set(
+        `machineFields.${sizeIndex}.value`,
+        this.machineFields[sizeIndex].defaultValue || ''
+      );
     }
     this.set(`machineFields.${sizeIndex}.options`, sizeOptions);
   },
