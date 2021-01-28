@@ -6,7 +6,7 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import 'monaco-element';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-  // TODO add styles for fullscreen etc depending on theme
+
 Polymer({
   _template: html`
     <style include="shared-styles forms">
@@ -17,6 +17,7 @@ Polymer({
       :host {
         display: block;
         width: 100%;
+        height: 100%;
       }
 
       :host([fullscreen]) {
@@ -30,17 +31,24 @@ Polymer({
         min-height: 100vh !important;
         height: 100vh !important;
         max-width: 100%;
+        margin-top: 0!important;
+        margin-left: 0!important;
+      }
+      #wrapper {
+        height: 100%;
       }
       #toolbar {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        margin-bottom: 5px;
+        height: 46px;
+        padding-bottom: 5px;
         border: 1px solid var(--code-viewer-toolbar-color, transparent);
         background-color: var(--code-viewer-toolbar-background-color, transparent);
         color: var(--code-viewer-icons-color, var(--paper-grey-500));
       }
       #language, #languageDropdown {
+        margin-top: -4px;
         margin-left: 30px;
         margin-right: auto;
       }
@@ -48,16 +56,19 @@ Polymer({
       #exitFullscreenBtn {
         padding: 4px;
       }
+      #toolbar + monaco-element {
+        height: calc(100% - 55px);
+      }
     </style>
-    <div class="code-viewer">
+    <div id="wrapper">
       <div id="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
-      <paper-dropdown-menu id="languageDropdown" hidden$="[[!showLanguageDropdown]]" selected="1" on-value-changed="_languageChanged">
-        <paper-listbox
+      <paper-dropdown-menu id="languageDropdown" hidden$="[[!showLanguageDropdown]]" on-value-changed="_languageChanged">
+        <paper-listbox attr-for-selected="value" selected="bash"
           slot="dropdown-content"
           class="dropdown-content"
         >
           <template is="dom-repeat" items="[[languages]]" as="lang">
-            <paper-item>[[lang.name]]</paper-item>
+            <paper-item value="[[lang.name]]">[[lang.name]]</paper-item>
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
@@ -93,7 +104,7 @@ Polymer({
       >
         <span slot="loader">Loading...</span>
       </monaco-element>
-    </div>
+      </div>
   `,
 
   is: 'code-viewer',
@@ -101,6 +112,7 @@ Polymer({
   properties: {
     theme: {
       type: String,
+      value: 'vs-dark',
     },
     language: {
       type: String,
@@ -155,7 +167,7 @@ Polymer({
     if (!value) { return; }
     const newLanguage = this.languages.find(lang => lang.name === value);
     this.language = newLanguage.type;
-    this.dispatchEvent(    new CustomEvent('editor-language-changed', {
+    this.dispatchEvent(new CustomEvent('editor-language-changed', {
       bubbles: true,
       composed: true,
       detail: {

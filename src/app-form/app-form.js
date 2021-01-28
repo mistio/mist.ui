@@ -311,11 +311,14 @@ Polymer({
         overflow-x: hidden;
       }
 
-      code-viewer {
+      :host code-viewer {
         background-color: #f6f6f6;
-        border-radius: 5px;
         padding-left: 2px;
         padding-right: 2px;
+      }
+
+      :host([single-column]) code-viewer {
+        margin-left: 22px;
       }
 
       .date {
@@ -633,7 +636,7 @@ Polymer({
 
             >
               <code-viewer
-                language="[[field.language]]" theme='vs-light'
+                language="[[field.language]]" theme='vs-dark'
                 languages="[[field.languages]]"
                 class$="xs12 m6 [[field.class]]"
                 id$="app-form-[[id]]-[[field.name]]"

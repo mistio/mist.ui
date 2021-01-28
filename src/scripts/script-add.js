@@ -208,6 +208,7 @@ Polymer({
               {name: 'powershell', type: 'powershell'}
             ],
             showLanguageDropdown: true,
+            showToolbar: true,
             value: '#!/bin/sh\necho "Hello world"',
             class: 'script',
             defaultValue: '',
