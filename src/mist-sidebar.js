@@ -440,6 +440,7 @@ Polymer({
   },
 
   _isHidden(item) {
+    if(item.id === 'teams' && !this.checkPerm('read', 'team')) return true;
     if (
       ['teams', 'insights', 'rules'].indexOf(item.id) === -1 &&
       this.checkPerm &&

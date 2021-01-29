@@ -892,14 +892,14 @@ Polymer({
           'read_logs',
         ],
         image: ['read', 'create_resources', 'edit_tags'],
-        // 'team': [
+        team: [
         //     'add',
-        //     'read',
+          'read',
         //     'edit',
         //     'remove',
         //     'edit_tags',
         //     'read_logs',
-        // ],
+        ],
       },
     };
 
