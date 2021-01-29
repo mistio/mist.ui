@@ -272,6 +272,7 @@ Polymer({
   },
 
   observers: ['_changed(script)'],
+
   _getHeaderStyle(section) {
     return `background-color: ${section.color}; color: #fff;`;
   },
@@ -335,11 +336,7 @@ Polymer({
     return null;
   },
   _computeScriptValue() {
-    console.log(
-      'this.script ',
-      this.script && this.script.location.source_code
-    );
-    return this.script ? this.script.location.source_code : null;
+    return this.script ? this.script.location && this.script.location.source_code : null;
   },
   _computeIsloading(_script) {
     return !this.script;

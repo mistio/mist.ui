@@ -13,13 +13,11 @@ Polymer({
       [hidden] {
         display: none !important;
       }
-
       :host {
         display: block;
         width: 100%;
         height: 100%;
       }
-
       :host([fullscreen]) {
         position: fixed;
         top: 0px;

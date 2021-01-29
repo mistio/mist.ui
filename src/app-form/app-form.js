@@ -1401,8 +1401,8 @@ Polymer({
   },
   _codeEditorValueChanged(e) {
     const { name, value } = e.detail;
-    const fieldIndex = this.fields.findIndex(field => field.name === name);
-    this.set(`fields.${fieldIndex}.value`, value);
+    const index = this.fields.findIndex(field => field.name === name);
+    this.set(`fields.${index}.value`, value);
    },
   _clearDateTimeInput(e) {
     if (e && e.model && e.model.field) {
