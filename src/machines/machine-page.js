@@ -701,7 +701,7 @@ Polymer({
           </div>
         </paper-material>
         <paper-material id="rightcolumn" class="right resource-description">
-          <div hidden$="[[!machine.cost.monthly]]">
+          <div hidden$="[[_canShowCost()]]">
             <div class="m-info-head cost-head">Monthly Cost</div>
             <div class="cost">
               [[currency.sign]][[_ratedCost(machine.cost.monthly,
@@ -2241,4 +2241,7 @@ Polymer({
   editExpiration() {
     this.$.expirationdialog._openDialog();
   },
+  _canShowCost() {
+    return !this.machine.cost.monthly && !this.checkPerm('read_cost','cloud')
+  }
 });

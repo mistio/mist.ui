@@ -441,8 +441,9 @@ Polymer({
 
   _isHidden(item) {
     if(item.id === 'teams' && !this.checkPerm('read', 'team')) return true;
+    if(item.id === 'insights' && !this.checkPerm('read_cost', 'cloud')){return true;}
     if (
-      ['teams', 'insights', 'rules'].indexOf(item.id) === -1 &&
+      ['insights', 'teams', 'rules'].indexOf(item.id) === -1 &&
       this.checkPerm &&
       this.model.org &&
       this.model.user &&
