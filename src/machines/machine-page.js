@@ -2243,7 +2243,7 @@ Polymer({
   },
   _canShowCost() {
     if (this.machine && this.machine.cost){
-      return this.machine.cost.monthly && this.checkPerm('read_cost','cloud')
+      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('read_cost','cloud') === true;
     }
     return false;
   }
