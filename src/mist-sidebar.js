@@ -440,22 +440,6 @@ Polymer({
   },
 
   _isHidden(item) {
-    if(item.id === 'insights' && !this.checkPerm('read_cost', 'cloud')){return true;}
-    if (
-      ['insights', 'teams', 'rules'].indexOf(item.id) === -1 &&
-      this.checkPerm &&
-      this.model.org &&
-      this.model.user &&
-      !this.checkPerm(
-        'read',
-        item.id,
-        undefined,
-        this.model.org,
-        this.model.user
-      )
-    ) {
-      return true;
-    }
     if (item.hideZero && item.count === 0) return true;
     return false;
   },
@@ -468,8 +452,45 @@ Polymer({
   },
 
   _computeSectionsArray(_sections) {
+    let sects = [];
     if (this.model && this.model.sections) {
-      return Object.keys(this.model.sections).map(y => this.model.sections[y]);
+      sects = Object.keys(this.model.sections).filter(sect => {
+        if (this.model.sections[sect].id === 'dashboard') return true;
+        if (
+          this.model.sections[sect].id === 'teams' &&
+          this.checkPerm('read', 'team')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'insights' &&
+          this.checkPerm('read_cost', 'cloud')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'rules' &&
+          this.checkPerm('edit_rules', 'machine')
+        )
+          return true;
+        if (
+          ['insights', 'teams', 'rules'].indexOf(
+            this.model.sections[sect].id
+          ) === -1 &&
+          this.checkPerm &&
+          this.model.org &&
+          this.model.user &&
+          this.checkPerm(
+            'read',
+            this.model.sections[sect].id,
+            undefined,
+            this.model.org,
+            this.model.user
+          )
+        ) {
+          return true;
+        }
+        return false;
+      });
+      return sects.map(y => this.model.sections[y]);
     }
     return [];
   },
