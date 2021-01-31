@@ -455,12 +455,26 @@ Polymer({
     let sects = [];
     if (this.model && this.model.sections) {
       sects = Object.keys(this.model.sections).filter(sect => {
-        if(this.model.sections[sect].id === 'dashboard') return true;
-        if(this.model.sections[sect].id === 'teams' && this.checkPerm('read', 'team')) return true;
-        if(this.model.sections[sect].id === 'insights' && this.checkPerm('read_cost', 'cloud')) return true;
-        if(this.model.sections[sect].id === 'rules' && this.checkPerm('edit_rules', 'machine')) return true;
+        if (this.model.sections[sect].id === 'dashboard') return true;
         if (
-          ['insights', 'teams', 'rules'].indexOf(this.model.sections[sect].id) === -1 &&
+          this.model.sections[sect].id === 'teams' &&
+          this.checkPerm('read', 'team')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'insights' &&
+          this.checkPerm('read_cost', 'cloud')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'rules' &&
+          this.checkPerm('edit_rules', 'machine')
+        )
+          return true;
+        if (
+          ['insights', 'teams', 'rules'].indexOf(
+            this.model.sections[sect].id
+          ) === -1 &&
           this.checkPerm &&
           this.model.org &&
           this.model.user &&
@@ -475,7 +489,7 @@ Polymer({
           return true;
         }
         return false;
-      })
+      });
       return sects.map(y => this.model.sections[y]);
     }
     return [];

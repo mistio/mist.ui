@@ -797,7 +797,7 @@ Polymer({
           'create_resources',
           'edit_tags',
           'read_logs',
-          'read_cost'
+          'read_cost',
         ],
         location: ['read', 'create_resources'],
         machine: [
@@ -894,12 +894,12 @@ Polymer({
         ],
         image: ['read', 'create_resources', 'edit_tags'],
         team: [
-        //     'add',
+          //     'add',
           'read',
-        //     'edit',
-        //     'remove',
-        //     'edit_tags',
-        //     'read_logs',
+          //     'edit',
+          //     'remove',
+          //     'edit_tags',
+          //     'read_logs',
         ],
       },
     };
