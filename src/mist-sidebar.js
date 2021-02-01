@@ -383,7 +383,7 @@ Polymer({
     },
     sectionsArray: {
       type: Array,
-      computed: '_computeSectionsArray(model.sections.*)',
+      computed: '_computeSectionsArray(model.sections.*, model.teams.*)',
     },
   },
 
@@ -451,8 +451,9 @@ Polymer({
     });
   },
 
-  _computeSectionsArray(_sections) {
+  _computeSectionsArray(_sections, _teams) {
     let sects = [];
+    debugger;
     if (this.model && this.model.sections) {
       sects = Object.keys(this.model.sections).filter(sect => {
         if (this.model.sections[sect].id === 'dashboard') return true;
