@@ -381,7 +381,6 @@ Polymer({
     '_applyConstraints(machinesFields, constraints)',
     '_teamsChanged(model.teams.*)',
     '_cloudChanged(selectedCloud)',
-    '_updateCloudOptions(cloud.*)',
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
@@ -601,11 +600,6 @@ Polymer({
     }
   },
 
-  _updateCloudOptions(_cloud) {
-    // console.log('_updateCloudOptions === ', cloud);
-    this._updateFields(this.selectedCloud);
-  },
-
   _prefillOptions(_location) {
     let image;
     let cloud;
@@ -683,26 +677,6 @@ Polymer({
           }
         }
       }
-    }
-
-    const updatedProviders = [
-      'aliyun_ecs',
-      'vsphere',
-      'openstack',
-      'gig_g8',
-      'docker',
-      'lxd',
-      'libvirt',
-      'azure_arm',
-      'equinixmetal',
-    ];
-    if (
-      this.cloud &&
-      updatedProviders.includes(this.cloud.provider) &&
-      this.machineFields.length > 0
-    ) {
-      this._updateFields(selectedCloud);
-      return;
     }
 
     let allMachinesFields;
