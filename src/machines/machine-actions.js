@@ -594,10 +594,26 @@ Polymer({
       // machines
       if (action.name === 'shell') {
         console.warn('opening shell');
-        const newWindow = window.open('assets/static-files/shell.html');
-        newWindow.onload = () => {
+
+        if (['docker', 'kubevirt', 'lxd'].indexOf(item.provider) !== -1) {
           // load page import on demand.
           // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
+          // remove existing terminals from DOM
+          let xterm = document.querySelector('xterm-dialog');
+          if (xterm) {
+            xterm.remove();
+            // console.log('xterm removed', this.items);
+          }
+
+          xterm = el.querySelector('xterm-dialog');
+          if (!xterm) {
+            xterm = document.createElement('xterm-dialog');
+            xterm.target = item;
+            const app = document.querySelector('mist-app');
+            app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
+          }
+          // console.log('perform action shell', item);
+        } else {
           const shellReqBody = {
             method: 'POST',
             credentials: 'include',
@@ -612,16 +628,11 @@ Polymer({
             const response = await fetch(shellReqUri, shellReqBody);
             if (response.ok) {
               const wsURL = await response.json();
-              const xterm = newWindow.document.createElement('xterm-dialog');
-              xterm.target = item;
-              xterm.wsURL = wsURL;
-              const app = newWindow.document.querySelector('#dialog-container');
-              // app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
-              app.appendChild(xterm);
+              const newWindow = window.open('assets/static-files/shell.html');
+              newWindow.wsURL = wsURL;
             }
           })();
-        };
-        // console.log('perform action shell', item);
+        }
         return;
       }
       if (

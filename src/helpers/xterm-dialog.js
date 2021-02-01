@@ -6,6 +6,7 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 // Linter complains about js extension but these are typescript...
 import 'xterm';
 import 'xterm-addon-fit';
+import 'xterm-addon-attach';
 /* eslint-enable import/extensions */
 
 const documentContainer = document.createElement('template');
@@ -243,9 +244,6 @@ Polymer({
       type: Boolean,
       value: true,
     },
-    wsURL: {
-      type: String,
-    },
   },
   listeners: {
     'iron-overlay-closed': '_modalClosed',
@@ -257,51 +255,82 @@ Polymer({
   /* eslint-disable no-undef */
   attached() {
     console.debug('xterm attached');
-    const socket = new WebSocket(this.wsURL);
-    socket.binaryType = 'arraybuffer';
-    socket.onerror = (e, reason) => {
-      console.log(e, reason);
+    this.socket = document
+      .querySelector('mist-app')
+      .shadowRoot.querySelector('mist-socket');
+
+    this.term = new Terminal({
+      cursorBlink: true,
+    });
+    const terminalContainer = this.shadowRoot.querySelector(
+      '#terminal-container'
+    );
+    this.fitAddon = new FitAddon.FitAddon();
+    this.term.loadAddon(this.fitAddon);
+    this.term.open(terminalContainer);
+
+    const [newCols, newRows] = this.resizeTerminal();
+
+    const ips = []
+      .concat(this.target.public_ips)
+      .concat(this.target.private_ips);
+    if (ips[0]) this.term.write(`Connecting to ${ips[0]}...\r\n`);
+
+    const { socket } = this;
+    this.attachAddon = new AttachAddon.AttachAddon(socket);
+    this.term.loadAddon(this.attachAddon);
+    this.term.onData((data, _ev) => {
+      socket.send('msg', 'shell', 'shell_data', [data]);
+    });
+    socket.send('sub', 'shell');
+
+    const payload = {
+      cols: newCols,
+      rows: newRows,
+      cloud_id: '',
+      machine_id: '',
+      host: '',
     };
-    socket.onclose = e => {
-      console.log('closing... ', e);
-    };
 
-    this.socket = socket;
-    socket.onopen = _ev => {
-      this.term = new Terminal({
-        cursorBlink: true,
-      });
-      const terminalContainer = this.shadowRoot.querySelector(
-        '#terminal-container'
-      );
-      this.fitAddon = new FitAddon.FitAddon();
-      this.term.loadAddon(this.fitAddon);
-      this.term.open(terminalContainer);
-      this.term.onData((data, _e) => {
-        const msg = new TextEncoder().encode(`\x00${data}`);
-        socket.send(msg);
-      });
+    if (this.target.job_id) {
+      payload.job_id = this.target.job_id;
+      payload.provider = 'docker';
+      payload.host = '';
+    } else {
+      payload.cloud_id = this.target.cloud;
+      payload.machine_id = this.target.id;
+      this.set('style.position', 'fixed');
+    }
 
-      // make sure sizes match on both terminals
-      this.resizeTerminal();
+    if (
+      this.target.provider === 'docker' &&
+      this.target.key_associations === false
+    ) {
+      payload.provider = 'docker';
+      payload.host = '';
+    } else if (this.target.provider === 'kubevirt') {
+      payload.provider = 'kubevirt';
+      payload.host = 'kubevirt'; // otherwise an error is thrown in the api
+    } else if (this.target.provider === 'lxd') {
+      payload.provider = 'lxd';
+      [payload.host] = ips;
+    } else {
+      payload.cloud_id = this.target.cloud;
+      payload.machine_id = this.target.id;
+      [payload.host] = ips; // TODO: Remove this
+    }
 
-      const ips = []
-        .concat(this.target.public_ips)
-        .concat(this.target.private_ips);
-      if (ips[0]) this.term.write(`Connecting to ${ips[0]}...\r\n`);
-      socket.onmessage = ev => {
-        const msg = this.ABToStr(ev.data);
-        this.term.write(msg);
-      };
-    };
+    socket.send('msg', 'shell', 'shell_open', [payload]);
 
-    // TODO: wait for resize to be implemented on the backend
+    socket.set('term', this.term);
+
+    // Add event handler for window resize
     this.resizeHandler = () => {
       this.resizeTerminal();
     };
     window.addEventListener('resize', this.resizeHandler, { passive: true });
-    // const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
-    // textArea.focus();
+    const textArea = this.shadowRoot.querySelector('.xterm-helper-textarea');
+    textArea.focus();
   },
   /* eslint-enable no-undef */
   /* eslint-disable no-param-reassign */
@@ -316,11 +345,7 @@ Polymer({
     }
     if (newCols !== prevCols || newRows !== prevRows) {
       console.log('resize term', newCols, newRows);
-      this.socket.send(
-        new TextEncoder().encode(
-          `\x01${JSON.stringify({ height: newRows, width: newCols })}`
-        )
-      );
+      this.socket.send('msg', 'shell', 'shell_resize', [newCols, newRows]);
     }
     return [newCols, newRows];
   },
@@ -328,13 +353,11 @@ Polymer({
 
   detached() {
     console.debug('xterm detached');
-    // const socket = document
-    //   .querySelector('mist-app')
-    //   .shadowRoot.querySelector('mist-socket');
-    // socket.send('uns', 'shell');
-    this.socket.close();
+    const socket = document
+      .querySelector('mist-app')
+      .shadowRoot.querySelector('mist-socket');
+    socket.send('uns', 'shell');
     window.removeEventListener('resize', this.resizeHandler);
-    window.close();
   },
   _closeDialog(_e) {
     // this.$.dialogModal.close();
@@ -355,13 +378,5 @@ Polymer({
       );
     }
     this._closeDialog();
-  },
-
-  ABToStr(ab) {
-    const ret = new Uint8Array(ab).reduce(
-      (p, c) => p + String.fromCharCode(c),
-      ''
-    );
-    return ret;
   },
 });
