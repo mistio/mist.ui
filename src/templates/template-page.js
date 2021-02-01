@@ -199,6 +199,12 @@ Polymer({
       template-actions {
         width: 50%;
       }
+      code-viewer {
+        --code-viewer-toolbar-background-color: #1e1e1e;
+      }
+      .code-container {
+        background-color: #1e1e1e;
+      }
     </style>
 
     <div id="content">
@@ -304,20 +310,17 @@ Polymer({
           </div>
         </div>
       </div>
-      <template is="dom-if" if="[[isInline]]">
-        <div class="page">
-          <div class="section">
+      <template is="dom-if" if="[[!isInline]]" restamp="">
+        <div class="page section">
             <h3 class="smallcaps">Inline Template</h3>
-            <div class="command-container">
+            <paper-material class="no-pad code-container">
               <code-viewer
                 language="yaml"
                 theme="vs-dark"
                 value="[[template.template]]"
                 show-language
-                restamp=""
               ></code-viewer>
-            </div>
-          </div>
+            </paper-material>
         </div>
       </template>
       <div class="page section">

@@ -44,6 +44,7 @@ Polymer({
         border: 1px solid var(--code-viewer-toolbar-color, transparent);
         background-color: var(--code-viewer-toolbar-background-color, transparent);
         color: var(--code-viewer-icons-color, var(--paper-grey-500));
+        font-family: monospace;
       }
       #language, #languageDropdown {
         margin-top: -4px;

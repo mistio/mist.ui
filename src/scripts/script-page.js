@@ -53,12 +53,9 @@ Polymer({
 
             .command-container {
                 background-color: #1e1e1e;
-                color: #fff;
-                font-family: monospace;
                 padding: 1px 1px;
                 width: 100%;
                 max-width: 100%;
-                /* overflow-x: scroll; */
                 box-sizing: border-box;
                 position: relative;
             }
@@ -151,12 +148,11 @@ Polymer({
             </paper-material>
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
-                    <template is="dom-if" if="[[script]]">
+                    <template is="dom-if" if="[[script]]" restamp="">
                         <code-viewer
                         language="[[_getScriptLanguage(script.location.source_code)]]" theme='vs-dark'
                         value="[[script.location.source_code]]"
                         show-language
-                        restamp=""
                       ></code-viewer>
                     </template>
                 </div>

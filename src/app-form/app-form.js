@@ -317,6 +317,10 @@ Polymer({
         padding-right: 2px;
       }
 
+      :host code-viewer.toolbar-dark {
+        --code-viewer-toolbar-background-color: #1e1e1e;
+      }
+
       :host([single-column]) code-viewer {
         margin-left: 22px;
       }
@@ -633,7 +637,7 @@ Polymer({
             <template
               is="dom-if"
               if="[[_compareFieldType(field.type, 'codeEditor', fieldVisibility, index)]]"
-
+              restamp=""
             >
               <code-viewer
                 language="[[field.language]]" theme='vs-dark'
@@ -643,7 +647,6 @@ Polymer({
                 name="[[field.name]]"
                 value="[[field.value]]"
                 on-editor-value-changed="_codeEditorValueChanged"
-                restamp=""
                 show-language-dropdown="[[field.showLanguageDropdown]]"
                 show-toolbar="[[field.showToolbar]]"
                 show-language="[[field.showLanguage]]"

@@ -17,7 +17,7 @@ const RBAC_CONSTRAINTS_FIELDS = [
     showToolbar: true,
     value: {},
     defaultValue: {},
-    class: 'script',
+    class: 'script toolbar-dark',
     show: true,
     required: true,
     helptext: 'Add/edit constraints in JSON format',
