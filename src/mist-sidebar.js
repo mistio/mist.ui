@@ -383,7 +383,7 @@ Polymer({
     },
     sectionsArray: {
       type: Array,
-      computed: '_computeSectionsArray(model.sections.*)',
+      computed: '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
     },
   },
 
@@ -451,7 +451,7 @@ Polymer({
     });
   },
 
-  _computeSectionsArray(_sections) {
+  _computeSectionsArray(_model) {
     let sects = [];
     if (this.model && this.model.sections) {
       sects = Object.keys(this.model.sections).filter(sect => {
