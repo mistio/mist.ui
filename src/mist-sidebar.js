@@ -383,7 +383,7 @@ Polymer({
     },
     sectionsArray: {
       type: Array,
-      computed: '_computeSectionsArray(model.sections.*, model.teams.*)',
+      computed: '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
     },
   },
 
@@ -451,7 +451,7 @@ Polymer({
     });
   },
 
-  _computeSectionsArray(_sections, _teams) {
+  _computeSectionsArray(_model) {
     let sects = [];
     console.log("COMPUTED SECTIONS ARRAY");
     if (this.model && this.model.sections) {
