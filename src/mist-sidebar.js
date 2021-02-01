@@ -453,7 +453,6 @@ Polymer({
 
   _computeSectionsArray(_model) {
     let sects = [];
-    console.log("COMPUTED SECTIONS ARRAY");
     if (this.model && this.model.sections) {
       sects = Object.keys(this.model.sections).filter(sect => {
         if (this.model.sections[sect].id === 'dashboard') return true;
