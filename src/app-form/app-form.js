@@ -2262,8 +2262,8 @@ Polymer({
     });
   },
 
-  _hasHelptext(field) {
-    return field ? !field.hidden && (field.base.helptext || field.base.helpHref) : false;
+  _hasHelptext(changeField) {
+    return changeField.base.helptext || changeField.base.helpHref || false;
   },
 
   _getFieldNameById(str) {
