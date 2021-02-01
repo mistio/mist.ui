@@ -8,9 +8,9 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@mistio/mist-list/mist-list-actions-behavior.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -123,7 +123,7 @@ Polymer({
           <p></p>
         </div>
         <div class="clearfix btn-group">
-          <paper-button on-tap="_dismissDialog"> Cancel </paper-button>
+          <paper-button on-tap="_closeDialog"> Cancel </paper-button>
           <paper-button
             class="blue"
             on-tap="associateKey"

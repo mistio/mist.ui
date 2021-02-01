@@ -381,7 +381,6 @@ Polymer({
     '_applyConstraints(machinesFields, constraints)',
     '_teamsChanged(model.teams.*)',
     '_cloudChanged(selectedCloud)',
-    '_updateCloudOptions(cloud.*)',
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
@@ -599,11 +598,6 @@ Polymer({
     if (this.selectedCloud) {
       this._cloudChanged(this.selectedCloud);
     }
-  },
-
-  _updateCloudOptions(_cloud) {
-    // console.log('_updateCloudOptions === ', cloud);
-    this._updateFields(this.selectedCloud);
   },
 
   _prefillOptions(_location) {
@@ -2043,8 +2037,9 @@ Polymer({
         `machineFields.${keyInd}.helptext`,
         'Optional. Only valid if image includes ssh server'
       );
+      this.set(`machineFields.${keyInd}.required`, false);
+      this.set(`machineFields.${keyInd}.label`, 'Key');
     }
-
     // disable monitoring by default
     if (monInd > -1) this.set(`machineFields.${monInd}.value`, false);
   },
