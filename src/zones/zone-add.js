@@ -55,9 +55,11 @@ Polymer({
         <p>
           To add a zone you need to have an enabled cloud in your account, and
           have DNS support enabled on that cloud. <br />
-          Add and enable a cloud using the
-          <a href="/clouds/+add" class="blue-link regular">Add Cloud form</a>
-          and enable the DNS support on that cloud.
+          <span hidden$="[[!checkPerm('add','cloud')]]">
+            Add and enable a cloud using the
+            <a href="/clouds/+add" class="blue-link regular">Add Cloud form</a>
+            and enable the DNS support on that cloud.
+          </span>
         </p>
       </paper-material>
       <paper-material hidden$="[[!hasdnsClouds]]">
