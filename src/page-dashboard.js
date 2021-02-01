@@ -414,6 +414,7 @@ Polymer({
                 docs="[[docs]]"
                 currency="[[currency]]"
                 q="[[q]]"
+                hidden$=[[!checkPerm('read_cost','cloud')]]
               >
               </app-costs>
             </div>

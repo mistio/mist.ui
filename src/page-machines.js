@@ -417,7 +417,6 @@ Polymer({
     const ret = [
       'state',
       'cloud',
-      'cost',
       'created',
       'expiration',
       'created_by',
@@ -429,6 +428,7 @@ Polymer({
       'hostname',
       'public_ips',
     ];
+    if (this.checkPerm('read_cost', 'cloud')) ret.splice(2, 0, 'cost');
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
