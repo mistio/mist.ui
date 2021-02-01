@@ -678,7 +678,6 @@ Polymer({
         }
       }
     }
-
     let allMachinesFields;
     if (this.selectedCloud) {
       const provider =
