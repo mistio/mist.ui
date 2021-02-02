@@ -1436,6 +1436,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'libvirt',
       'vsphere',
       'kubevirt',
+      'cloudsigma',
     ].indexOf(p.provider) === -1;
   p.fields.push({
     name: 'key',
