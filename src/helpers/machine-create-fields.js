@@ -1467,6 +1467,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'vultr',
       'softlayer',
       'gig_g8',
+      'cloudsigma',
     ].indexOf(p.provider) !== -1
   ) {
     p.fields.push({
