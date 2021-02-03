@@ -1,17 +1,17 @@
-import '../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../node_modules/@polymer/paper-styles/typography.js';
-import '../node_modules/@polymer/paper-material/paper-material.js';
-import '../node_modules/@polymer/paper-button/paper-button.js';
-import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@mistio/polyana-dashboard/polyana-dashboard.js';
-import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@mistio/polyana-dashboard/polyana-dashboard.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
 import { CSRFToken } from './helpers/utils.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
-import { YAML } from '../node_modules/yaml/browser/dist/index.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { YAML } from 'yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`

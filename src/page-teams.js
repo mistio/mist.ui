@@ -1,6 +1,6 @@
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import '@polymer/app-route/app-route.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/paper-fab/paper-fab.js';
 import './teams/team-page.js';
 import './teams/team-actions.js';
 import './teams/member-page.js';
@@ -8,8 +8,8 @@ import './teams/members-add.js';
 import './teams/member-add-in-teams.js';
 import './teams/team-add.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

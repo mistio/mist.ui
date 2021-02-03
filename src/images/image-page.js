@@ -1,6 +1,6 @@
-import '../../node_modules/@polymer/paper-material/paper-material.js';
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-material/paper-material.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
@@ -8,8 +8,8 @@ import '../mist-rules/mist-rules.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import './image-actions.js';
 import { CSRFToken, itemUid } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

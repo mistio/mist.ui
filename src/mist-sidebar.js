@@ -1,11 +1,11 @@
-import '../node_modules/@polymer/paper-icon-button/paper-icon-button.js';
-import { IronOverlayBehavior } from '../node_modules/@polymer/iron-overlay-behavior/iron-overlay-behavior.js';
-import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/paper-icon-button/paper-icon-button.js';
+import { IronOverlayBehavior } from '@polymer/iron-overlay-behavior/iron-overlay-behavior.js';
+import '@polymer/paper-listbox/paper-listbox.js';
 import './section-symbol/section-symbol.js';
 import './tag-link/tag-link.js';
 import './theme-color/theme-color.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -348,7 +348,7 @@ Polymer({
 
   is: 'mist-sidebar',
 
-  behaviors: [IronOverlayBehavior],
+  behaviors: [IronOverlayBehavior, window.rbac],
 
   properties: {
     model: {
@@ -383,7 +383,7 @@ Polymer({
     },
     sectionsArray: {
       type: Array,
-      computed: '_computeSectionsArray(model.sections.*)',
+      computed: '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
     },
   },
 
@@ -451,9 +451,46 @@ Polymer({
     });
   },
 
-  _computeSectionsArray(_sections) {
+  _computeSectionsArray(_model) {
+    let sects = [];
     if (this.model && this.model.sections) {
-      return Object.keys(this.model.sections).map(y => this.model.sections[y]);
+      sects = Object.keys(this.model.sections).filter(sect => {
+        if (this.model.sections[sect].id === 'dashboard') return true;
+        if (
+          this.model.sections[sect].id === 'teams' &&
+          this.checkPerm('read', 'team')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'insights' &&
+          this.checkPerm('read_cost', 'cloud')
+        )
+          return true;
+        if (
+          this.model.sections[sect].id === 'rules' &&
+          this.checkPerm('edit_rules', 'machine')
+        )
+          return true;
+        if (
+          ['insights', 'teams', 'rules'].indexOf(
+            this.model.sections[sect].id
+          ) === -1 &&
+          this.checkPerm &&
+          this.model.org &&
+          this.model.user &&
+          this.checkPerm(
+            'read',
+            this.model.sections[sect].id,
+            undefined,
+            this.model.org,
+            this.model.user
+          )
+        ) {
+          return true;
+        }
+        return false;
+      });
+      return sects.map(y => this.model.sections[y]);
     }
     return [];
   },

@@ -182,8 +182,8 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                 <mist-header sticky="" model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened="{{userMenuOpened}}" ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer="" smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]" isclosed="{{sidebarIsClosed}}"></mist-sidebar>
-            <div id="main-loader" class$="is-loading-html active-[[dataLoading]]">
-            <paper-spinner active="[[dataLoading]]"></paper-spinner>
+            <div id="main-loader" class$="is-loading-html active-[[loading]]">
+                <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
                 <page-dashboard name="dashboard" model="[[model]]" q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen="[[xsmallscreen]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-dashboard>
@@ -286,13 +286,9 @@ Polymer({
       type: String,
       value: '',
     },
-    pageLoading: {
+    loading: {
       type: Boolean,
       value: true,
-    },
-    dataLoading: {
-      type: Boolean,
-      computed: '_dataLoading(model.onboarding.*, pageLoading)',
     },
     count: {
       type: Number,
@@ -712,7 +708,7 @@ Polymer({
 
   _pageChanged(page) {
     this.set('count', '');
-    this.set('pageLoading', true);
+    this.set('loading', true);
     // Load page import on demand. Show 404 page if fails
 
     import(`./page-${page}.js`).then(this._hideLoader.bind(this), reason => {
@@ -720,23 +716,11 @@ Polymer({
       this._showPage404();
     });
   },
-  _dataLoading() {
-    switch (this.routeData && this.routeData.page) {
-      case 'machines':
-        if (!(this.pageLoading || this.model.onboarding.isLoadingMachines)) {
-          this.$['iron-pages'].selected = this.page;
-        }
-        return this.pageLoading || this.model.onboarding.isLoadingMachines;
-      default:
-        if (!this.pageLoading) {
-          this.$['iron-pages'].selected = this.page;
-        }
-        return this.pageLoading;
-    }
-  },
+
   _hideLoader() {
     console.log('success');
-    this.set('pageLoading', false);
+    this.set('loading', false);
+    this.$['iron-pages'].selected = this.page;
   },
 
   _showPage404() {
@@ -814,6 +798,7 @@ Polymer({
           'create_resources',
           'edit_tags',
           'read_logs',
+          'read_cost',
         ],
         location: ['read', 'create_resources'],
         machine: [
@@ -828,6 +813,7 @@ Polymer({
           'stop',
           'reboot',
           'destroy',
+          'power_cycle',
           'resize',
           'run_script',
           'open_shell',
@@ -908,14 +894,14 @@ Polymer({
           'read_logs',
         ],
         image: ['read', 'create_resources', 'edit_tags'],
-        // 'team': [
-        //     'add',
-        //     'read',
-        //     'edit',
-        //     'remove',
-        //     'edit_tags',
-        //     'read_logs',
-        // ],
+        team: [
+          //     'add',
+          'read',
+          //     'edit',
+          //     'remove',
+          //     'edit_tags',
+          //     'read_logs',
+        ],
       },
     };
 
@@ -1204,9 +1190,7 @@ Polymer({
     const xhr = new XMLHttpRequest();
     if (!this.fingerprint) {
       (async () => {
-        const obj_ = await import(
-          '../node_modules/@fingerprintjs/fingerprintjs'
-        );
+        const obj_ = await import('@fingerprintjs/fingerprintjs');
         const FingerprintJS = obj_.default;
         const fp = await FingerprintJS.load();
         const result = await fp.get();

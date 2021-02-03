@@ -1,15 +1,15 @@
-import '../node_modules/@polymer/app-route/app-route.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
-import '../node_modules/@mistio/mist-list/mist-list.js';
-import '../node_modules/@polymer/paper-fab/paper-fab.js';
+import '@polymer/app-route/app-route.js';
+import '@polymer/paper-spinner/paper-spinner.js';
+import '@mistio/mist-list/mist-list.js';
+import '@polymer/paper-fab/paper-fab.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
-import { ratedCost } from './helpers/utils.js';
-import moment from '../node_modules/moment/src/moment.js';
+import moment from 'moment/src/moment.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { ratedCost } from './helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -117,11 +117,15 @@ Polymer({
           user-filter="[[model.sections.machines.q]]"
           primary-field-name="id"
           actions="[[actions]]"
+          check-permissions="[[_checkPermissions()]]"
           filter-method="[[_ownerFilter()]]"
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
         >
-          <p slot="no-items-found">No machines found.</p>
+          <p slot="no-items-found">
+            <span hidden$="[[loadingMachines]]">No machines found.</span>
+            <span hidden$="[[!loadingMachines]]">Loading machines...</span>
+          </p>
         </mist-list>
       </machine-actions>
       <div
@@ -214,6 +218,10 @@ Polymer({
       type: Object,
       computed: '_getMachine(data.machine, model.machines, model.machines.*)',
     },
+    loadingMachines: {
+      type: Boolean,
+      computed: '_getMachinesLoading(model.onboarding.isLoadingMachines)',
+    },
     portalName: {
       type: String,
       value: 'Mist.io',
@@ -225,6 +233,10 @@ Polymer({
       type: Boolean,
       value: false,
     },
+    renderers:{
+      type: Object,
+      computed: '_getRenderers(model.schedules)'
+    }
   },
 
   listeners: {
@@ -242,7 +254,9 @@ Polymer({
       return this.model.machines[id];
     return '';
   },
-
+  _getMachinesLoading() {
+    return this.model && this.model.onboarding.isLoadingMachines;
+  },
   setJobId(e) {
     // console.log('setJobId',e.detail)
     if (e.detail.jobId) {
@@ -403,7 +417,6 @@ Polymer({
     const ret = [
       'state',
       'cloud',
-      'cost',
       'created',
       'expiration',
       'created_by',
@@ -415,6 +428,7 @@ Polymer({
       'hostname',
       'public_ips',
     ];
+    if (this.checkPerm('read_cost', 'cloud')) ret.splice(2, 0, 'cost');
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
@@ -514,24 +528,10 @@ Polymer({
           return '';
         },
         cmp: (row1, row2) => {
-          const item1 = row1.cloud;
-          const item2 = row2.cloud;
-          if (
-            _this.model &&
-            _this.model.clouds &&
-            _this.model.clouds[item1] &&
-            _this.model.clouds[item2]
-          ) {
-            if (
-              _this.model.clouds[item1].title < _this.model.clouds[item2].title
-            )
-              return -1;
-            if (
-              _this.model.clouds[item1].title > _this.model.clouds[item2].title
-            )
-              return 1;
-          }
-          return 0;
+          const item1 = this.renderers.cloud.body(row1.cloud);
+          const item2 = this.renderers.cloud.body(row2.cloud);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+          
         },
       },
       parent: {
@@ -573,6 +573,12 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+         // sort alphabetically by the rendered string
+         cmp: (row1, row2) => {
+          const item1 = this.renderers.owned_by.body(row1.owned_by);
+          const item2 = this.renderers.owned_by.body(row2.owned_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created_by: {
         title: (_item, _row) => {
@@ -585,6 +591,11 @@ Polymer({
                 _this.model.members[item].username
             : '';
         },
+        cmp: (row1, row2) => {
+          const item1 = this.renderers.created_by.body(row1.created_by);
+          const item2 = this.renderers.created_by.body(row2.created_by);
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+        }
       },
       created: {
         body: (item, _row) => {
@@ -667,14 +678,8 @@ Polymer({
           return location ? location.name : item || '';
         },
         cmp: (row1, row2) => {
-          const item1 = row1.location;
-          const item2 = row2.location;
-          if (item1 == null) {
-            return -1;
-          }
-          if (item2 == null) {
-            return 1;
-          }
+          const item1 = this.renderers.location.body(row1.location, row1);
+          const item2 = this.renderers.location.body(row2.location, row2);
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
@@ -682,7 +687,7 @@ Polymer({
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).forEach(key => {
+          Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
             if (tags[key] !== undefined && tags[key] !== '')
               display += `=${tags[key]}`;
@@ -690,6 +695,19 @@ Polymer({
           });
           return display;
         },
+        // sort by number of tags, resources with more tags come first
+        // if two resources have the same number of tags show them in alphabetic order
+        cmp: (row1, row2) =>{
+          const keys1 = Object.keys(row1.tags).sort();
+          const keys2 = Object.keys(row2.tags).sort();
+          if( keys1.length > keys2.length)
+            return -1;
+          if (keys1.length < keys2.length)
+            return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : "";
+          const item2 = keys2.length > 0 ? keys2[0] : "";
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        }
       },
       machine_id: {
         title: 'id (external)',
@@ -702,6 +720,8 @@ Polymer({
         body: ips => {
           return ips && ips.join(', ');
         },
+        // when sorting show actual strings first alphabetically, then IPs 
+        // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
         cmp: (row1, row2) => {
           let item1 = row1.public_ips[0];
           let item2 = row2.public_ips[0];
@@ -731,6 +751,8 @@ Polymer({
           return 0;
         },
       },
+      // when sorting show actual strings first alphabetically, then IPs 
+      // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
       private_ips: {
         title: "private ip's",
         body: ips => {
@@ -954,5 +976,13 @@ Polymer({
     if (load > 0.6) return `${prefix}eco `;
     if (load > 0.2) return `${prefix}low `;
     return `${prefix}low `;
+  },
+  // wrapper of checkPerm for mist-list with machine set as resource type
+  _checkPermissions() {
+    return {
+      apply: (action, rid) => {
+        return this.checkPerm(action, 'machine', rid);
+      },
+    };
   },
 });

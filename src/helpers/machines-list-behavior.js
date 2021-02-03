@@ -1,5 +1,5 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import moment from '../../node_modules/moment/src/moment.js';
+import '@polymer/polymer/polymer-legacy.js';
+import moment from 'moment/src/moment.js';
 import { formatMoney } from './utils.js';
 /**
  * Behavior that defines the machine list columns

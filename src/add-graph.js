@@ -1,20 +1,20 @@
-import '../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../node_modules/@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '../node_modules/@polymer/paper-button/paper-button.js';
-import '../node_modules/@polymer/paper-checkbox/paper-checkbox.js';
-import '../node_modules/@polymer/paper-item/paper-item.js';
-import '../node_modules/@polymer/paper-input/paper-input.js';
-import '../node_modules/@polymer/paper-input/paper-textarea.js';
-import '../node_modules/@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
-import '../node_modules/@polymer/paper-listbox/paper-listbox.js';
-import '../node_modules/@polymer/iron-behaviors/iron-control-state.js';
-import '../node_modules/@polymer/iron-collapse/iron-collapse.js';
-import '../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-checkbox/paper-checkbox.js';
+import '@polymer/paper-item/paper-item.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
+import '@polymer/paper-listbox/paper-listbox.js';
+import '@polymer/iron-behaviors/iron-control-state.js';
+import '@polymer/iron-collapse/iron-collapse.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 import './metric-menu.js';
 import './custom-graph.js';
-import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`

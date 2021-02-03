@@ -1,12 +1,12 @@
-import '../../node_modules/@polymer/polymer/polymer-legacy.js';
-import '../../node_modules/@polymer/paper-input/paper-input.js';
-import '../../node_modules/@polymer/paper-input/paper-input-error.js';
-import '../../node_modules/@polymer/paper-input/paper-textarea.js';
-import '../../node_modules/@polymer/iron-ajax/iron-ajax.js';
-import '../../node_modules/@polymer/iron-icons/iron-icons.js';
-import '../../node_modules/@vaadin/vaadin-icons/vaadin-icons.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import '@polymer/polymer/polymer-legacy.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-input-error.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@mistio/mist-list/mist-list-actions.js';
+import { MistListActionsBehavior } from '@mistio/mist-list/mist-list-actions-behavior.js';
 import '../tags/tags-form.js';
 import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';
@@ -19,10 +19,10 @@ import './machine-edit.js';
 import './attach-volume-on-machine.js';
 import './machine-snapshots.js';
 import './expose-ports.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 const MACHINE_ACTIONS = {
   'attach-volume': {
@@ -122,7 +122,7 @@ const MACHINE_ACTIONS = {
     multi: true,
   },
   power_cycle: {
-    name: 'power_cycle',
+    name: 'power cycle',
     icon: 'icons:settings-power',
     confirm: true,
     multi: true,
@@ -250,12 +250,12 @@ Polymer({
       on-error="handleError"
     ></iron-ajax>
     <slot>
-      <mist-list-actions actions="[[actions]]"></mist-list-actions>
+      <mist-list-actions actions="[[allowedActions]]"></mist-list-actions>
     </slot>
   `,
 
   is: 'machine-actions',
-  behaviors: [MistListActionsBehavior],
+  behaviors: [MistListActionsBehavior, window.rbac],
 
   properties: {
     model: {
@@ -273,6 +273,10 @@ Polymer({
         return [];
       },
       notify: true,
+    },
+    allowedActions: {
+      type: Array,
+      computed: '_computeAllowedActions(actions)',
     },
     inSinglePage: {
       type: Boolean,
@@ -396,6 +400,7 @@ Polymer({
       'remove',
       'destroy',
       'delete',
+      'power_cycle',
       'attach-volume',
       'create_snapshot',
       'revert_to_snapshot',
@@ -433,7 +438,20 @@ Polymer({
     if (this.items.length) return this.get('items.0');
     return undefined;
   },
-
+  _computeAllowedActions(actions) {
+    if (actions.length > 0) {
+      return actions.filter(action => {
+        return this.checkPerm(
+          action.name,
+          'machine',
+          this._getMachine().id,
+          this.model.org,
+          this.model.user
+        );
+      });
+    }
+    return [];
+  },
   computeActionListDetails(actions) {
     const ret = [];
     for (let i = 0; i < actions.length; i++) {
@@ -514,6 +532,8 @@ Polymer({
         });
       } else if (action.name === 'delete') {
         this._delete(this.items);
+      } else if (action.name === 'power cycle') {
+        this._powercycle(this.items);
       } else if (action.name === 'resize') {
         this.$.resizedialog._openDialog();
       } else if (action.name === 'tag') {
@@ -620,11 +640,12 @@ Polymer({
           'undefine',
           'destroy',
           'remove',
+          'power cycle',
         ].indexOf(action.name) > -1
       ) {
         uri = `/api/v1/machines/${item.id}`;
         payload = {
-          action: action.name,
+          action: action.name.replace(' ', '_'),
         };
       } else if (action.name === 'rename') {
         uri = `/api/v1/machines/${item.id}`;
@@ -849,6 +870,7 @@ Polymer({
     if (action === 'undefine') return 'undefined';
     if (action === 'suspend') return 'suspended';
     if (action === 'destroy') return 'destroyed';
+    if (action === 'power cycle') return 'power cycled';
     if (action === 'remove') return 'removed';
     if (action === 'star') return 'starred';
     if (action === 'unstar') return 'unstarred';
