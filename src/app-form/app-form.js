@@ -1541,9 +1541,9 @@ Polymer({
       if (!this.noAutoUpdate) this._updateForm();
       // construct fieldVisibility
       const fv = {};
-      for (let i = this.fields.length - 1; i >= 0; i--) {
-        fv[i] = this.fields[i].show;
-      }
+      this.fields.forEach((field, index)=>{
+        fv[index] = field.showIf ? this.fieldVisibility[index] : field.show;
+      })
       this.set('fieldVisibility', fv);
       // console.log('app form - fieldVisibility recalculated', fv);
       // console.log('fieldVisibility', this.fieldVisibility);
