@@ -1530,7 +1530,6 @@ Polymer({
 
   /* eslint-disable no-param-reassign */
   _fieldsChanged(fields, _loading) {
-    // console.log('_fieldsChanged', fields ? fields.path : 'run by event')
     if (this.formError) {
       this.set('formError', false);
     }
@@ -1541,12 +1540,11 @@ Polymer({
       if (!this.noAutoUpdate) this._updateForm();
       // construct fieldVisibility
       const fv = {};
-      for (let i = this.fields.length - 1; i >= 0; i--) {
-        fv[i] = this.fields[i].show;
-      }
+      this.fields.forEach((field, index)=>{
+        // Preserve visibility of toggled sub elements
+        fv[index] = field.showIf ? this.fieldVisibility[index] : field.show;
+      })
       this.set('fieldVisibility', fv);
-      // console.log('app form - fieldVisibility recalculated', fv);
-      // console.log('fieldVisibility', this.fieldVisibility);
     }
     // a consumer changed show values
     if (fields && fields.path.endsWith('.show')) {
