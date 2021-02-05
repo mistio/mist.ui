@@ -596,7 +596,7 @@ MACHINE_CREATE_FIELDS.push({
   fields: [
     {
       name: 'networks',
-      label: 'Networks',
+      label: 'Networks *',
       type: 'checkboxes',
       value: '',
       defaultValue: '',
