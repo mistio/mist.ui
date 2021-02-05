@@ -149,9 +149,10 @@ Polymer({
                     <template is="dom-if" if="[[script]]" restamp="">
                         <code-viewer
                         script-name="[[script.name]]"
-                        language="[[_getScriptLanguage(script.location.source_code)]]" theme='vs-dark'
+                        language="[[_getScriptLanguage(script.location.source_code)]]"
                         value="[[script.location.source_code]]"
                         show-language
+                        show-download
                         read-only
                       ></code-viewer>
                     </template>

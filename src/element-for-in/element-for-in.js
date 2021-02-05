@@ -27,6 +27,11 @@ Polymer({
       code-viewer {
         height: 100%;
         width: 100%;
+        box-shadow: rgb(255 255 255 / 20%) 0px 0px 0px 1px inset, rgb(222 222 222 / 90%) 0px 0px 0px 1px;
+      }
+
+      code-viewer {
+        --code-viewer-toolbar-background-color: #fff;
       }
 
       .flexchild.key {
@@ -47,21 +52,22 @@ Polymer({
           <div class='flexchild key'>[[processKeys(item.key)]]</div>
           <div class$='flexchild [[_isResizable(item, index)]]' style$='[[_getWidth(item)]]'>
 
-            <template is="dom-if" if="[[_isArrayOrObject(item)]]">
+            <template is="dom-if" if="[[_isArrayOrObject(item)]]" restamp="">
               <code-viewer language='json' theme='vs-light' read-only value="[[_jsonValue(item)]]"></code-viewer>
             </template>
 
-            <template is="dom-if" if="[[_isPassword(item)]]">
+            <template is="dom-if" if="[[_isPassword(item)]]" restamp="">
               [[_replaceForPassword(item.value)]]
             </template>
 
-            <template is="dom-if" if="[[_isState(item)]]">running</template>
+            <template is="dom-if" if="[[_isPowerState(item)]]" restamp="">running</template>
 
-            <template is="dom-if" if="[[_notStatePasswordArray(item)]]">
-              <template is="dom-if" if="[[!_displayXmlViewer(parserOutputType, index)]]">
+            <template is="dom-if" if="[[_notStatePasswordArray(item)]]" restamp="">
+              <template is="dom-if" if="[[!_displayXmlViewer(item, parserOutputType, index)]]" restamp="">
                 [[replaceURLWithHTMLLinks(item.value)]]
               </template>
-              <template is="dom-if" if="[[_displayXmlViewer(parserOutputType, index)]]" restamp="">
+
+              <template is="dom-if" if="[[_displayXmlViewer(item, parserOutputType, index)]]" restamp="">
                 <code-viewer language='xml' theme='vs-light' read-only value="[[_replaceForXML(item)]]"></code-viewer>
               </template>
           </template>
@@ -153,7 +159,7 @@ replaceURLWithHTMLLinks(text) {
     return text.replace(exp, "<a href='$1' target='new'>$1</a>");
   },
 unescapeHtml(unsafe) {
-    return unsafe
+    return unsafe && unsafe
       .replace(/&amp;/g, '&')
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
@@ -164,16 +170,16 @@ _isArrayOrObject(item) {
   return item.value instanceof Object || item.value instanceof Array;
 },
 _isPassword(item) {
-  return item.key.indexOf('password') > -1
+  return !this._isArrayOrObject(item) && item.key.indexOf('password') > -1;
 },
-_isState(item) {
-  return item.key.indexOf('power_state') > -1 && item.value === 1
+_isPowerState(item) {
+  return !this._isArrayOrObject(item) && item.key.indexOf('power_state') > -1 && item.value === 1
 },
 _notStatePasswordArray(item) {
-  return !this._isArrayOrObject(item) || !this._isPassword(item) ||!this._isState(item);
+  return !this._isArrayOrObject(item) && ( !this._isPassword(item) ||!this._isPowerState(item));
 },
 _isResizable(item, index) {
-return this._isArrayOrObject(item) || (!this._notStatePasswordArray(item) && this._parserOutputNotError(this.parserOutputType[index])) || '';
+return this._isArrayOrObject(item) || (!this._notStatePasswordArray(item) && this._parserOutputNotError(this.parserOutputType[index])) ? 'resizable' : '';
 },
 _getWidth(item) {
 return this._isArrayOrObject(item) ? 'width: 70%' : '';
@@ -190,7 +196,7 @@ _replaceForPassword(value) {
 _replaceForXML(item) {
 return this.unescapeHtml(item.value).replace(/'/g, '"');
 },
-_displayXmlViewer(parserOutputType, index) {
+_displayXmlViewer(item, parserOutputType, index) {
   return this.parserOutputType[index] && this.parserOutputType[index] !== 'parsererror' && this.parserOutputType[index] !== 'html';
 },
   processKeys(str) {

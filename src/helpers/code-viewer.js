@@ -46,6 +46,12 @@ Polymer({
         color: var(--code-viewer-icons-color, var(--paper-grey-500));
         font-family: monospace;
       }
+      #toolbar.vs-dark {
+        border-bottom: 10px solid #1e1e1e;
+      }
+      #toolbar.vs-light {
+        border-bottom: 10px solid #fff;
+      }
       #language, #languageDropdown {
         margin-top: -4px;
         margin-left: 30px;
@@ -56,57 +62,61 @@ Polymer({
         padding: 4px;
       }
       #toolbar + monaco-element {
-        height: calc(100% - 55px);
+        height: calc(100% - 65px);
+      }
+      .fullscreenBtn {
+        margin-left: 12px;
       }
       .loader {
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size:18px;
+        font-size: 18px;
         color: var(--code-viewer-icons-color, var(--paper-grey-500));
       }
     </style>
     <div id="wrapper">
-      <div id="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
-      <paper-dropdown-menu id="languageDropdown" hidden$="[[!showLanguageDropdown]]" on-value-changed="_languageChanged">
-        <paper-listbox attr-for-selected="value" selected="bash"
-          slot="dropdown-content"
-          class="dropdown-content"
-        >
-          <template is="dom-repeat" items="[[languages]]" as="lang">
-            <paper-item value="[[lang.name]]">[[lang.name]]</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <span id="language" hidden$="[[!showLanguage]]">[[language]]</span>
+      <div id="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]" class$="[[theme]]">
+        <paper-dropdown-menu id="languageDropdown" hidden$="[[!showLanguageDropdown]]" on-value-changed="_languageChanged">
+            <paper-listbox attr-for-selected="value" selected="bash"
+              slot="dropdown-content"
+              class="dropdown-content"
+              >
+              <template is="dom-repeat" items="[[languages]]" as="lang">
+                  <paper-item value="[[lang.name]]">[[lang.name]]</paper-item>
+              </template>
+            </paper-listbox>
+        </paper-dropdown-menu>
+        <span id="language" hidden$="[[!showLanguage]]">[[language]]</span>
         <paper-icon-button
-          icon="icons:content-copy"
-          id="copyBtn"
-          title="Copy"
-          on-tap="_copyContents"
-        ></paper-icon-button>
-          <paper-icon-button
-          icon="icons:file-download"
-          id="downloadBtn"
-          title="Download"
-          on-tap="_downloadContents"
-        ></paper-icon-button>
-        <span hidden$="[[!enableFullscreen]]">
-          <paper-icon-button
-            icon="icons:fullscreen"
-            id="fullscreenBtn"
-            title="Open fullscreen mode"
-            hidden$="[[fullscreen]]"
-            on-tap="_enterFullscreen"
-          ></paper-icon-button>
-          <paper-icon-button
-            icon="icons:fullscreen-exit"
-            id="exitFullscreenBtn"
-            title="Close fullscreen mode"
-            hidden$="[[!fullscreen]]"
-            on-tap="_exitFullscreen"
-          ></paper-icon-button>
+            icon="icons:content-copy"
+            id="copyBtn"
+            title="Copy"
+            on-tap="_copyScript"
+            ></paper-icon-button>
+        <paper-icon-button
+            hidden$="[[!showDownload]]"
+            icon="icons:file-download"
+            id="downloadBtn"
+            title="Download script"
+            on-tap="_downloadScript"
+            ></paper-icon-button>
+        <span hidden$="[[!enableFullscreen]]" class="fullscreenBtn">
+            <paper-icon-button
+              icon="icons:fullscreen"
+              id="fullscreenBtn"
+              title="Enter fullscreen mode"
+              hidden$="[[fullscreen]]"
+              on-tap="_enterFullscreen"
+              ></paper-icon-button>
+            <paper-icon-button
+              icon="icons:fullscreen-exit"
+              id="exitFullscreenBtn"
+              title="Exit fullscreen mode"
+              hidden$="[[!fullscreen]]"
+              on-tap="_exitFullscreen"
+              ></paper-icon-button>
         </span>
       </div>
       <monaco-element
@@ -117,10 +127,10 @@ Polymer({
         loading="{{editorLoading}}"
         on-value-changed="_handleValueChanged"
         read-only="[[readOnly]]"
-      >
+        >
         <span class="loader" slot="loader">Loading...</span>
       </monaco-element>
-      </div>
+  </div>
   `,
 
   is: 'code-viewer',
@@ -158,6 +168,11 @@ Polymer({
       value: false,
       reflectToAttribute: true
     },
+    showDownload: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true
+    },
     editorLoading: {
       type: Boolean,
       value: true,
@@ -173,32 +188,22 @@ Polymer({
     },
   },
   _getFileExtension() {
-    const extensions = [
-      {'node': 'js'},
-      {'python': 'py'},
-      {'xml': 'xml'},
-      {'perl': 'pl'},
-      {'fish': 'fish'},
-      {'zsh': 'zsh'},
-      {'bash': 'sh'},
-      {'sh':'sh'},
-      {'powershell': 'ps1'},
-      {'json': 'json'}
-    ];
+    const extensions = {
+      'node': 'js',
+      'python': 'py',
+      'xml': 'xml',
+      'perl': 'pl',
+      'fish': 'fish',
+      'zsh': 'zsh',
+      'bash': 'sh',
+      'sh':'sh',
+      'powershell': 'ps1',
+      'yaml': 'yml',
+      'json': 'json'
+    };
 
     return extensions[this.language] || 'sh';
   },
-  _downloadContents() {
-    const extension = this._getFileExtension();
-    const filename = `script-${this.scriptName || this.language}.${extension}.txt`
-    const element = document.createElement('a');
-    element.setAttribute('href', `data:text/plain;charset=utf-8,${  encodeURIComponent(this.value)}`);
-    element.setAttribute('download', filename);
-    element.style.display = 'none';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-},
   _encode(script) {
     return encodeURIComponent(script);
   },
@@ -237,14 +242,35 @@ Polymer({
     this.set('fullscreen', false);
     this.fire('exit-fullscreen');
   },
-  _copyContents() {
+  _copyScript() {
     const listener = e => {
       e.preventDefault();
       e.clipboardData.setData('text/plain', this.value);
     };
     document.addEventListener('copy', listener);
-    document.execCommand('copy');
+    const successful = document.execCommand('copy');
     document.removeEventListener('copy', listener);
+    const message = successful
+    ? 'The script was copied to clipboard!'
+    : 'There was an error copying to clipboard!';
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: message, duration: 3000 },
+      })
+    );
   },
+  _downloadScript() {
+    const extension = this._getFileExtension();
+    const filename = `script-${this.scriptName || this.language}.${extension}.txt`
+    const element = document.createElement('a');
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${  encodeURIComponent(this.value)}`);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+},
   ready() {},
 });

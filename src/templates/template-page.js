@@ -319,6 +319,7 @@ Polymer({
                 theme="vs-dark"
                 value="[[template.template]]"
                 show-language
+                show-download
                 read-only
               ></code-viewer>
             </paper-material>

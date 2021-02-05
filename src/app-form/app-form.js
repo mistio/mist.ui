@@ -640,7 +640,7 @@ Polymer({
               restamp=""
             >
               <code-viewer
-                language="[[field.language]]" theme='vs-dark'
+                language="[[field.language]]"
                 languages="[[field.languages]]"
                 class$="xs12 m6 [[field.class]]"
                 id$="app-form-[[id]]-[[field.name]]"
