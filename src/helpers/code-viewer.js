@@ -58,6 +58,14 @@ Polymer({
       #toolbar + monaco-element {
         height: calc(100% - 55px);
       }
+      .loader {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size:18px;
+        color: var(--code-viewer-icons-color, var(--paper-grey-500));
+      }
     </style>
     <div id="wrapper">
       <div id="toolbar" hidden$="[[_computeHideToolbar(editorLoading)]]">
@@ -74,21 +82,30 @@ Polymer({
       <span id="language" hidden$="[[!showLanguage]]">[[language]]</span>
         <paper-icon-button
           icon="icons:content-copy"
-          on-tap="_copyContents"
           id="copyBtn"
+          title="Copy"
+          on-tap="_copyContents"
+        ></paper-icon-button>
+          <paper-icon-button
+          icon="icons:file-download"
+          id="downloadBtn"
+          title="Download"
+          on-tap="_downloadContents"
         ></paper-icon-button>
         <span hidden$="[[!enableFullscreen]]">
           <paper-icon-button
             icon="icons:fullscreen"
+            id="fullscreenBtn"
+            title="Open fullscreen mode"
             hidden$="[[fullscreen]]"
             on-tap="_enterFullscreen"
-            id="fullscreenBtn"
           ></paper-icon-button>
           <paper-icon-button
             icon="icons:fullscreen-exit"
+            id="exitFullscreenBtn"
+            title="Close fullscreen mode"
             hidden$="[[!fullscreen]]"
             on-tap="_exitFullscreen"
-            id="exitFullscreenBtn"
           ></paper-icon-button>
         </span>
       </div>
@@ -99,9 +116,9 @@ Polymer({
         value="[[value]]"
         loading="{{editorLoading}}"
         on-value-changed="_handleValueChanged"
-        readOnly="[[readOnly]]"
+        read-only="[[readOnly]]"
       >
-        <span slot="loader">Loading...</span>
+        <span class="loader" slot="loader">Loading...</span>
       </monaco-element>
       </div>
   `,
@@ -149,6 +166,41 @@ Polymer({
       type: Boolean,
       value: true,
     },
+    readOnly: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true
+    },
+  },
+  _getFileExtension() {
+    const extensions = [
+      {'node': 'js'},
+      {'python': 'py'},
+      {'xml': 'xml'},
+      {'perl': 'pl'},
+      {'fish': 'fish'},
+      {'zsh': 'zsh'},
+      {'bash': 'sh'},
+      {'sh':'sh'},
+      {'powershell': 'ps1'},
+      {'json': 'json'}
+    ];
+
+    return extensions[this.language] || 'sh';
+  },
+  _downloadContents() {
+    const extension = this._getFileExtension();
+    const filename = `script-${this.scriptName || this.language}.${extension}.txt`
+    const element = document.createElement('a');
+    element.setAttribute('href', `data:text/plain;charset=utf-8,${  encodeURIComponent(this.value)}`);
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+},
+  _encode(script) {
+    return encodeURIComponent(script);
   },
   _handleValueChanged(e) {
     // Added debounce because pressing buttons too quickly caused an endless event feedback loop

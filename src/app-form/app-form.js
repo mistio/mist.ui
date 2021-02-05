@@ -1566,7 +1566,7 @@ Polymer({
       const fv = {};
       this.fields.forEach((field, index)=>{
         // Preserve visibility of toggled sub elements
-        fv[index] = field.showIf ? this.fieldVisibility[index] : field.show;
+        fv[index] = field.showIf ? this.fieldVisibility && this.fieldVisibility[index] : field.show;
       })
       this.set('fieldVisibility', fv);
     }

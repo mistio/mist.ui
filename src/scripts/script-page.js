@@ -139,9 +139,7 @@ Polymer({
                         [[script.name]]
                     </h2>
                     <div class="subtitle">
-                    [[script.location.type]] Script
-                        <span hidden\$="[[!isInline]]"><a class="inherit" href\$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download\$="script-[[script.name]].sh.txt">Download</a></span>
-                        </span>
+                      [[script.location.type]] Script
                     </div>
                 </div>
                 <script-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
@@ -150,9 +148,11 @@ Polymer({
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
                     <template is="dom-if" if="[[script]]" restamp="">
                         <code-viewer
+                        script-name="[[script.name]]"
                         language="[[_getScriptLanguage(script.location.source_code)]]" theme='vs-dark'
                         value="[[script.location.source_code]]"
                         show-language
+                        read-only
                       ></code-viewer>
                     </template>
                 </div>
