@@ -107,6 +107,7 @@ Polymer({
   `,
 
   is: 'zone-add',
+  behaviors: [window.rbac],
 
   properties: {
     section: {

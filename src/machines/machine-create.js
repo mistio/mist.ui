@@ -154,10 +154,10 @@ Polymer({
       <paper-material hidden$="[[_hasProviders(providers)]]">
         <p>
           You don't have any clouds that support machine provisioning.
-          <span hidden$="[[!checkPerm('add','cloud')]]"
-            ><a href="/clouds/+add" class="blue-link regular">Add a cloud</a> to
-            get started creating machines.</span
-          >
+          <span hidden$="[[!checkPerm('add','cloud')]]">
+            <a href="/clouds/+add" class="blue-link regular">Add a cloud</a> to
+            get started creating machines.
+          </span>
         </p>
       </paper-material>
       <paper-material hidden$="[[!_hasProviders(providers)]]">

@@ -61,7 +61,7 @@ Polymer({
           <span hidden$="[[!checkPerm('add','cloud')]]">
             Add a cloud using the
             <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
-          <span hidden$="[[!checkPerm('add','cloud')]]">
+          </span>
         </p>
       </paper-material>
       <paper-material hidden$="[[!hasCloudsWithVolumes]]">
@@ -139,6 +139,7 @@ Polymer({
   `,
 
   is: 'volume-create',
+  behaviors: [window.rbac],
 
   properties: {
     section: {

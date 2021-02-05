@@ -128,16 +128,6 @@ Polymer({
       #progress paper-progress[error] > ::slotted(#primaryProgress) {
         background-color: var(--red-color) !important;
       }
-
-      .demo-video {
-        padding-bottom: 0;
-        border-radius: 2px;
-      }
-      .demo-video > video {
-        width: 100%;
-        margin-bottom: -4px;
-        border-radius: 2px;
-      }
     </style>
 
     <div id="onboarding-area">
@@ -176,11 +166,6 @@ Polymer({
           <h1>You are ready to go!</h1>
           <!-- If user isn't allowed to see clouds -->
           <template is="dom-if" if="[[!checkPerm('add','cloud', null, model.org, model.user)]]">
-            <paper-material class="demo-video" elevation="1">
-              <video autoplay loop muted playsinline>
-                <source src="[[rootPath]]/assets/onboarding/screencast-landing.webm" type="video/webm" />
-              </video>
-            </paper-material>
             <h2>Check out all the <a href="https://www.youtube.com/watch?v=7oYyC-FIaAM&t=285s" target="_blank">cool things</a> you can do with Mist!</h2>
           </template>
           <p hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]">
