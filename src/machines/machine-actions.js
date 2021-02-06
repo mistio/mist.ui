@@ -645,8 +645,12 @@ Polymer({
             const response = await fetch(shellReqUri, shellReqBody);
             if (response.ok) {
               const wsURL = await response.json();
-              const newWindow = window.open('assets/static-files/shell.html');
-              newWindow.wsURL = wsURL;
+              const newWindow = window.open(
+                'assets/static-files/shell.html',
+                '_blank',
+                'toolbar=yes,scrollbars=yes,resizable=yes,top=0,left=0,width=800,height=600'
+              );
+              newWindow.wsURL = wsURL.location;
             }
           })();
         }
