@@ -164,7 +164,11 @@ Polymer({
       <div class="onb-forms" hidden$="[[!hasOrg]]">
         <div id="cloud-or-invite-form" class="onboarding-form">
           <h1>You are ready to go!</h1>
-          <p>
+          <!-- If user isn't allowed to see clouds -->
+          <template is="dom-if" if="[[!checkPerm('add','cloud', null, model.org, model.user)]]">
+            <h2>Check out all the <a href="https://www.youtube.com/watch?v=7oYyC-FIaAM&t=285s" target="_blank">cool things</a> you can do with Mist!</h2>
+          </template>
+          <p hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]">
             No clouds to manage in <strong>[[model.org.name]]</strong>. Yet.
           </p>
           <div class="onboarding-form-inputs">
@@ -177,11 +181,8 @@ Polymer({
               Add your clouds
             </paper-button>
           </div>
-          <p>
-            <span
-              hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
-            ></span
-            >or
+          <p hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]">
+          or
             <paper-button on-tap="showInviteForm" class="blue-link" noink=""
               >invite people
             </paper-button>

@@ -736,7 +736,7 @@ iron-icon {
     color: goldenrod;
 }
 
-p a {
+p a, h2 a {
     text-transform: none;
     font-weight: normal;
     color: #2196F3;
