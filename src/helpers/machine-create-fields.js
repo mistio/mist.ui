@@ -960,10 +960,17 @@ MACHINE_CREATE_FIELDS.push({
   ],
 });
 
+// CLOUDSIGMA
+MACHINE_CREATE_FIELDS.push({
+  provider: 'cloudsigma',
+  fields: [],
+});
+
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(p => {
   const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) !== -1;
-  const showLocation = ['lxd', 'gig_g8'].indexOf(p.provider) === -1;
+  const showLocation =
+    ['lxd', 'gig_g8', 'cloudsigma'].indexOf(p.provider) === -1;
 
   // add common machine properties fields
   p.fields.splice(
@@ -1255,6 +1262,60 @@ MACHINE_CREATE_FIELDS.forEach(p => {
         fieldExists: true,
       },
     });
+  } else if (['cloudsigma'].indexOf(p.provider) !== -1) {
+    p.fields.splice(3, 0, {
+      name: 'size',
+      label: 'Size *',
+      type: 'mist_size',
+      value: 'custom',
+      defaultValue: 'custom',
+      custom: true,
+      customValue: null,
+      show: true,
+      required: true,
+      customSizeFields: [
+        {
+          name: 'ram',
+          label: 'RAM MB',
+          type: 'slider',
+          value: 256,
+          defaultValue: 256,
+          min: 256,
+          max: 65536,
+          step: 256,
+          show: true,
+          required: false,
+          unit: 'MB',
+        },
+        {
+          name: 'cpu',
+          label: 'CPU cores',
+          type: 'slider',
+          value: 1,
+          defaultValue: 1,
+          min: 1,
+          max: 50,
+          step: 1,
+          show: true,
+          required: false,
+          unit: 'cores',
+        },
+        {
+          name: 'disk_primary',
+          label: 'Primary Disk',
+          type: 'slider',
+          value: 10,
+          defaultValue: 10,
+          min: 1,
+          max: 100000,
+          step: 1,
+          show: true,
+          required: true,
+          unit: 'GB',
+          helptext: 'Custom disk size in GB.',
+        },
+      ],
+    });
   } else {
     // mist_dropdown for all others
     p.fields.splice(3, 0, {
@@ -1375,6 +1436,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'libvirt',
       'vsphere',
       'kubevirt',
+      'cloudsigma',
     ].indexOf(p.provider) === -1;
   p.fields.push({
     name: 'key',
@@ -1405,6 +1467,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'vultr',
       'softlayer',
       'gig_g8',
+      'cloudsigma',
     ].indexOf(p.provider) !== -1
   ) {
     p.fields.push({
