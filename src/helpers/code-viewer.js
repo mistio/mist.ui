@@ -270,7 +270,7 @@ Polymer({
     const successful = document.execCommand('copy');
     document.removeEventListener('copy', listener);
     const message = successful
-      ? 'The script was copied to clipboard!'
+      ? 'Content copied to clipboard'
       : 'There was an error copying to clipboard!';
     this.dispatchEvent(
       new CustomEvent('toast', {
