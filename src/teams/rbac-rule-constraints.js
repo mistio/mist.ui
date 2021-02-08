@@ -3,8 +3,6 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-textarea.js';
-// import 'juicy-jsoneditor/juicy-jsoneditor.js';
-import '../element-for-in/element-for-in.js';
 import '../helpers/dialog-element.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -13,10 +11,12 @@ const RBAC_CONSTRAINTS_FIELDS = [
   {
     name: 'constraints',
     label: '',
-    type: 'textarea',
-    value: '',
-    defaultValue: '',
-    class: 'script',
+    type: 'codeEditor',
+    language: 'json',
+    showToolbar: true,
+    value: {},
+    defaultValue: {},
+    class: 'script toolbar-dark',
     show: true,
     required: true,
     helptext: 'Add/edit constraints in JSON format',
@@ -229,10 +229,12 @@ Polymer({
     return false;
   },
   _mapValuesToFields() {
-    // console.log("in map ", this.rule)
     // fill in fields with constraints corresponding values
-    const constraints = JSON.stringify(this.rule.constraints);
-    console.log('constraints in map ', constraints);
+    const constraints = JSON.stringify(
+      this.rule.constraints,
+      undefined,
+      2
+    );
     this.set('fields.0.value', constraints || '{}');
   },
 });

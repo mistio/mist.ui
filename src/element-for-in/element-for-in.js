@@ -1,8 +1,7 @@
 import '@polymer/polymer/polymer-legacy.js';
-import 'monaco-element';
+import '../helpers/code-viewer.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import { YAML } from 'yaml/browser/dist/index.js';
 
 Polymer({
   _template: html`
@@ -25,9 +24,15 @@ Polymer({
         resize: both;
       }
 
-      monaco-element {
+      code-viewer {
         height: 100%;
         width: 100%;
+        box-shadow: rgb(255 255 255 / 20%) 0px 0px 0px 1px inset,
+          rgb(222 222 222 / 90%) 0px 0px 0px 1px;
+      }
+
+      code-viewer {
+        --code-viewer-toolbar-background-color: #fff;
       }
 
       .flexchild.key {
@@ -42,7 +47,61 @@ Polymer({
         word-break: break-all;
       }
     </style>
-    <div id="infobody" class="info-body"></div>
+    <div id="infobody" class="info-body">
+      <template is="dom-repeat" items="[[_removeIgnored(sortedContent)]]">
+        <div class="info-item flex-horizontal-with-ratios">
+          <div class="flexchild key">[[processKeys(item.key)]]</div>
+          <div
+            class$="flexchild [[_isResizable(item, index)]]"
+            style$="[[_getWidth(item)]]"
+          >
+            <template is="dom-if" if="[[_isArrayOrObject(item)]]" restamp="">
+              <code-viewer
+                language="json"
+                theme="vs-light"
+                read-only
+                value="[[_jsonValue(item)]]"
+              ></code-viewer>
+            </template>
+
+            <template is="dom-if" if="[[_isPassword(item)]]" restamp="">
+              [[_replaceForPassword(item.value)]]
+            </template>
+
+            <template is="dom-if" if="[[_isPowerState(item)]]" restamp=""
+              >running</template
+            >
+
+            <template
+              is="dom-if"
+              if="[[_notStatePasswordArray(item)]]"
+              restamp=""
+            >
+              <template
+                is="dom-if"
+                if="[[!_displayXmlViewer(item, parserOutputType, index)]]"
+                restamp=""
+              >
+                [[replaceURLWithHTMLLinks(item.value)]]
+              </template>
+
+              <template
+                is="dom-if"
+                if="[[_displayXmlViewer(item, parserOutputType, index)]]"
+                restamp=""
+              >
+                <code-viewer
+                  language="xml"
+                  theme="vs-light"
+                  read-only
+                  value="[[_replaceForXML(item)]]"
+                ></code-viewer>
+              </template>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
   `,
 
   is: 'element-for-in',
@@ -53,14 +112,36 @@ Polymer({
       value: {},
       observer: '_contentChanged',
     },
+    sortedContent: {
+      type: Array,
+      value() {
+        return [];
+      },
+    },
     tabSize: {
       value: 2,
     },
     ignore: {
       type: String,
     },
+    parserOutputType: {
+      type: Array,
+      value() {
+        return [];
+      },
+    },
   },
-
+  _removeIgnored(content) {
+    if (!content || !(content instanceof Array)) {
+      return [];
+    }
+    return content.filter(
+      item => !(this.ignore && item.key.indexOf(this.ignore) > -1)
+    );
+  },
+  _jsonValue(item) {
+    return JSON.stringify(item.value, undefined, this.tabSize);
+  },
   _contentChanged(newValue, _oldValue) {
     const newObj = [];
     const obj = newValue;
@@ -78,9 +159,21 @@ Polymer({
       });
 
       this.sortArr(newObj);
+      const arr = [];
+      newObj.forEach((item, index) => {
+        try {
+          arr[index] = new window.DOMParser().parseFromString(
+            this.unescapeHtml(item.value),
+            'text/xml'
+          ).documentElement.nodeName;
+        } catch (e) {
+          console.log('e ', e);
+          arr[index] = null;
+        }
+      });
+      this.set('parserOutputType', arr);
+      this.set('sortedContent', newObj);
     }
-
-    this.$.infobody.innerHTML = this.createTpl(newObj);
   },
 
   sortArr(array) {
@@ -91,99 +184,70 @@ Polymer({
       return x < y ? -1 : res;
     });
   },
-
-  createTpl(content) {
-    function replaceURLWithHTMLLinks(text) {
-      // console.log('createTpl',text);
-      if (!text.replace) return text;
-      const exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/i;
-      return text.replace(exp, "<a href='$1' target='new'>$1</a>");
-    }
-    function unescapeHtml(unsafe) {
-      return unsafe
+  replaceURLWithHTMLLinks(text) {
+    if (!text.replace) return text;
+    const exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/i;
+    return text.replace(exp, "<a href='$1' target='new'>$1</a>");
+  },
+  unescapeHtml(unsafe) {
+    return (
+      unsafe &&
+      unsafe
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
-        .replace(/&#039;/g, "'");
-    }
-    let tpl = '';
-
-    for (let i = 0, len = content.length; i < len; i++) {
-      if (this.ignore && content[i].key.indexOf(this.ignore) > -1) {
-        continue; // eslint-disable-line no-continue
-      }
-      tpl += "<div class='info-item flex-horizontal-with-ratios'>";
-      tpl += `<div class='flexchild key'>${this.processKeys(
-        content[i].key
-      )}</div>`;
-      // if value is an array
-      if (
-        content[i].value instanceof Object ||
-        content[i].value instanceof Array
-      ) {
-        tpl += `<div class='flexchild resizable' style='width: 70%'><monaco-element language='json' theme='vs-light' read-only value='${JSON.stringify(
-          content[i].value,
-          undefined,
-          this.tabSize
-        )}'></monaco-element></div>`;
-      }
-      // if key is password
-      else if (content[i].key.indexOf('password') > -1) {
-        tpl += `<div class='flexchild'>${content[i].value
-          .replace('<', '&lt;')
-          .replace('>', '&gt;')}</div>`;
-      }
-      // if key is state
-      else if (
-        content[i].key.indexOf('power_state') > -1 &&
-        content[i].value === 1
-      ) {
-        tpl += "<div class='flexchild'>running</div>";
-      } else {
-        try {
-          const parserOutputType = new window.DOMParser().parseFromString(
-            unescapeHtml(content[i].value),
-            'text/xml'
-          ).documentElement.nodeName;
-          if (parserOutputType === 'html') {
-            tpl += `<div class='flexchild'>${replaceURLWithHTMLLinks(
-              content[i].value
-            )}</div>`;
-          } else if (parserOutputType !== 'parsererror') {
-            tpl += `<div class='flexchild resizable'><monaco-element language='xml' theme='vs-light' read-only value='${content[
-              i
-            ].value.replace(/'/g, '"')}'></monaco-element></div>`;
-          } else {
-            tpl += `<div class='flexchild'>${replaceURLWithHTMLLinks(
-              content[i].value
-            )}</div>`;
-          }
-        } catch (e) {
-          tpl += `<div class='flexchild'>${replaceURLWithHTMLLinks(
-            content[i].value
-          )}</div>`;
-        }
-      }
-      tpl += '</div>';
-    }
-
-    return tpl;
+        .replace(/&#039;/g, "'")
+    );
   },
-
-  createObjTpl(obj) {
-    let tpl = '';
-    // console.log(obj)
-    if (obj) {
-      Object.keys(obj).forEach(p => {
-        tpl += `<div class='info-item'><pre><code>${YAML.dump(
-          obj[p]
-        )}</code></pre></div>`;
-      });
-    }
-    return tpl;
+  _isArrayOrObject(item) {
+    return item.value instanceof Object || item.value instanceof Array;
   },
-
+  _isPassword(item) {
+    return !this._isArrayOrObject(item) && item.key.indexOf('password') > -1;
+  },
+  _isPowerState(item) {
+    return (
+      !this._isArrayOrObject(item) &&
+      item.key.indexOf('power_state') > -1 &&
+      item.value === 1
+    );
+  },
+  _notStatePasswordArray(item) {
+    return (
+      !this._isArrayOrObject(item) &&
+      (!this._isPassword(item) || !this._isPowerState(item))
+    );
+  },
+  _isResizable(item, index) {
+    return this._isArrayOrObject(item) ||
+      (!this._notStatePasswordArray(item) &&
+        this._parserOutputNotError(this.parserOutputType[index]))
+      ? 'resizable'
+      : '';
+  },
+  _getWidth(item) {
+    return this._isArrayOrObject(item) ? 'width: 70%' : '';
+  },
+  _parserOutputHtml(parserOutputType, index) {
+    return this.parserOutputType[index] === 'html';
+  },
+  _parserOutputNotError(parserOutputType, index) {
+    return this.parserOutputType[index] !== 'parsererror';
+  },
+  _replaceForPassword(value) {
+    return value.replace('<', '&lt;').replace('>', '&gt;');
+  },
+  _replaceForXML(item) {
+    return this.unescapeHtml(item.value).replace(/'/g, '"');
+  },
+  _displayXmlViewer(item, parserOutputType, index) {
+    return (
+      this.parserOutputType[index] &&
+      this.parserOutputType[index] !== 'parsererror' &&
+      this.parserOutputType[index] !== 'html'
+    );
+  },
   processKeys(str) {
     const words = str.split('_');
     let result = '';
@@ -196,10 +260,10 @@ Polymer({
     }
     return result;
   },
-
   toTitleCase(str) {
-    return str.replace(/\w\S*/g, txt => {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    });
+    return str.replace(
+      /\w\S*/g,
+      txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
   },
 });

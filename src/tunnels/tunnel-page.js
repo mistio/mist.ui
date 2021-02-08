@@ -6,6 +6,8 @@ import '@polymer/paper-menu-button/paper-menu-button.js';
 
 import '@polymer/paper-spinner/paper-spinner.js';
 import '../helpers/dialog-element.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
@@ -13,8 +15,6 @@ import '../tags/tags-list.js';
 import './tunnel-edit.js';
 import './tunnel-actions.js';
 import { CSRFToken, itemUid } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -512,7 +512,7 @@ Script:</code></pre>
     this.setSelection(el);
     const successful = document.execCommand('copy');
     const message = successful
-      ? 'The script was copied to clipboard!'
+      ? 'Content copied to clipboard'
       : 'There was an error copying to clipboard!';
     this.dispatchEvent(
       new CustomEvent('toast', {
