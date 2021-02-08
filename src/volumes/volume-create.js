@@ -56,7 +56,8 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Packet, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean clouds
+          Equinix Metal, LXD, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean
+          clouds
           <br />
           <span hidden$="[[!checkPerm('add','cloud')]]">
             Add a cloud using the
@@ -92,10 +93,7 @@ Polymer({
           </paper-dropdown-menu>
         </div>
       </paper-material>
-      <paper-material hidden$="[[selectedCloud]]">
-        Depending on the cloud, different volume parameters may be required.
-        Choose an available cloud for the corresponding fields to appear.
-      </paper-material>
+
       <template is="dom-if" if="[[selectedCloud]]" restamp="">
         <paper-material>
           <app-form

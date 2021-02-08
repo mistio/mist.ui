@@ -153,7 +153,7 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[_hasProviders(providers)]]">
         <p>
-          You don't have any clouds that support machine provisioning.
+          You don't have any clouds.
           <span hidden$="[[!checkPerm('add','cloud')]]">
             <a href="/clouds/+add" class="blue-link regular">Add a cloud</a> to
             get started creating machines.
@@ -190,16 +190,10 @@ Polymer({
       </paper-material>
       <paper-material
         class$="selected-[[!selectedCloud]]"
-        hidden$="[[!_hasProviders(providers)]]"
+        hidden$="[[!selectedCloud]]"
       >
-        <h3 class="smallcaps">Machine Setup</h3>
-        <div hidden$="[[selectedCloud]]">
-          <p>
-            Depending on the cloud, different machine parameters may be
-            required. Choose a provider for the corresponding fields to appear.
-          </p>
-        </div>
         <div hidden$="[[!selectedCloud]]">
+          <h3 class="smallcaps">Machine Setup</h3>
           <app-form
             id="createForm"
             format-payload=""
