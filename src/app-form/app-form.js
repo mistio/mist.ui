@@ -32,12 +32,13 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
+import '../helpers/code-viewer.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 import { YAML } from 'yaml/browser/dist/index.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -308,6 +309,20 @@ Polymer({
         max-height: 400px;
         overflow-y: auto;
         overflow-x: hidden;
+      }
+
+      :host code-viewer {
+        background-color: #f6f6f6;
+        padding-left: 2px;
+        padding-right: 2px;
+      }
+
+      :host code-viewer.toolbar-dark {
+        --code-viewer-toolbar-background-color: #1e1e1e;
+      }
+
+      :host([single-column]) code-viewer {
+        margin-left: 22px;
       }
 
       .date {
@@ -621,16 +636,21 @@ Polymer({
             </template>
             <template
               is="dom-if"
-              if="[[_compareFieldType(field.type, 'jsoneditor', fieldVisibility, index)]]"
+              if="[[_compareFieldType(field.type, 'codeEditor', fieldVisibility, index)]]"
               restamp=""
             >
-              <juicy-jsoneditor
+              <code-viewer
+                language="[[field.language]]"
+                languages="[[field.languages]]"
                 class$="xs12 m6 [[field.class]]"
                 id$="app-form-[[id]]-[[field.name]]"
                 name="[[field.name]]"
-                json="{{field.value}}"
-                mode="code"
-              ></juicy-jsoneditor>
+                value="[[field.value]]"
+                on-editor-value-changed="_codeEditorValueChanged"
+                show-language-dropdown="[[field.showLanguageDropdown]]"
+                show-toolbar="[[field.showToolbar]]"
+                show-language="[[field.showLanguage]]"
+              ></code-viewer>
             </template>
             <template
               is="dom-if"
@@ -1382,7 +1402,11 @@ Polymer({
   _computeLayoutClass(_layout) {
     return this.horizontalLayout ? 'horizontal-grid' : '';
   },
-
+  _codeEditorValueChanged(e) {
+    const { name, value } = e.detail;
+    const index = this.fields.findIndex(field => field.name === name);
+    this.set(`fields.${index}.value`, value);
+   },
   _clearDateTimeInput(e) {
     if (e && e.model && e.model.field) {
       const fieldName = e.model.field.name;
@@ -1542,7 +1566,7 @@ Polymer({
       const fv = {};
       this.fields.forEach((field, index)=>{
         // Preserve visibility of toggled sub elements
-        fv[index] = field.showIf ? this.fieldVisibility[index] : field.show;
+        fv[index] = field.showIf ? this.fieldVisibility && this.fieldVisibility[index] : field.show;
       })
       this.set('fieldVisibility', fv);
     }
