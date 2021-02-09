@@ -180,10 +180,15 @@
             const socket = new WebSocket(window.wsURL);
             socket.binaryType = 'arraybuffer';
             socket.onerror = (e, reason) => {
-            console.log(e, reason);
+                console.log(e, reason);
             };
             socket.onclose = e => {
             console.log('closing... ', e);
+            if(e.code === 1000)
+                window.setTimeout(() => {window.close()}, 1000);
+            else{
+                term.write(`\n\n\nClosed with error code:${e.code}`);
+            }
             };
             let term;
             let fitAddon;
