@@ -7,7 +7,7 @@ COPY . /ui
 WORKDIR /ui
 COPY ./container/nginx.conf /etc/nginx/nginx.conf
 
-RUN npm install && npm run build && cd build/bundled && ln -s /ui/assets && cd -
+RUN npm install && npm run build && cd build/bundled && ln -s /ui/assets && ln -s /ui/node_modules && cd -
 COPY ./container/entry.sh /entry.sh
 RUN cp package.json /
 
