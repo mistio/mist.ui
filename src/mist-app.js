@@ -93,6 +93,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
         page-templates,
         page-tunnels,
         page-volumes,
+        page-objectstorage,
         page-zones {
             min-height: calc(94vh - 64px);
         }
@@ -194,6 +195,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                     <page-keys name="keys" route="{{subroute}}" model="[[model]]" config="[[config]]"></page-keys>
                     <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
                     <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
+                    <page-objectstorage name="objectstorage" route="{{subroute}}" model="[[model]]"></page-objectstorage>
                     <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
                     <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
@@ -752,6 +754,7 @@ Polymer({
       keysArray: [],
       networks: {},
       volumes: {},
+      objectstorage: {},
       zones: {},
       tunnelsArray: [],
       scriptsArray: [],
@@ -944,6 +947,9 @@ Polymer({
     const volumesCount = this.model.volumes
       ? Object.keys(this.model.volumes).length
       : 0;
+    const objectStorageCount = this.model.objectstorage
+      ? Object.keys(this.model.objectstorage).length
+      : 0;
     const networksCount = this.model.networks
       ? Object.keys(this.model.networks).length
       : 0;
@@ -1031,6 +1037,16 @@ Polymer({
         tile: true,
         count: volumesCount,
         hideTileIfZero: true,
+      },
+      {
+        id: 'objectstorage',
+        name: 'Object storage',
+        color: '#ff590b',
+        icon: 'icons:folder',
+        add: '/objectstorage/+add',
+        sidebar: true,
+        tile: true,
+        count: objectStorageCount,
       },
       {
         id: 'networks',

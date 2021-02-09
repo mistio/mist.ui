@@ -132,6 +132,9 @@ Polymer({
         list_volumes(data) {
           that._updateVolumes(data);
         },
+        list_objectstorage(data) {
+          that._updateObjectStorage(data);
+        },
         list_zones(data) {
           that._updateZones(data);
         },
@@ -331,7 +334,13 @@ Polymer({
 
             // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
             if (
-              ['machines', 'networks', 'volumes', 'zones'].indexOf(path[1]) > -1
+              [
+                'machines',
+                'networks',
+                'volumes',
+                'zones',
+                'objectstorage',
+              ].indexOf(path[1]) > -1
             ) {
               [, resourceType] = path;
               path = operation.path.split(`/${resourceType}/`)[1].split('/');
@@ -560,13 +569,17 @@ Polymer({
   },
   _initializeLoadedResourceCounters(clouds) {
     // If the resource types increase, we should probably store them in an array and iterate over them
-    loadedResourceCounters.machines = clouds.filter(cloud => cloud.enabled).length;
-    loadedResourceCounters.zones = clouds.filter(cloud => cloud.dns_enabled).length;
+    loadedResourceCounters.machines = clouds.filter(
+      cloud => cloud.enabled
+    ).length;
+    loadedResourceCounters.zones = clouds.filter(
+      cloud => cloud.dns_enabled
+    ).length;
     // TODO: Counters for volumes, networks and images
     // loadedResourceCounters.volumes = clouds.filter(cloud => cloud.hasOwnProperty('volumes')).length;
     // loadedResourceCounters.networks = clouds.filter(cloud => cloud.hasOwnProperty('networks')).length;
     // loadedResourceCounters.images = clouds.filter(cloud => cloud.hasOwnProperty('images')).length;
-},
+  },
   /* eslint-enable no-param-reassign */
   _updateClouds(data) {
     // console.log('_updateClouds', data);
@@ -582,7 +595,7 @@ Polymer({
       this.set('model.onboarding.isLoadingMachines', true);
       this.set('model.onboarding.isLoadingImages', true);
       this.set('model.onboarding.isLoadingNetworks', true);
-  }
+    }
 
     const ret = this._updateModel('clouds', data);
     this.set('model.onboarding.isLoadingClouds', false);
@@ -844,7 +857,7 @@ Polymer({
   _updateMachines(data) {
     loadedResourceCounters.machines -= 1;
     if (loadedResourceCounters.machines <= 0) {
-       this.set('model.onboarding.isLoadingMachines', false);
+      this.set('model.onboarding.isLoadingMachines', false);
     }
 
     this._updateCloudResources(data, 'machines', 'machine_id');
@@ -858,6 +871,10 @@ Polymer({
   _updateVolumes(data) {
     // console.log('UPDATE VOLUMES', data);
     this._updateCloudResources(data, 'volumes', 'external_id');
+  },
+
+  _updateObjectStorage(data) {
+    this._updateCloudResources(data, 'objectstorage', 'id');
   },
 
   _updateZones(data) {
