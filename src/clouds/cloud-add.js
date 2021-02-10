@@ -328,6 +328,7 @@ Polymer({
           'aliyun_ecs',
           'vultr',
           'maxihost',
+          'cloudsigma',
         ].indexOf(provider.val) > -1
       ) {
         categories[0].providers.push(provider);

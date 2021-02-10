@@ -1580,4 +1580,70 @@ PROVIDERS.push({
   ],
 });
 
+// CLOUDSIGMA
+PROVIDERS.push({
+  title: 'CloudSigma',
+  val: 'cloudsigma',
+  className: 'provider-cloudsigma',
+  options: [
+    {
+      name: 'title',
+      label: 'Title *',
+      type: 'text',
+      value: 'CloudSigma',
+      defaultValue: 'CloudSigma',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter title',
+    },
+    {
+      name: 'username',
+      label: 'Username *',
+      type: 'text',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter username',
+      helptext: '',
+    },
+    {
+      name: 'password',
+      label: 'Password *',
+      type: 'password',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      errorMessage: 'Please enter password',
+    },
+    {
+      name: 'region',
+      label: 'Region *',
+      type: 'dropdown',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      options: [
+        { val: 'zrh', title: 'Zurich, Switzerland' },
+        { val: 'sjc', title: 'San Jose, CA' },
+        { val: 'wdc', title: 'Washington, DC' },
+        { val: 'hnl', title: 'Honolulu, HI' },
+        { val: 'per', title: 'Perth, Australia' },
+        { val: 'mnl', title: 'Manila, Philippines' },
+        { val: 'fra', title: 'Frankfurt, Germany' },
+        { val: 'mel', title: 'Melbourne, Australia' },
+        { val: 'dbl', title: 'Dublin, Ireland' },
+        { val: 'tyo', title: 'Tokyo, Japan' },
+        { val: 'crk', title: 'Clark, Philippines' },
+        { val: 'mnl2', title: 'Manila-2, Philippines' },
+        { val: 'ruh', title: 'Riyadh, Saudi Arabia' },
+        { val: 'bdn', title: 'Boden, Sweden' },
+        { val: 'gva', title: 'Geneva, Switzerland' },
+      ],
+    },
+  ],
+});
+
 export default PROVIDERS;

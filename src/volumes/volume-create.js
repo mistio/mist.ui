@@ -5,9 +5,9 @@ import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/paper-styles/typography.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '../app-form/app-form.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
 
 Polymer({
@@ -56,10 +56,13 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Packet, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean clouds
+          Equinix Metal, LXD, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean
+          clouds
           <br />
-          Add a cloud using the
-          <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
+          <span hidden$="[[!checkPerm('add','cloud')]]">
+            Add a cloud using the
+            <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
+          </span>
         </p>
       </paper-material>
       <paper-material hidden$="[[!hasCloudsWithVolumes]]">
@@ -90,10 +93,7 @@ Polymer({
           </paper-dropdown-menu>
         </div>
       </paper-material>
-      <paper-material hidden$="[[selectedCloud]]">
-        Depending on the cloud, different volume parameters may be required.
-        Choose an available cloud for the corresponding fields to appear.
-      </paper-material>
+
       <template is="dom-if" if="[[selectedCloud]]" restamp="">
         <paper-material>
           <app-form
@@ -137,6 +137,7 @@ Polymer({
   `,
 
   is: 'volume-create',
+  behaviors: [window.rbac],
 
   properties: {
     section: {

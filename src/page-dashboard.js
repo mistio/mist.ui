@@ -515,7 +515,7 @@ Polymer({
     hasMissingMonitored: {
       type: Array,
       computed:
-        '_computeHasMissingMonitored(model.machines.*, model.monitoring.*)',
+        '_computeHasMissingMonitored(model.machines.*, model.monitoring.*, model.onboarding.isLoadingMachines)',
       value: [],
     },
     xsmallscreen: {
@@ -656,13 +656,14 @@ Polymer({
     }
     return show;
   },
-  _computeHasMissingMonitored(_machines, _monitoring) {
+  _computeHasMissingMonitored(_machines, _monitoring, _machinesLoading) {
     const hasNonExisting = [];
     if (
       this.model &&
       this.model.clouds &&
       this.model.monitoring &&
       this.model.monitoring.monitored_machines
+      && !this.model.onboarding.isLoadingMachines
     ) {
       Object.keys(this.model.monitoring.monitored_machines || {}).forEach(p => {
         if (!this.model.machines[p]) {

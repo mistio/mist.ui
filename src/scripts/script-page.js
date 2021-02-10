@@ -6,14 +6,15 @@ import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '../mist-rules/mist-rules.js';
 import '../helpers/dialog-element.js';
-import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
-import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../tags/tags-list.js';
+import '../helpers/code-viewer.js';
 import './script-run.js';
 import './script-actions.js';
 import moment from 'moment/src/moment.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
+import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 
 Polymer({
   _template: html`
@@ -51,14 +52,15 @@ Polymer({
             }
 
             .command-container {
-                background-color: #444;
-                color: #fff;
-                font-family: monospace;
-                padding: 10px;
+                background-color: #1e1e1e;
+                padding: 1px 1px;
                 width: 100%;
                 max-width: 100%;
-                overflow-x: scroll;
                 box-sizing: border-box;
+                position: relative;
+            }
+            code-viewer {
+              --code-viewer-toolbar-background-color: #1e1e1e;
             }
 
             a {
@@ -137,18 +139,23 @@ Polymer({
                         [[script.name]]
                     </h2>
                     <div class="subtitle">
-                    [[script.location.type]] Script
-                        <span hidden\$="[[!isInline]]"><a class="inherit" href\$="data:application/octet-stream,[[_encode(script.location.source_code)]]" download\$="script-[[script.name]].sh.txt">Download</a></span>
-                        </span>
+                      [[script.location.type]] Script
                     </div>
                 </div>
                 <script-actions items="[[itemArray]]" actions="{{actions}}" user="[[model.user.id]]" members="[[model.membersArray]]" org="[[model.org]]"></script-actions>
             </paper-material>
             <div class="columns">
                 <div id="leftcolumn" class="left command-container" hidden\$="[[!isInline]]">
-                    <div class="pad2">
-                        <pre><code>[[script.location.source_code]]</code></pre>
-                    </div>
+                    <template is="dom-if" if="[[script]]" restamp="">
+                        <code-viewer
+                        script-name="[[script.name]]"
+                        language="[[_getScriptLanguage(script.location.source_code)]]"
+                        value="[[script.location.source_code]]"
+                        show-language
+                        show-download
+                        read-only
+                      ></code-viewer>
+                    </template>
                 </div>
                 <paper-material id="rightcolumn" class="right">
                     <div class="missing" hidden\$="[[!isMissing]]">Script not found.</div>
@@ -274,7 +281,23 @@ Polymer({
           this.model.members[id].username
       : '';
   },
-
+  _getScriptLanguage(script) {
+    const scriptLanguages = [
+      { name: 'bash', type: 'shell' },
+      { name: 'sh', type: 'shell' },
+      { name: 'zsh', type: 'shell' },
+      { name: 'python', type: 'python' },
+      { name: 'node', type: 'javascript' },
+      { name: 'perl', type: 'perl' },
+      { name: 'fish', type: 'shell' },
+      { name: 'powershell', type: 'powershell' },
+    ];
+    const firstLine = script.split('\n')[0];
+    const language = scriptLanguages.find(lang =>
+      firstLine.includes(lang.name)
+    );
+    return (language && language.type) || 'shell';
+  },
   _computeIsInline(location) {
     if (location) return !!location.source_code;
     return false;
@@ -309,7 +332,9 @@ Polymer({
     if (location) return location.repo || location.url;
     return null;
   },
-
+  _computeScriptValue() {
+    return this.script ? this.script.location && this.script.location.source_code : null;
+  },
   _computeIsloading(_script) {
     return !this.script;
   },
