@@ -9,6 +9,9 @@ Polymer({
             :host {
                 display: block;
             }
+            paper-dialog {
+                position: fixed !important;
+            }
         </style>
         <app-route route="{{route}}" pattern="/:secret" data="{{data}}"></app-route>
 
@@ -28,8 +31,8 @@ Polymer({
                 <p slot="no-items-found">No secrets found.</p>
             </mist-list>
         </template>
-        <secret-page secret="[[_getSecret(data.secret)]]" resource-id="[[data.secret]]"
-        section="[[model.sections.secrets]]" hidden$=[[!_isDetailsPageActive(route.path)]]></secret-page>
+        <secret-page secret="[[_getSecret(data.secret)]]" resource-id="[[data.secret]]" model="[[model]]"
+            section="[[model.sections.secrets]]" hidden$=[[!_isDetailsPageActive(route.path)]]></secret-page>
         <iron-ajax id="getSecrets" contenttype="application/json" handle-as="json" method="GET" on-request="_handleGetSecretsRequest" on-response="_handleGetSecretsResponse" on-error="_handleGetSecretsError"></iron-ajax>
     `,
     is: 'page-secrets',
