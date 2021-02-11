@@ -83,7 +83,7 @@ Polymer({
           </p>
         </template>
         <template is="dom-if" if="[[members.length]]" restamp="">
-          <paper-dropdown-menu label="Users">
+          <paper-dropdown-menu no-animations=""  label="Users">
             <div slot="dropdown-content" class="dropdown-content">
               <paper-input
                 class="search"

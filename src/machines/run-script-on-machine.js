@@ -36,7 +36,7 @@ Polymer({
         <div class="paper-dialog-scrollable">
           <p>
             <span class="grey"> Choose from your existing scripts. </span>
-            <paper-dropdown-menu label="Select script" horizontal-align="left">
+            <paper-dropdown-menu no-animations=""  label="Select script" horizontal-align="left">
               <paper-listbox
                 slot="dropdown-content"
                 id="scripts"
