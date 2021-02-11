@@ -231,9 +231,9 @@ Polymer({
         );
       }
 
-      :host([color='objectstorage-section-color']) {
+      :host([color='buckets-section-color']) {
         background-color: var(
-          --objectstorage-section-color,
+          --buckets-section-color,
           var(--base-section-color)
         );
       }

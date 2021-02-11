@@ -132,8 +132,8 @@ Polymer({
         list_volumes(data) {
           that._updateVolumes(data);
         },
-        list_objectstorage(data) {
-          that._updateObjectStorage(data);
+        list_buckets(data) {
+          that._updateBuckets(data);
         },
         list_zones(data) {
           that._updateZones(data);
@@ -334,13 +334,9 @@ Polymer({
 
             // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
             if (
-              [
-                'machines',
-                'networks',
-                'volumes',
-                'zones',
-                'objectstorage',
-              ].indexOf(path[1]) > -1
+              ['machines', 'networks', 'volumes', 'zones', 'buckets'].indexOf(
+                path[1]
+              ) > -1
             ) {
               [, resourceType] = path;
               path = operation.path.split(`/${resourceType}/`)[1].split('/');
@@ -873,8 +869,8 @@ Polymer({
     this._updateCloudResources(data, 'volumes', 'external_id');
   },
 
-  _updateObjectStorage(data) {
-    this._updateCloudResources(data, 'objectstorage', 'id');
+  _updateBuckets(data) {
+    this._updateCloudResources(data, 'buckets', 'id');
   },
 
   _updateZones(data) {

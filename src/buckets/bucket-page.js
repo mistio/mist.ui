@@ -54,8 +54,8 @@ Polymer({
         cursor: pointer;
       }
 
-      .objectstorage-page-head {
-        @apply --objectstorage-page-head-mixin;
+      .buckets-page-head {
+        @apply --buckets-page-head-mixin;
       }
 
       iron-icon.icon {
@@ -64,47 +64,45 @@ Polymer({
       }
     </style>
     <div id="content">
-      <paper-material
-        class="single-head layout horizontal objectstorage-page-head"
-      >
+      <paper-material class="single-head layout horizontal buckets-page-head">
         <span class="icon">
           <iron-icon icon="[[section.icon]]"></iron-icon>
         </span>
         <div class="title flex">
-          <h2>[[storage.name]]</h2>
-          <div class="subtitle">[[storage.cloud_title]] [[storage.region]]</div>
+          <h2>[[bucket.name]]</h2>
+          <div class="subtitle">[[bucket.cloud_title]] [[bucket.region]]</div>
         </div>
       </paper-material>
       <div class="columns">
         <paper-material id="leftcolumn" class="left resource-description">
           <div class="resource-info">
             <div class="table">
-              <div class="row" hidden$="[[!storage.cloud]]">
+              <div class="row" hidden$="[[!bucket.cloud]]">
                 <div class="cell">
                   <h4>Cloud:</h4>
                 </div>
                 <div class="cell">
                   <iron-icon
                     class="cloud icon"
-                    src$="[[_computeCloudIcon(storage.provider)]]"
+                    src$="[[_computeCloudIcon(bucket.provider)]]"
                   ></iron-icon>
-                  <span>[[storage.cloud_title]]</span>
+                  <span>[[bucket.cloud_title]]</span>
                 </div>
               </div>
-              <div class="row" hidden$="[[!storage.region]]">
+              <div class="row" hidden$="[[!bucket.region]]">
                 <div class="cell">
                   <h4>Region:</h4>
                 </div>
                 <div class="cell">
-                  <span>[[storage.region]]</span>
+                  <span>[[bucket.region]]</span>
                 </div>
               </div>
-              <div class="row" hidden$="[[!storage.owner]]">
+              <div class="row" hidden$="[[!bucket.owner]]">
                 <div class="cell">
                   <h4>Owner:</h4>
                 </div>
                 <div class="cell">
-                  <span>[[storage.owner]]</span>
+                  <span>[[bucket.owner]]</span>
                 </div>
               </div>
             </div>
@@ -115,7 +113,7 @@ Polymer({
         <mist-list
           selectable
           resizable
-          apiurl="/api/v1/objectstorage"
+          apiurl="/api/v1/buckets"
           id="filesList"
           name="Files"
           visible="[[_getVisibleColumns()]]"
@@ -125,24 +123,24 @@ Polymer({
           sorters="[[sorters]]"
           on-active-item-changed="_activeItemChanged"
         >
-          <p slot="no-items-found">The storage is empty</p>
+          <p slot="no-items-found">The bucket is empty</p>
         </mist-list>
       </paper-material>
     </div>
     <iron-ajax
       auto
-      id="getStorageDataRequest"
-      url="/api/v1/objectstorage/[[storage.id]]"
-      on-response="handleGetStorageDataResponse"
+      id="getBucketDataRequest"
+      url="/api/v1/buckets/[[bucket.id]]"
+      on-response="handleGetBucketDataResponse"
       on-error="handleError"
     ></iron-ajax>
   `,
 
-  is: 'objectstorage-page',
+  is: 'bucket-page',
 
   behaviors: [],
   properties: {
-    storage: {
+    bucket: {
       type: Object,
     },
     section: {
@@ -179,7 +177,7 @@ Polymer({
 
   observers: ['_currentPathChanged(currentPath, data)'],
 
-  handleGetStorageDataResponse(response) {
+  handleGetBucketDataResponse(response) {
     const data = response.detail.response;
     this.set('data', data.content);
   },
@@ -201,7 +199,7 @@ Polymer({
   },
 
   handleError(error) {
-    console.error('error while getting object storage content', error);
+    console.error('error while getting bucket content', error);
   },
 
   _currentPathChanged(newPath) {
@@ -244,7 +242,7 @@ Polymer({
       icon: {
         body: (_item, row) => {
           if (!row.name) return '';
-          return `./assets/objectstorage/storage-${row.type}.svg`;
+          return `./assets/buckets/bucket-${row.type}.svg`;
         },
       },
       size: {
@@ -252,7 +250,10 @@ Polymer({
           return item ? `${(item / 1024).toFixed(2)} Kb` : '';
         },
       },
-      'last modified': {
+      last_modified: {
+        title: () => {
+          return 'last modified';
+        },
         body: (_item, row) => {
           if (row.name !== '..') {
             const date = row.extra.last_modified;
@@ -265,7 +266,7 @@ Polymer({
   },
 
   _getVisibleColumns() {
-    return ['name', 'last modified', 'size'];
+    return ['name', 'last_modified', 'size'];
   },
 
   _computeCloudIcon(cloud) {

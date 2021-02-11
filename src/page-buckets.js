@@ -1,8 +1,12 @@
+import dayjs from 'dayjs/esm/index.js';
+import utc from 'dayjs/esm/plugin/utc';
 import '@polymer/app-route/app-route.js';
 import '@mistio/mist-list/mist-list.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import './objectstorage/objectstorage-page.js';
+import './buckets/bucket-page.js';
+
+dayjs.extend(utc);
 
 Polymer({
   _template: html`
@@ -11,14 +15,14 @@ Polymer({
         display: none !important;
       }
 
-      mist-list#objectStorageList {
+      mist-list#bucketList {
         max-width: 95%;
       }
     </style>
 
     <app-route
       route="{{route}}"
-      pattern="/:objectstorage"
+      pattern="/:buckets"
       data="{{data}}"
     ></app-route>
     <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
@@ -26,13 +30,13 @@ Polymer({
         selectable
         resizable
         multi-sort
-        apiurl="/api/v1/volumes"
-        id="objectStorageList"
-        name="ObjectStorage"
+        apiurl="/api/v1/buckets"
+        id="bucketList"
+        name="Buckets"
         route="{{route}}"
         visible="[[_getVisibleColumns()]]"
-        item-map="[[model.objectstorage]]"
-        user-filter="[[model.sections.objectstorage.q]]"
+        item-map="[[model.buckets]]"
+        user-filter="[[model.sections.buckets.q]]"
         primary-field-name="id"
         renderers="[[_getRenderers()]]"
         actions="[[actions]]"
@@ -41,33 +45,28 @@ Polymer({
       </mist-list>
     </template>
     <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-      <objectstorage-page
+      <bucket-page
         route="[[route]]"
         path="[[route.path]]"
         model="[[model]]"
-        section="[[model.sections.objectstorage]]"
+        section="[[model.sections.buckets]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
-        storage="[[_getStorage(data.objectstorage, model.objectstorage, model.objectstorage.*)]]"
-        resource-id="[[data.storage]]"
+        bucket="[[_getBucket(data.buckets, model.buckets, model.buckets.*)]]"
+        resource-id="[[data.bucket]]"
       >
-      </objectstorage-page>
+      </bucket-page>
     </template>
   `,
-  is: 'page-objectstorage',
+  is: 'page-buckets',
 
   properties: {
     model: {
       type: Object,
     },
   },
-  _getStorage(id) {
-    if (
-      id &&
-      this.model &&
-      this.model.objectstorage &&
-      this.model.objectstorage[id]
-    )
-      return this.model.objectstorage[id];
+  _getBucket(id) {
+    if (id && this.model && this.model.buckets && this.model.buckets[id])
+      return this.model.buckets[id];
     return '';
   },
   _isListActive(path) {
@@ -75,11 +74,8 @@ Polymer({
   },
   _isDetailsPageActive(path) {
     if (path && path !== '/+create') {
-      if (
-        this.shadowRoot &&
-        this.shadowRoot.querySelector('objectstorage-page')
-      ) {
-        this.shadowRoot.querySelector('objectstorage-page').updateState();
+      if (this.shadowRoot && this.shadowRoot.querySelector('buckets-page')) {
+        this.shadowRoot.querySelector('buckets-page').updateState();
       }
       return true;
     }
@@ -111,7 +107,7 @@ Polymer({
         title: () => 'creation date',
         body: (_item, row) => {
           const date = row.extra.creation_date;
-          return date || '';
+          return dayjs.utc(date).local().format() || '';
         },
       },
     };
