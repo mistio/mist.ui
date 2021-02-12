@@ -289,6 +289,7 @@ Polymer({
         },
       })
     );
+    location.reload();
   },
 
   _associateKeyError(e) {
