@@ -701,7 +701,7 @@ Polymer({
                 machine
               ].key_associations.findIndex(k => {
                 return (
-                  k.key === key.id && k.ssh_user === user && k.port === port
+                  k.key === key.id && k.port === port
                 );
               });
               if (keyIndex > -1) {
