@@ -457,7 +457,7 @@ Polymer({
               color = pending;
             return `border-left: 8px solid ${color}; padding-left: 8px;`;
           }
-         return 'border-left: 8px solid transparent; padding-left: 8px;';
+          return 'border-left: 8px solid transparent; padding-left: 8px;';
         },
       },
       icon: {
@@ -511,10 +511,11 @@ Polymer({
           return prefix + ret;
         },
         cmp: (row1, row2) => {
-          if (row1.monitoring && !row2.monitoring) {
+          if (!row1 && !row2) return 0;
+          if (row1 && row1.monitoring && (!row2 || !row2.monitoring)) {
             return -1;
           }
-          if (!row1.monitoring && row2.monitoring) {
+          if ((!row1 || !row1.monitoring) && row2 && row2.monitoring) {
             return 1;
           }
           return row1.state.localeCompare(row2.state);
@@ -531,8 +532,7 @@ Polymer({
         cmp: (row1, row2) => {
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
       parent: {
