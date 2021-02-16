@@ -118,7 +118,7 @@ Polymer({
               value="{{newToken.name::input}}"
               label="Token Name"
             ></paper-input>
-            <paper-dropdown-menu id="tokenExpires" label="Expires After">
+            <paper-dropdown-menu no-animations=""  id="tokenExpires" label="Expires After">
               <paper-listbox
                 slot="dropdown-content"
                 attr-for-selected="value"
@@ -132,7 +132,7 @@ Polymer({
                 <paper-item value="31104000">1 Year</paper-item>
               </paper-listbox>
             </paper-dropdown-menu>
-            <paper-dropdown-menu label="Context">
+            <paper-dropdown-menu no-animations=""  label="Context">
               <paper-listbox
                 slot="dropdown-content"
                 id="tokenContexts"

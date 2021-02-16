@@ -775,6 +775,7 @@ Polymer({
                 required="[[field.required]]"
                 no-label-float="[[!field.label]]"
                 always-float-label="[[field.alwaysFloatLabel]]"
+                no-animations=""
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -876,6 +877,7 @@ Polymer({
                 hidden="[[field.hidden]]"
                 required="[[field.required]]"
                 always-float-label="[[field.alwaysFloatLabel]]"
+                no-animations=""
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -943,6 +945,7 @@ Polymer({
                 disabled="[[field.disabled]]"
                 hidden="[[field.hidden]]"
                 always-float-label="[[field.alwaysFloatLabel]]"
+                no-animations=""
               >
                 <div slot="dropdown-content" class="dropdown-content">
                   <paper-input
@@ -1037,6 +1040,7 @@ Polymer({
                 label="[[field.label]]"
                 horizontal-align="left"
                 hidden$="[[field.hidden]]"
+                no-animations=""
               >
                 <div
                   slot="dropdown-content"

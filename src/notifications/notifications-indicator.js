@@ -161,6 +161,7 @@ Polymer({
       vertical-offset="56"
       opened="{{opened}}"
       ignore-select="true"
+      no-animations=""
     >
       <paper-icon-button
         hidden$="[[hidden]]"
@@ -196,6 +197,7 @@ Polymer({
                 vertical-offset="56"
                 horizontal-offset="-36"
                 on-tap="_handleRightButtonTap"
+                no-animations=""
               >
                 <paper-icon-button
                   class="dismiss-icon dropdown-trigger"

@@ -456,7 +456,7 @@ Polymer({
               color = pending;
             return `border-left: 8px solid ${color}; padding-left: 8px;`;
           }
-          return 'border-left: 8px solid transparent; padding-left: 8px;';
+         return 'border-left: 8px solid transparent; padding-left: 8px;';
         },
       },
       icon: {
@@ -531,7 +531,7 @@ Polymer({
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);
           return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-          
+
         },
       },
       parent: {
@@ -720,7 +720,7 @@ Polymer({
         body: ips => {
           return ips && ips.join(', ');
         },
-        // when sorting show actual strings first alphabetically, then IPs 
+        // when sorting show actual strings first alphabetically, then IPs
         // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
         cmp: (row1, row2) => {
           let item1 = row1.public_ips[0];
@@ -751,7 +751,7 @@ Polymer({
           return 0;
         },
       },
-      // when sorting show actual strings first alphabetically, then IPs 
+      // when sorting show actual strings first alphabetically, then IPs
       // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
       private_ips: {
         title: "private ip's",

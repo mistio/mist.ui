@@ -39,7 +39,7 @@ Polymer({
 
       :host paper-icon-button.gravatar {
         border-radius: 50%;
-        border: 2px solid #212121;
+        box-shadow: rgb(0 0 0 / 12%) 0px 1px 3px, rgb(0 0 0 / 24%) 0px 1px 2px;
         overflow: hidden;
         outline: 0;
       }
@@ -203,6 +203,7 @@ Polymer({
       horizontal-align="right"
       vertical-offset="56"
       opened="{{opened}}"
+      no-animations=""
     >
       <paper-icon-button
         src="[[gravatar]]"
