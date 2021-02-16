@@ -467,7 +467,7 @@ Polymer({
             _this.model.clouds[row.cloud].provider === 'libvirt' &&
             row.parent
           ) {
-            return './assets/providers/provider-libvirt.png';
+            return './assets/providers/kvm.png';
           }
           return `./assets/providers/provider-${_this.model.clouds[
             row.cloud
