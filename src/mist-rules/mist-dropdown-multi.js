@@ -52,6 +52,7 @@ Polymer({
       required="[[required]]"
       on-paper-dropdown-close="_closingWindow"
       on-paper-dropdown-open="_openingWindow"
+      no-animations=""
     >
       <div class="dropdown-content" slot="dropdown-content">
         <template is="dom-repeat" items="[[selections]]">

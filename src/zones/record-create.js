@@ -54,6 +54,7 @@ Polymer({
             class="dropdown-block l6 xs12"
             label="Choose Record Type"
             horizontal-align="left"
+            no-animations=""
           >
             <paper-listbox
               slot="dropdown-content"

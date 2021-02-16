@@ -479,6 +479,7 @@ Polymer({
             class="dropdown-block l6 xs12 dropdown-with-logos"
             label="Select Cloud"
             horizontal-align="left"
+            no-animations=""
           >
             <paper-listbox
               slot="dropdown-content"

@@ -90,6 +90,7 @@ Polymer({
           id="languageDropdown"
           hidden$="[[!showLanguageDropdown]]"
           on-value-changed="_languageChanged"
+          no-animations=""
         >
           <paper-listbox
             attr-for-selected="value"

@@ -94,7 +94,7 @@ Polymer({
           </template>
           <template is="dom-if" if="[[machines.length]]">
             <span class="grey"> Choose from your existing machines. </span>
-            <paper-dropdown-menu label="Select machine" horizontal-align="left">
+            <paper-dropdown-menu no-animations=""  label="Select machine" horizontal-align="left">
               <paper-listbox
                 slot="dropdown-content"
                 id="machines"

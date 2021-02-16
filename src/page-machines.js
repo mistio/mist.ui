@@ -457,7 +457,7 @@ Polymer({
               color = pending;
             return `border-left: 8px solid ${color}; padding-left: 8px;`;
           }
-          return 'border-left: 8px solid transparent; padding-left: 8px;';
+         return 'border-left: 8px solid transparent; padding-left: 8px;';
         },
       },
       icon: {
@@ -531,7 +531,8 @@ Polymer({
         cmp: (row1, row2) => {
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);
-          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
+
         },
       },
       parent: {

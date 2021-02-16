@@ -206,6 +206,7 @@ Polymer({
             id="monitoring-menu-wrapper"
             horizontal-align="right"
             vertical-align="top"
+            no-animations=""
           >
             <paper-icon-button
               icon="icons:more-vert"
