@@ -64,6 +64,7 @@ Polymer({
 
       mist-list#machinesList {
         max-width: 95%;
+        --mist-check-header-margin: 8px;
       }
     </style>
     <app-route
