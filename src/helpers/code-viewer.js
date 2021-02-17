@@ -39,14 +39,14 @@ Polymer({
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        height: 46px;
+        height: var(--code-viewer-toolbar-height, 46px);
         padding-bottom: 5px;
         border: 1px solid var(--code-viewer-toolbar-color, transparent);
         background-color: var(
           --code-viewer-toolbar-background-color,
           transparent
         );
-        color: var(--code-viewer-icons-color, var(--paper-grey-500));
+        color: var(--code-viewer-icons-color, #808080);
         font-family: monospace;
       }
       #toolbar.vs-dark {
@@ -63,13 +63,17 @@ Polymer({
       }
       #fullscreenBtn,
       #exitFullscreenBtn {
-        padding: 4px;
+        padding: var(--code-viewer-fullscreen-padding, 4px);
       }
       #toolbar + monaco-element {
         height: calc(100% - 65px);
       }
       .fullscreenBtn {
-        margin-left: 12px;
+        margin-left: var(--code-viewer-fullscreen-margin-left, 12px);
+      }
+      #copyBtn {
+        width: var(--code-viewer-copyBtn-size, 40px);
+        height: var(--code-viewer-copyBtn-size, 40px);
       }
       .loader {
         height: 100%;
@@ -188,6 +192,16 @@ Polymer({
       value: false,
       reflectToAttribute: true,
     },
+    mistListFullscreen: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true,
+    },
+    mistListItem: {
+      type: Boolean,
+      value: false,
+      reflectToAttribute: true,
+    },
     editorLoading: {
       type: Boolean,
       value: true,
@@ -195,6 +209,10 @@ Polymer({
     enableFullscreen: {
       type: Boolean,
       value: true,
+    },
+    insideFullscreen: {
+      type: Boolean,
+      value: false,
     },
     readOnly: {
       type: Boolean,
@@ -252,15 +270,32 @@ Polymer({
     );
   },
   _enterFullscreen() {
-    this.set('fullscreen', true);
-    this.fire('enter-fullscreen');
+    if (this.mistListItem) {
+      this.dispatchEvent(
+        new CustomEvent('enter-fullscreen-mist-list', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            value: this.value,
+          },
+        })
+      );
+      this.fire('enter-fullscreen');
+    } else {
+      this.set('fullscreen', true);
+      this.fire('enter-fullscreen');
+    }
   },
   _computeHideToolbar() {
     return !this.showToolbar || this.editorLoading;
   },
   _exitFullscreen() {
-    this.set('fullscreen', false);
-    this.fire('exit-fullscreen');
+    if (this.insideFullscreen || this.mistListFullscreen) {
+      this.fire('exit-fullscreen-mist-list');
+    } else {
+      this.set('fullscreen', false);
+      this.fire('exit-fullscreen');
+    }
   },
   _copyScript() {
     const listener = e => {
