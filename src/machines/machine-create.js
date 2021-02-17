@@ -2131,8 +2131,7 @@ Polymer({
       return this.model.imagesArray.filter(im => {
         return (
           im.extra &&
-          im.extra.locations &&
-          im.extra.locations.indexOf(location) > -1
+          (!im.extra.locations || im.extra.locations.indexOf(location) > -1)
         );
       });
     return [];
