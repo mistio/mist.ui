@@ -1,12 +1,16 @@
 import '../../node_modules/@polymer/paper-button/paper-button.js';
 import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '../helpers/code-viewer.js';
+import '../helpers/dialog-element.js';
+import './secret-actions.js'
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
-        <style>
+        <style include="shared-styles single-page tags-and-labels">
             paper-material {
                 padding: 24px;
             }
@@ -40,6 +44,11 @@ Polymer({
             iron-icon.bottom {
             padding-right: 8px;
             }
+
+            .single-head {
+                @apply --secret-page-head-mixin;
+            }
+
             h4.secret {
                 @apply --layout-flex;
                 text-transform: uppercase;
@@ -76,10 +85,17 @@ Polymer({
                         [[secret.name]]
                     </h2>
                 </div>
-                <secret-actions></secret-actions>
+                <secret-actions
+                id="secretActions"
+                actions={{actions}}
+                items=[[itemArray]]
+                model=[[model]]
+                org=[[model.org]]
+                in-single-view=""
+                ></secret-actions>
             </paper-material>
             <div id="secret-info">
-                <paper-material class="single-head layout horizontal">
+                <paper-material>
                     <h4 class="id">Secret ID:</h4><span class="id">[[secret.id]]</span>
                     <h4 class="id" hidden\$="[[!secret.owned_by.length]]">Owner:</h4><span class="id">[[_displayUser(secret.owned_by,model.members)]]</span>
                     <h4 class="id" hidden\$="[[!secret.created_by.length]]">Created by:</h4><span class="id">[[_displayUser(secret.created_by,model.members)]]</span>
@@ -90,19 +106,28 @@ Polymer({
                         <paper-button hidden\$="[[!visibleSecret]]" id="hideSecretbtn" on-tap="hideSecret" class="right link">Hide <span class="wide">Secret</span>
                             <iron-icon icon="icons:visibility-off"></iron-icon>
                         </paper-button>
-                        <paper-button hidden\$="[[!visibleSecret]]" on-tap="copySecret" class="right link">Copy <span class="wide">Secret</span>
-                            <iron-icon icon="content-copy"></iron-icon>
-                        </paper-button>
                     </div>
                     <div id="secretContainer">
                         <paper-button hidden\$="[[visibleSecret]]" id="showSecretbtn" on-tap="showSecret">
                             <iron-icon icon="icons:visibility"></iron-icon> View Secret</paper-button>
-                        <div class="textarea" hidden\$="[[!visibleSecret]]" id="secretPrivate">[[secretValue]]</div>
+                        <template is="dom-if" if="[[visibleSecret]]" restamp="">
+                            <paper-toggle-button checked="{{!readOnly}}">Edit Secret</paper-toggle-button>
+                            <code-viewer
+                            id="secretEditor"
+                            language="json"
+                            read-only$=[[readOnly]]
+                            theme="vs-dark"
+                            value="[[_jsonValue(secretValue)]]"
+                            on-editor-value-changed="_codeEditorValueChanged"
+                            ></code-viewer>
+                            <paper-button hidden$="[[readOnly]]" on-tap="editSecret"> Save </paper-button>
+                        </template>
                     </div>
                 </paper-material>
             </div>
         </div>
         <iron-ajax id="getSecretDataRequest" url="/api/v1/secrets/[[secret.id]]" on-response="handleGetSecretDataResponse" on-error="handleError"></iron-ajax>
+        <iron-ajax id="editSecretRequest" method="PUT" url="/api/v2/secrets/[[secret.id]]" on-response="handleEditSecretResponse" on-error="handleError"></iron-ajax>
     `,
 
     is: "secret-page",
@@ -110,6 +135,10 @@ Polymer({
     behaviors: [],
 
     properties: {
+        hidden: {
+            type: Boolean,
+            reflectToAttribute: true,
+        },
         secret: {
             type: Object
         },
@@ -124,16 +153,37 @@ Polymer({
             type: Object,
             value: {}
         },
+        newValue:{
+            type: Object,
+            value: {}
+        },
         model:{
             type: Object
+        },
+        itemArray:{
+            type: Array
+        },
+        actions: {
+            type: Array
+        },
+        readOnly: {
+            type: Boolean,
+            value: true
         }
     },
+
+    observers: ['_secretUpdated(secret)', '_hiddenUpdated(hidden)'],
 
     _displayUser (id, _members) {
         return this.model && id && this.model.members && this.model.members[id] ? this.model.members[id].name || this.model.members[id].email || this.model.members[id].username: '';
     },
 
+    _codeEditorValueChanged(e){
+        this.newValue = JSON.parse(e.detail.value);
+    },
+
     showSecret(){
+      this.$.getSecretDataRequest.method = "GET";
       this.$.getSecretDataRequest.headers["Content-Type"] = 'application/json';
       this.$.getSecretDataRequest.headers["Csrf-Token"] = CSRFToken.value;
       this.$.getSecretDataRequest.body = {};
@@ -145,7 +195,52 @@ Polymer({
         this.set('secretValue', resp.detail.response);
     },
 
+    editSecret() {
+        this.$.editSecretRequest.method = "PUT";
+        this.$.editSecretRequest.headers["Content-Type"] = 'application/json';
+        this.$.editSecretRequest.headers["Csrf-Token"] = CSRFToken.value;
+        this.$.editSecretRequest.body = {
+            secret: this.newValue
+        };
+        this.$.editSecretRequest.generateRequest();
+
+    },
+
+    handleEditSecretResponse(_e) {
+        this.set('secretValue', this.newValue);
+        this.set('readOnly', true);
+        this.dispatchEvent(
+            new CustomEvent('toast', {
+              bubbles: true,
+              composed: true,
+              detail: { msg: "Secret Edited Successfully", duration: 3000 },
+            })
+        );
+    },
+
+    handleError(e) {
+       console.log("Error during request: ", e);
+
+    },
+
     hideSecret() {
         this.visibleSecret = false;
+    },
+
+    _hiddenUpdated(_hidden) {
+        this.$.secretActions.fire('update');
+      },
+
+    _secretUpdated(secret){
+        if(secret){
+            this.set('itemArray', [this.secret]);
+        } else {
+            this.set('itemArray', []);
+            this.set('publicKey', '');
+        }
+        this.set('visibleSecret', false);
+    },
+    _jsonValue(secretVal){
+        return JSON.stringify(secretVal, undefined, 2);
     }
 });
