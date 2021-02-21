@@ -165,6 +165,7 @@ html {
     --clouds-section-color: #424242;
     --members-section-color: #607D8B;
     --insights-section-color: #2F2F3E;
+    --secrets-section-color: #1D1C1A;
 
     /* sidebar links colors */
     --base-sidebar-link-color: #424242;
@@ -187,6 +188,7 @@ html {
     --clouds-sidebar-link-color: #424242;
     --members-sidebar-link-color: #607D8B;
     --insights-sidebar-link-color: #2F2F3E;
+    --secrets-sidebar-link-color: #1D1C1A;
 
     /* mist list actions fill */
     --mist-list-actions-fill-color: var(--header-color);
@@ -321,7 +323,11 @@ html {
         background-color: var(--templates-section-color);
         color: var(--text-on-dark-bg);
     }
-
+    /* secrets/secret-page.js */
+    --secret-page-head-mixin: {
+        background-color: var(--secrets-section-color);
+        color: var(--text-on-dark-bg);
+    }
     /* zones/zone-page.html */
     --zone-page-head-mixin: {
         background-color: var(--zones-section-color);
