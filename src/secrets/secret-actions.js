@@ -1,17 +1,12 @@
-import '../../node_modules/@polymer/paper-dialog/paper-dialog.js';
-import '../../node_modules/@mistio/mist-list/mist-list-actions.js';
-import { MistListActionsBehavior } from '../../node_modules/@mistio/mist-list/mist-list-actions-behavior.js';
+import '@polymer/paper-dialog/paper-dialog.js';
+import '@mistio/mist-list/mist-list-actions.js';
+import './secret-edit.js'
+import { MistListActionsBehavior } from '@mistio/mist-list/mist-list-actions-behavior.js';
+import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 const SECRET_ACTIONS = {
-    'rename': {
-        'name': 'rename',
-        'icon': 'editor:mode-edit',
-        'confirm': false,
-        'multi': false,
-        'single': true
-    },
     'delete': {
         'name': 'delete',
         'icon': 'delete',
@@ -38,21 +33,36 @@ Polymer({
     behaviors: [MistListActionsBehavior],
 
     properties: {
+        model: {
+            type: Object,
+        },
         org: {
             type: Object
         },
         actions: {
             type: Array,
-            value () { return []; },
+            value: [],
             notify: true
         },
         inSingleView: {
             type: Boolean,
             reflectToAttribute: true
-          }
+          },
+        items: {
+            type: Array,
+            value: []
+        },
+        type:{
+            type: String,
+            value: 'secret'
+        }
     },
 
-    listeners: {},
+    listeners: {
+        update: '_updateVisibleActions',
+        confirmation: 'confirmAction',
+        'select-action': 'selectAction'
+    },
 
     _updateVisibleActions() {
         if (this.$.actions)
@@ -62,8 +72,6 @@ Polymer({
     computeItemActions(secret) {
         const arr = [];
         if (secret) {
-          if (this.inSingleView)
-            arr.push('rename');
           arr.push('delete');
         }
         return arr;
@@ -84,8 +92,8 @@ Polymer({
             // console.log('perform action mist-action', this.items);
             if (action.confirm && action.name !== 'tag') {
                 const property = ['zone'].indexOf(this.type) === -1 ? "name" : "domain";
-                    const plural = this.items.length === 1 ? '' : 's';
-                    const count = this.items.length > 1 ? `${this.items.length} ` : '';
+                const plural = this.items.length === 1 ? '' : 's';
+                const count = this.items.length > 1 ? `${this.items.length} ` : '';
                 // this.tense(this.action.name) + " " + this.type + "s can not be undone.
                 this._showDialog({
                     title: `${this.action.name  } ${  count  }${this.type  }${plural}?`,
@@ -112,6 +120,16 @@ Polymer({
         dialog._openDialog();
     },
 
+    confirmAction(e) {
+        if (e.detail.confirmed) this.performAction(this.action, this.items);
+    },
+
+    performAction(action) {
+        if (action.name === 'delete') {
+          this._delete();
+        }
+    },
+
     _delete() {
         // set up iron ajax
         this.$.request.headers["Content-Type"] = 'application/json';
@@ -119,10 +137,14 @@ Polymer({
         this.$.request.method = "DELETE";
     
         for (let i = 0; i < this.items.length; i++) {
-          this.$.request.url = `/api/v1/secrets/${ this.items[i].id}`
+          this.$.request.url = `/api/v2/secrets/${ this.items[i].id}`
           this.$.request.generateRequest();
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Deleting ${  this.items[i].name}` , duration: 1000} }));
         }
-      },
+    },
+
+    _makeList(items, property) {
+       return items && items.length && items.map(item => item[property]);
+    },
 
 });

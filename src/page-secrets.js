@@ -1,4 +1,6 @@
 import './secrets/secret-page.js';
+import './secrets/secret-add.js'
+import '@polymer/paper-fab/paper-fab.js';
 import { CSRFToken } from './helpers/utils.js'
 import { Polymer } from '../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '../node_modules/@polymer/polymer/lib/utils/html-tag.js';
@@ -15,11 +17,16 @@ Polymer({
         </style>
         <app-route route="{{route}}" pattern="/:secret" data="{{data}}"></app-route>
 
+        <div id="path-container">
+            <template is="dom-repeat" items=[[pathItems]]>
+                <button id=[[item.id]] on-tap="_clickedPath">[[item.name]]</button>
+            </template>
+        </div>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
             <mist-list selectable resizable column-menu multi-sort
                 id="secretsList"
                 apiurl="/api/v1/secrets"
-                item-map="[[secretsMap]]"
+                item-map="[[itemMap]]"
                 name="Secrets"
                 visible=[[_getVisibleColumns()]]
                 frozen=[[_getFrozenColumn()]]
@@ -30,9 +37,19 @@ Polymer({
                 actions="[[actions]]">
                 <p slot="no-items-found">No secrets found.</p>
             </mist-list>
+            <div
+            class="absolute-bottom-right"
+            >
+                <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
+            </div>
         </template>
+        <secret-add
+        model="[[model]]"
+        section="[[model.sections.secrets]]"
+        hidden$="[[!_isAddPageActive(route.path)]]"
+        path="[[pathItems]]"></secret-add>
         <secret-page secret="[[_getSecret(data.secret)]]" resource-id="[[data.secret]]" model="[[model]]"
-            section="[[model.sections.secrets]]" hidden$=[[!_isDetailsPageActive(route.path)]]></secret-page>
+            section="[[model.sections.secrets]]" hidden$=[[!_isSecretPageActive(route.path)]]></secret-page>
         <iron-ajax id="getSecrets" contenttype="application/json" handle-as="json" method="GET" on-request="_handleGetSecretsRequest" on-response="_handleGetSecretsResponse" on-error="_handleGetSecretsError"></iron-ajax>
     `,
     is: 'page-secrets',
@@ -54,16 +71,40 @@ Polymer({
         secretsMap: {
             type: Object,
             value: {}
+        },
+        depth: {
+            type: Number,
+            value: 0
+        },
+        depthMap: {
+            type: Object,
+            value: {}
+        },
+        clickedItem: {
+            type: Object
+        },
+        itemMap: {
+            type: Object,
+            value: {}
+        },
+        pathItems:{
+            type: Array,
+            value : []
+        },
+        currentFolder: {
+            type: String,
+            value: '/'
         }
     },
     ready(){
         console.log("Yo, ready!");
         this._getSecrets();
     },
+
     _getSecrets(){
       this.$.getSecrets.headers["Content-Type"] = 'application/json';
       this.$.getSecrets.headers["Csrf-Token"] = CSRFToken.value;
-      this.$.getSecrets.url = `/api/v1/secrets`;
+      this.$.getSecrets.url = `/api/v2/secrets`;
       this.$.getSecrets.generateRequest();
     },
 
@@ -72,10 +113,14 @@ Polymer({
   },
 
   _handleGetSecretsResponse(e){
-      e.detail.response.forEach((item) => {
+      e.detail.response.data.forEach((item) => {
           this.secrets.push(item);
           this.secretsMap[item.id] = item;
       });
+      this.set('model.secrets', this.secretsMap);
+      this._createDepthMap();
+      this._setItemMap("/");
+      this.set('pathItems', [{id:"0", name:"/"}])
   },
   _handleGetSecretsError(e) {
       console.log("WE GOT ERROR", e);
@@ -90,7 +135,26 @@ Polymer({
   },
 
   _isListActive(path) {
-    return !path;
+    const itemId = path.startsWith('/') ? path.slice(1) : path;
+    if(itemId === "-1"){
+        console.log("Should go back one level")
+        this.route.path = "";
+        const currentFolder = this.pop("pathItems")
+        const parent = this.pathItems.slice(-1)[0];
+        const parentName = parent.name.split("/").slice(-2)[0]
+        this._setItemMap(parentName);
+        return true;
+    }
+    if(itemId === "")
+        return true;
+    if(this.secretsMap[itemId] && this.secretsMap[itemId].is_dir){
+        const itemName = this.secretsMap[itemId].name.split("/").slice(-2)[0]
+        this._setItemMap(itemName)
+        this.route.path = "";
+        this.push('pathItems', {id: itemId, name: itemName})
+        return true;
+    }
+    return false;
 },
 
 _getSecret(id) {
@@ -99,36 +163,110 @@ _getSecret(id) {
     return {};
 },
 
-_isDetailsPageActive(path) {
-    return path && path !== '/+add';
+_isSecretPageActive(path) {
+    const itemId = path.startsWith('/') ? path.slice(1) : path;
+
+    return itemId && itemId !== "-1" && itemId!== '+add' && this.secretsMap[itemId] && !this.secretsMap[itemId].is_dir;
 },
 
-  _getRenderers(){
-        return {
-            "name": {
-                'body': (item, _row) => {
-                    return `<strong class="name">${  item  }</strong>`;
-                },
-                'cmp': (row1, row2) => {
-                    return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
-                }
-            },
-            'owned_by': {
-                'title': (_item, _row) => {
-                    return 'owner';
-                },
-                'body': (item, _row) => {
-                    return this.model.members[item] ? this.model.members[item].name || this.model.members[item].email || this.model.members[item].username : '';
-                }
-            },
-            'created_by': {
-                'title': (_item, _row) => {
-                    return 'created by';
-                },
-                'body': (item, _row) => {
-                    return this.model.members[item] ? this.model.members[item].name || this.model.members[item].email || this.model.members[item].username : '';
-                }
-            },
-        }
+_isAddPageActive(path) {
+    return path === '/+add';
+  },
+
+_addResource(){
+    this.dispatchEvent(
+        new CustomEvent('go-to', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            url: this.model.sections.secrets.add,
+          },
+        })
+      );
+},
+
+_clickedPath(e){
+    const itemId = e.target.id;
+    // if the current folder was clicked do nothing
+    if(this.pathItems.slice(-1)[0].id === itemId && this.route.path === "") return;
+    // if secret-page is showing go back  to list
+    if(this.route.path !== ""){
+        this.set('route.path', "");
     }
+    const index = this.pathItems.findIndex (element => {return element.id === itemId});
+    this.set('pathItems', this.pathItems.slice(0, index+1));
+    this._setItemMap(this.pathItems[this.pathItems.length-1].name);
+},
+
+_setItemMap(folder){
+    if(folder === "")
+        folder = "/";
+    const newMap = {};
+    if(folder !== "/")
+        newMap['-1'] = {id: "-1", name: ".."}
+    const ids  = this.depthMap[folder];
+    ids.forEach(id => {
+        newMap[id] = this.secretsMap[id];
+    });
+    this.set("itemMap", newMap)
+},
+
+_createDepthMap() {
+    this.depthMap={"/":[]};
+    this.secrets.forEach((secret)=>{
+        let parentFolder = "/";
+        if(secret.depth !== 0) {
+            if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
+            else parentFolder = secret.name.split("/").slice(-2)[0];
+        }
+        if(secret.is_dir){
+            const secretName = secret.name.split("/").slice(-2)[0];
+            this.depthMap[secretName] = [];
+        }
+        this.depthMap[parentFolder].push(secret.id)
+    });
+},
+
+_getRenderers(){
+    return {
+        "name": {
+            'body': (item, _row) => {
+                const path = item.split("/")
+                const name = path.slice(-1)[0] === "" ? path.slice(-2)[0] : path.slice(-1)[0];
+                return `<strong class="name">${  name  }</strong>`;
+            },
+            'cmp': (row1, row2) => {
+                return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
+            }
+        },
+        'id': {
+            'body': (item, _row) => {
+                if(item === "-1") return ""
+                return item;
+            }
+        },
+        'icon': {
+            body: (item, _row) => {
+                if(item.is_dir) return "icons:folder"
+                else return ""
+            }
+        },
+        'owned_by': {
+            'title': (_item, _row) => {
+                return 'owner';
+            },
+            'body': (item, _row) => {
+                return this.model.members[item] ? this.model.members[item].name || this.model.members[item].email || this.model.members[item].username : '';
+            }
+        },
+        'created_by': {
+            'title': (_item, _row) => {
+                return 'created by';
+            },
+            'body': (item, _row) => {
+                return this.model.members[item] ? this.model.members[item].name || this.model.members[item].email || this.model.members[item].username : '';
+            }
+        },
+    }
+}
 });
