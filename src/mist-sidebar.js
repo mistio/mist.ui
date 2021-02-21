@@ -284,6 +284,10 @@ Polymer({
         color: var(--templates-sidebar-link-color);
       }
 
+      a#secrets{
+        color: var(--secrets-sidebar-link-color);
+      }
+
       a#incidents {
         color: var(--incidents-sidebar-link-color);
       }

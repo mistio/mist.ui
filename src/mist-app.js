@@ -737,6 +737,7 @@ Polymer({
       incidents: {},
       incidentsArray: [],
       jobs: {},
+      secrets: {},
       shells: {},
       sessions: {},
       notificationsArray: [],
@@ -960,7 +961,9 @@ Polymer({
     const membersCount = this.model.members
       ? Object.keys(this.model.members).length
       : 0;
-
+    const secretsCount = this.model.secrets ?
+      Object.keys(this.model.secrets).length
+      : 0;
     const sectionsArray = [
       {
         id: 'dashboard',
@@ -1100,13 +1103,14 @@ Polymer({
       },
       {
         id: 'secrets',
-        color: '#000000',
+        color: '#1D1C1A',
         icon: 'device:screen-lock-portrait',
         add: '/secrets/+add',
         sidebar: true,
         tile: true,
-        count: 0,
-        hideTileIfZero: false
+        count: "",
+        hideZero: false,
+        hideTileIfZero: true
       },
       {
         id: 'tunnels',
