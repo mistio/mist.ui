@@ -166,6 +166,7 @@ Polymer({
             class="dropdown-block l6 xs12 dropdown-with-logos"
             label="Select Cloud"
             horizontal-align="left"
+            no-animations=""
           >
             <paper-listbox
               slot="dropdown-content"
@@ -2130,8 +2131,7 @@ Polymer({
       return this.model.imagesArray.filter(im => {
         return (
           im.extra &&
-          im.extra.locations &&
-          im.extra.locations.indexOf(location) > -1
+          (!im.extra.locations || im.extra.locations.indexOf(location) > -1)
         );
       });
     return [];

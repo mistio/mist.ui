@@ -62,7 +62,7 @@ Polymer({
         opacity: 0.32;
       }
     </style>
-    <paper-dropdown-menu class="short" no-animations="" no-label-float="">
+    <paper-dropdown-menu no-animations=""  class="short" no-animations="" no-label-float="">
       <paper-listbox
         slot="dropdown-content"
         id="identifierSelector"
@@ -101,6 +101,7 @@ Polymer({
         hidden$="[[showTags]]"
         placeholder="[[placeholder]]"
         no-label-float=""
+        no-animations=""
       >
         <paper-listbox
           slot="dropdown-content"

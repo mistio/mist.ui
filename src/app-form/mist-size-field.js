@@ -48,6 +48,7 @@ Polymer({
       disabled="[[field.disabled]]"
       required="[[field.required]]"
       hidden$="[[_hideDropdown(field.options,field)]]"
+      no-animations=""
     >
       <div slot="dropdown-content" class="dropdown-content">
         <paper-input

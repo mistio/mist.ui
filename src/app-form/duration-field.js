@@ -103,6 +103,7 @@ Polymer({
       hidden="[[field.hidden]]"
       required="[[field.required]]"
       no-label-float=""
+      no-animations=""
     >
       <paper-listbox
         slot="dropdown-content"

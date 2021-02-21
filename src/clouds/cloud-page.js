@@ -5,6 +5,8 @@ import '@polymer/paper-dialog/paper-dialog.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import '../helpers/dialog-element.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../mist-rules/mist-rules.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
@@ -14,8 +16,6 @@ import './cloud-actions.js';
 import './other-cloud-machines.js';
 import './other-cloud-add-machine.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -198,6 +198,10 @@ Polymer({
 
       .single-head {
         @apply --cloud-page-head-mixin;
+      }
+
+      .single-head .icon iron-icon {
+        padding: 10px;
       }
 
       .view.blue-link {

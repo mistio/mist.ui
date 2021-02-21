@@ -205,7 +205,7 @@ Polymer({
     <span class="resource">
       <span class="narrow-hide"> on </span>
       <span class="uppercase">
-        <paper-dropdown-menu no-animations="" no-label-float="">
+        <paper-dropdown-menu no-animations=""  no-animations="" no-label-float="">
           <paper-listbox
             slot="dropdown-content"
             class="dropdown-content"
@@ -222,7 +222,7 @@ Polymer({
     </span>
     <span class="action">
       <span class="uppercase">
-        <paper-dropdown-menu no-animations="" no-label-float="">
+        <paper-dropdown-menu no-animations=""  no-animations="" no-label-float="">
           <paper-listbox
             slot="dropdown-content"
             class="dropdown-content"

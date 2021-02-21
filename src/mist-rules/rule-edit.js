@@ -286,6 +286,7 @@ Polymer({
               id="resources"
               class="dropdown-block apply-on"
               disabled="[[editingExistingRule]]"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -322,6 +323,7 @@ Polymer({
             <paper-dropdown-menu
               id$="resources-rule-type-[[index]]"
               class="dropdown-block resource-type"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -339,6 +341,7 @@ Polymer({
             <paper-dropdown-menu
               id="resources-rule-type-id"
               class="dropdown-block resource-id"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -406,6 +409,7 @@ Polymer({
             <paper-dropdown-menu
               class="dropdown-block windowPeriod"
               on-value-changed="_validateRule"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -433,6 +437,7 @@ Polymer({
             <paper-dropdown-menu
               class="dropdown-block windowPeriod"
               on-value-changed="_validateRule"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -460,6 +465,7 @@ Polymer({
           <paper-dropdown-menu
             class="dropdown-block windowPeriod"
             on-value-changed="_validateRule"
+            no-animations=""
           >
             <paper-listbox
               slot="dropdown-content"
@@ -482,6 +488,7 @@ Polymer({
               auto-focus
               on-value-changed="_focusOnTarget"
               disabled="[[rule.id]]"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -538,6 +545,7 @@ Polymer({
                   value="[[query.target]]"
                   on-value-changed="_focusOnOperator"
                   on-selected-item-changed="_validateRule"
+                  no-animations=""
                 >
                   <paper-listbox
                     id$="metricsListbox-[[index]]"
@@ -593,6 +601,7 @@ Polymer({
                   hidden$="[[!query.target]]"
                   on-value-changed="_focusOnThreshold"
                   on-selected-item-changed="_validateRule"
+                  no-animations=""
                 >
                   <paper-listbox
                     slot="dropdown-content"
@@ -631,6 +640,7 @@ Polymer({
                     class="dropdown-block aggregation"
                     on-selected-item-changed="_validateRule"
                     on-value-changed="_validateCondition"
+                    no-animations=""
                   >
                     <paper-listbox
                       slot="dropdown-content"
@@ -676,6 +686,7 @@ Polymer({
                 <paper-dropdown-menu
                   class="dropdown-block windowPeriod"
                   on-value-changed="_validateRule"
+                  no-animations=""
                 >
                   <paper-listbox
                     slot="dropdown-content"
@@ -700,6 +711,7 @@ Polymer({
                 class="dropdown-block action"
                 on-value-changed="_validateRule"
                 disabled$="[[isNoData]]"
+                no-animations=""
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -734,7 +746,7 @@ Polymer({
                   value="{{ruleAction.url}}"
                   pattern="^https://*"
                 ></paper-input>
-                <paper-dropdown-menu label="method" class="inline">
+                <paper-dropdown-menu no-animations=""  label="method" class="inline">
                   <paper-listbox
                     slot="dropdown-content"
                     attr-for-selected="value"
@@ -788,7 +800,7 @@ Polymer({
                 ></paper-textarea>
               </template>
               <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
-                <paper-dropdown-menu label="level" class="alert-level">
+                <paper-dropdown-menu no-animations=""  label="level" class="alert-level">
                   <paper-listbox
                     slot="dropdown-content"
                     attr-for-selected="value"

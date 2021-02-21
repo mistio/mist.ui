@@ -105,6 +105,7 @@ Polymer({
       horizontal-align="left"
       disabled="[[field.disabled]]"
       required="[[field.required]]"
+      no-animations=""
     >
       <paper-listbox
         slot="dropdown-content"
@@ -142,6 +143,7 @@ Polymer({
         required="[[field.required]]"
         hidden$="[[!useExistingMachine]]"
         style="width:100%"
+        no-animations=""
       >
         <div slot="dropdown-content" class="dropdown-content">
           <paper-input
@@ -184,6 +186,7 @@ Polymer({
           horizontal-align="left"
           disabled="[[field.disabled]]"
           class="fullwidth"
+          no-animations=""
         >
           <div slot="dropdown-content" class="dropdown-content">
             <paper-input
@@ -225,6 +228,7 @@ Polymer({
           horizontal-align="left"
           disabled="[[field.disabled]]"
           required="[[field.required]]"
+          no-animations=""
         >
           <div slot="dropdown-content" class="dropdown-content">
             <paper-input
@@ -259,6 +263,7 @@ Polymer({
           disabled="[[field.disabled]]"
           required="[[field.required]]"
           hidden$="[[locationNotRequired]]"
+          no-animations=""
         >
           <paper-listbox
             slot="dropdown-content"

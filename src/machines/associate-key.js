@@ -76,6 +76,7 @@ Polymer({
               label="Select key"
               horizontal-align="left"
               vertical-offset="55"
+              no-animations=""
             >
               <paper-listbox
                 slot="dropdown-content"
@@ -289,6 +290,7 @@ Polymer({
         },
       })
     );
+    location.reload();
   },
 
   _associateKeyError(e) {

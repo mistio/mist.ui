@@ -89,7 +89,7 @@ Polymer({
             </paper-radio-group>
           </div>
           <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
-            <paper-dropdown-menu label="action">
+            <paper-dropdown-menu no-animations=""  label="action">
               <paper-listbox
                 slot="dropdown-content"
                 attr-for-selected="value"
@@ -105,7 +105,7 @@ Polymer({
             </paper-dropdown-menu>
           </div>
           <div class="background" hidden$="[[_computeIsAction(taskType)]]">
-            <paper-dropdown-menu label="script">
+            <paper-dropdown-menu no-animations=""  label="script">
               <paper-listbox
                 slot="dropdown-content"
                 attr-for-selected="value"
