@@ -55,7 +55,7 @@ export class SecretAdd extends PolymerElement{
                             class="xs6 m6"
                             label="Name"
                             required=""
-                            allowed-pattern="[A-Za-z0-9]"
+                            allowed-pattern="[A-Za-z0-9\/]"
                             validator="isUniqueValidator"
                             auto-validate=""
                             error-message="Please enter a unique secret's name"
@@ -159,7 +159,6 @@ export class SecretAdd extends PolymerElement{
           name: this._getPath() + this.secret.name,
           secret: this.secret.secret,
         };
-        debugger;
         this.$.secretCreateAjaxRequest.generateRequest();
     
         this.set('sendingData', true);
