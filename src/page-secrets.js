@@ -17,20 +17,27 @@ Polymer({
             .pathButtons {
                 border: 2px solid transparent;
                 font-size: 18px;
-                color: #0000ff;
                 outline: none;
                 font: inherit;
                 margin-bottom: 9px;
             }
             .pathButtons:hover {
-                border: 2px solid #0000ff;
+                color: #0275d8;
+                text-decoration: underline;
+                cursor: pointer;
+            }
+            #path-container button+button:before {
+                content:">";
+                padding-right:10px;
+                display: inline-block;
+                vertical-align:middle;
             }
         </style>
         <app-route route="{{route}}" pattern="/:secret" data="{{data}}"></app-route>
 
         <div id="path-container">
             <template is="dom-repeat" items=[[pathItems]]>
-                <button id=[[item.id]] class="pathButtons" on-tap="_clickedPath">[[item.name]]/</button>
+                <button id=[[item.id]] class="pathButtons" on-tap="_clickedPath">[[item.name]]</button>
             </template>
         </div>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
@@ -122,8 +129,6 @@ Polymer({
         }
     },
 
-    // observers: ['_routeChanged(route)'],
-
     ready() {
         console.log('sec')
         this._getSecrets();
@@ -148,7 +153,7 @@ Polymer({
       this.set('model.secrets', this.secretsMap);
       this._createDepthMap();
       this._setItemMap("/");
-      this.set('pathItems', [{id:"0", name:""}])
+      this.set('pathItems', [{id:"0", name:"/"}])
   },
   _handleGetSecretsError(e) {
       console.log("WE GOT ERROR", e);
