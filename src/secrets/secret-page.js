@@ -1,12 +1,13 @@
-import '../../node_modules/@polymer/paper-button/paper-button.js';
-import '../../node_modules/@polymer/paper-spinner/paper-spinner.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 import '../helpers/code-viewer.js';
 import '../helpers/dialog-element.js';
 import './secret-actions.js'
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
     _template: html`
@@ -73,7 +74,7 @@ Polymer({
                 fill: #fff;
                 min-width: 50%;
             }        
-            .secret-info > paper-material > span {
+            .id {
             margin-right: 16px;
             }
         </style>
@@ -132,7 +133,7 @@ Polymer({
 
     is: "secret-page",
 
-    behaviors: [],
+    behaviors: [mistLoadingBehavior],
 
     properties: {
         hidden: {
