@@ -14,12 +14,23 @@ Polymer({
             paper-dialog {
                 position: fixed !important;
             }
+            .pathButtons {
+                border: 2px solid transparent;
+                font-size: 18px;
+                color: #0000ff;
+                outline: none;
+                font: inherit;
+                margin-bottom: 9px;
+            }
+            .pathButtons:hover {
+                border: 2px solid #0000ff;
+            }
         </style>
         <app-route route="{{route}}" pattern="/:secret" data="{{data}}"></app-route>
 
         <div id="path-container">
             <template is="dom-repeat" items=[[pathItems]]>
-                <button id=[[item.id]] on-tap="_clickedPath">[[item.name]]</button>
+                <button id=[[item.id]] class="pathButtons" on-tap="_clickedPath">[[item.name]]/</button>
             </template>
         </div>
         <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
@@ -48,7 +59,7 @@ Polymer({
         section="[[model.sections.secrets]]"
         hidden$="[[!_isAddPageActive(route.path)]]"
         path="[[pathItems]]"></secret-add>
-        <secret-page secret="[[_getSecret(data.secret)]]" resource-id="[[data.secret]]" model="[[model]]"
+        <secret-page secret="[[_getSecret(data.secret, model.secrets)]]" resource-id="[[data.secret]]" model="[[model]]"
             section="[[model.sections.secrets]]" hidden$=[[!_isSecretPageActive(route.path)]]></secret-page>
         <iron-ajax id="getSecrets" contenttype="application/json" handle-as="json" method="GET" on-request="_handleGetSecretsRequest" on-response="_handleGetSecretsResponse" on-error="_handleGetSecretsError"></iron-ajax>
     `,
@@ -91,13 +102,30 @@ Polymer({
             type: Array,
             value : []
         },
-        currentFolder: {
-            type: String,
-            value: '/'
+        isListActive: {
+            type: Boolean,
+            value: true
+        },
+
+        issecretPageActive:{
+            type: Boolean,
+            value: false
+        },
+
+        isAddPageActive: {
+            type: Boolean,
+            value: false
+        },
+        activeSecret: {
+            type: Object,
+            value: {}
         }
     },
-    ready(){
-        console.log("Yo, ready!");
+
+    // observers: ['_routeChanged(route)'],
+
+    ready() {
+        console.log('sec')
         this._getSecrets();
     },
 
@@ -109,7 +137,7 @@ Polymer({
     },
 
   _handleGetSecretsRequest(_e){
-      console.log("IT IS COMING");
+      console.log("requested secrets");
   },
 
   _handleGetSecretsResponse(e){
@@ -120,7 +148,7 @@ Polymer({
       this.set('model.secrets', this.secretsMap);
       this._createDepthMap();
       this._setItemMap("/");
-      this.set('pathItems', [{id:"0", name:"/"}])
+      this.set('pathItems', [{id:"0", name:""}])
   },
   _handleGetSecretsError(e) {
       console.log("WE GOT ERROR", e);
@@ -139,7 +167,7 @@ Polymer({
     if(itemId === "-1"){
         console.log("Should go back one level")
         this.route.path = "";
-        const currentFolder = this.pop("pathItems")
+        this.pop("pathItems")
         const parent = this.pathItems.slice(-1)[0];
         const parentName = parent.name.split("/").slice(-2)[0]
         this._setItemMap(parentName);
@@ -165,8 +193,9 @@ _getSecret(id) {
 
 _isSecretPageActive(path) {
     const itemId = path.startsWith('/') ? path.slice(1) : path;
-
-    return itemId && itemId !== "-1" && itemId!== '+add' && this.secretsMap[itemId] && !this.secretsMap[itemId].is_dir;
+    const ret = itemId && itemId !== "-1" && itemId!== '+add'//&& this.secretsMap[itemId] && !this.secretsMap[itemId].is_dir;
+    if (ret && this.querySelector('secret-page')) this.querySelector('secret-page').updateState();
+    return ret;
 },
 
 _isAddPageActive(path) {
@@ -199,10 +228,10 @@ _clickedPath(e){
 },
 
 _setItemMap(folder){
-    if(folder === "")
-        folder = "/";
+    if(folder === "/")
+        folder = "";
     const newMap = {};
-    if(folder !== "/")
+    if(folder !== "")
         newMap['-1'] = {id: "-1", name: ".."}
     const ids  = this.depthMap[folder];
     ids.forEach(id => {
@@ -212,16 +241,19 @@ _setItemMap(folder){
 },
 
 _createDepthMap() {
-    this.depthMap={"/":[]};
-    this.secrets.forEach((secret)=>{
-        let parentFolder = "/";
-        if(secret.depth !== 0) {
-            if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
-            else parentFolder = secret.name.split("/").slice(-2)[0];
-        }
+    this.depthMap={"":[]};
+    // folders first
+    this.secrets.forEach(secret => {
         if(secret.is_dir){
             const secretName = secret.name.split("/").slice(-2)[0];
             this.depthMap[secretName] = [];
+        }
+    });
+    this.secrets.forEach((secret)=>{
+        let parentFolder = "";
+        if(secret.depth !== 0) {
+            if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
+            else parentFolder = secret.name.split("/").slice(-2)[0];
         }
         this.depthMap[parentFolder].push(secret.id)
     });
@@ -236,6 +268,8 @@ _getRenderers(){
                 return `<strong class="name">${  name  }</strong>`;
             },
             'cmp': (row1, row2) => {
+                if (row1.is_dir && !row2.is_dir) return -1;
+                if (!row1.is_dir && row2.is_dir) return 1;
                 return row1.name.localeCompare(row2.name, 'en', {sensitivity: 'base'});
             }
         },
@@ -247,8 +281,9 @@ _getRenderers(){
         },
         'icon': {
             body: (item, _row) => {
-                if(item.is_dir) return "icons:folder"
-                else return ""
+                if(item.id === '-1') return "";
+                if(item.is_dir) return "./assets/icons/secret-folder.svg";
+                return "./assets/icons/secret-file.svg";
             }
         },
         'owned_by': {
