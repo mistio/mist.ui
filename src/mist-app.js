@@ -884,6 +884,13 @@ Polymer({
           //     'read_logs',
         ],
         bucket: ['read'],
+        secret: [
+          'read',
+          'delete',
+          'edit',
+          'create',
+          'read_value'
+        ]
       },
     };
 
