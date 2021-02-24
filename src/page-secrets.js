@@ -289,7 +289,8 @@ _makePathItems(fileId){
     let folder = this.secretsMap[fileId];
     while(folder.parentFolderId !== "0"){
         folder = this.secretsMap[folder.parentFolderId];
-        ret.unshift({id: folder.id, name: folder.name});
+        const folderName = folder.name.split("/").slice(-2)[0]
+        ret.unshift({id: folder.id, name: folderName});
     }
     ret.unshift({id:"0", name:"/"});
     return ret
