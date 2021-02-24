@@ -95,7 +95,7 @@ Polymer({
             <span class="grey">
               Choose from your existing volumes in the machine's region.
             </span>
-            <paper-dropdown-menu label="Select volume" horizontal-align="left">
+            <paper-dropdown-menu no-animations=""  label="Select volume" horizontal-align="left">
               <paper-listbox
                 slot="dropdown-content"
                 id="volumes"

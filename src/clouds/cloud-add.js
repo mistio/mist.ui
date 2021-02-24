@@ -31,6 +31,18 @@ Polymer({
         padding-bottom: 250px;
       }
 
+      @media screen and (min-width: 1200px) {
+        .provider-container > div:nth-child(3) {
+          padding-left: 13px;
+        }
+        .provider-container > div:nth-child(4) {
+          padding-left: 5px;
+        }
+        .provider-container > div:nth-child(5) {
+          padding-left: 2px;
+        }
+      }
+
       paper-card,
       paper-checkbox {
         display: block;
@@ -134,7 +146,7 @@ Polymer({
           <h3 class="xs12 smallcaps">Choose a Provider</h3>
         </div>
         <div class="grid">
-          <div class="grid-row">
+          <div class="grid-row provider-container">
             <template is="dom-repeat" items="[[cols]]" as="item">
               <div class$="[[item.class]]">
                 <template

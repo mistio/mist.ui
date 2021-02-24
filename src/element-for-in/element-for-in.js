@@ -8,6 +8,10 @@ Polymer({
     <style include="shared-styles info-table-style">
       :host {
         font-size: 14px;
+        --code-viewer-toolbar-height: 36px;
+        --code-viewer-fullscreen-padding: 8px;
+        --code-viewer-fullscreen-margin-left: 0;
+        --code-viewer-copyBtn-size: 36px;
       }
 
       .flex-horizontal-with-ratios {

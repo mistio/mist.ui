@@ -113,6 +113,7 @@ Polymer({
           label="Select a snapshot"
           class="dropdown-block"
           horizontal-align="left"
+          no-animations=""
         >
           <paper-listbox
             slot="dropdown-content"

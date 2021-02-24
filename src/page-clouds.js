@@ -50,7 +50,7 @@ Polymer({
       </cloud-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!checkPerm('add','cloud', model.org, model.user)]]"
+        hidden$="[[!checkPerm('add','cloud', null, model.org, model.user)]]"
       >
         <paper-fab id="cloudAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>

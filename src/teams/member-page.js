@@ -211,7 +211,7 @@ Polymer({
           </div>
         </div>
         <div class="item-actions">
-          <paper-menu-button horizontal-align="right">
+          <paper-menu-button no-animations="" horizontal-align="right">
             <paper-icon-button
               icon="more-vert"
               class="dropdown-trigger"

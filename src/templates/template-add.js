@@ -82,6 +82,7 @@ Polymer({
             class="xs12 m6"
             label="Catalogue Templates"
             horizontal-align="left"
+            no-animations=""
           >
             <paper-listbox
               slot="dropdown-content"

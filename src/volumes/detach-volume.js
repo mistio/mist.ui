@@ -71,7 +71,7 @@ Polymer({
       <paper-dialog-scrollable>
         <p>
           <span class="grey"> Choose the machines to detach from. </span>
-          <paper-dropdown-menu label="Select machine" horizontal-align="left">
+          <paper-dropdown-menu no-animations=""  label="Select machine" horizontal-align="left">
             <paper-listbox
               slot="dropdown-content"
               id="machines"

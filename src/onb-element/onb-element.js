@@ -198,7 +198,7 @@ Polymer({
           <div class="invite-form-inputs">
             <div class="grid-row">
               <div class="xs12 m6 l6">
-                <paper-dropdown-menu id="selectteam" label="Team">
+                <paper-dropdown-menu no-animations=""  id="selectteam" label="Team">
                   <paper-listbox
                     slot="dropdown-content"
                     class="dropdown-content"
