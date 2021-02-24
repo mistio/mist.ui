@@ -7,6 +7,12 @@ import { Polymer } from '../../node_modules/@polymer/polymer/lib/legacy/polymer-
 import { html } from '../../node_modules/@polymer/polymer/lib/utils/html-tag.js';
 
 const SECRET_ACTIONS = {
+    'edit': {
+        'name': 'edit',
+        'icon': 'editor:mode-edit',
+        'confirm': false,
+        'multi': false
+    },
     'delete': {
         'name': 'delete',
         'icon': 'delete',
@@ -23,9 +29,10 @@ Polymer({
             }
         </style>
         <dialog-element id="confirm"></dialog-element>
-        <slot>
+        <template is="dom-if" if="[[actions]]" restamp="">
             <mist-list-actions id="actions" actions="[[actions]]"></mist-list-actions>
-        </slot>
+        </template>
+        <secret-edit key="[[items.0]]"></secret-edit>
         <iron-ajax id="request" handle-as="json" loading="{{loadingData}}" on-response="handleResponse" on-error="handleError"></iron-ajax>
     `,
     is: 'secret-actions',
@@ -55,13 +62,21 @@ Polymer({
         type:{
             type: String,
             value: 'secret'
+        },
+        showEdit:{
+            type: Boolean,
+            value: false
+        },
+        parentFolderId: {
+            type: String
         }
     },
 
     listeners: {
         update: '_updateVisibleActions',
         confirmation: 'confirmAction',
-        'select-action': 'selectAction'
+        'select-action': 'selectAction',
+        edit: '_edit'
     },
 
     _updateVisibleActions() {
@@ -72,7 +87,8 @@ Polymer({
     computeItemActions(secret) {
         const arr = [];
         if (secret) {
-          arr.push('delete');
+            if (this.inSingleView && this.showEdit) arr.push('edit');
+            arr.push('delete');
         }
         return arr;
       },
@@ -128,6 +144,9 @@ Polymer({
         if (action.name === 'delete') {
           this._delete();
         }
+        if (action.name === 'edit') {
+            this.dispatchEvent(new CustomEvent('edit'));
+        }
     },
 
     _delete() {
@@ -140,7 +159,32 @@ Polymer({
           this.$.request.url = `/api/v2/secrets/${ this.items[i].id}`
           this.$.request.generateRequest();
           this.dispatchEvent(new CustomEvent('toast', { bubbles: true, composed: true, detail:  {msg: `Deleting ${  this.items[i].name}` , duration: 1000} }));
+
         }
+    },
+
+    _edit(e) {
+        e.stopImmediatePropagation();
+        const el = this.shadowRoot.querySelector('secret-edit');
+        el._openEditSecretModal();
+    },
+
+    handleResponse(_e) {
+        window.location.href = `/secrets`;
+    },
+
+    handleError(e) {
+        // console.log(e.detail.request.xhr.statusText);
+        this.dispatchEvent(
+          new CustomEvent('toast', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              msg: `Error: ${e.detail.request.xhr.status} ${e.detail.request.xhr.statusText}`,
+              duration: 5000,
+            },
+          })
+        );
     },
 
     _makeList(items, property) {

@@ -164,9 +164,10 @@ export class SecretAdd extends PolymerElement{
         this.set('sendingData', true);
     }
 
-    _handleSecretCreateAjaxResponse(_e) {
+    _handleSecretCreateAjaxResponse(e) {
         this.set('sendingData', false);
-        window.location.href = "/secrets";
+        const newId = JSON.parse(e.detail.xhr.response).id
+        window.location.href = `/secrets/${newId}`;
     }
     _handleSecretCreateAjaxError(e){
         console.log('secret create error', e);

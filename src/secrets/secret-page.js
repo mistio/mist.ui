@@ -65,17 +65,24 @@ Polymer({
                 font-weight: 700;
                 margin-right: 16px;
             }
-            #showSecretbtn iron-icon {
-                color: var(--paper-button-text) !important;
-                width: 20px;
-                height: 20px;
-            }
             secret-actions {
                 fill: #fff;
                 min-width: 50%;
             }        
             .id {
             margin-right: 16px;
+            }
+            #secretContainer {
+                text-align: center;
+            }
+            #showSecretBtn iron-icon {
+                width: 20px;
+                height: 20px;
+                margin-right: 10px;
+            }
+            #showSecretBtn {
+                padding-left: 16px;
+                padding-right: 16px;
             }
         </style>
         <div id="content">
@@ -92,6 +99,8 @@ Polymer({
                 items=[[itemArray]]
                 model=[[model]]
                 org=[[model.org]]
+                path=[[path]]
+                parent-folder-id=[[parentFolderId]]
                 in-single-view=""
                 ></secret-actions>
             </paper-material>
@@ -109,7 +118,7 @@ Polymer({
                         </paper-button>
                     </div>
                     <div id="secretContainer">
-                        <paper-button hidden\$="[[visibleSecret]]" id="showSecretbtn" on-tap="showSecret">
+                        <paper-button hidden\$="[[visibleSecret]]" id="showSecretBtn" on-tap="showSecret">
                             <iron-icon icon="icons:visibility"></iron-icon> View Secret</paper-button>
                         <template is="dom-if" if="[[visibleSecret]]" restamp="">
                             <paper-toggle-button checked="{{!readOnly}}">Edit Secret</paper-toggle-button>
@@ -170,6 +179,9 @@ Polymer({
         readOnly: {
             type: Boolean,
             value: true
+        },
+        parentFolderId:{
+            type: String
         }
     },
 

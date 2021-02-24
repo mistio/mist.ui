@@ -903,6 +903,13 @@ Polymer({
           //     'edit_tags',
           //     'read_logs',
         ],
+        secret: [
+          'read',
+          'delete',
+          'edit',
+          'create',
+          'read_value'
+        ]
       },
     };
 
