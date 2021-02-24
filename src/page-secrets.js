@@ -59,7 +59,7 @@ Polymer({
             <div
             class="absolute-bottom-right"
             >
-                <paper-fab id="keyAdd" icon="add" on-tap="_addResource"></paper-fab>
+                <paper-fab id="secretAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
         <secret-add
