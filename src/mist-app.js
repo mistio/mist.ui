@@ -911,6 +911,7 @@ Polymer({
           //     'edit_tags',
           //     'read_logs',
         ],
+        bucket: ['read'],
       },
     };
 
