@@ -230,7 +230,7 @@ Polymer({
           let display = '';
           Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
-            if (tags[key] !== undefined && tags[key] !== '')
+            if (tags[key] != null && tags[key] !== '')
               display += `=${tags[key]}`;
             display += '</span>';
           });
