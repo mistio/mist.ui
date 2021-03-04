@@ -59,7 +59,7 @@ Polymer({
           Equinix Metal, LXD, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean
           clouds
           <br />
-          <span hidden$="[[!checkPerm('add','cloud')]]">
+          <span hidden$="[[!checkPerm('cloud', 'add')]]">
             Add a cloud using the
             <a href="/clouds/+add" class="blue-link regular">add cloud form</a>.
           </span>

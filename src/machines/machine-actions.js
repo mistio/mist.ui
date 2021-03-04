@@ -442,8 +442,8 @@ Polymer({
     if (actions.length > 0) {
       return actions.filter(action => {
         return this.checkPerm(
-          action.name,
           'machine',
+          action.name,
           this._getMachine().id,
           this.model.org,
           this.model.user
