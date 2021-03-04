@@ -154,7 +154,7 @@ Polymer({
       <paper-material hidden$="[[_hasProviders(providers)]]">
         <p>
           You don't have any clouds.
-          <span hidden$="[[!checkPerm('add','cloud')]]">
+          <span hidden$="[[!checkPerm('cloud', 'add')]]">
             <a href="/clouds/+add" class="blue-link regular">Add a cloud</a> to
             get started creating machines.
           </span>
@@ -397,13 +397,13 @@ Polymer({
   },
 
   checkPermissions() {
-    const perm = this.checkPerm('create', 'machine');
+    const perm = this.checkPerm('machine', 'create');
     if (perm === true) {
       // FIXME why is it empty?
     } else if (perm === false) {
       // FIXME why is it empty?
     } else if (typeof perm === 'object') {
-      this.set('constraints', perm);
+      this.set('constraints', perm.constraints);
     }
     // console.log('checkPermissions', perm);
   },
@@ -833,8 +833,8 @@ Polymer({
           );
           const locations = allLocations.filter(l => {
             const checkPerm = this.checkPerm(
-              'create_resources',
               'location',
+              'create_resources',
               l.id
             );
             return checkPerm !== false;
@@ -2662,10 +2662,13 @@ Polymer({
           fieldConstraints = this.constraints.field;
         }
         const datastoreConstraint = fieldConstraints.find(c => {
-          return c.name && c.name === 'datastore';
+          return c.datastore;
         });
-        if (datastoreConstraint.show !== undefined) {
-          showDatastores = datastoreConstraint.show;
+        if (
+          datastoreConstraint.datastore !== undefined &&
+          datastoreConstraint.datastore.show !== undefined
+        ) {
+          showDatastores = datastoreConstraint.datastore.show;
         }
       }
       this.set(
@@ -2954,7 +2957,7 @@ Polymer({
     return this._toArray(this.model.clouds).filter(c => {
       return (
         ['bare_metal'].indexOf(c.provider) === -1 &&
-        this.checkPerm('create_resources', 'cloud', c.id)
+        this.checkPerm('cloud', 'create_resources', c.id)
       );
     });
   },
