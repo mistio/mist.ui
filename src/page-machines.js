@@ -131,7 +131,7 @@ Polymer({
       </machine-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!checkPerm('create','machine', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('machine', 'create', null, model.org, model.user)]]"
       >
         <paper-fab
           id="machinesAdd"
@@ -429,7 +429,7 @@ Polymer({
       'hostname',
       'public_ips',
     ];
-    if (this.checkPerm('read_cost', 'cloud')) ret.splice(2, 0, 'cost');
+    if (this.checkPerm('cloud', 'read_cost')) ret.splice(2, 0, 'cost');
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
@@ -982,7 +982,7 @@ Polymer({
   _checkPermissions() {
     return {
       apply: (action, rid) => {
-        return this.checkPerm(action, 'machine', rid);
+        return this.checkPerm('machine', action, rid);
       },
     };
   },
