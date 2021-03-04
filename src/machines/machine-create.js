@@ -2662,10 +2662,13 @@ Polymer({
           fieldConstraints = this.constraints.field;
         }
         const datastoreConstraint = fieldConstraints.find(c => {
-          return c.name && c.name === 'datastore';
+          return c.datastore;
         });
-        if (datastoreConstraint.show !== undefined) {
-          showDatastores = datastoreConstraint.show;
+        if (
+          datastoreConstraint.datastore !== undefined &&
+          datastoreConstraint.datastore.show !== undefined
+        ) {
+          showDatastores = datastoreConstraint.datastore.show;
         }
       }
       this.set(
