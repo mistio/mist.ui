@@ -414,7 +414,7 @@ Polymer({
                 docs="[[docs]]"
                 currency="[[currency]]"
                 q="[[q]]"
-                hidden$=[[!checkPerm('read_cost','cloud')]]
+                hidden$=[[!checkPerm('cloud', 'read_cost')]]
               >
               </app-costs>
             </div>
@@ -451,7 +451,7 @@ Polymer({
       <template is="dom-if" if="[[model.org]]" restamp>
         <div
           class="absolute-bottom-right"
-          hidden$="[[!checkPerm('add','cloud')]]"
+          hidden$="[[!checkPerm('cloud', 'add')]]"
         >
           <a href="/clouds/+add" on-tap="_fabTap">
             <paper-fab id="addBtn" icon="cloud"></paper-fab>

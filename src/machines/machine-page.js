@@ -1243,12 +1243,12 @@ Polymer({
   },
 
   _computeCanEditMachine(machineId, _model) {
-    const perm = this.checkPerm('edit', 'machine', machineId);
+    const perm = this.checkPerm('machine', 'edit', machineId);
     return perm !== false;
   },
 
   _computeCanDeleteExpiration(machineId, _model) {
-    const perm = this.checkPerm('edit', 'machine', machineId);
+    const perm = this.checkPerm('machine', 'edit', machineId);
     return (
       perm === true ||
       !perm.expiration ||
@@ -2243,7 +2243,7 @@ Polymer({
   },
   _canShowCost() {
     if (this.machine && this.machine.cost){
-      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('read_cost','cloud') === true;
+      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('cloud', 'read_cost') === true;
     }
     return false;
   }
