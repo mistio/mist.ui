@@ -397,7 +397,8 @@ Polymer({
     if (this.ccRequired) {
       this._ccDismissed();
     }
-    if (!this.config.theme) {
+    // eslint-disable-next-line
+    if (!CONFIG.theme) {
       import('./styles/app-theme.js').then(console.log('Loaded default theme'));
     }
   },
