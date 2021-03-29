@@ -4,14 +4,13 @@ import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
-import '@mistio/polyana-dashboard/polyana-dashboard.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import './helpers/dialog-element.js';
 import './add-graph.js';
-import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { YAML } from 'yaml/browser/dist/index.js';
+import { CSRFToken } from './helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -507,7 +506,7 @@ Polymer({
     },
     machineKeys: {
       type: Array,
-      value: [],
+      value() { return [] },
     },
     jobId: {
       type: String,
@@ -537,15 +536,15 @@ Polymer({
     },
     datasources: {
       type: Array,
-      value: [
-        {
+      value() {
+        return [{
           id: 1,
           orgId: 1,
           name: 'mist.monitor',
           type: 'mist.monitor',
           uri: '/api/v1/stats',
-        },
-      ],
+        }];
+      }
     },
     replaceTargets: {
       type: Object,
@@ -584,6 +583,7 @@ Polymer({
     'clearJobID(resource.id)',
     '_computeIsMonitored(resource, resource.id, monitoring.monitored_machines.*)',
     '_computeIsActivated(resource, monitoring.*, hidden)',
+    '_importPolyana(showHomeDashboard, isActivated)'
   ],
 
   listeners: {
@@ -595,6 +595,15 @@ Polymer({
   _forwardEvent(e) {
     e.stopPropagation();
     this.shadowRoot.querySelector('polyana-dashboard')._updateDashboard(e);
+  },
+
+  _importPolyana(showHomeDashboard, isActivated) {
+    if (showHomeDashboard || isActivated) {
+      import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
+        () => { console.log('imported polyana-dashboard') },
+        reason => {console.error('Failed to import polyana-dashboard:', reason);}
+      );
+    }
   },
 
   _computeDashboardUri(resource) {
