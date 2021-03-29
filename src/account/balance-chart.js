@@ -1,14 +1,14 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
 import '@polymer/paper-spinner/paper-spinner.js';
-import * as echarts from 'echarts/echarts.all.js';
+import * as echarts from 'echarts/dist/echarts.esm.js';
 import moment from 'moment/src/moment.js';
 import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import { formatMoney } from '../helpers/utils.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { formatMoney } from '../helpers/utils.js';
 
 const BALANCE_GRAPH_OPTIONS = {
   tooltip: {
@@ -277,15 +277,13 @@ Polymer({
     this.initCharts();
     this.set(
       'balanceGraphOptions.series.0.data',
-      e.detail.response.series.map(d => {
-        return [
-          d.date,
-          d.cost,
-          d.usage.cores,
-          d.usage.datapoints,
-          d.usage.checks,
-        ];
-      })
+      e.detail.response.series.map(d => [
+        d.date,
+        d.cost,
+        d.usage.cores,
+        d.usage.datapoints,
+        d.usage.checks,
+      ])
     );
     this.balanceGraph.setOption(this.balanceGraphOptions);
     this.set('usageLoaded', true);
