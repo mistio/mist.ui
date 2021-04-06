@@ -346,7 +346,7 @@ Polymer({
         categories[0].providers.push(provider);
       }
       if (
-        ['openstack', 'onapp', 'vsphere', 'vcloud', 'gig_g8'].indexOf(
+        ['openstack', 'onapp', 'vsphere', 'vcloud'].indexOf(
           provider.val
         ) > -1
       ) {

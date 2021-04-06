@@ -1043,7 +1043,7 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (provider === 'openstack' || provider === 'gig_g8') {
+            if (provider === 'openstack') {
               const nameIndex = options.findIndex(entry => {
                 return entry.name === 'name';
               });
@@ -1095,11 +1095,6 @@ Polymer({
       // if is lxd, change required values
       if (this.model.clouds[this.selectedCloud].provider === 'lxd') {
         this._updateFieldsForLxd();
-      }
-
-      // if is gig_g8 require network
-      if (this.model.clouds[this.selectedCloud].provider === 'gig_g8') {
-        this._updateFieldsForGigG8();
       }
 
       // if is azure arm, change required values
@@ -1843,17 +1838,6 @@ Polymer({
       if (this.get(`machineFields.${locInd}.options`).length === 0) {
         this.set(`machineFields.${locInd}.show`, false);
       }
-    }
-  },
-
-  _updateFieldsForGigG8() {
-    const netInd = this._fieldIndexByName('networks');
-    if (netInd > -1) {
-      this.set(
-        `machineFields.${netInd}.options`,
-        this._toArray(this.model.clouds[this.selectedCloud].networks)
-      );
-      this.set(`machineFields.${netInd}.required`, true);
     }
   },
 
@@ -2902,7 +2886,6 @@ Polymer({
           'onapp',
           'libvirt',
           'vshere',
-          'gig_g8',
           'kubevirt',
         ].indexOf(this.model.clouds[this.selectedCloud].provider) < 0
       )

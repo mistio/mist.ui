@@ -795,58 +795,6 @@ PROVIDERS.push({
   ],
 });
 
-// G8
-PROVIDERS.push({
-  title: 'G8',
-  val: 'gig_g8',
-  className: 'provider-gigg8',
-  options: [
-    {
-      name: 'title',
-      label: 'Title *',
-      type: 'text',
-      value: 'G8',
-      defaultValue: 'G8',
-      show: true,
-      required: true,
-      errorMessage: 'Please enter title',
-    },
-    {
-      name: 'api_key',
-      label: 'API key (JWT) *',
-      type: 'textarea',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: true,
-      errorMessage: 'Please enter the API key',
-      helptext: 'Created with your itsyou.online identity',
-    },
-    {
-      name: 'user_id',
-      label: 'User ID*',
-      type: 'text',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: true,
-      errorMessage: 'Please enter the User ID',
-      helptext: 'Id of your `Account` on the G8',
-    },
-    {
-      name: 'url',
-      label: 'API url *',
-      type: 'text',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: true,
-      errorMessage: 'Please enter the API url',
-      helptext: '‘https://<g8_name>.<domain>/’',
-    },
-  ],
-});
-
 // KVM
 PROVIDERS.push({
   title: 'KVM',
