@@ -2973,7 +2973,7 @@ Polymer({
       }
       // if the provider is Docker or onapp, the key should not be required
       if (
-        ['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'kubevirt'].indexOf(
+        ['docker', 'lxd', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(
           this.model.clouds[this.selectedCloud].provider
         ) < 0
       )
