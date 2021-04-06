@@ -56,7 +56,7 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Equinix Metal, LXD, Aliyun, Gig G8, Kubevirt, Linode and DigitalOcean
+          Equinix Metal, LXD, Aliyun, Kubevirt, Linode and DigitalOcean
           clouds
           <br />
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
