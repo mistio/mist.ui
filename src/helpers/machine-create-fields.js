@@ -386,33 +386,6 @@ MACHINE_CREATE_FIELDS.push({
   ],
 });
 
-// GIG G8
-MACHINE_CREATE_FIELDS.push({
-  provider: 'gig_g8',
-  fields: [
-    {
-      name: 'networks',
-      label: 'Network *',
-      type: 'mist_dropdown',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: true,
-      options: [],
-      canConfigure: false,
-    },
-    {
-      name: 'description',
-      label: 'Description',
-      type: 'text',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: false,
-    },
-  ],
-});
-
 // Alibaba Cloud
 MACHINE_CREATE_FIELDS.push({
   provider: 'aliyun_ecs',
@@ -970,7 +943,7 @@ MACHINE_CREATE_FIELDS.push({
 MACHINE_CREATE_FIELDS.forEach(p => {
   const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) !== -1;
   const showLocation =
-    ['lxd', 'gig_g8', 'cloudsigma'].indexOf(p.provider) === -1;
+    ['lxd', 'cloudsigma'].indexOf(p.provider) === -1;
 
   // add common machine properties fields
   p.fields.splice(
@@ -1048,60 +1021,6 @@ MACHINE_CREATE_FIELDS.forEach(p => {
           show: true,
           required: false,
           unit: 'cores',
-        },
-      ],
-    });
-  } else if (['gig_g8'].indexOf(p.provider) !== -1) {
-    p.fields.splice(3, 0, {
-      name: 'size',
-      label: 'Size *',
-      type: 'mist_size',
-      value: 'custom',
-      defaultValue: 'custom',
-      custom: true,
-      customValue: null,
-      show: true,
-      required: true,
-      customSizeFields: [
-        {
-          name: 'ram',
-          label: 'RAM MB',
-          type: 'slider',
-          value: 256,
-          defaultValue: 256,
-          min: 512,
-          max: 15872,
-          step: 256,
-          show: true,
-          required: false,
-          unit: 'MB',
-        },
-        {
-          name: 'cpu',
-          label: 'CPU cores',
-          type: 'slider',
-          value: 1,
-          defaultValue: 1,
-          min: 1,
-          max: 16,
-          step: 1,
-          show: true,
-          required: false,
-          unit: 'cores',
-        },
-        {
-          name: 'disk_primary',
-          label: 'Primary Disk',
-          type: 'slider',
-          value: 5,
-          defaultValue: 5,
-          min: 1,
-          max: 1024,
-          step: 1,
-          show: true,
-          required: true,
-          unit: 'GB',
-          helptext: 'Custom disk size in GB.',
         },
       ],
     });
@@ -1429,7 +1348,6 @@ MACHINE_CREATE_FIELDS.forEach(p => {
   }
   const requiredKey =
     [
-      'gig_g8',
       'lxd',
       'docker',
       'onapp',
@@ -1466,7 +1384,6 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'aliyun_ecs',
       'vultr',
       'softlayer',
-      'gig_g8',
       'cloudsigma',
     ].indexOf(p.provider) !== -1
   ) {
@@ -1521,11 +1438,10 @@ MACHINE_CREATE_FIELDS.forEach(p => {
       'aliyun_ecs',
       'lxd',
       'kubevirt',
-      'gig_g8',
     ].indexOf(p.provider) > -1
   ) {
     const allowedVolumes =
-      ['gce', 'azure_arm', 'gig_g8'].indexOf(p.provider) > -1 ? 3 : 1;
+      ['gce', 'azure_arm'].indexOf(p.provider) > -1 ? 3 : 1;
     const allowExistingVolumes = ['gig_g8'].indexOf(p.provider) === -1;
     p.fields.push(
       {
@@ -1643,7 +1559,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
         required: false,
       });
     }
-    if (['kubevirt', 'gig_g8'].indexOf(p.provider) > -1) {
+    if (['kubevirt'].indexOf(p.provider) > -1) {
       p.fields.push({
         name: 'port_forwards',
         label: 'Expose ports',
