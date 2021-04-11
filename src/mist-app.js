@@ -1116,7 +1116,7 @@ Polymer({
       {
         id: 'secrets',
         color: '#1D1C1A',
-        icon: 'device:screen-lock-portrait',
+        icon: 'icons:lock',
         add: '/secrets/+add',
         sidebar: true,
         tile: true,
