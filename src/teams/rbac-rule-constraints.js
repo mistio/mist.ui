@@ -3,25 +3,11 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-textarea.js';
-import '../helpers/dialog-element.js';
+
+import '../helpers/mist-form-dialog.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
-const RBAC_CONSTRAINTS_FIELDS = [
-  {
-    name: 'constraints',
-    label: '',
-    type: 'codeEditor',
-    language: 'json',
-    showToolbar: true,
-    value: {},
-    defaultValue: {},
-    class: 'script toolbar-dark',
-    show: true,
-    required: true,
-    helptext: 'Add/edit constraints in JSON format',
-  },
-];
 Polymer({
   _template: html`
     <style include="shared-styles tags-and-labels">
@@ -81,6 +67,13 @@ Polymer({
       :host iron-icon {
         cursor: pointer;
       }
+      :host paper-checkbox {
+        float: left;
+        padding-top: 13px;
+        margin-right: 0;
+        --paper-checkbox-checked-color: var(--mist-blue) !important;
+        --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+      }
     </style>
     <span hidden$="[[!showConstraints]]">
       <span hidden$="[[!error]]" class="error">[[error]]</span>
@@ -92,17 +85,12 @@ Polymer({
       ></iron-icon>
     </span>
     <template is="dom-if" if="[[showConstraints]]">
-      <dialog-element
+      <mist-form-dialog
         id="editConstraints"
-        modal="true"
         formid="editConstraints-[[index]]"
-        fields="{{fields}}"
-        form="{{form}}"
-        form-valid="{{formValid}}"
-        single-column-form="[[singleColumnForm]]"
-        inline="[[inline]]"
+        mist-form-fields="[[mistFormFields]]"
       >
-      </dialog-element>
+      </mist-form-dialog>
     </template>
   `,
 
@@ -123,30 +111,28 @@ Polymer({
       value: false,
       computed: '_computeShowConstraints(rule.*)',
     },
-    fields: {
-      type: Array,
+    mistFormFields: {
+      type: Object,
       value() {
-        return RBAC_CONSTRAINTS_FIELDS;
+        return {
+          src: './assets/forms/constraints.json',
+          formData: {
+            getDefaultActions: {
+              func: new Promise(resolve => {
+                resolve(formValues => {
+                  const values =
+                    formValues &&
+                    formValues.expiration &&
+                    formValues.expiration.actions &&
+                    formValues.expiration.actions.available;
+                  return values || [];
+                });
+              }),
+              dependencies: ['expiration.actions.available'],
+            },
+          },
+        };
       },
-    },
-    singleColumnForm: {
-      type: Boolean,
-      value: true,
-    },
-    inline: {
-      type: Boolean,
-      value: false,
-    },
-    error: {
-      type: String,
-      value: '',
-    },
-    modal: {
-      type: Boolean,
-      value: true,
-    },
-    formValid: {
-      type: Boolean,
     },
   },
 
@@ -188,7 +174,7 @@ Polymer({
 
   _showDialog(info) {
     const dialog = this.shadowRoot.querySelector(
-      'dialog-element#editConstraints'
+      'mist-form-dialog#editConstraints'
     );
     if (info) {
       Object.keys(info || {}).forEach(i => {
@@ -200,10 +186,10 @@ Polymer({
 
   _updateRuleConstraints(e) {
     // update rule.constraints
-    const { reason, response } = e.detail;
+    const { reason, response, mistValue } = e.detail;
 
     if (response === 'confirm' && reason === 'edit.constraints') {
-      const newConstraints = JSON.parse(this.fields[0].value);
+      const newConstraints = JSON.parse(mistValue);
       this.dispatchEvent(
         new CustomEvent('update-constraints', {
           bubbles: true,
@@ -230,11 +216,7 @@ Polymer({
   },
   _mapValuesToFields() {
     // fill in fields with constraints corresponding values
-    const constraints = JSON.stringify(
-      this.rule.constraints,
-      undefined,
-      2
-    );
+    const constraints = JSON.stringify(this.rule.constraints, undefined, 2);
     this.set('fields.0.value', constraints || '{}');
   },
 });
