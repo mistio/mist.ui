@@ -391,6 +391,10 @@ Polymer({
     'subfield-enabled': '_subfieldEnabled',
   },
 
+  attached() {
+    this.checkPermissions();
+  },
+
   _teamsChanged() {
     console.log('_teamsChanged CALL checkPermissions');
     this.checkPermissions();
