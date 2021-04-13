@@ -1,0 +1,295 @@
+{
+	"type":"object",
+	"id":"constraints-form",
+	"$schema":"http://json-schema.org/draft-07/schema#",
+	"description":"Constraints form",
+	"submitButtonLabel":"Save",
+	"canClose":true,
+	"additionalProperties":false,
+	"properties":{
+	  "costConstraintContainer":{
+		"name":"cost",
+		"label":"Cost constraints",
+		"id":"cost_constraint_container",
+		"type":"object",
+		"hasToggle":true,
+		"properties":{
+		  "subform":{
+			"$ref":"#/definitions/costConstraints"
+		  }
+		}
+	  },
+	  "sizeConstraintContainer":{
+		"name":"size",
+		"label":"Size constraints",
+		"id":"size_constraint_container",
+		"type":"object",
+		"hasToggle":true,
+		"properties":{
+		  "subform":{
+			"$ref":"#/definitions/sizeConstraints"
+		  }
+		}
+	  },
+	  "expirationConstraintContainer":{
+		"name":"expiration",
+		"label":"Expiration constraints",
+		"id":"expiration_constraint_container",
+		"type":"object",
+		"hasToggle":true,
+		"properties":{
+		  "subform":{
+			"$ref":"#/definitions/expirationConstraints"
+		  }
+		}
+	  },
+	  "fieldConstraintContainer":{
+		"name":"field",
+		"label":"Field constraints",
+		"id":"field_constraint_container",
+		"type":"object",
+		"hasToggle":true,
+		"omitTitle": true,
+		"properties":{
+		  "subform":{
+			"$ref":"#/definitions/fieldConstraints"
+		  }
+		}
+	  }
+	},
+	"definitions":{
+	  "sizeSubform":{
+		"id":"size_subform",
+		"type":"object",
+		"properties":{
+		  "min":{
+			"label":"Min size",
+			"id":"min",
+			"type":"string",
+			"format":"number",
+			"value":"",
+			"minimum":1,
+			"autoValidate":true,
+			"helpText":"A minimum of 1 is required",
+			"noLabelFloat": true
+		  },
+		  "max":{
+			"label":"Max size",
+			"id":"max",
+			"type":"string",
+			"format":"number",
+			"value":"",
+			"minimum":1,
+			"autoValidate":true,
+			"helpText":"A minimum of 1 is required.",
+			"noLabelFloat": true
+		  },
+		  "showToggle":{
+			"label":"Show field",
+			"name":"show",
+			"id":"show",
+			"checked":true,
+			"type":"boolean",
+			"noLabelFloat":true
+		  }
+		}
+	  },
+	  "notifySubform":{
+		"id":"notify_subform",
+		"type":"object",
+		"properties":{
+		  "default":{
+			"name":"default",
+			"id": "default",
+			"label":"Default",
+			"type":"durationField"
+		  },
+		  "require":{
+			"label":"Require",
+			"id": "require",
+			"type":"boolean"
+		  },
+		  "msg":{
+			"label":"Message",
+			"id": "message",
+			"type":"textArea",
+			"noLabelFloat": true
+		  }
+		}
+	  },
+	  "actionsSubform":{
+		"id":"actions_subform",
+		"type":"object",
+		"properties":{
+		  "available":{
+			"label":"Available actions",
+			"id":"available",
+			"type":"string",
+			"format":"checkboxGroup",
+			"enum":[
+			  "destroy",
+			  "stop",
+			  "undefine"
+			]
+		  },
+		  "default":{
+			"label":"Default",
+			"id":"default_action",
+			"type":"string",
+			"format":"dropdown",
+			"x-mist-enum":"getDefaultActions"
+		  }
+		}
+	  },
+	  "costConstraints":{
+		"id":"cost_constraints",
+		"type":"object",
+		"properties":{
+		  "max_team_run_rate":{
+			"label":"Max run rate for your team",
+			"name":"max_team_run_rate",
+			"id":"cost_max_team_run_rate",
+			"type":"string",
+			"format":"number",
+			"minimum":1,
+			"autoValidate":true,
+			"helpText":"A minimum of 1 $ is required.",
+			"suffix":"$",
+			"noLabelFloat": true
+		  },
+		  "max_total_run_rate":{
+			"label":"Max run rate for your entire organization",
+			"name":"max_total_run_rate",
+			"id":"cost_max_total_run_rate",
+			"type":"string",
+			"format":"number",
+			"minimum":1,
+			"autoValidate":true,
+			"helpText":"A minimum of 1 $ is required.",
+			"suffix":"$",
+			"noLabelFloat": true
+		  }
+		}
+	  },
+	  "fieldConstraints":{
+		"id":"field_constraints",
+		"type":"object",
+		"properties":{
+		  "field":{
+			"label":"Fields",
+			"type":"fieldElement"
+		  }
+		}
+	  },
+	  "expirationConstraints":{
+		"id":"expiration_constraints",
+		"type":"object",
+		"properties":{
+		  "max":{
+			"name":"max",
+			"id": "max",
+			"label":"Max",
+			"type":"durationField"
+		  },
+		  "default":{
+			"name":"default",
+			"id": "default",
+			"label":"Default",
+			"type":"durationField"
+		  },
+		  "actions":{
+			"name":"actions",
+			"label":"Actions",
+			"id":"expiration_actions",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/actionsSubform"
+			  }
+			}
+		  },
+		  "notify":{
+			"name":"notify",
+			"label":"Notify",
+			"id":"expiration_notify",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/notifySubform"
+			  }
+			}
+		  }
+		}
+	  },
+	  "sizeConstraints":{
+		"id":"size_constraints",
+		"type":"object",
+		"properties":{
+		  "allowed":{
+			"label":"Allowed",
+			"name":"allowed",
+			"id":"allowed",
+			"type":"string",
+			"format":"textarea",
+			"helpText":"Please enter comma separated names, ids or external ids",
+			"error-message":"Please enter comma separated names, ids or external ids",
+			"noLabelFloat": true
+		  },
+		  "not_allowed":{
+			"label":"Not allowed",
+			"name":"not_allowed",
+			"id":"not_allowed",
+			"type":"string",
+			"format":"textarea",
+			"helpText":"Please enter comma separated names, ids or external ids",
+			"error-message":"Please enter comma separated names, ids or external ids",
+			"noLabelFloat": true
+		  },
+		  "cpu":{
+			"name":"cpu",
+			"label":"Cpu constraints",
+			"id":"cpu_constraint",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/sizeSubform"
+			  }
+			}
+		  },
+		  "ram":{
+			"name":"ram",
+			"label":"Ram constraints",
+			"id":"ram_constraint",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/sizeSubform"
+			  }
+			}
+		  },
+		  "primary_disk":{
+			"name":"disk",
+			"label":"Primary disk constraints",
+			"id":"primary_disk_constraint",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/sizeSubform"
+			  }
+			}
+		  },
+		  "swap_disk":{
+			"name":"swap_disk",
+			"label":"Swap disk constraints",
+			"id":"swap_disk_constraint",
+			"type":"object",
+			"properties":{
+			  "subform":{
+				"$ref":"#/definitions/sizeSubform"
+			  }
+			}
+		  }
+		}
+	  }
+	}
+  }
