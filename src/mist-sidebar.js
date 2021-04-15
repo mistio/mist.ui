@@ -461,17 +461,17 @@ Polymer({
         if (this.model.sections[sect].id === 'dashboard') return true;
         if (
           this.model.sections[sect].id === 'teams' &&
-          this.checkPerm('read', 'team')
+          this.checkPerm('team', 'read', "*")
         )
           return true;
         if (
           this.model.sections[sect].id === 'insights' &&
-          this.checkPerm('read_cost', 'cloud')
+          this.checkPerm('cloud', 'read_cost', "*")
         )
           return true;
         if (
           this.model.sections[sect].id === 'rules' &&
-          this.checkPerm('edit_rules', 'machine')
+          this.checkPerm('machine', 'edit_rules', "*")
         )
           return true;
         if (
@@ -482,9 +482,9 @@ Polymer({
           this.model.org &&
           this.model.user &&
           this.checkPerm(
-            'read',
             this.model.sections[sect].id,
-            undefined,
+            'read',
+            "*",
             this.model.org,
             this.model.user
           )

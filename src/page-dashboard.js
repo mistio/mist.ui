@@ -1,4 +1,3 @@
-import '@mistio/polyana-dashboard/polyana-dashboard.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-spinner/paper-spinner.js';
@@ -19,9 +18,9 @@ import '@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken } from './helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from './helpers/utils.js';
 
 Polymer({
   is: 'page-dashboard',
@@ -414,7 +413,7 @@ Polymer({
                 docs="[[docs]]"
                 currency="[[currency]]"
                 q="[[q]]"
-                hidden$=[[!checkPerm('read_cost','cloud')]]
+                hidden$=[[!checkPerm('cloud', 'read_cost')]]
               >
               </app-costs>
             </div>
@@ -451,7 +450,7 @@ Polymer({
       <template is="dom-if" if="[[model.org]]" restamp>
         <div
           class="absolute-bottom-right"
-          hidden$="[[!checkPerm('add','cloud')]]"
+          hidden$="[[!checkPerm('cloud', 'add')]]"
         >
           <a href="/clouds/+add" on-tap="_fabTap">
             <paper-fab id="addBtn" icon="cloud"></paper-fab>
@@ -460,7 +459,7 @@ Polymer({
       </template>
       <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
         <paper-spinner
-          active="[[model.onboarding.isLoadingClouds]]"
+          active=[[model.onboarding.isLoadingClouds]]
         ></paper-spinner>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
 import '@polymer/paper-spinner/paper-spinner.js';
-import * as echarts from 'echarts/echarts.all.js';
+import * as echarts from 'echarts/dist/echarts.esm.js';
 import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -328,15 +328,18 @@ Polymer({
   },
 
   _computeData(responseData, graph) {
-    const timeToCores = this.responseData.data.map(d => {
-      return [d.date, d.usage.cores];
-    });
-    const timeToDatapoints = this.responseData.data.map(d => {
-      return [d.date, d.usage.datapoints];
-    });
-    const timeToChecks = this.responseData.data.map(d => {
-      return [d.date, d.usage.checks];
-    });
+    const timeToCores = this.responseData.data.map(d => [
+      d.date,
+      d.usage.cores,
+    ]);
+    const timeToDatapoints = this.responseData.data.map(d => [
+      d.date,
+      d.usage.datapoints,
+    ]);
+    const timeToChecks = this.responseData.data.map(d => [
+      d.date,
+      d.usage.checks,
+    ]);
 
     this.set('coresGraphOptions.series.0.data', timeToCores);
     this.coresGraph.setOption(this.coresGraphOptions);

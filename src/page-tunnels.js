@@ -37,7 +37,7 @@ Polymer({
                     <p slot="no-items-found">No tunnels found.</p>
                 </mist-list>
             </tunnel-actions>
-            <div class="absolute-bottom-right" hidden$="[[!checkPerm('add','tunnel', null, model.org, model.user)]]">
+            <div class="absolute-bottom-right" hidden$="[[!checkPerm('tunnel', 'add', null, model.org, model.user)]]">
                 <paper-fab id="tunnelAdd" icon="add" on-tap="_addResource"></paper-fab>
             </div>
         </template>
@@ -174,7 +174,7 @@ Polymer({
           let display = '';
           Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
-            if (tags[key] !== undefined && tags[key] !== '')
+            if (tags[key] != null && tags[key] !== '')
               display += `=${tags[key]}`;
             display += '</span>';
           });

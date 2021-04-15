@@ -179,24 +179,6 @@ VOLUME_CREATE_FIELDS.push({
   ],
 });
 
-// GIGG8
-VOLUME_CREATE_FIELDS.push({
-  provider: 'gig_g8',
-  fields: [
-    {
-      name: 'description',
-      label: 'Description *',
-      type: 'textarea',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: true,
-      helptext: 'A human friendly description of the volume.',
-      onForm: 'volume_add',
-    },
-  ],
-});
-
 // OPENSTACK
 VOLUME_CREATE_FIELDS.push({
   provider: 'openstack',
@@ -594,7 +576,6 @@ VOLUME_CREATE_FIELDS.forEach(p => {
 
   if (
     p.provider !== 'openstack' &&
-    p.provider !== 'gig_g8' &&
     p.provider !== 'cloudsigma'
   ) {
     p.fields.splice(1, 0, {

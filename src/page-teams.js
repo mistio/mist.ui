@@ -264,7 +264,7 @@ Polymer({
     return (
       this.model &&
       this._isListActive(path) &&
-      this.checkPerm('add', 'key', null, this.model.org, this.model.user)
+      this.checkPerm('key', 'add', null, this.model.org, this.model.user)
     );
   },
 });
