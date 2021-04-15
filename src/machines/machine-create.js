@@ -665,6 +665,7 @@ Polymer({
   },
 
   _cloudChanged(selectedCloud) {
+    this.checkPermissions();
     // clear saved new image of lxd or kvm
     this.set('newImage', '');
     if (selectedCloud && this.model) {
@@ -2650,13 +2651,13 @@ Polymer({
           fieldConstraints = this.constraints.field;
         }
         const datastoreConstraint = fieldConstraints.find(c => {
-          return c.datastore;
+          return c.name === "datastore";
         });
         if (
-          datastoreConstraint.datastore !== undefined &&
-          datastoreConstraint.datastore.show !== undefined
+          datastoreConstraint !== undefined &&
+          datastoreConstraint.show !== undefined
         ) {
-          showDatastores = datastoreConstraint.datastore.show;
+          showDatastores = datastoreConstraint.show;
         }
       }
       this.set(
