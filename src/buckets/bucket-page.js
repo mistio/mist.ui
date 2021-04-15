@@ -193,7 +193,7 @@ Polymer({
         path.pop();
         this.currentPath = path.join('');
       } else {
-        this.currentPath += `${this.clickedItem.name}/`;
+        this.currentPath += `${this.clickedItem.name}`;
       }
     }
   },
@@ -213,9 +213,12 @@ Polymer({
     }
     for (const [path, details] of Object.entries(this.data)) {
       if (path.startsWith(this.currentPath) && path !== this.currentPath) {
-        const name = path.replace(newPath, '').split('/')[0];
+        // delete current path from the full path and split into array where the items have trailing slash e.g: ['aaa/', 'bbb/', 'ccc/']
+        const itemPathArray = path.replace(newPath, '').split(/(?<=\/)/);
+        const name = itemPathArray[0];
         if (!content[name]) {
           details.name = name;
+          details.type = name.endsWith('/') ? 'folder' : 'file';
           content[name] = details;
         }
       }
@@ -255,7 +258,7 @@ Polymer({
           return 'last modified';
         },
         body: (_item, row) => {
-          if (row.name !== '..') {
+          if (row.type !== 'folder') {
             const date = row.extra.last_modified;
             return dayjs.utc(date).local().format();
           }

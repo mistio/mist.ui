@@ -41,7 +41,7 @@ Polymer({
         renderers="[[_getRenderers()]]"
         actions="[[actions]]"
       >
-        <p slot="no-items-found">No volumes found.</p>
+        <p slot="no-items-found">No buckets found.</p>
       </mist-list>
     </template>
     <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
