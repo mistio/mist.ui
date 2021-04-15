@@ -2652,13 +2652,13 @@ Polymer({
         }
         const datastoreConstraint = fieldConstraints.find(c => {
           return c.name === "datastore";
-        });                                  
+        });
         if (
           datastoreConstraint !== undefined &&
           datastoreConstraint.show !== undefined
         ) {
           showDatastores = datastoreConstraint.show;
-        }          
+        }
       }
       this.set(
         `machineFields.${this.machineFields.indexOf(
