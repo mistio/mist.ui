@@ -503,6 +503,7 @@ Polymer({
     if (
       this.fields &&
       event &&
+      event.path &&
       event.path
         .map(i => {
           return i.id;
