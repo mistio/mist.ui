@@ -5,7 +5,6 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
-import '../app-form/app-form.js';
 import '@mistio/mist-form/mist-form.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -67,8 +66,8 @@ Polymer({
             id="[[formId}}"
             src="[[mistFormFields.src]]"
             dynamic-data-namespace="[[mistFormFields.formData]]"
-            value="{{mistValue}}"
-            on-mist-form-request="[[_mistFormSubmit]]"
+            initial-values="[[initialValues]]"
+            on-mist-form-request="_closeDialog"
             on-mist-form-cancel="_dismissDialog"
           >
           </mist-form>
@@ -103,12 +102,6 @@ Polymer({
     mistformfields: {
       type: Object,
     },
-    mistValue: {
-      type: Object,
-      value() {
-        return {};
-      },
-    },
     hideText: {
       type: Boolean,
       value: false,
@@ -123,18 +116,18 @@ Polymer({
       value: '',
     },
   },
-  _openDialog(_e) {
+  _openDialog() {
     this.$.dialogModal.opened = true;
   },
-
+  _dismissDialog() {
+    this.$.dialogModal.opened = false;
+  },
   _closeDialog(e) {
     this.$.dialogModal.opened = false;
     this._modalClosed(e);
   },
-  _dismissDialog(_e) {
-    this.$.dialogModal.opened = false;
-  },
-  _modalClosed(_e) {
+
+  _modalClosed(e) {
     this.dispatchEvent(
       new CustomEvent('confirmation', {
         bubbles: true,
@@ -143,10 +136,9 @@ Polymer({
           response: 'confirm',
           confirmed: true,
           reason: this.reason,
-          value: this.mistValue,
+          value: e.detail.params,
         },
       })
     );
-    // }
   },
 });
