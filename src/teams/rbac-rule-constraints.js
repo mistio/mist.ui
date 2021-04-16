@@ -89,6 +89,7 @@ Polymer({
         id="editConstraints"
         formid="editConstraints-[[index]]"
         mist-form-fields="[[mistFormFields]]"
+        initial-values="[[rule.constraints]]"
       >
       </mist-form-dialog>
     </template>
@@ -186,17 +187,16 @@ Polymer({
 
   _updateRuleConstraints(e) {
     // update rule.constraints
-    const { reason, response, mistValue } = e.detail;
+    const { reason, response, value } = e.detail;
 
     if (response === 'confirm' && reason === 'edit.constraints') {
-      const newConstraints = JSON.parse(mistValue);
       this.dispatchEvent(
         new CustomEvent('update-constraints', {
           bubbles: true,
           composed: true,
           detail: {
             index: this.index,
-            constraints: newConstraints,
+            constraints: value,
           },
         })
       );
