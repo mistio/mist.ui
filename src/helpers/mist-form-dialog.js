@@ -91,10 +91,6 @@ Polymer({
       type: String,
       value: null,
     },
-    action: {
-      type: String,
-      value: null,
-    },
     subscript: {
       type: String,
       value: false,
@@ -110,10 +106,6 @@ Polymer({
       type: String,
       value: '',
       reflectToAttribute: true,
-    },
-    btnClass: {
-      type: String,
-      value: '',
     },
   },
   _openDialog() {
