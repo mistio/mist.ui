@@ -3187,9 +3187,17 @@ Polymer({
   _providersChanged(providers) {
     if(providers.length >= 1){
       const localStorageCloud = localStorage.getItem('createMachine#cloud');
-      const cloud = localStorageCloud == 'false' || localStorageCloud == null ?
-           providers[0].id : localStorageCloud;
-      debugger;
+      let cloud = "";
+      if(localStorageCloud === 'false' || localStorageCloud == null){
+        let maxMachines = 0;
+        for(const provider of providers){
+          if (provider.machines && Object.keys(provider.machines).length > maxMachines){
+            maxMachines = Object.keys(provider.machines).length;
+            cloud = provider.id;
+          }
+        }
+      }
+      else cloud = localStorageCloud;
       this.set('selectedCloud', cloud);
     }
 
