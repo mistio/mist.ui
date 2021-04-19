@@ -381,6 +381,7 @@ Polymer({
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
+    '_providersChanged(providers)'
   ],
 
   listeners: {
@@ -670,6 +671,7 @@ Polymer({
     this.set('newImage', '');
     if (selectedCloud && this.model) {
       this.set('cloud', this.model.clouds[selectedCloud]);
+      localStorage.setItem('createMachine#cloud', selectedCloud);
     }
     if (!this.docs && this.machinesFields) {
       for (let i = 0; i < this.machinesFields.length; i++) {
@@ -781,6 +783,7 @@ Polymer({
       // Reset Form Fields Validation
       this._resetField(el, index);
     });
+    this._providersChanged(this.providers)
   },
 
   _resetField(el, index) {
@@ -3181,4 +3184,22 @@ Polymer({
     }
     return newValue;
   },
+  _providersChanged(providers) {
+    if(providers.length >= 1){
+      const localStorageCloud = localStorage.getItem('createMachine#cloud');
+      let cloud = "";
+      if(localStorageCloud === 'false' || localStorageCloud == null){
+        let maxMachines = 0;
+        for(const provider of providers){
+          if (provider.machines && Object.keys(provider.machines).length > maxMachines){
+            maxMachines = Object.keys(provider.machines).length;
+            cloud = provider.id;
+          }
+        }
+      }
+      else cloud = localStorageCloud;
+      this.set('selectedCloud', cloud);
+    }
+
+  }
 });
