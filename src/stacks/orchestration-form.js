@@ -147,6 +147,7 @@ Polymer({
   _updateFields(e) {
     const changeInYaml =
       e &&
+      e.path &&
       e.path.indexOf(
         this.shadowRoot
           .querySelector('app-form')
