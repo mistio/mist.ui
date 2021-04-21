@@ -297,12 +297,6 @@ Polymer({
         this.set(`${notifyPath}optional`, false);
       }
 
-      // if (!notify) {
-      //   this.set(`${notifyPath}disabled`, true);
-      // } else if (notify) {
-      //   this.set(`${notifyPath}defaultValue`, notify);
-      // }
-
       // set max
       this.set(`${notifyPath}max`, this.set(`${expirationPath}value`));
       this._expirationDateChanged();
