@@ -143,13 +143,6 @@ Polymer({
                 </template>
               </paper-listbox>
             </paper-dropdown-menu>
-            <paper-input
-              id="pass"
-              value="{{newToken.password::input}}"
-              label="Password *"
-              type="password"
-            ></paper-input>
-            <p>* Password is required to create a token</p>
             <div class="bottom-actions">
               <paper-button dismiss-dialog="" on-tap="_dismissCreateTokenDialog"
                 >Cancel</paper-button
