@@ -1465,7 +1465,7 @@ Polymer({
             if(imgId) {
               const imgInd = this._fieldIndexByName('image');
               const img = changeRecord.base[imgInd].options.find( el => el.id === imgId);
-              if(img.name.toLowerCase().indexOf('windows') > -1) this._showPassword(img.name);
+              if(img.os_type === 'windows') this._showPassword(img.name);
             }
           }
           // if it is azure arm and machine name is changed
