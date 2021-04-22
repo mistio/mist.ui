@@ -1459,6 +1459,15 @@ Polymer({
               this.set(`machineFields.${networkInd}.options`, locationNetworks);
             }
           }
+          // In azure arm if image is windows type then machine password should show and Key should be hidden
+          if (fieldName === 'image') {
+            const imgId = this.get(changeRecord.path);
+            if(imgId) {
+              const imgInd = this._fieldIndexByName('image');
+              const img = changeRecord.base[imgInd].options.find( el => el.id === imgId);
+              if(img.os_type === 'windows') this._showPassword(img.name);
+            }
+          }
           // if it is azure arm and machine name is changed
           if (fieldName === 'name') {
             // autocomplete resource, storage, network fields
