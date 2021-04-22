@@ -216,12 +216,11 @@ Polymer({
   },
   /* eslint-disable no-param-reassign */
   _applyPermissions(machine, permissions) {
-    if (!this.machine || !permissions) return;
+    if (!this.machine || !permissions.constraints.expiration) return;
     // Get current machine expiration values
     this._initialiseValues(this.machine);
-
     const currentExpiration = this.machine.expiration;
-    const permissionsExpiration = this.permissions.expiration;
+    const permissionsExpiration = this.permissions.constraints.expiration;
 
     const expirationPath = 'fields.0.subfields.1.'; // expiration date
     const actionPath = 'fields.0.subfields.0.';
@@ -230,9 +229,13 @@ Polymer({
     // Current values overweigh permission defaults but not max, and permission defaults overweight field defaults
     if (currentExpiration || permissionsExpiration) {
       // EXPIRATION
-      const { date } = currentExpiration;
-      const fromNow = this._dateToDurationFromNow(date);
-      const notify = currentExpiration.notify || 0;
+      let fromNow = null;
+      let notify = 0;
+      if (currentExpiration) {
+        const { date } = currentExpiration;
+        fromNow = this._dateToDurationFromNow(date);
+        notify = currentExpiration.notify;
+      }
       this.set(
         `${expirationPath}defaultValue`,
         currentExpiration ? fromNow : permissionsExpiration.default
@@ -255,11 +258,9 @@ Polymer({
           const permAvailable = this._toOptionsFormat(
             permissionsExpiration.actions.available
           );
-          available = options.filter(a => {
-            return (
-              permissionsExpiration.actions.available.indexOf(a.val) === -1
-            );
-          });
+          available = options.filter(
+            a => permissionsExpiration.actions.available.indexOf(a.val) === -1
+          );
           available.forEach(a => {
             a.disabled = true;
           });
@@ -287,36 +288,24 @@ Polymer({
           notValue = permissionsExpiration.notify.default;
       }
       // override if current value exist
-      this.set(
-        `${notifyPath}defaultCheck`,
-        currentExpiration ? notify : defCheck
-      );
+      this.set(`${notifyPath}defaultCheck`, notify || defCheck);
       this.set(
         `${notifyPath}defaultValue`,
         currentExpiration ? notify : notValue
       );
-
       if (permissionsExpiration.notify.require) {
         this.set(`${notifyPath}optional`, false);
       }
 
-      if (!notify) {
-        this.set(`${notifyPath}disabled`, true);
-      } else if (notify) {
-        this.set(`${notifyPath}defaultValue`, notify);
-      }
-
       // set max
-      // this.set(notifyPath + 'max', this.set(expirationPath + 'value'));
+      this.set(`${notifyPath}max`, this.set(`${expirationPath}value`));
       this._expirationDateChanged();
     }
   },
   /* eslint-enable no-param-reassign */
   _toOptionsFormat(arr) {
     if (!arr) return [];
-    return arr.map(x => {
-      return { val: x, title: x.toUpperCase() };
-    });
+    return arr.map(x => ({ val: x, title: x.toUpperCase() }));
   },
 
   _initialiseValues(_machine) {
