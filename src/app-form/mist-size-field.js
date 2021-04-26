@@ -8,6 +8,7 @@ import '@polymer/paper-input/paper-input.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-slider/paper-slider.js';
 import '@polymer/paper-listbox/paper-listbox.js';
+import 'js-md5/src/md5.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
@@ -135,7 +136,7 @@ Polymer({
   },
 
   observers: [
-    '_updateCustomValue(field.customSizeFields.*)',
+    '_updateCustomValue(field.customSizeFields.*, field.value)',
     '_updateAllowedSizes(field.options)',
   ],
   showOption(option) {
@@ -172,7 +173,12 @@ Polymer({
   },
 
   _updateCustomValue(_e) {
-    if (!this.field.custom) {
+    if (this.field.value.includes('customSize')){
+      this.field.custom = true;
+      const option = this.field.options.find(opt => opt.id === this.field.value);
+      this.set('field.customValue', option);
+    }
+    else if (!this.field.custom) {
       this.set('field.customValue', false);
     } else if (this.field.custom && this.field.customSizeFields) {
       const cv = {};
@@ -205,17 +211,43 @@ Polymer({
     );
   },
   _updateAllowedSizes(options) {
-    const { allowed } = this.field;
-    const notAllowed = this.field.not_allowed;
-
-    if (allowed instanceof Array) {
+    let { allowed } = this.field;
+    if(allowed && !(allowed instanceof Array)) allowed = [allowed]
+    let notAllowed = this.field.not_allowed;
+    if(notAllowed && !(notAllowed instanceof Array)) notAllowed = [notAllowed]
+    const allowedCustom = []
+    if(allowed){
+      allowed = allowed.filter(size => {
+        if(typeof(size) !== "string"){
+          allowedCustom.push(size);
+          return false;
+        }
+        return true;
+      });
+    }
+    if(allowedCustom.length > 0 && this.field.options.length === 0){
+        allowedCustom.forEach(size => {
+          size["disk_primary"] = size.disk
+          size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
+          let toHash = `${size.ram}${size.cpu}`
+          if(size.disk){
+            size.name += `, Disk: ${size.disk} GB`;
+            toHash += `${size.disk}`
+          }
+          size.id = 'customSize' + md5(toHash);
+          this.push('field.options', size);
+        });
+        this.set('allowedSizes', this.field.options);
+        return;
+    }
+    if (allowed && allowed.length > 0) {
       this.set(
         'allowedSizes',
         options.filter(option => this._allowedInOption(allowed, option))
       );
       return;
     }
-    if (notAllowed instanceof Array) {
+    if (notAllowed && notAllowed.length > 0) {
       this.set(
         'allowedSizes',
         options.filter(option => !this._allowedInOption(notAllowed, option))
@@ -224,6 +256,7 @@ Polymer({
     }
     this.set('allowedSizes', options);
   },
+
   _filter(options, search) {
     return options
       ? this._sort(

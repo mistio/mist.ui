@@ -454,6 +454,19 @@ Polymer({
       const path = `machinesFields.${index}.fields.${sizeIndex}`;
       const { customSizeFields } = machineField.fields[sizeIndex];
 
+      if (constraint.allowed) {
+        if (customSizeFields) {
+          // for(const f of ['ram', 'cpu', 'disk']){
+          //   constraint[f] = constraint[f] || {};
+          //   constraint[f].show = false;
+          // }
+          this.set(`${path}.custom`, false);
+        }
+        this.set(`${path}.allowed`, constraint.allowed);
+      }
+      if (constraint.not_allowed && !customSizeFields) {
+        this.set(`${path}.not_allowed`, constraint.not_allowed);
+      }
       customFields.forEach(field => {
         if (constraint[field] && customSizeFields) {
           const fieldIndex = this._fieldIndexByName(field, customSizeFields);
@@ -477,13 +490,6 @@ Polymer({
           }
         }
       });
-
-      if (constraint.allowed && !customSizeFields) {
-        this.set(`${path}.allowed`, constraint.allowed);
-      }
-      if (constraint.not_allowed && !customSizeFields) {
-        this.set(`${path}.not_allowed`, constraint.not_allowed);
-      }
     });
   },
 

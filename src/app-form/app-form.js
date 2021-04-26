@@ -1962,6 +1962,9 @@ Polymer({
         if (field.type === 'mist_size' && field.value === 'custom') {
           payload[field.name] = field.customValue;
         }
+        if (field.type === 'mist_size' && field.value.includes('customSize')) {
+          payload[field.name] = field.customValue;
+        }
         if (field.type === 'fieldgroup') {
           if (!field.enabled) {
             excludeFields.push(field);
