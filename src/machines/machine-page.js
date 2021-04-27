@@ -4,7 +4,6 @@ import '@polymer/paper-toast/paper-toast.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@mistio/mist-list/mist-list.js';
 import '../helpers/dialog-element.js';
-import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import '../mist-rules/mist-rules.js';
 import '../mist-monitoring.js';
@@ -12,9 +11,10 @@ import './machine-expiration-edit.js';
 import './machine-actions.js';
 import './machine-r12ns.js';
 import moment from 'moment/src/moment.js';
-import { ratedCost, itemUid, CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { ratedCost, itemUid, CSRFToken } from '../helpers/utils.js';
+import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 
 Polymer({
   _template: html`
@@ -1050,7 +1050,9 @@ Polymer({
     },
     cloud: {
       type: Object,
-      value: {},
+      value() {
+        return {};
+      },
     },
     volumes: {
       type: Array,
@@ -1201,7 +1203,6 @@ Polymer({
   },
 
   observers: [
-    '_isMonitored(machine.monitoring.hasmonitoring)',
     '_machineChanged(machine.*, model.machines.*)',
     '_getMachineCloud(model.clouds.*, machine.cloud)',
     '_renderMachineKeys(machineKeys.length)',
@@ -1243,12 +1244,12 @@ Polymer({
   },
 
   _computeCanEditMachine(machineId, _model) {
-    const perm = this.checkPerm('edit', 'machine', machineId);
+    const perm = this.checkPerm('machine', 'edit', machineId);
     return perm !== false;
   },
 
   _computeCanDeleteExpiration(machineId, _model) {
-    const perm = this.checkPerm('edit', 'machine', machineId);
+    const perm = this.checkPerm('machine', 'edit', machineId);
     return (
       perm === true ||
       !perm.expiration ||
@@ -1441,10 +1442,6 @@ Polymer({
 
   _isEqual(a, b) {
     return a === b;
-  },
-
-  _isMonitored(machineIsMonitored) {
-    return machineIsMonitored;
   },
 
   _computeIsActivated(machine, _monitoring) {
@@ -2243,7 +2240,7 @@ Polymer({
   },
   _canShowCost() {
     if (this.machine && this.machine.cost){
-      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('read_cost','cloud') === true;
+      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('cloud', 'read_cost') === true;
     }
     return false;
   }

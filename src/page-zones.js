@@ -54,7 +54,7 @@ Polymer({
 
       <div
         class="absolute-bottom-right"
-        hidden$="[[!checkPerm('add','zone', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('zone', 'add', null, model.org, model.user)]]"
       >
         <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
       </div>
@@ -260,7 +260,7 @@ Polymer({
           let display = '';
           Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
-            if (tags[key] !== undefined && tags[key] !== '')
+            if (tags[key] != null && tags[key] !== '')
               display += `=${tags[key]}`;
             display += '</span>';
           });

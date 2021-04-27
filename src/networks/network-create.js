@@ -266,45 +266,6 @@ NETWORK_CREATE_FIELDS.push({
   ],
 });
 
-// GIG G8
-NETWORK_CREATE_FIELDS.push({
-  provider: 'gig_g8',
-  fields: [
-    {
-      name: 'name',
-      label: 'Name *',
-      type: 'text',
-      value: '',
-      defaultValue: '',
-      placeholder: '',
-      errorMessage: "Please enter network's name",
-      show: true,
-      required: true,
-      inPayloadGroup: 'network',
-    },
-    {
-      name: 'network_type',
-      label: 'Type',
-      type: 'dropdown',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: false,
-      options: [
-        {
-          title: 'Virtual Gateway',
-          val: 'vgw',
-        },
-        {
-          title: 'Router OS',
-          val: 'routeros',
-        },
-      ],
-      inPayloadGroup: 'network',
-    },
-  ],
-});
-
 // EC2
 NETWORK_CREATE_FIELDS.push({
   provider: 'ec2',
@@ -465,7 +426,7 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[hasCloudsWithNetworks]]">
         <p>
-          To add a network you need to have an enabled Openstack, Gig G8, GCE or
+          To add a network you need to have an enabled Openstack, GCE or
           EC2 cloud in your account. <br />
           Add a cloud using the
           <a href="/clouds/+add" class="blue-link regular">add cloud form</a>
@@ -569,7 +530,7 @@ Polymer({
       this.model &&
       this.model.cloudsArray.filter(cloud => {
         return (
-          ['openstack', 'gce', 'ec2', 'lxd', 'gig_g8'].indexOf(cloud.provider) >
+          ['openstack', 'gce', 'ec2', 'lxd'].indexOf(cloud.provider) >
           -1
         );
       });

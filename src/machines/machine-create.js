@@ -154,7 +154,7 @@ Polymer({
       <paper-material hidden$="[[_hasProviders(providers)]]">
         <p>
           You don't have any clouds.
-          <span hidden$="[[!checkPerm('add','cloud')]]">
+          <span hidden$="[[!checkPerm('cloud', 'add')]]">
             <a href="/clouds/+add" class="blue-link regular">Add a cloud</a> to
             get started creating machines.
           </span>
@@ -381,6 +381,7 @@ Polymer({
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
+    '_providersChanged(providers)'
   ],
 
   listeners: {
@@ -391,19 +392,23 @@ Polymer({
     'subfield-enabled': '_subfieldEnabled',
   },
 
+  attached() {
+    this.checkPermissions();
+  },
+
   _teamsChanged() {
     console.log('_teamsChanged CALL checkPermissions');
     this.checkPermissions();
   },
 
   checkPermissions() {
-    const perm = this.checkPerm('create', 'machine');
+    const perm = this.checkPerm('machine', 'create');
     if (perm === true) {
       // FIXME why is it empty?
     } else if (perm === false) {
       // FIXME why is it empty?
     } else if (typeof perm === 'object') {
-      this.set('constraints', perm);
+      this.set('constraints', perm.constraints);
     }
     // console.log('checkPermissions', perm);
   },
@@ -661,10 +666,12 @@ Polymer({
   },
 
   _cloudChanged(selectedCloud) {
+    this.checkPermissions();
     // clear saved new image of lxd or kvm
     this.set('newImage', '');
     if (selectedCloud && this.model) {
       this.set('cloud', this.model.clouds[selectedCloud]);
+      localStorage.setItem('createMachine#cloud', selectedCloud);
     }
     if (!this.docs && this.machinesFields) {
       for (let i = 0; i < this.machinesFields.length; i++) {
@@ -776,6 +783,7 @@ Polymer({
       // Reset Form Fields Validation
       this._resetField(el, index);
     });
+    this._providersChanged(this.providers)
   },
 
   _resetField(el, index) {
@@ -833,8 +841,8 @@ Polymer({
           );
           const locations = allLocations.filter(l => {
             const checkPerm = this.checkPerm(
-              'create_resources',
               'location',
+              'create_resources',
               l.id
             );
             return checkPerm !== false;
@@ -1043,7 +1051,7 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (provider === 'openstack' || provider === 'gig_g8') {
+            if (provider === 'openstack') {
               const nameIndex = options.findIndex(entry => {
                 return entry.name === 'name';
               });
@@ -1095,11 +1103,6 @@ Polymer({
       // if is lxd, change required values
       if (this.model.clouds[this.selectedCloud].provider === 'lxd') {
         this._updateFieldsForLxd();
-      }
-
-      // if is gig_g8 require network
-      if (this.model.clouds[this.selectedCloud].provider === 'gig_g8') {
-        this._updateFieldsForGigG8();
       }
 
       // if is azure arm, change required values
@@ -1454,6 +1457,15 @@ Polymer({
             const networkInd = this._fieldIndexByName('ex_networks');
             if (networkInd > -1) {
               this.set(`machineFields.${networkInd}.options`, locationNetworks);
+            }
+          }
+          // In azure arm if image is windows type then machine password should show and Key should be hidden
+          if (fieldName === 'image') {
+            const imgId = this.get(changeRecord.path);
+            if(imgId) {
+              const imgInd = this._fieldIndexByName('image');
+              const img = changeRecord.base[imgInd].options.find( el => el.id === imgId);
+              if(img.os_type === 'windows') this._showPassword(img.name);
             }
           }
           // if it is azure arm and machine name is changed
@@ -1843,17 +1855,6 @@ Polymer({
       if (this.get(`machineFields.${locInd}.options`).length === 0) {
         this.set(`machineFields.${locInd}.show`, false);
       }
-    }
-  },
-
-  _updateFieldsForGigG8() {
-    const netInd = this._fieldIndexByName('networks');
-    if (netInd > -1) {
-      this.set(
-        `machineFields.${netInd}.options`,
-        this._toArray(this.model.clouds[this.selectedCloud].networks)
-      );
-      this.set(`machineFields.${netInd}.required`, true);
     }
   },
 
@@ -2662,9 +2663,12 @@ Polymer({
           fieldConstraints = this.constraints.field;
         }
         const datastoreConstraint = fieldConstraints.find(c => {
-          return c.name && c.name === 'datastore';
+          return c.name === "datastore";
         });
-        if (datastoreConstraint.show !== undefined) {
+        if (
+          datastoreConstraint !== undefined &&
+          datastoreConstraint.show !== undefined
+        ) {
           showDatastores = datastoreConstraint.show;
         }
       }
@@ -2899,7 +2903,6 @@ Polymer({
           'onapp',
           'libvirt',
           'vshere',
-          'gig_g8',
           'kubevirt',
         ].indexOf(this.model.clouds[this.selectedCloud].provider) < 0
       )
@@ -2954,7 +2957,7 @@ Polymer({
     return this._toArray(this.model.clouds).filter(c => {
       return (
         ['bare_metal'].indexOf(c.provider) === -1 &&
-        this.checkPerm('create_resources', 'cloud', c.id)
+        this.checkPerm('cloud', 'create_resources', c.id)
       );
     });
   },
@@ -3190,4 +3193,22 @@ Polymer({
     }
     return newValue;
   },
+  _providersChanged(providers) {
+    if(providers.length >= 1){
+      const localStorageCloud = localStorage.getItem('createMachine#cloud');
+      let cloud = "";
+      if(localStorageCloud === 'false' || localStorageCloud == null){
+        let maxMachines = 0;
+        for(const provider of providers){
+          if (provider.machines && Object.keys(provider.machines).length > maxMachines){
+            maxMachines = Object.keys(provider.machines).length;
+            cloud = provider.id;
+          }
+        }
+      }
+      else cloud = localStorageCloud;
+      this.set('selectedCloud', cloud);
+    }
+
+  }
 });

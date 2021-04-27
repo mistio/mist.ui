@@ -397,7 +397,8 @@ Polymer({
     if (this.ccRequired) {
       this._ccDismissed();
     }
-    if (!this.config.theme) {
+    // eslint-disable-next-line
+    if (!CONFIG.theme) {
       import('./styles/app-theme.js').then(console.log('Loaded default theme'));
     }
   },
@@ -819,6 +820,13 @@ Polymer({
           'associate_key',
           'disassociate_key',
           'read_logs',
+          'attach_volume',
+          'detach_volume',
+          'create_snapshot',
+          'remove_snapshot',
+          'revert_to_snapshot',
+          'undefine',
+          'expose',
         ],
         network: [
           'add',

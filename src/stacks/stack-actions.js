@@ -8,9 +8,9 @@ import '@mistio/mist-list/mist-list-actions.js';
 import '@mistio/mist-list/mist-list-actions-behavior.js';
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 const STACK_ACTIONS = {
   deploy: {
@@ -324,14 +324,12 @@ Polymer({
     let isection = new Set();
     let multiActions = [];
     if (this.items.length > 0) {
-      actions = new Set(this.itemActions(this.items[0]) || []);
-      actions.add(this.user);
+      actions = new Set(this.itemActions(this.items[0]) || [], this.user);
 
       for (let i = 1; i < this.items.length; i++) {
         isection = new Set(
-          intersection(this.itemActions(this.items[i]), actions)
+          intersection(this.itemActions(this.items[i], this.user), actions)
         );
-        isection.add(this.user);
         actions = new Set(isection);
       }
 

@@ -56,7 +56,7 @@ Polymer({
       </template-actions>
       <div
         class="absolute-bottom-right"
-        hidden$="[[!checkPerm('add','template', null, model.org, model.user)]]"
+        hidden$="[[!checkPerm('template', 'add', null, model.org, model.user)]]"
       >
         <paper-fab
           id="templateAdd"
@@ -200,7 +200,7 @@ Polymer({
           let display = '';
           Object.keys(tags || {}).sort().forEach(key => {
             display += `<span class='tag'>${key}`;
-            if (tags[key] !== undefined && tags[key] !== '')
+            if (tags[key] != null && tags[key] !== '')
               display += `=${tags[key]}`;
             display += '</span>';
           });
