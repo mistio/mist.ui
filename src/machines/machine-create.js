@@ -456,10 +456,6 @@ Polymer({
 
       if (constraint.allowed) {
         if (customSizeFields) {
-          // for(const f of ['ram', 'cpu', 'disk']){
-          //   constraint[f] = constraint[f] || {};
-          //   constraint[f].show = false;
-          // }
           this.set(`${path}.custom`, false);
         }
         this.set(`${path}.allowed`, constraint.allowed);
