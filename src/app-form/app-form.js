@@ -1959,10 +1959,7 @@ Polymer({
 
       // if there's a list field add it as a nested object under the subform title.
       this.fields.forEach(field => {
-        if (field.type === 'mist_size' && field.value === 'custom') {
-          payload[field.name] = field.customValue;
-        }
-        if (field.type === 'mist_size' && field.value.includes('customSize')) {
+        if (field.type === 'mist_size' && (field.value === 'custom' || field.value.includes('customSize'))) {
           payload[field.name] = field.customValue;
         }
         if (field.type === 'fieldgroup') {
