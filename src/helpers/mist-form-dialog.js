@@ -67,6 +67,7 @@ Polymer({
             src="[[mistFormFields.src]]"
             dynamic-data-namespace="[[mistFormFields.formData]]"
             initial-values="[[initialValues]]"
+            transform-initial-values="[[transformInitialValues]]"
             on-mist-form-request="_closeDialog"
             on-mist-form-cancel="_dismissDialog"
           >

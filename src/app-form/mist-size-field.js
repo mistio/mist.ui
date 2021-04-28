@@ -137,6 +137,7 @@ Polymer({
   observers: [
     '_updateCustomValue(field.customSizeFields.*)',
     '_updateAllowedSizes(field.options)',
+    '_valueChanged(field.customValue, field.value)',
   ],
   showOption(option) {
     if (option.name) return option.name;
@@ -170,7 +171,20 @@ Polymer({
       field.custom === true || !this.field.options || !this.field.options.length
     );
   },
-
+  _valueChanged() {
+    const value = this.field.customValue
+      ? this.field.customValue
+      : this.field.value;
+    this.dispatchEvent(
+      new CustomEvent('value-changed', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value,
+        },
+      })
+    );
+  },
   _updateCustomValue(_e) {
     if (!this.field.custom) {
       this.set('field.customValue', false);
@@ -227,11 +241,9 @@ Polymer({
   _filter(options, search) {
     return options
       ? this._sort(
-          options.filter(op => {
-            return (
-              op.name && (!search || this._nameContainsStr(op.name, search))
-            );
-          })
+          options.filter(
+            op => op.name && (!search || this._nameContainsStr(op.name, search))
+          )
         )
       : [];
   },
