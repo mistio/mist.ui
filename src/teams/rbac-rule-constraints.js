@@ -7,6 +7,7 @@ import '@polymer/paper-input/paper-textarea.js';
 import '../helpers/mist-form-dialog.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 
 Polymer({
   _template: html`
@@ -131,6 +132,27 @@ Polymer({
               }),
               dependencies: ['expiration.actions.available'],
             },
+            clouds: () =>
+              this.model.cloudsArray
+                .map(cloud => {
+                  const size = MACHINE_CREATE_FIELDS.find(
+                    machine => machine.provider === cloud.provider
+                  ).fields.find(field => field.name === 'size');
+                  if (
+                    Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')
+                  ) {
+                    size.options = [...cloud.sizesArray];
+                  }
+                  return {
+                    id: cloud.id,
+                    provider: cloud.provider,
+                    title: cloud.title,
+                    size,
+                  };
+                })
+                .filter(
+                  cloud => cloud.size.custom || cloud.size.options.length > 0
+                ),
           },
         };
       },
