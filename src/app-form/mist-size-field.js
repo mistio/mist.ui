@@ -210,11 +210,14 @@ Polymer({
       this._nameContainsStr(option.name, allowed)
     );
   },
+   /* eslint-disable no-param-reassign */
   _updateAllowedSizes(options) {
-    let { allowed } = this.field;
-    if(allowed && !(allowed instanceof Array)) allowed = [allowed]
-    let notAllowed = this.field.not_allowed;
-    if(notAllowed && !(notAllowed instanceof Array)) notAllowed = [notAllowed]
+    if(this.field.allowed == null && this.field.not_allowed == null){
+     this.set('allowedSizes', options);
+     return;
+    }
+    let allowed = this.field.allowed ? this.field.allowed[this.field.selectedCloud] : null;
+    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.SelctedCloud] : null;
     const allowedCustom = []
     if(allowed){
       allowed = allowed.filter(size => {
@@ -230,7 +233,7 @@ Polymer({
           size["disk_primary"] = size.disk
           size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
           let toHash = `${size.ram}${size.cpu}`
-          if(size.disk){
+          if(size.disk > 0){
             size.name += `, Disk: ${size.disk} GB`;
             toHash += `${size.disk}`
           }
@@ -240,23 +243,22 @@ Polymer({
         this.set('allowedSizes', this.field.options);
         return;
     }
-    if (allowed && allowed.length > 0) {
+    if (allowed) {
       this.set(
         'allowedSizes',
         options.filter(option => this._allowedInOption(allowed, option))
       );
       return;
     }
-    if (notAllowed && notAllowed.length > 0) {
+    if (notAllowed) {
       this.set(
         'allowedSizes',
         options.filter(option => !this._allowedInOption(notAllowed, option))
       );
       return;
     }
-    this.set('allowedSizes', options);
   },
-
+   /* eslint-enable no-param-reassign */
   _filter(options, search) {
     return options
       ? this._sort(

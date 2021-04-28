@@ -448,7 +448,6 @@ Polymer({
       constraint.size_disk_swap = constraint.swap;
       constraint.disk_swap = constraint.swap;
     }
-
     this.machinesFields.forEach((machineField, index) => {
       const sizeIndex = this._fieldIndexByName('size', machineField.fields);
       const path = `machinesFields.${index}.fields.${sizeIndex}`;
@@ -458,10 +457,28 @@ Polymer({
         if (customSizeFields) {
           this.set(`${path}.custom`, false);
         }
-        this.set(`${path}.allowed`, constraint.allowed);
+        const allowedSizes = {};
+        if(this.model){
+          constraint.allowed.forEach(sizeConstr => {
+            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
+              allowedSizes[sizeConstr.cloud] = allowedSizes[sizeConstr.cloud] || [];
+              allowedSizes[sizeConstr.cloud].push(sizeConstr.size);
+            }
+          });
+        }
+       this.set(`${path}.allowed`, allowedSizes);
       }
       if (constraint.not_allowed && !customSizeFields) {
-        this.set(`${path}.not_allowed`, constraint.not_allowed);
+        const notAllowedSizes = {};
+        if(this.model){
+          constraint.not_allowed.forEach(sizeConstr => {
+            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
+              notAllowedSizes[sizeConstr.cloud] = notAllowedSizes[sizeConstr.cloud] || [];
+              notAllowedSizes[sizeConstr.cloud].push(sizeConstr.size);
+            }
+          });
+        }
+        this.set(`${path}.not_allowed`, notAllowedSizes);
       }
       customFields.forEach(field => {
         if (constraint[field] && customSizeFields) {
@@ -729,6 +746,8 @@ Polymer({
       // provider has no size field
       return;
     }
+    if(['vsphere', 'lxd', 'kubevirt'].indexOf(this.model.clouds[this.selectedCloud].provider) > -1)
+      return;
     const location = this.model.clouds[this.selectedCloud].locations[
       locationId
     ];
@@ -905,6 +924,7 @@ Polymer({
               }
               return 0;
             }) || [];
+          f.selectedCloud = this.selectedCloud;
         }
 
         if (f.name.endsWith('key')) {
