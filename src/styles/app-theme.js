@@ -151,6 +151,7 @@ html {
     --machines-section-color: #8c76d1;
     --networks-section-color: #795548;
     --volumes-section-color: #00838f;
+    --buckets-section-color: #ff590b;
     /*#bf360c;*/
     --zones-section-color: #3F51B5;
     --keys-section-color: #009688;
@@ -276,6 +277,12 @@ html {
 
     --volume-page-head-mixin: {
         background-color: var(--volumes-section-color);
+        color: var(--text-on-dark-bg);
+    }
+    
+    /* buckets/bucket-page.html */
+    --buckets-page-head-mixin: {
+        background-color: var(--buckets-section-color);
         color: var(--text-on-dark-bg);
     }
 
