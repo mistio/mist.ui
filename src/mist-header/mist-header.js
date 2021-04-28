@@ -94,7 +94,7 @@ Polymer({
         padding-left: 24px;
         margin-left: 24px;
         white-space: nowrap;
-        width: 100px;
+        width: 130px;
         text-transform: capitalize;
         margin: auto;
       }
@@ -227,6 +227,13 @@ Polymer({
       :host([color='volumes-section-color']) {
         background-color: var(
           --volumes-section-color,
+          var(--base-section-color)
+        );
+      }
+
+      :host([color='buckets-section-color']) {
+        background-color: var(
+          --buckets-section-color,
           var(--base-section-color)
         );
       }

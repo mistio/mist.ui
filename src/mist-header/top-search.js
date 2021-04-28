@@ -314,6 +314,7 @@ Polymer({
         'templates',
         'tunnels',
         'teams',
+        'buckets',
       ].indexOf(title) > -1
     ) {
       return `All ${title}`;
