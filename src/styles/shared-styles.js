@@ -2109,7 +2109,10 @@ iron-dropdown paper-material {
             :host [part~="content"] {
                 padding: 1px 25px;
                 max-width: 600px;
-
+                height: 100vh;
+            }
+            --paper-dialog-scrollable {
+                height: 100%;
             }
         </style>
     </template>
