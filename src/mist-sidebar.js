@@ -329,7 +329,9 @@ Polymer({
                     icon="[[item.icon]]"
                   ></section-symbol>
                   <span class="title flex-1">
-                    <span class="title-text flex-1">[[item.id]]</span>
+                    <span class="title-text flex-1"
+                      >[[_getSectionName(item.id)]]</span
+                    >
                     <span class="count"
                       >[[_getSectionCount(item.id, sectionsArray)]]</span
                     >
@@ -383,7 +385,8 @@ Polymer({
     },
     sectionsArray: {
       type: Array,
-      computed: '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
+      computed:
+        '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
     },
   },
 
@@ -493,6 +496,11 @@ Polymer({
       return sects.map(y => this.model.sections[y]);
     }
     return [];
+  },
+
+  _getSectionName(sectionId) {
+    const { name, id } = this.model.sections[sectionId];
+    return name || id;
   },
 
   _getSectionCount(name, _sections) {
