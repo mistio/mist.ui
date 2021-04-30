@@ -173,9 +173,8 @@ Polymer({
     );
   },
   _valueChanged() {
-    const value = this.field.customValue
-      ? this.field.customValue
-      : this.field.value;
+    const value =
+      this.field.value === 'custom' ? this.field.customValue : this.field.value;
     this.dispatchEvent(
       new CustomEvent('value-changed', {
         bubbles: true,
