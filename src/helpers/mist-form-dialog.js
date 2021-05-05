@@ -70,7 +70,10 @@ Polymer({
             <p>[[body]]</p>
             <p hidden$="[[!subscript]]">[[subscript]]</p>
           </div>
-          <paper-toggle-button checked="{{showJSON}}">
+          <paper-toggle-button
+            checked="{{showJSON}}"
+            on-checked-changed="_updateInitialValues"
+          >
             JSON
           </paper-toggle-button>
           <mist-form
@@ -82,16 +85,15 @@ Polymer({
             transform-initial-values="[[transformInitialValues]]"
             on-mist-form-request="_closeDialog"
             on-mist-form-cancel="_dismissDialog"
-            on-mist-form-value-changed="_updateInitialValues"
+            on-mist-form-value-changed="_updateFormValue"
           >
           </mist-form>
-
           <template is="dom-if" if="[[showJSON]]" restamp="">
             <code-viewer
               language="json"
               theme="vs-light"
-              read-only
               value="[[_stringifyInitialValues(initialValues)]]"
+              on-editor-value-changed="_updateJsonValue"
             ></code-viewer>
           </template>
         </div>
@@ -134,6 +136,18 @@ Polymer({
       type: Boolean,
       value: false,
     },
+    formValue: {
+      type: Object,
+    },
+    jsonValue: {
+      type: String,
+    },
+  },
+  _updateFormValue(e) {
+    this.formValue = e.detail.value;
+  },
+  _updateJsonValue(e) {
+    this.jsonValue = e.detail.value;
   },
   _openDialog() {
     this.$.dialogModal.opened = true;
@@ -142,7 +156,16 @@ Polymer({
     this.$.dialogModal.opened = false;
   },
   _updateInitialValues(e) {
-    this.initialValues = e.detail.value;
+    const checked = e.detail.value;
+    if (checked) {
+      this.initialValues = this.formValue;
+    } else {
+      try {
+        this.initialValues = JSON.parse(this.jsonValue);
+      } catch (_e) {
+        console.error(_e); // error in the above string (in this case, yes)!
+      }
+    }
   },
   _closeDialog(e) {
     this.$.dialogModal.opened = false;
