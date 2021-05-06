@@ -528,9 +528,6 @@ Polymer({
           if (constraints[c].show !== undefined) {
             this.set(`${path}.show`, constraints[c].show);
           }
-          if (constraints[c].value !== undefined) {
-            this.set(`${path}.value`, constraints[c].value);
-          }
         }
       }
     }
@@ -3180,6 +3177,15 @@ Polymer({
     }
     if (vnfs && vnfs.vnfs) {
       this.set(`machineFields.${vnfsInd}.value`, vnfs.vnfs);
+    }
+
+    if(this.constraints.field) {
+      this.machineFields.forEach((field, index) => {
+        const constraint = this.constraints.field.find(c => c.name === field.name);
+        if (constraint) {
+          this.set(`machineFields.${index}.value`, constraint.value);
+        }
+      });
     }
   },
 
