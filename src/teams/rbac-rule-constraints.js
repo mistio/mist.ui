@@ -147,7 +147,7 @@ Polymer({
                     id: cloud.id,
                     provider: cloud.provider,
                     title: cloud.title,
-                    size,
+                    size: { ...size },
                   };
                 })
                 .filter(
