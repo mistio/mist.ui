@@ -528,6 +528,9 @@ Polymer({
           if (constraints[c].show !== undefined) {
             this.set(`${path}.show`, constraints[c].show);
           }
+          if (constraints[c].value !== undefined) {
+            this.set(`${path}.value`, constraints[c].value);
+          }
         }
       }
     }
