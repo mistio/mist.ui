@@ -230,8 +230,8 @@ Polymer({
      return;
     }
     let allowed = this.field.allowed ? this.field.allowed[this.field.selectedCloud] : null;
-    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.SelctedCloud] : null;
-    const allowedCustom = []
+    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.selectedCloud] : null;
+    const allowedCustom = [];
     if(allowed){
       allowed = allowed.filter(size => {
         if(typeof(size) !== "string"){
