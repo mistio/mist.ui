@@ -750,6 +750,7 @@ Polymer({
                 <template is="dom-if" if="[[canDeleteExpiration]]" restamp="">
                   <iron-icon
                     icon="icons:clear"
+                    class="clear"
                     on-tap="deleteExpiration"
                   ></iron-icon>
                 </template>
