@@ -390,6 +390,7 @@ Polymer({
     'format-payload': 'formatPayload',
     'fields-changed': 'fieldsChanged',
     'subfield-enabled': '_subfieldEnabled',
+    'dropdown-pressed': '_checkSizeLocationOptions'
   },
 
   attached() {
@@ -3210,5 +3211,14 @@ Polymer({
       this.set('selectedCloud', cloud);
     }
 
+  },
+  _checkSizeLocationOptions(event){
+    event.stopPropagation();
+    if(this.selectedCloud && this.model.clouds){
+      const sizeInd = this._fieldIndexByName('size');
+      const locInd = this._fieldIndexByName('location');
+      if(this.machineFields[sizeInd].options.length === 0 || this.machineFields[locInd].options.length === 0){
+        this._cloudChanged(this.selectedCloud);}
+    }
   }
 });
