@@ -138,11 +138,22 @@ Polymer({
                   const size = MACHINE_CREATE_FIELDS.find(
                     machine => machine.provider === cloud.provider
                   ).fields.find(field => field.name === 'size');
+
                   if (
                     Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')
                   ) {
                     size.options = [...cloud.sizesArray];
                   }
+
+                  if (size.customSizeFields) {
+                    size.customSizeFields.map(field => {
+                      if (field.name.includes('disk')) {
+                        field.min = 0;
+                      }
+                      return field;
+                    })
+                  }
+
                   return {
                     id: cloud.id,
                     provider: cloud.provider,
