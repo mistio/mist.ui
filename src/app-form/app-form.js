@@ -818,6 +818,7 @@ Polymer({
                 id$="app-form-[[id]]-[[field.name]]"
                 class="xs12 m6"
                 field="{{field}}"
+                on-tap=_dropdownPressed
               ></mist-size-field>
             </template>
             <template
@@ -878,6 +879,7 @@ Polymer({
                 required="[[field.required]]"
                 always-float-label="[[field.alwaysFloatLabel]]"
                 no-animations=""
+                on-tap=_dropdownPressed
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -2305,4 +2307,11 @@ Polymer({
     }
     return true;
   },
+  _dropdownPressed(e){
+    let field;
+    if(e.target.tagName === "MIST-SIZE-FIELD"){
+      field = 'size';
+    } else field = 'location';
+    this.dispatchEvent(new CustomEvent('dropdown-pressed', {detail:{field: field, component: e.target}, bubbles: true, composed: true}));
+  }
 });
