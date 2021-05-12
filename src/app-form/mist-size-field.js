@@ -229,7 +229,10 @@ Polymer({
      this.set('allowedSizes', options);
      return;
     }
-    let allowed = this.field.allowed ? this.field.allowed[this.field.selectedCloud] : null;
+    let allowed;
+    if(this.field.allowed != null) {
+      allowed = Object.keys(this.field.allowed).length > 0 ? this.field.allowed[this.field.selectedCloud] : [];
+    }
     let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.selectedCloud] : null;
     const allowedCustom = [];
     if(allowed){
@@ -270,6 +273,7 @@ Polymer({
       );
       return;
     }
+    this.set('allowedSizes', options);
   },
    /* eslint-enable no-param-reassign */
   _filter(options, search) {
