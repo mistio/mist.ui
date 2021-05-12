@@ -304,8 +304,9 @@ Polymer({
 
   _jobIdChanged(jobid) {
     // console.log('_jobIdChanged', jobid);
-    if (jobid === false) {
+    if (jobid === false || jobid === undefined) {
       this.stopPolling();
+      this._showLogs(false);
     } else if (jobid && jobid.length) {
       this.startPolling(jobid);
     }
@@ -477,14 +478,11 @@ Polymer({
         },
       },
       name: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       state: {
         body: (item, row) => {
@@ -549,12 +547,11 @@ Polymer({
         },
       },
       cost: {
-        body: (item, _row) => {
-          return item && item.monthly && _this.currency
+        body: (item, _row) =>
+          item && item.monthly && _this.currency
             ? _this.currency.sign +
-                _this._ratedCost(parseFloat(item.monthly), _this.currency.rate)
-            : '';
-        },
+              _this._ratedCost(parseFloat(item.monthly), _this.currency.rate)
+            : '',
         cmp: (row1, row2) => {
           const item1 = row1.cost;
           const item2 = row2.cost;
@@ -564,16 +561,13 @@ Polymer({
         },
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         // sort alphabetically by the rendered string
         cmp: (row1, row2) => {
           const item1 = this.renderers.owned_by.body(row1.owned_by);
@@ -582,16 +576,13 @@ Polymer({
         },
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);
@@ -599,14 +590,11 @@ Polymer({
         },
       },
       created: {
-        body: (item, _row) => {
-          return moment(item).isValid() ? moment.utc(item).fromNow() : '';
-        },
+        body: (item, _row) =>
+          moment(item).isValid() ? moment.utc(item).fromNow() : '',
       },
       size: {
-        body: (item, row) => {
-          return _this.computeSize(row, item);
-        },
+        body: (item, row) => _this.computeSize(row, item),
         cmp: (row1, row2) => {
           const item1 = row1.size;
           const item2 = row2.size;
@@ -623,12 +611,8 @@ Polymer({
         },
       },
       image_id: {
-        title: (_item, _row) => {
-          return 'image';
-        },
-        body: (item, row) => {
-          return _this._computeImage(row, item);
-        },
+        title: (_item, _row) => 'image',
+        body: (item, row) => _this._computeImage(row, item),
         cmp: (row1, row2) => {
           const item1 = row1.image_id;
           const item2 = row2.image_id;
@@ -645,12 +629,9 @@ Polymer({
         },
       },
       expiration: {
-        title: (_item, _row) => {
-          return 'expiration';
-        },
-        body: (item, _row) => {
-          return item && item.date ? moment.utc(item.date).fromNow() : '';
-        },
+        title: (_item, _row) => 'expiration',
+        body: (item, _row) =>
+          item && item.date ? moment.utc(item.date).fromNow() : '',
         cmp: (row1, row2) => {
           const item1 = row1.expiration;
           const item2 = row2.expiration;
@@ -712,15 +693,11 @@ Polymer({
       },
       machine_id: {
         title: 'id (external)',
-        body: i => {
-          return i;
-        },
+        body: i => i,
       },
       public_ips: {
         title: "public ip's",
-        body: ips => {
-          return ips && ips.join(', ');
-        },
+        body: ips => ips && ips.join(', '),
         // when sorting show actual strings first alphabetically, then IPs
         // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
         cmp: (row1, row2) => {
@@ -756,9 +733,7 @@ Polymer({
       // IPs are sorted by their octets, 30.255.255.255 is before 147.0.0.0 since 30 < 147
       private_ips: {
         title: "private ip's",
-        body: ips => {
-          return ips.join(', ');
-        },
+        body: ips => ips.join(', '),
         cmp: (row1, row2) => {
           let item1 = row1.private_ips[0];
           let item2 = row2.private_ips[0];
@@ -789,9 +764,7 @@ Polymer({
         },
       },
       hostname: {
-        body: hostname => {
-          return hostname || '';
-        },
+        body: hostname => hostname || '',
       },
     };
   },
@@ -903,13 +876,12 @@ Polymer({
 
   _machineHasIncidents(machine, incidents) {
     const machineIncidents = incidents
-      ? incidents.filter(inc => {
-          return (
+      ? incidents.filter(
+          inc =>
             inc.machine_id === machine.machine_id &&
             inc.cloud_id === machine.cloud &&
             !inc.finished_at
-          );
-        })
+        )
       : [];
     return machineIncidents ? machineIncidents.length * 1000 : 0;
   },
@@ -981,9 +953,7 @@ Polymer({
   // wrapper of checkPerm for mist-list with machine set as resource type
   _checkPermissions() {
     return {
-      apply: (action, rid) => {
-        return this.checkPerm('machine', action, rid);
-      },
+      apply: (action, rid) => this.checkPerm('machine', action, rid),
     };
   },
 });
