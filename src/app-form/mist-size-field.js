@@ -8,6 +8,7 @@ import '@polymer/paper-input/paper-input.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-slider/paper-slider.js';
 import '@polymer/paper-listbox/paper-listbox.js';
+import 'js-md5/src/md5.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
@@ -135,8 +136,9 @@ Polymer({
   },
 
   observers: [
-    '_updateCustomValue(field.customSizeFields.*)',
+    '_updateCustomValue(field.customSizeFields.*, field.value)',
     '_updateAllowedSizes(field.options)',
+    '_valueChanged(field.customValue, field.value)',
   ],
   showOption(option) {
     if (option.name) return option.name;
@@ -170,9 +172,26 @@ Polymer({
       field.custom === true || !this.field.options || !this.field.options.length
     );
   },
-
+  _valueChanged() {
+    const value =
+      this.field.value === 'custom' ? this.field.customValue : this.field.value;
+    this.dispatchEvent(
+      new CustomEvent('value-changed', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          value,
+        },
+      })
+    );
+  },
   _updateCustomValue(_e) {
-    if (!this.field.custom) {
+    if (this.field.value.includes('customSize')){
+      this.field.custom = true;
+      const option = this.field.options.find(opt => opt.id === this.field.value);
+      this.set('field.customValue', option);
+    }
+    else if (!this.field.custom) {
       this.set('field.customValue', false);
     } else if (this.field.custom && this.field.customSizeFields) {
       const cv = {};
@@ -204,34 +223,61 @@ Polymer({
       this._nameContainsStr(option.name, allowed)
     );
   },
+   /* eslint-disable no-param-reassign */
   _updateAllowedSizes(options) {
-    const { allowed } = this.field;
-    const notAllowed = this.field.not_allowed;
-
-    if (allowed instanceof Array) {
+    if(this.field.allowed == null && this.field.not_allowed == null){
+     this.set('allowedSizes', options);
+     return;
+    }
+    let allowed = this.field.allowed ? this.field.allowed[this.field.selectedCloud] : null;
+    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.selectedCloud] : null;
+    const allowedCustom = [];
+    if(allowed){
+      allowed = allowed.filter(size => {
+        if(typeof(size) !== "string"){
+          allowedCustom.push(size);
+          return false;
+        }
+        return true;
+      });
+    }
+    if(allowedCustom.length > 0 && this.field.options.length === 0){
+        allowedCustom.forEach(size => {
+          size["disk_primary"] = size.disk
+          size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
+          let toHash = `${size.ram}${size.cpu}`
+          if(size.disk > 0){
+            size.name += `, Disk: ${size.disk} GB`;
+            toHash += `${size.disk}`
+          }
+          size.id = 'customSize' + md5(toHash);
+          this.push('field.options', size);
+        });
+        this.set('allowedSizes', this.field.options);
+        return;
+    }
+    if (allowed) {
       this.set(
         'allowedSizes',
         options.filter(option => this._allowedInOption(allowed, option))
       );
       return;
     }
-    if (notAllowed instanceof Array) {
+    if (notAllowed) {
       this.set(
         'allowedSizes',
         options.filter(option => !this._allowedInOption(notAllowed, option))
       );
       return;
     }
-    this.set('allowedSizes', options);
   },
+   /* eslint-enable no-param-reassign */
   _filter(options, search) {
     return options
       ? this._sort(
-          options.filter(op => {
-            return (
-              op.name && (!search || this._nameContainsStr(op.name, search))
-            );
-          })
+          options.filter(
+            op => op.name && (!search || this._nameContainsStr(op.name, search))
+          )
         )
       : [];
   },

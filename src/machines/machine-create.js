@@ -449,12 +449,38 @@ Polymer({
       constraint.size_disk_swap = constraint.swap;
       constraint.disk_swap = constraint.swap;
     }
-
     this.machinesFields.forEach((machineField, index) => {
       const sizeIndex = this._fieldIndexByName('size', machineField.fields);
       const path = `machinesFields.${index}.fields.${sizeIndex}`;
       const { customSizeFields } = machineField.fields[sizeIndex];
 
+      if (constraint.allowed) {
+        if (customSizeFields) {
+          this.set(`${path}.custom`, false);
+        }
+        const allowedSizes = {};
+        if(this.model){
+          constraint.allowed.forEach(sizeConstr => {
+            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
+              allowedSizes[sizeConstr.cloud] = allowedSizes[sizeConstr.cloud] || [];
+              allowedSizes[sizeConstr.cloud].push(sizeConstr.size);
+            }
+          });
+        }
+       this.set(`${path}.allowed`, allowedSizes);
+      }
+      if (constraint.not_allowed && !customSizeFields) {
+        const notAllowedSizes = {};
+        if(this.model){
+          constraint.not_allowed.forEach(sizeConstr => {
+            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
+              notAllowedSizes[sizeConstr.cloud] = notAllowedSizes[sizeConstr.cloud] || [];
+              notAllowedSizes[sizeConstr.cloud].push(sizeConstr.size);
+            }
+          });
+        }
+        this.set(`${path}.not_allowed`, notAllowedSizes);
+      }
       customFields.forEach(field => {
         if (constraint[field] && customSizeFields) {
           const fieldIndex = this._fieldIndexByName(field, customSizeFields);
@@ -478,13 +504,6 @@ Polymer({
           }
         }
       });
-
-      if (constraint.allowed && !customSizeFields) {
-        this.set(`${path}.allowed`, constraint.allowed);
-      }
-      if (constraint.not_allowed && !customSizeFields) {
-        this.set(`${path}.not_allowed`, constraint.not_allowed);
-      }
     });
   },
 
@@ -728,6 +747,8 @@ Polymer({
       // provider has no size field
       return;
     }
+    if(['vsphere', 'lxd', 'kubevirt'].indexOf(this.model.clouds[this.selectedCloud].provider) > -1)
+      return;
     const location = this.model.clouds[this.selectedCloud].locations[
       locationId
     ];
@@ -904,6 +925,7 @@ Polymer({
               }
               return 0;
             }) || [];
+          f.selectedCloud = this.selectedCloud;
         }
 
         if (f.name.endsWith('key')) {
@@ -3156,6 +3178,15 @@ Polymer({
     }
     if (vnfs && vnfs.vnfs) {
       this.set(`machineFields.${vnfsInd}.value`, vnfs.vnfs);
+    }
+
+    if(this.constraints.field) {
+      this.machineFields.forEach((field, index) => {
+        const constraint = this.constraints.field.find(c => c.name === field.name);
+        if (constraint) {
+          this.set(`machineFields.${index}.value`, constraint.value);
+        }
+      });
     }
   },
 
