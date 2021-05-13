@@ -463,6 +463,18 @@ Polymer({
                   </paper-toggle-button>
                   <br hidden$="[[!_isSupportedDNSProvider(cloud.provider)]]" />
                   <paper-toggle-button
+                    id="ObjectStorage-enable-disable"
+                    class="small"
+                    checked$="[[cloud.object_storage_enabled]]"
+                    on-tap="_changeObjectStorageEnabled"
+                    disabled="[[objectstorageloading]]"
+                    hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
+                  >
+                    <span hidden$="[[!cloud.object_storage_enabled]]">Object Storage enabled</span>
+                    <span hidden$="[[cloud.object_storage_enabled]]">Object Storage disabled</span>
+                  </paper-toggle-button>
+                  <br hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]" />
+                  <paper-toggle-button
                     id="OBS-enable-disable"
                     class="small"
                     checked$="[[cloud.observation_logs_enabled]]"
@@ -575,6 +587,16 @@ Polymer({
     ></iron-ajax>
     <tags-list model="[[model]]"></tags-list>
     <dialog-element id="confirm"></dialog-element>
+
+    <iron-ajax
+      id="cloudEditObjectStorageAjaxRequest"
+      url="/api/v1/clouds/[[cloud.id]]"
+      handle-as="xml"
+      method="POST"
+      on-response="_handleCloudEditObjectStorageAjaxResponse"
+      on-error="_handleCloudEditObjectStorageAjaxError"
+      loading="{{objectstorageloading}}"
+    ></iron-ajax>
   `,
 
   is: 'cloud-page',
@@ -809,6 +831,16 @@ Polymer({
     );
   },
 
+  _isSupportedObjectStorageProvider(provider) {
+    // FIXME: Don't hardcode this. Backend needs to pass this info to ui.
+    return (
+      [
+        'ec2',
+        'openstack',
+      ].indexOf(provider) > -1
+    );
+  },
+
   _isBareMetal(provider) {
     return provider === 'bare_metal';
   },
@@ -916,6 +948,42 @@ Polymer({
     this.shadowRoot.querySelector(
       '#DNS-enable-disable'
     ).checked = this.cloud.dns_enabled;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: e.detail.request.xhr.response, duration: 10000 },
+      })
+    );
+  },
+
+  _changeObjectStorageEnabled() {
+    const objectStorageEnabled = this.cloud.object_storage_enabled ? 0 : 1;
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Content-Type'] = 'application/json';
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.cloudEditObjectStorageAjaxRequest.body = {
+      object_storage_enabled: objectStorageEnabled,
+    };
+    this.$.cloudEditObjectStorageAjaxRequest.generateRequest();
+  },
+
+  _handleCloudEditObjectStorageAjaxResponse() {
+    const message = this.shadowRoot.querySelector('#ObjectStorage-enable-disable').checked
+      ? `Object Storage support for ${this.cloud.title} enabled!`
+      : `Object Storage support for ${this.cloud.title} disabled!`;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: message, duration: 5000 },
+      })
+    );
+  },
+
+  _handleCloudEditObjectStorageAjaxError(e) {
+    this.shadowRoot.querySelector(
+      '#ObjectStorage-enable-disable'
+    ).checked = this.cloud.object_storage_enabled;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
