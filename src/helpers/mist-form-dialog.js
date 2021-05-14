@@ -14,16 +14,6 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 Polymer({
   _template: html`
     <style include="shared-styles dialogs forms">
-      vaadin-dialog {
-        max-width: 450px;
-      }
-      vaadin-dialog {
-        max-width: 450px;
-      }
-      vaadin-dialog h2 {
-        text-transform: capitalize;
-      }
-
       p.margin {
         margin: 16px 0 !important;
       }
@@ -32,26 +22,10 @@ Polymer({
         color: rgba(0, 0, 0, 0.54);
         font-size: 16px;
       }
-      :host paper-checkbox {
-        float: left;
-        padding-top: 13px;
-        margin-right: 0;
-        --paper-checkbox-checked-color: var(--mist-blue) !important;
-        --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
-      }
     </style>
 
     <vaadin-dialog id="dialogModal" theme="mist-form-dialog" with-backdrop="">
       <style>
-        h2::first-letter {
-          text-transform: capitalize;
-        }
-        :host [part~='overlay'] {
-          padding: 20px;
-        }
-        :host [part~='content'] {
-          height: 600px;
-        }
         :host paper-checkbox {
           float: left;
           padding-top: 13px;
@@ -60,7 +34,7 @@ Polymer({
           --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
         }
         code-viewer {
-          height: 100vh;
+          height: 80vh;
         }
       </style>
       <template>
@@ -159,11 +133,11 @@ Polymer({
     const checked = e.detail.value;
     if (checked) {
       this.initialValues = this.formValue;
-    } else {
+    } else if (this.jsonValue) {
       try {
         this.initialValues = JSON.parse(this.jsonValue);
       } catch (_e) {
-        console.error(_e); // error in the above string (in this case, yes)!
+        console.error(_e);
       }
     }
   },

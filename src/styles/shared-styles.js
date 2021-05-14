@@ -2092,26 +2092,20 @@ iron-dropdown paper-material {
                 padding: 1px 25px;
                 max-width: 450px;
             }
-        </style>
-    </template>
-</dom-module>
-</dom-module><dom-module id="mist-form-dialog" theme-for="vaadin-dialog-overlay">
-    <template>
-        <style include="shared-styles">
-            :host [part~="backdrop"]{
+            :host([theme~="mist-form-dialog"]) [part~="backdrop"]{
                 background-color: rgba(0,0,0,0.6);
             }
-            :host [part~="overlay"] {
+            :host([theme~="mist-form-dialog"]) [part~="overlay"] {
                 width: 600px;
                 border-radius: 0;
                 font-family: 'Roboto', 'Noto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             }
-            :host [part~="content"] {
+            :host([theme~="mist-form-dialog"]) [part~="content"] {
                 padding: 1px 25px;
                 max-width: 600px;
-                height: 100vh;
+                height: 90vh;
             }
-            --paper-dialog-scrollable {
+            :host([theme~="mist-form-dialog"]) --paper-dialog-scrollable {
                 height: 100%;
             }
         </style>
