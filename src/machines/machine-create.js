@@ -182,6 +182,7 @@ Polymer({
                   <img
                     src="[[_computeProviderLogo(provider.provider)]]"
                     width="24px"
+                    alt="[[provider.title]]"
                   />[[provider.title]]</paper-item
                 >
               </template>
@@ -214,7 +215,6 @@ Polymer({
         id="kvmImageInput"
         label="[[_computeAddImageLabel(selectedCloud)]]"
         value="{{newImage}}"
-        autofocus=""
       ></paper-input>
       <div class="btn-group">
         <paper-button dialog-dismiss="">Cancel</paper-button>
@@ -381,7 +381,7 @@ Polymer({
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
-    '_providersChanged(providers)'
+    '_providersChanged(providers)',
   ],
 
   listeners: {
@@ -390,7 +390,7 @@ Polymer({
     'format-payload': 'formatPayload',
     'fields-changed': 'fieldsChanged',
     'subfield-enabled': '_subfieldEnabled',
-    'dropdown-pressed': '_checkSizeLocationOptions'
+    'dropdown-pressed': '_checkSizeLocationOptions',
   },
 
   attached() {
@@ -459,22 +459,30 @@ Polymer({
           this.set(`${path}.custom`, false);
         }
         const allowedSizes = {};
-        if(this.model){
+        if (this.model) {
           constraint.allowed.forEach(sizeConstr => {
-            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
-              allowedSizes[sizeConstr.cloud] = allowedSizes[sizeConstr.cloud] || [];
+            if (
+              this.model.clouds[sizeConstr.cloud].provider ===
+              machineField.provider
+            ) {
+              allowedSizes[sizeConstr.cloud] =
+                allowedSizes[sizeConstr.cloud] || [];
               allowedSizes[sizeConstr.cloud].push(sizeConstr.size);
             }
           });
         }
-       this.set(`${path}.allowed`, allowedSizes);
+        this.set(`${path}.allowed`, allowedSizes);
       }
       if (constraint.not_allowed && !customSizeFields) {
         const notAllowedSizes = {};
-        if(this.model){
+        if (this.model) {
           constraint.not_allowed.forEach(sizeConstr => {
-            if(this.model.clouds[sizeConstr.cloud].provider === machineField.provider){
-              notAllowedSizes[sizeConstr.cloud] = notAllowedSizes[sizeConstr.cloud] || [];
+            if (
+              this.model.clouds[sizeConstr.cloud].provider ===
+              machineField.provider
+            ) {
+              notAllowedSizes[sizeConstr.cloud] =
+                notAllowedSizes[sizeConstr.cloud] || [];
               notAllowedSizes[sizeConstr.cloud].push(sizeConstr.size);
             }
           });
@@ -596,9 +604,7 @@ Polymer({
           if (this.constraints.expiration.actions.available) {
             // available actions
             const actions = this.constraints.expiration.actions.available.map(
-              x => {
-                return { val: x, title: x.toUpperCase() };
-              }
+              x => ({ val: x, title: x.toUpperCase() })
             );
             this.set(`${path}.0.options`, actions);
           }
@@ -707,9 +713,9 @@ Polymer({
       const provider =
         this.model.clouds[selectedCloud] &&
         this.model.clouds[selectedCloud].provider;
-      allMachinesFields = this.machinesFields.find(c => {
-        return c.provider === provider;
-      });
+      allMachinesFields = this.machinesFields.find(
+        c => c.provider === provider
+      );
     }
 
     // add cloud fields
@@ -735,9 +741,7 @@ Polymer({
   },
 
   _enableHostname(clouds) {
-    return Object.values(clouds).reduce((a, b) => {
-      return a || b.dns_enabled;
-    }, false);
+    return Object.values(clouds).reduce((a, b) => a || b.dns_enabled, false);
   },
 
   _locationChanged(locationId) {
@@ -747,7 +751,11 @@ Polymer({
       // provider has no size field
       return;
     }
-    if(['vsphere', 'lxd', 'kubevirt'].indexOf(this.model.clouds[this.selectedCloud].provider) > -1)
+    if (
+      ['vsphere', 'lxd', 'kubevirt'].indexOf(
+        this.model.clouds[this.selectedCloud].provider
+      ) > -1
+    )
       return;
     const location = this.model.clouds[this.selectedCloud].locations[
       locationId
@@ -768,25 +776,19 @@ Polymer({
     let sizeOptions = [];
     if (location.extra && location.extra.available_instance_types) {
       // provider === "aliyun_ecs"
-      sizeOptions = allSizes.filter(option => {
-        return (
+      sizeOptions = allSizes.filter(
+        option =>
           location.extra.available_instance_types.indexOf(option.external_id) >
           -1
-        );
-      });
+      );
     } else {
-      sizeOptions = allSizes.filter(option => {
-        return (
+      sizeOptions = allSizes.filter(
+        option =>
           !option.extra.regions ||
           option.extra.regions.indexOf(location.external_id) > -1
-        );
-      });
+      );
     }
-    if (
-      sizeOptions.findIndex(item => {
-        return item.id === selectedSize;
-      }) === -1
-    ) {
+    if (sizeOptions.findIndex(item => item.id === selectedSize) === -1) {
       this.set(
         `machineFields.${sizeIndex}.value`,
         this.machineFields[sizeIndex].defaultValue || ''
@@ -805,7 +807,7 @@ Polymer({
       // Reset Form Fields Validation
       this._resetField(el, index);
     });
-    this._providersChanged(this.providers)
+    this._providersChanged(this.providers);
   },
 
   _resetField(el, index) {
@@ -1011,18 +1013,18 @@ Polymer({
         // for volumes options
         if (f.name === 'volumes') {
           const { provider } = this.model.clouds[cloudId];
-          const fieldset = this.volumeFields.find(fieldSet => {
-            return fieldSet.provider === provider;
-          });
+          const fieldset = this.volumeFields.find(
+            fieldSet => fieldSet.provider === provider
+          );
           // remove location field if it exists,
           // the location of the machine will be used instead
           if (fieldset) {
             const options = this._cleanCopy(fieldset.fields);
             if (provider === 'kubevirt') {
               // update kubernetes/kubevirt storage classes
-              const storageClassIndex = options.findIndex(entry => {
-                return entry.name === 'storage_class_name';
-              });
+              const storageClassIndex = options.findIndex(
+                entry => entry.name === 'storage_class_name'
+              );
               if (storageClassIndex > -1) {
                 const storageClassField = options[storageClassIndex];
                 this._updateStorageClasses(cloudId, storageClassField);
@@ -1030,23 +1032,21 @@ Polymer({
               // remove the static volume creation
               const toRemove = ['dynamic', 'volume_type', 'reclaim_policy'];
               for (const item of toRemove) {
-                const ind = options.findIndex(entry => {
-                  return entry.name === item;
-                });
+                const ind = options.findIndex(entry => entry.name === item);
                 if (ind > -1) {
                   options.splice(ind, 1);
                 }
               }
             }
 
-            const locationIndex = options.findIndex(entry => {
-              return entry.name === 'location';
-            });
+            const locationIndex = options.findIndex(
+              entry => entry.name === 'location'
+            );
 
             if (provider === 'lxd') {
-              const storagePoolsIdx = options.findIndex(entry => {
-                return entry.name === 'pool_id';
-              });
+              const storagePoolsIdx = options.findIndex(
+                entry => entry.name === 'pool_id'
+              );
 
               if (storagePoolsIdx > -1) {
                 const storagePoolField = options[storagePoolsIdx];
@@ -1060,24 +1060,24 @@ Polymer({
             }
             // remove resource group fields if they exists,
             // the resource group of the machine will be used instead
-            const resourceGroupFields = options.filter(entry => {
-              return entry.name.indexOf('resource_group') > -1;
-            });
+            const resourceGroupFields = options.filter(
+              entry => entry.name.indexOf('resource_group') > -1
+            );
             // console.log('resourceGroupFields',resourceGroupFields);
             if (resourceGroupFields.length > -1) {
               for (let i = 0; i < resourceGroupFields.length; i++) {
                 const resourceGroupFieldName = resourceGroupFields[i].name;
-                const fieldIndex = options.findIndex(entry => {
-                  return entry.name === resourceGroupFieldName;
-                });
+                const fieldIndex = options.findIndex(
+                  entry => entry.name === resourceGroupFieldName
+                );
                 options.splice(fieldIndex, 1);
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
             if (provider === 'openstack') {
-              const nameIndex = options.findIndex(entry => {
-                return entry.name === 'name';
-              });
+              const nameIndex = options.findIndex(
+                entry => entry.name === 'name'
+              );
               if (nameIndex > -1) {
                 options.splice(nameIndex, 1);
               }
@@ -1088,9 +1088,9 @@ Polymer({
                 fieldValues: ['new'],
               };
             });
-            const existingIndex = f.options.findIndex(entry => {
-              return entry.name === 'volume_id';
-            });
+            const existingIndex = f.options.findIndex(
+              entry => entry.name === 'volume_id'
+            );
             // add provider dependent fields if they do yet not exist
             const names = f.options.map(entry => entry.name);
             for (let i = options.length - 1; i >= 0; i--) {
@@ -1171,6 +1171,16 @@ Polymer({
 
           if (!f.required && f.options && f.options.length === 0) {
             this.set(`machineFields.${ind}.show`, false);
+          }
+          if (this.constraints.field) {
+            this.constraints.field.forEach(c => {
+              if (
+                c.name === f.name &&
+                (c.cloud === '' || c.cloud === this.selectedCloud)
+              ) {
+                this.set(`machineFields.${ind}.value`, c.value);
+              }
+            });
           }
         });
       }
@@ -1317,9 +1327,9 @@ Polymer({
         // add existing volume options filtered by location
         const volumesInd = this._fieldIndexByName('volumes');
         const volumeField = this.get(`machineFields.${volumesInd}`);
-        const existingIndex = volumeField.options.findIndex(f => {
-          return f.name === 'volume_id';
-        });
+        const existingIndex = volumeField.options.findIndex(
+          f => f.name === 'volume_id'
+        );
         // reset
         this.set(
           `machineFields.${volumesInd}.options.${existingIndex}.options`,
@@ -1337,9 +1347,7 @@ Polymer({
           const volumes = this.model.clouds[this.selectedCloud].volumes
             ? Object.values(
                 this.model.clouds[this.selectedCloud].volumes
-              ).filter(v => {
-                return !v.location || v.location === changeRecord.value;
-              })
+              ).filter(v => !v.location || v.location === changeRecord.value)
             : [];
           volumeField.options[existingIndex].options = volumes;
           this.set(
@@ -1474,9 +1482,9 @@ Polymer({
                   this.model.clouds[this.selectedCloud].networks
                 ).slice()
               : [];
-            const locationNetworks = networks.filter(n => {
-              return n.location === changeRecord.value; // FIXME something is wrong here (was location --> changeRecord.value)
-            });
+            const locationNetworks = networks.filter(
+              n => n.location === changeRecord.value // FIXME something is wrong here (was location --> changeRecord.value)
+            );
             const networkInd = this._fieldIndexByName('ex_networks');
             if (networkInd > -1) {
               this.set(`machineFields.${networkInd}.options`, locationNetworks);
@@ -1485,10 +1493,12 @@ Polymer({
           // In azure arm if image is windows type then machine password should show and Key should be hidden
           if (fieldName === 'image') {
             const imgId = this.get(changeRecord.path);
-            if(imgId) {
+            if (imgId) {
               const imgInd = this._fieldIndexByName('image');
-              const img = changeRecord.base[imgInd].options.find( el => el.id === imgId);
-              if(img.os_type === 'windows') this._showPassword(img.name);
+              const img = changeRecord.base[imgInd].options.find(
+                el => el.id === imgId
+              );
+              if (img.os_type === 'windows') this._showPassword(img.name);
             }
           }
           // if it is azure arm and machine name is changed
@@ -1820,9 +1830,7 @@ Polymer({
     if (locationIndex > -1) {
       const filteredLocations = this.machineFields[
         locationIndex
-      ].options.filter(option => {
-        return option.extra.available_instance_types.length;
-      });
+      ].options.filter(option => option.extra.available_instance_types.length);
       this.set(`machineFields.${locationIndex}.options`, filteredLocations);
     }
   },
@@ -2027,15 +2035,15 @@ Polymer({
   },
 
   _filterImagesByLoc(location) {
-    return this.model.clouds[this.selectedCloud].imagesArray.filter(im => {
-      return im.extra.hypervisor_group_id === location;
-    });
+    return this.model.clouds[this.selectedCloud].imagesArray.filter(
+      im => im.extra.hypervisor_group_id === location
+    );
   },
 
   _filterImagesWithNoHyp(_location) {
-    return this.model.clouds[this.selectedCloud].imagesArray.filter(im => {
-      return !im.extra.hypervisor_group_id;
-    });
+    return this.model.clouds[this.selectedCloud].imagesArray.filter(
+      im => !im.extra.hypervisor_group_id
+    );
   },
 
   _updateFieldsForDocker() {
@@ -2130,9 +2138,7 @@ Polymer({
       ? Object.values(this.model.clouds[this.selectedCloud].networks).slice()
       : [];
 
-    const locationNetworks = networks.filter(n => {
-      return n.location === location;
-    });
+    const locationNetworks = networks.filter(n => n.location === location);
 
     if (networkInd > -1) {
       this.set(`machineFields.${networkInd}.options`, locationNetworks);
@@ -2140,9 +2146,7 @@ Polymer({
 
     if (vnfInd > -1) {
       const allVnfs = this.get(`machineFields.${vnfInd}.vnfs`) || [];
-      const locationVNFs = allVnfs.filter(f => {
-        return f.location === location;
-      });
+      const locationVNFs = allVnfs.filter(f => f.location === location);
       const categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(
         locationVNFs
       );
@@ -2152,12 +2156,11 @@ Polymer({
 
   _getLocationImages(location) {
     if (location && this.model && this.model.clouds)
-      return this.model.imagesArray.filter(im => {
-        return (
+      return this.model.imagesArray.filter(
+        im =>
           im.extra &&
           (!im.extra.locations || im.extra.locations.indexOf(location) > -1)
-        );
-      });
+      );
     return [];
   },
 
@@ -2248,9 +2251,9 @@ Polymer({
 
     const allSizes =
       this._toArray(this.model.clouds[this.selectedCloud].sizes) || [];
-    const filteredSizes = allSizes.filter(s => {
-      return s.extra.regions.indexOf(locationExternalId) > -1;
-    });
+    const filteredSizes = allSizes.filter(
+      s => s.extra.regions.indexOf(locationExternalId) > -1
+    );
     this.set(`machineFields.${sizeInd}.options`, filteredSizes);
     // clear previous value if not in filtered sizes
     if (
@@ -2274,12 +2277,10 @@ Polymer({
       ].subnets
         .map(x => x.name)
         .filter((v, i, a) => a.indexOf(v) === i)
-        .map(x => {
-          return {
-            id: x,
-            name: x,
-          };
-        });
+        .map(x => ({
+          id: x,
+          name: x,
+        }));
       this.set(`machineFields.${subnetsInd}.options`, subnetsOptions);
       if (subnetsOptions.length && subnetsInd > -1) {
         this.set(`machineFields.${subnetsInd}.show`, true);
@@ -2397,9 +2398,9 @@ Polymer({
     if (resourceGroup && location) {
       options = this.get(
         `machineFields.${this.storageAccountsFieldIndex}.alloptions`
-      ).filter(o => {
-        return o.resource_group === resourceGroup && o.location === location;
-      });
+      ).filter(
+        o => o.resource_group === resourceGroup && o.location === location
+      );
     }
     // console.log('_filterStorageAccountsOptions', resourceGroup, location, options.length)
     this.set(
@@ -2436,9 +2437,9 @@ Polymer({
     ) {
       options = this._toArray(
         this.model.clouds[this.selectedCloud].networks
-      ).filter(n => {
-        return n.location === location && n.resource_group === resourceGroup;
-      });
+      ).filter(
+        n => n.location === location && n.resource_group === resourceGroup
+      );
     }
     // console.log('_filterNetworksOptions', resourceGroup, location, options.length)
     this.set(
@@ -2685,9 +2686,9 @@ Polymer({
         } else {
           fieldConstraints = this.constraints.field;
         }
-        const datastoreConstraint = fieldConstraints.find(c => {
-          return c.name === "datastore";
-        });
+        const datastoreConstraint = fieldConstraints.find(
+          c => c.name === 'datastore'
+        );
         if (
           datastoreConstraint !== undefined &&
           datastoreConstraint.show !== undefined
@@ -2785,9 +2786,7 @@ Polymer({
     const locInd = this._fieldIndexByName('location');
     const location = this.get(`machineFields.${locInd}.value`);
     const locationVNFs = location
-      ? vnfs.filter(f => {
-          return f.location === location;
-        })
+      ? vnfs.filter(f => f.location === location)
       : vnfs;
     const categorisedVNFs = this._getCategorizedVirtualNetworkFunctions(
       locationVNFs
@@ -2842,14 +2841,12 @@ Polymer({
     // return categorisedArray or default array
     return (
       categorisedArray ||
-      arr.map(x => {
-        return {
-          name: x.interface,
-          id: x.pci_bdf,
-          location: x.location,
-          description: `${x.pci_bdf} - ${x.device.vendor} ${x.device.name}`,
-        };
-      })
+      arr.map(x => ({
+        name: x.interface,
+        id: x.pci_bdf,
+        location: x.location,
+        description: `${x.pci_bdf} - ${x.device.vendor} ${x.device.name}`,
+      }))
     );
   },
 
@@ -2920,14 +2917,9 @@ Polymer({
       }
       // if the provider is Docker or onapp, the key should not be required
       if (
-        [
-          'docker',
-          'lxd',
-          'onapp',
-          'libvirt',
-          'vshere',
-          'kubevirt',
-        ].indexOf(this.model.clouds[this.selectedCloud].provider) < 0
+        ['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'kubevirt'].indexOf(
+          this.model.clouds[this.selectedCloud].provider
+        ) < 0
       )
         if (keyInd > -1) {
           this.set(`machineFields.${keyInd}.required`, true);
@@ -2937,13 +2929,9 @@ Polymer({
 
   _fieldIndexByName(name, context) {
     if (!context) {
-      return this.machineFields.findIndex(f => {
-        return f.name === name;
-      });
+      return this.machineFields.findIndex(f => f.name === name);
     }
-    return context.findIndex(f => {
-      return f.name === name;
-    });
+    return context.findIndex(f => f.name === name);
   },
 
   _machineCreateResponse(e) {
@@ -2977,12 +2965,11 @@ Polymer({
 
   _computeProviders(_model, _clouds) {
     // exclude bare metals and not allowed clouds from provider dropdown list
-    return this._toArray(this.model.clouds).filter(c => {
-      return (
+    return this._toArray(this.model.clouds).filter(
+      c =>
         ['bare_metal'].indexOf(c.provider) === -1 &&
         this.checkPerm('cloud', 'create_resources', c.id)
-      );
-    });
+    );
   },
 
   addInput(e) {
@@ -3179,15 +3166,6 @@ Polymer({
     if (vnfs && vnfs.vnfs) {
       this.set(`machineFields.${vnfsInd}.value`, vnfs.vnfs);
     }
-
-    if(this.constraints.field) {
-      this.machineFields.forEach((field, index) => {
-        const constraint = this.constraints.field.find(c => c.name === field.name);
-        if (constraint) {
-          this.set(`machineFields.${index}.value`, constraint.value);
-        }
-      });
-    }
   },
 
   _hasProviders(providers) {
@@ -3226,30 +3204,36 @@ Polymer({
     return newValue;
   },
   _providersChanged(providers) {
-    if(providers.length >= 1){
+    if (providers.length >= 1) {
       const localStorageCloud = localStorage.getItem('createMachine#cloud');
-      let cloud = "";
-      if(localStorageCloud === 'false' || localStorageCloud == null){
+      let cloud = '';
+      if (localStorageCloud === 'false' || localStorageCloud == null) {
         let maxMachines = 0;
-        for(const provider of providers){
-          if (provider.machines && Object.keys(provider.machines).length > maxMachines){
+        for (const provider of providers) {
+          if (
+            provider.machines &&
+            Object.keys(provider.machines).length > maxMachines
+          ) {
             maxMachines = Object.keys(provider.machines).length;
             cloud = provider.id;
           }
         }
-      }
-      else cloud = localStorageCloud;
+      } else cloud = localStorageCloud;
       this.set('selectedCloud', cloud);
     }
-
   },
-  _checkSizeLocationOptions(event){
+  _checkSizeLocationOptions(event) {
     event.stopPropagation();
-    if(this.selectedCloud && this.model.clouds){
+    if (this.selectedCloud && this.model.clouds) {
       const sizeInd = this._fieldIndexByName('size');
       const locInd = this._fieldIndexByName('location');
-      if(this.machineFields[sizeInd].options.length === 0 || this.machineFields[locInd].options.length === 0){
-        this._cloudChanged(this.selectedCloud);}
+      if (
+        (this.machineFields[sizeInd].options.length === 0 &&
+          !this.machineFields[sizeInd].custom) ||
+        this.machineFields[locInd].options.length === 0
+      ) {
+        this._cloudChanged(this.selectedCloud);
+      }
     }
-  }
+  },
 });
