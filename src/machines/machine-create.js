@@ -1172,7 +1172,7 @@ Polymer({
           if (!f.required && f.options && f.options.length === 0) {
             this.set(`machineFields.${ind}.show`, false);
           }
-          if (this.constraints.field) {
+          if (this.constraints && this.constraints.field) {
             this.constraints.field.forEach(c => {
               if (
                 c.name === f.name &&
