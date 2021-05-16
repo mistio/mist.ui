@@ -55,7 +55,7 @@ Polymer({
     if (providerFields[0] && providerFields[0].options) {
       fields = providerFields[0].options.filter(f => {
         return (
-          f.name !== 'title' && f.name !== 'region' && f.name !== 'dns_enabled'
+          f.name !== 'title' && f.name !== 'region' && f.name !== 'dns_enabled' && f.name !== 'object_storage_enabled'
         );
       });
 

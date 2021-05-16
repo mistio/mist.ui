@@ -87,6 +87,16 @@ PROVIDERS.push({
       required: false,
       helptext: '',
     },
+    {
+      name: 'object_storage_enabled',
+      label: 'Enable Object Storage support',
+      type: 'toggle',
+      value: false,
+      defaultValue: false,
+      show: true,
+      required: false,
+      helptext: '',
+    },
   ],
 });
 
@@ -980,6 +990,16 @@ PROVIDERS.push({
       required: false,
       helptext: 'In most cases you will not have to specify this',
       helpHref: 'http://docs.mist.io/article/27-adding-openstack',
+    },
+    {
+      name: 'object_storage_enabled',
+      label: 'Enable Object Storage support',
+      type: 'toggle',
+      value: false,
+      defaultValue: false,
+      show: true,
+      required: false,
+      helptext: '',
     },
   ],
 });
