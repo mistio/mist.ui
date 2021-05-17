@@ -133,18 +133,25 @@ Polymer({
               dependencies: ['expiration.actions.available'],
             },
             clouds: () =>
-              this.model.cloudsArray
-                .map(cloud => {
-                  const size = MACHINE_CREATE_FIELDS.find(
-                    machine => machine.provider === cloud.provider
-                  ).fields.find(field => field.name === 'size');
+            // Merge the "size" field from MACHINE_CREATE_FIELDS with the sizes from cloudArray
+            // This is done especially for clouds with custom sizes
+            // I use flatMap instead of map so to remove invalid/deprecated clouds
+            this.model.cloudsArray
+                .flatMap(cloud => {
+                  const providerFields = MACHINE_CREATE_FIELDS.find(
+                    field => field.provider === cloud.provider
+                  );
+
+                  if (!providerFields) { return [];}
+
+                  const size = providerFields.fields.find(field => field.name === 'size');
 
                   if (
                     Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')
                   ) {
                     size.options = [...cloud.sizesArray];
                   }
-
+                  // Allow minimum value of 'disk' field to be 0
                   if (size.customSizeFields) {
                     size.customSizeFields.map(field => {
                       if (field.name.includes('disk')) {
@@ -154,12 +161,12 @@ Polymer({
                     })
                   }
 
-                  return {
+                  return [{
                     id: cloud.id,
                     provider: cloud.provider,
                     title: cloud.title,
                     size: { ...size },
-                  };
+                  }];
                 })
                 .filter(
                   cloud => cloud.size.custom || cloud.size.options.length > 0
