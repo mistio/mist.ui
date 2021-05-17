@@ -95,7 +95,7 @@ PROVIDERS.push({
       defaultValue: false,
       show: true,
       required: false,
-      helptext: '',
+      helptext: 'Your IAM user needs to have AmazonS3ReadOnlyAccess policy attached to use this feature',
     },
   ],
 });
