@@ -551,6 +551,8 @@ Polymer({
       const path = `machinesFields.${i}.fields.${ind}.subfields`;
 
       if (ind > -1) {
+        if (this.constraints.expiration)
+          this.set(`machinesFields.${i}.fields.${ind}.enabled`, true);
         if (this.constraints.expiration.max) {
           this.set(`${path}.1.max`, this.constraints.expiration.max);
 

@@ -991,7 +991,8 @@ Polymer({
       url="/api/v1/machines/[[machine.id]]"
       method="PUT"
       on-response="_handleMachineDeleteAjaxResponse"
-      on-error="_handleMachineDeleteAjaxError"
+      on-error="_deleteExpirationAjaxError"
+      handle-as="xml"
     ></iron-ajax>
     <iron-ajax
       id="machineDeleteAjaxRequest"
@@ -1703,6 +1704,20 @@ Polymer({
 
   _updateExpirationLoader(_e) {
     this.set('isPendingExpirationRequest', true);
+  },
+
+  _deleteExpirationAjaxError(e) {
+    this.set('isPendingExpirationRequest', false);
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          msg: e.detail.request.xhr.responseText,
+          duration: 3000,
+        },
+      })
+    );
   },
 
   _feedbackOnScript(e) {
