@@ -186,12 +186,13 @@ Polymer({
     );
   },
   _updateCustomValue(_e) {
-    if (this.field.value.includes('customSize')){
+    if (this.field.value.includes('customSize')) {
       this.field.custom = true;
-      const option = this.field.options.find(opt => opt.id === this.field.value);
+      const option = this.field.options.find(
+        opt => opt.id === this.field.value
+      );
       this.set('field.customValue', option);
-    }
-    else if (!this.field.custom) {
+    } else if (!this.field.custom) {
       this.set('field.customValue', false);
     } else if (this.field.custom && this.field.customSizeFields) {
       const cv = {};
@@ -223,41 +224,43 @@ Polymer({
       this._nameContainsStr(option.name, allowed)
     );
   },
-   /* eslint-disable no-param-reassign */
+  /* eslint-disable no-param-reassign */
   _updateAllowedSizes(options) {
-    if(this.field.allowed == null && this.field.not_allowed == null){
-     this.set('allowedSizes', options);
-     return;
+    if (this.field.allowed == null && this.field.not_allowed == null) {
+      this.set('allowedSizes', options);
+      return;
     }
     let allowed;
-    if(this.field.allowed != null) {
-      allowed = Object.keys(this.field.allowed).length > 0 ? this.field.allowed[this.field.selectedCloud] : [];
+    if (this.field.allowed != null) {
+      allowed =
+        Object.keys(this.field.allowed).length > 0 ? this.field.allowed : [];
     }
-    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.selectedCloud] : null;
+    const notAllowed = this.field.not_allowed ? this.field.not_allowed : null;
     const allowedCustom = [];
-    if(allowed){
+    if (allowed) {
       allowed = allowed.filter(size => {
-        if(typeof(size) !== "string"){
+        if (typeof size !== 'string') {
           allowedCustom.push(size);
           return false;
         }
         return true;
       });
     }
-    if(allowedCustom.length > 0 && this.field.options.length === 0){
-        allowedCustom.forEach(size => {
-          size["disk_primary"] = size.disk
-          size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
-          let toHash = `${size.ram}${size.cpu}`
-          if(size.disk > 0){
-            size.name += `, Disk: ${size.disk} GB`;
-            toHash += `${size.disk}`
-          }
-          size.id = 'customSize' + md5(toHash);
-          this.push('field.options', size);
-        });
-        this.set('allowedSizes', this.field.options);
-        return;
+    if (allowedCustom.length > 0 && this.field.options.length === 0) {
+      allowedCustom.forEach(size => {
+        size.disk_primary = size.disk;
+        size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
+        let toHash = `${size.ram}${size.cpu}`;
+        if (size.disk > 0) {
+          size.name += `, Disk: ${size.disk} GB`;
+          toHash += `${size.disk}`;
+        }
+        // eslint-disable-next-line no-undef
+        size.id = `customSize${md5(toHash)}`;
+        this.push('field.options', size);
+      });
+      this.set('allowedSizes', this.field.options);
+      return;
     }
     if (allowed) {
       this.set(
@@ -275,7 +278,7 @@ Polymer({
     }
     this.set('allowedSizes', options);
   },
-   /* eslint-enable no-param-reassign */
+  /* eslint-enable no-param-reassign */
   _filter(options, search) {
     return options
       ? this._sort(
