@@ -231,9 +231,9 @@ Polymer({
     }
     let allowed;
     if(this.field.allowed != null) {
-      allowed = Object.keys(this.field.allowed).length > 0 ? this.field.allowed[this.field.selectedCloud] : [];
+      allowed = Object.keys(this.field.allowed).length > 0 ? this.field.allowed : [];
     }
-    let notAllowed = this.field.not_allowed ? this.field.not_allowed[this.field.selectedCloud] : null;
+    let notAllowed = this.field.not_allowed ? this.field.not_allowed : null;
     const allowedCustom = [];
     if(allowed){
       allowed = allowed.filter(size => {
