@@ -98,7 +98,7 @@ Polymer({
         >
           <paper-listbox
             attr-for-selected="value"
-            selected="bash"
+            selected="[[language]]"
             slot="dropdown-content"
             class="dropdown-content"
           >
@@ -161,6 +161,7 @@ Polymer({
     },
     language: {
       type: String,
+      value: 'bash',
     },
     languages: {
       type: Array,

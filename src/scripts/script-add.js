@@ -199,6 +199,7 @@ Polymer({
             language: 'shell',
             languages: [
               { name: 'bash', type: 'shell' },
+              { name: 'yaml', type: 'yaml' },
               { name: 'sh', type: 'shell' },
               { name: 'zsh', type: 'shell' },
               { name: 'python', type: 'python' },
@@ -275,9 +276,7 @@ Polymer({
   },
 
   _fieldIndexByName(name) {
-    return this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    return this.fields.findIndex(f => f.name === name);
   },
   _editorLanguageChanged(e) {
     const { language } = e.detail;
@@ -291,7 +290,7 @@ Polymer({
     let language = '';
     if (type === 'executable') {
       placeholder = "#!/usr/bin/env bash\necho 'hello world'";
-      language = 'shell';
+      language = 'bash';
     } else if (type === 'ansible') {
       language = 'yaml';
       placeholder =
