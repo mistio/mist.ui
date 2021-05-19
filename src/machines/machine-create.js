@@ -421,9 +421,7 @@ Polymer({
     if (this.constraints.expiration) {
       this._applyExpirationConstraints();
     }
-    if (this.constraints.field) {
-      this._applyFieldConstraints();
-    }
+
     if (this.constraints.size) {
       this._applySizeConstraints();
     }
@@ -478,33 +476,6 @@ Polymer({
         }
       });
     });
-  },
-
-  _applyFieldConstraints() {
-    let constraints = [];
-    if (this.constraints.field.length) {
-      constraints = this.constraints.field;
-    } else {
-      constraints = [this.constraints.field];
-    }
-
-    // Iterate available clouds
-    for (let i = 0; i < this.machinesFields.length; i++) {
-      // Iterate field constraints
-      for (let c = 0; c < constraints.length; c++) {
-        // Apply constraint to cloud fields if applicable
-        const fieldIndex = this._fieldIndexByName(
-          constraints[c].name,
-          this.machinesFields[i].fields
-        );
-        if (fieldIndex !== -1) {
-          const path = `machinesFields.${i}.fields.${fieldIndex}`;
-          if (constraints[c].show !== undefined) {
-            this.set(`${path}.show`, constraints[c].show);
-          }
-        }
-      }
-    }
   },
 
   _applyExpirationConstraints() {
@@ -886,24 +857,41 @@ Polymer({
         if (f.type.startsWith('mist_') && f.name.endsWith('size')) {
           // check if there are any constraints for this cloud
           let allowedConstraints = [];
-          if(this.constraints && this.constraints.size && this.constraints.size.allowed && this.constraints.size.allowed.length > 0){
-            allowedConstraints = this.constraints.size.allowed.filter(constr => constr.cloud === this.selectedCloud);
+          if (
+            this.constraints &&
+            this.constraints.size &&
+            this.constraints.size.allowed &&
+            this.constraints.size.allowed.length > 0
+          ) {
+            allowedConstraints = this.constraints.size.allowed.filter(
+              constr => constr.cloud === this.selectedCloud
+            );
           }
           let notAllowedConstraints = [];
-          if(this.constraints && this.constraints.size && this.constraints.size.not_allowed && this.constraints.size.not_allowed.length > 0){
-            notAllowedConstraints = this.constraints.size.not_allowed.filter(constr => constr.cloud === this.selectedCloud);
+          if (
+            this.constraints &&
+            this.constraints.size &&
+            this.constraints.size.not_allowed &&
+            this.constraints.size.not_allowed.length > 0
+          ) {
+            notAllowedConstraints = this.constraints.size.not_allowed.filter(
+              constr => constr.cloud === this.selectedCloud
+            );
           }
-          if(allowedConstraints.length > 0){
-            if(typeof allowedConstraints[0].size !== 'string')
+          if (allowedConstraints.length > 0) {
+            if (typeof allowedConstraints[0].size !== 'string')
               f.custom = false;
             const allowedSizes = [];
-            allowedConstraints.forEach(constr => {allowedSizes.push(constr.size)});
+            allowedConstraints.forEach(constr => {
+              allowedSizes.push(constr.size);
+            });
             f.allowed = allowedSizes;
           }
-          if(notAllowedConstraints.length > 0){
-
+          if (notAllowedConstraints.length > 0) {
             const notAllowedSizes = [];
-            notAllowedConstraints.forEach(constr => {notAllowedSizes.push(constr.size)});
+            notAllowedConstraints.forEach(constr => {
+              notAllowedSizes.push(constr.size);
+            });
             f.not_allowed = notAllowedSizes;
           }
           f.options =
@@ -1157,7 +1145,6 @@ Polymer({
               this.set(`machineFields.${ind}.value`, f.options[0].id);
             }
           }
-
           if (!f.required && f.options && f.options.length === 0) {
             this.set(`machineFields.${ind}.show`, false);
           }
@@ -1168,6 +1155,7 @@ Polymer({
                 (c.cloud === '' || c.cloud === this.selectedCloud)
               ) {
                 this.set(`machineFields.${ind}.value`, c.value);
+                this.set(`machineFields.${ind}.show`, c.show);
               }
             });
           }
@@ -2669,14 +2657,8 @@ Polymer({
     if (options && options.length > 0) {
       let showDatastores = true;
       if (this.constraints && this.constraints.field) {
-        let fieldConstraints;
-        if (this.constraints.field.length === undefined) {
-          fieldConstraints = [this.constraints.field];
-        } else {
-          fieldConstraints = this.constraints.field;
-        }
-        const datastoreConstraint = fieldConstraints.find(
-          c => c.name === 'datastore'
+        const datastoreConstraint = this.constraints.field.find(
+          c => c.name === 'datastore' && c.cloud === this.selectedCloud
         );
         if (
           datastoreConstraint !== undefined &&
