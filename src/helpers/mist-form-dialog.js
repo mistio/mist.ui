@@ -36,20 +36,48 @@ Polymer({
         code-viewer {
           height: 80vh;
         }
+        .title {
+          display: flex;
+          justify-content: space-between;
+          padding: 0 20px;
+        }
+        paper-icon-button.docs {
+          opacity: 0.54;
+          width: 36px;
+          height: 36px;
+          color: #424242;
+          margin-left: -8px;
+        }
       </style>
       <template>
-        <h2>[[title]]</h2>
-        <div class="paper-dialog-scrollable">
-          <div hidden$="[[hideText]]">
-            <p>[[body]]</p>
-            <p hidden$="[[!subscript]]">[[subscript]]</p>
-          </div>
+        <div class="title">
+          <h2>
+            [[title]]<a
+              href="https://docs.mist.io/article/177-constraints"
+              target="new"
+              class="helpHref"
+            >
+              <paper-icon-button
+                icon="icons:help"
+                alt="Open docs"
+                title="Open docs"
+                class="docs"
+              >
+              </paper-icon-button>
+            </a>
+          </h2>
           <paper-toggle-button
             checked="{{showJSON}}"
             on-checked-changed="_updateInitialValues"
           >
             JSON
           </paper-toggle-button>
+        </div>
+        <div class="paper-dialog-scrollable">
+          <div hidden$="[[hideText]]">
+            <p>[[body]]</p>
+            <p hidden$="[[!subscript]]">[[subscript]]</p>
+          </div>
           <mist-form
             id="[[formId}}"
             hidden$="[[showJSON]]"
