@@ -216,7 +216,7 @@ Polymer({
       reason: 'edit.constraints',
       hideText: true,
       fields: this.fields,
-      action: 'ok',
+      action: 'save',
     });
   },
 
