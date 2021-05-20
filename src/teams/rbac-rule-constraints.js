@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: ["error", { "props": true, "ignorePropertyModificationsForRegex": ["^field"] }] */
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
@@ -133,18 +134,22 @@ Polymer({
               dependencies: ['expiration.actions.available'],
             },
             clouds: () =>
-            // Merge the "size" field from MACHINE_CREATE_FIELDS with the sizes from cloudArray
-            // This is done especially for clouds with custom sizes
-            // I use flatMap instead of map so to remove invalid/deprecated clouds
-            this.model.cloudsArray
+              // Merge the "size" field from MACHINE_CREATE_FIELDS with the sizes from cloudArray
+              // This is done especially for clouds with custom sizes
+              // I use flatMap instead of map so to remove invalid/deprecated clouds
+              this.model.cloudsArray
                 .flatMap(cloud => {
                   const providerFields = MACHINE_CREATE_FIELDS.find(
                     field => field.provider === cloud.provider
                   );
 
-                  if (!providerFields) { return [];}
+                  if (!providerFields) {
+                    return [];
+                  }
 
-                  const size = providerFields.fields.find(field => field.name === 'size');
+                  const size = providerFields.fields.find(
+                    field => field.name === 'size'
+                  );
 
                   if (
                     Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')
@@ -158,15 +163,17 @@ Polymer({
                         field.min = 0;
                       }
                       return field;
-                    })
+                    });
                   }
 
-                  return [{
-                    id: cloud.id,
-                    provider: cloud.provider,
-                    title: cloud.title,
-                    size: { ...size },
-                  }];
+                  return [
+                    {
+                      id: cloud.id,
+                      provider: cloud.provider,
+                      title: cloud.title,
+                      size: { ...size },
+                    },
+                  ];
                 })
                 .filter(
                   cloud => cloud.size.custom || cloud.size.options.length > 0
@@ -209,7 +216,7 @@ Polymer({
       reason: 'edit.constraints',
       hideText: true,
       fields: this.fields,
-      action: 'save',
+      action: 'ok',
     });
   },
 
