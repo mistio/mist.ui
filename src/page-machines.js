@@ -306,7 +306,7 @@ Polymer({
     // console.log('_jobIdChanged', jobid);
     if (jobid === false || jobid === undefined) {
       this.stopPolling();
-      this._showLogs(false);
+      if (this.logItem && this.logItem.action == null) this._showLogs(false);
     } else if (jobid && jobid.length) {
       this.startPolling(jobid);
     }
