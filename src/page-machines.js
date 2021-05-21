@@ -306,12 +306,7 @@ Polymer({
     // console.log('_jobIdChanged', jobid);
     if (jobid === false || jobid === undefined) {
       this.stopPolling();
-      if (
-        this.logItem &&
-        this.logItem.error &&
-        this.logItem.error.includes('Creating machine: undefined')
-      )
-        this._showLogs(false);
+      if (this.logItem && this.logItem.action == null) this._showLogs(false);
     } else if (jobid && jobid.length) {
       this.startPolling(jobid);
     }
