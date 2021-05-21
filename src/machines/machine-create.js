@@ -3129,8 +3129,8 @@ Polymer({
     const vnfs = this.get(`machineFields.${vnfsInd}.value`);
     if (hostname) {
       if (hostname.record_name && hostname.dns_zone) {
-        const domainName = this.model.zones[hostname.dns_zone].zone_id;
-        composedHostname = `${hostname.record_name}.${domainName}.`;
+        const domainName = this.model.zones[hostname.dns_zone].domain;
+        composedHostname = `${hostname.record_name}.${domainName}`;
       }
       this.set(`machineFields.${hostnameInd}.value`, composedHostname);
     }
