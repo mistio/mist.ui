@@ -255,6 +255,9 @@ Polymer({
           size.name += `, Disk: ${size.disk} GB`;
           toHash += `${size.disk}`;
         }
+        if (size.userFriendlyName) {
+          size.name = `${size.userFriendlyName} (${size.name})`;
+        }
         // eslint-disable-next-line no-undef
         size.id = `customSize${md5(toHash)}`;
         this.push('field.options', size);
