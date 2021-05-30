@@ -422,7 +422,7 @@ Polymer({
       span = seconds / 60;
       unit = 'minutes';
     } // if nothing divides exactly, try an approximation
-    if (seconds > 3600 * 24 * 28) {
+    else if (seconds > 3600 * 24 * 28) {
       span = Math.floor(seconds / (3600 * 24 * 28));
       unit = 'months';
     } else if (seconds > 3600 * 24 * 7) {
