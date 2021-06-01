@@ -2661,7 +2661,9 @@ Polymer({
       let showDatastores = true;
       if (this.constraints && this.constraints.field) {
         const datastoreConstraint = this.constraints.field.find(
-          c => c.name === 'datastore' && c.cloud === this.selectedCloud
+          c =>
+            c.name === 'datastore' &&
+            (c.cloud === this.selectedCloud || c.cloud === '')
         );
         if (
           datastoreConstraint !== undefined &&

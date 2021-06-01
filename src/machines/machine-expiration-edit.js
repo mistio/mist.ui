@@ -216,9 +216,9 @@ Polymer({
   },
   /* eslint-disable no-param-reassign */
   _applyPermissions(machine, permissions) {
-    if (!this.machine || !permissions.constraints.expiration) return;
     // Get current machine expiration values
     this._initialiseValues(this.machine);
+    if (!this.machine || !permissions.constraints.expiration) return;
     const currentExpiration = this.machine.expiration;
     const permissionsExpiration = this.permissions.constraints.expiration;
 
