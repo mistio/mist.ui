@@ -166,8 +166,7 @@ Polymer({
         <div class="title flex">
           <h2>[[_getVolumeNameOrExternalId(volume)]]</h2>
           <div class="subtitle">
-            [[volumeCloud.title]],
-            [[_computeLocationsName(model,volumeCloud,volume,volume.location)]]
+            [[_computeVolumeSubtitle(volume)]]
           </div>
         </div>
         <volume-actions
@@ -432,7 +431,11 @@ Polymer({
     }
     return null;
   },
-
+  _computeVolumeSubtitle() {
+    const title = this.volumeCloud.title;
+    const locationName = this._computeLocationsName(this.model,this.volumeCloud,this.volume,this.volume.location);
+    return locationName ? `${title}, ${locationName}` : title;
+  },
   _editVolume(e) {
     console.log(e);
   },
