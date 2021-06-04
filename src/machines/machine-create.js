@@ -883,11 +883,17 @@ Polymer({
               f.custom = false;
             const allowedSizes = [];
             allowedConstraints.forEach(constr => {
-              allowedSizes.push({
-                ...constr.size,
-                userFriendlyName: constr.userFriendlyName,
-              });
+              // If the size is a custom size, add it's user friendly name
+              if (typeof constr.size === 'object') {
+                allowedSizes.push({
+                  ...constr.size,
+                  userFriendlyName: constr.userFriendlyName,
+                });
+              } else {
+                allowedSizes.push(constr.size);
+              }
             });
+
             f.allowed = allowedSizes;
           }
           if (notAllowedConstraints.length > 0) {
