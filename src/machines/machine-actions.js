@@ -249,6 +249,12 @@ Polymer({
       on-response="handleResponse"
       on-error="handleError"
     ></iron-ajax>
+    <iron-ajax
+      id="getSnapshots"
+      handle-as="json"
+      on-response="handleGetSnapshotsResponse"
+      on-error="handleGetSnapshotsError"
+    ></iron-ajax>
     <slot>
       <mist-list-actions actions="[[allowedActions]]"></mist-list-actions>
     </slot>
@@ -292,8 +298,18 @@ Polymer({
         return VOLUME_CREATE_FIELDS.map(i => i.provider);
       },
     },
+    snapshots: {
+      type: Array,
+      value: []
+    },
+    isProviderWithSnapshots: {
+      type: Boolean,
+      value: false
+    }
   },
-
+  observers: [
+    '_machineProviderChanged(isProviderWithSnapshots)'
+  ],
   listeners: {
     'rename-machine': 'renameAction',
     'transfer-ownership': 'transferOwnership',
@@ -309,7 +325,26 @@ Polymer({
     this.$.request.headers['Csrf-Token'] = CSRFToken.value;
     this.$.request.method = 'POST';
   },
+  _machineProviderChanged(hasSnapshots){
+    if (hasSnapshots && this.items.length === 1){
+      this._getSnapshots();
+    }
+  },
+  _getSnapshots() {
+    this.$.getSnapshots.headers['Content-Type'] = 'application/json';
+    this.$.getSnapshots.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.getSnapshots.url = `/api/v1/machines/${this.items[0].id}`
+    this.$.getSnapshots.method = 'POST';
+    this.$.getSnapshots.body = {
+      action: 'list_snapshots'
+    };
+    this.$.getSnapshots.generateRequest();
+  },
+  handleGetSnapshotsResponse(e) {
+    this.set('snapshots', e.detail.response);
+    this._updateActions();
 
+  },
   getProviders(machines) {
     const providers = [];
     for (let i = 0; i < machines.length; i++) {
@@ -369,6 +404,10 @@ Polymer({
       Object.keys(machine.actions || {}).forEach(action => {
         if (machine.actions[action]) arr.push(action);
       });
+    }
+    if (this.snapshots.length > 0){
+      arr.push('revert_to_snapshot')
+      arr.push('remove_snapshot')
     }
     if (machine.key_associations && machine.key_associations.length) {
       arr.push('run-script');
@@ -546,11 +585,11 @@ Polymer({
         this.$.snapshotdialog.action = action.name;
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'remove snapshot') {
-        this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
+        this.$.snapshotdialog.snapshots = this.snapshots;
         this.$.snapshotdialog.action = action.name;
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'revert to snapshot') {
-        this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
+        this.$.snapshotdialog.snapshots = this.snapshots;
         this.$.snapshotdialog.action = action.name;
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'rename') {
