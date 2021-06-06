@@ -2,9 +2,9 @@ import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
 import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -33,6 +33,7 @@ Polymer({
           <p>
             <paper-input
               id="mrc"
+              type="number"
               label="Maximum Run Count"
               value="{{newMaxRunCount}}"
             ></paper-input>
@@ -89,7 +90,7 @@ Polymer({
 
   _openEditScheduleModal(_e) {
     if (this.schedule) {
-      this.set('newMaxRunCount', this.schedule.max_run_count);
+      this.set('newMaxRunCount', Number(this.schedule.max_run_count));
       this.$.editMrcScheduleModal.opened = true;
     }
   },

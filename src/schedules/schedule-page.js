@@ -1,3 +1,4 @@
+/* eslint-disable lit-a11y/anchor-is-valid */
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-styles/typography.js';
@@ -5,21 +6,23 @@ import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/iron-icons/editor-icons.js';
 import '@polymer/iron-icons/av-icons.js';
+
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import moment from 'moment/src/moment.js';
+
 import '@mistio/mist-list/mist-list.js';
 import '../mist-rules/mist-rules.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { ownerFilterBehavior } from '../helpers/owner-filter-behavior.js';
 import '../helpers/dialog-element.js';
 import '../machines/machine-actions.js';
-import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { machinesListBehavior } from '../helpers/machines-list-behavior.js';
 import './schedule-date.js';
 import './schedule-actions.js';
 import { CSRFToken, formatMoney } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -297,8 +300,6 @@ Polymer({
               <paper-icon-button
                 on-tap="_editMaxRunCount"
                 icon="editor:mode-edit"
-                disabled$="[[isOneOff]]"
-                hidden$="[[isOneOff]]"
               ></paper-icon-button>
             </h2>
             <div class="m-info-head">
@@ -784,11 +785,11 @@ Polymer({
       this.schedule.selectors &&
       this.schedule.selectors.length
     ) {
-      const field_ = this.schedule.selectors.find(con => {
-        return ['age', 'machines', 'tags'].indexOf(field) === -1
+      const field_ = this.schedule.selectors.find(con =>
+        ['age', 'machines', 'tags'].indexOf(field) === -1
           ? con.field === field
-          : con.type === field;
-      });
+          : con.type === field
+      );
       if (field_) {
         return true;
       }
@@ -798,9 +799,7 @@ Polymer({
 
   _computeMachineAge(selectors) {
     if (selectors) {
-      const ageEntry = selectors.find(c => {
-        return c.type === 'age';
-      });
+      const ageEntry = selectors.find(c => c.type === 'age');
       return ageEntry ? ageEntry.minutes || false : false;
     }
     return null;
@@ -808,9 +807,9 @@ Polymer({
 
   _computeMachineCost(selectors, _rate) {
     if (selectors) {
-      const costEntry = selectors.find(c => {
-        return c.type === 'field' && c.field === 'cost__monthly';
-      });
+      const costEntry = selectors.find(
+        c => c.type === 'field' && c.field === 'cost__monthly'
+      );
       return costEntry && costEntry.value !== undefined
         ? costEntry.value
         : false;
@@ -988,9 +987,9 @@ Polymer({
     let filteredMachines = [];
     const missingMachines = [];
     const _that = this;
-    filteredMachines = Object.values(this.model.machines).filter(m => {
-      return _that.selector(m);
-    });
+    filteredMachines = Object.values(this.model.machines).filter(m =>
+      _that.selector(m)
+    );
 
     if (
       this.schedule &&
@@ -998,9 +997,8 @@ Polymer({
       this._findSelector('machines')
     ) {
       for (let i = 0; i < this.machinesIds.length; i++) {
-        const machine = this.schedule.selectors.find(c => {
-          return c.type === 'machines';
-        }).ids[i];
+        const machine = this.schedule.selectors.find(c => c.type === 'machines')
+          .ids[i];
         if (this.model.machines && !this.model.machines[machine]) {
           missingMachines.push(machine);
         }
@@ -1017,9 +1015,7 @@ Polymer({
       return ids;
     }
 
-    ids = this.selectors.find(c => {
-      return c.type === 'machines';
-    }).ids;
+    ids = this.selectors.find(c => c.type === 'machines').ids;
 
     return ids;
   },
@@ -1034,18 +1030,15 @@ Polymer({
       fulfillsAge =
         m.created && m.created.trim() !== ''
           ? moment().diff(m.created, 'minutes') >
-            this.schedule.selectors.find(con => {
-              return con.type === 'age';
-            }).minutes
+            this.schedule.selectors.find(con => con.type === 'age').minutes
           : false;
     }
     if (this._findSelector('cost__monthly')) {
       fulfillsCost =
         m.cost && m.cost.monthly
           ? m.cost.monthly >
-            this.schedule.selectors.find(con => {
-              return con.field === 'cost__monthly';
-            }).value
+            this.schedule.selectors.find(con => con.field === 'cost__monthly')
+              .value
           : false;
     }
 
@@ -1060,23 +1053,18 @@ Polymer({
 
   isSelectedMachine(machineId) {
     return !this.schedule.selectors ||
-      !this.schedule.selectors.find(c => {
-        return c.type === 'machines';
-      })
+      !this.schedule.selectors.find(c => c.type === 'machines')
       ? false
       : this.schedule.selectors
-          .find(c => {
-            return c.type === 'machines';
-          })
+          .find(c => c.type === 'machines')
           .ids.indexOf(machineId) > -1;
   },
 
   machineHasTag(m) {
     let exists = false;
     for (let i = 0; i < m.tags.length; i++) {
-      const scheduleTags = this.schedule.selectors.find(c => {
-        return c.type === 'tags';
-      }).include;
+      const scheduleTags = this.schedule.selectors.find(c => c.type === 'tags')
+        .include;
 
       if (Object.prototype.hasOwnProperty.call(scheduleTags, m.tags[i].key)) {
         if (!scheduleTags[m.tags[i].key] && !m.tags[i].value) {
@@ -1147,9 +1135,7 @@ Polymer({
   _computeTagsArray(_selectors, _isMachinesWithTags) {
     console.log('_computeTagsArray');
     if (this.isMachinesWithTags && this.schedule.selectors) {
-      const tagsSelector = this.schedule.selectors.find(c => {
-        return c.type === 'tags';
-      });
+      const tagsSelector = this.schedule.selectors.find(c => c.type === 'tags');
       if (tagsSelector) {
         const tags = tagsSelector.include;
 

@@ -13,9 +13,9 @@ import './schedule-edit-mrc.js';
 import './schedule-edit-selector.js';
 import './schedule-edit-task.js';
 import moment from 'moment/src/moment';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 const SCHEDULE_ACTIONS = {
   run: {
@@ -122,11 +122,15 @@ Polymer({
     },
     items: {
       type: Array,
-      value: [],
+      value() {
+        return [];
+      },
     },
     actions: {
       type: Array,
-      value: [],
+      value() {
+        return [];
+      },
       notify: true,
     },
     type: {
@@ -203,18 +207,12 @@ Polymer({
   _otherMembers(members, _items) {
     if (this.items && members) {
       const owners = this.items
-        .map(i => {
-          return i.owned_by;
-        })
-        .filter((value, index, self) => {
-          return self.indexOf(value) === index;
-        });
+        .map(i => i.owned_by)
+        .filter((value, index, self) => self.indexOf(value) === index);
       // filter out pending users and the single owner of the item-set if that is the case
-      return members.filter(m => {
-        return owners.length === 1
-          ? m.id !== owners[0] && !m.pending
-          : !m.pending;
-      });
+      return members.filter(m =>
+        owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending
+      );
     }
     return [];
   },
@@ -295,9 +293,7 @@ Polymer({
       user_id: e.detail.user_id, // new owner
       resources: {},
     };
-    payload.resources[this.type] = this.items.map(i => {
-      return i.id;
-    });
+    payload.resources[this.type] = this.items.map(i => i.id);
     console.log('transferOwnership', e.detail, payload);
     this.$.request.url = '/api/v1/ownership';
     this.$.request.headers['Content-Type'] = 'application/json';
@@ -376,9 +372,9 @@ Polymer({
       }
 
       if (this.items.length > 1) {
-        multiActions = this.actionDetails(Array.from(actions)).filter(a => {
-          return a.multi;
-        });
+        multiActions = this.actionDetails(Array.from(actions)).filter(
+          a => a.multi
+        );
       } else {
         multiActions = this.actionDetails(Array.from(actions));
       }
@@ -419,10 +415,7 @@ Polymer({
   },
 
   _makeList(items, property) {
-    if (items && items.length)
-      return items.map(item => {
-        return item[property];
-      });
+    if (items && items.length) return items.map(item => item[property]);
     return [];
   },
 
