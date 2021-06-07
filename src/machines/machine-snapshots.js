@@ -9,9 +9,9 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item-body.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -82,13 +82,13 @@ Polymer({
       }
     </style>
     <paper-dialog
-      id="createSnapshotModal"
+      id="snapshotsModal"
       entry-animation="scale-up-animation"
       exit-animation="fade-out-animation"
       with-backdrop=""
     >
-      <h2 class="title">[[action]]</h2>
-      <paper-dialog-scrollable hidden$="[[!isCreate]]">
+      <h2 class="title">Snapshots</h2>
+      <paper-dialog-scrollable">
         <p>
           Fill in a name for the snapshot.
           <paper-input
@@ -107,62 +107,81 @@ Polymer({
             >Enable guest file system quiescing</paper-checkbox
           >
         </p>
-      </paper-dialog-scrollable>
-      <paper-dialog-scrollable hidden$="[[isCreate]]">
-        <paper-dropdown-menu
-          label="Select a snapshot"
-          class="dropdown-block"
-          horizontal-align="left"
-          no-animations=""
-        >
-          <paper-listbox
-            slot="dropdown-content"
-            attr-for-selected="value"
-            selected="{{snapshotName}}"
-            class="dropdown-content"
-          >
-            <template is="dom-repeat" items="[[snapshots]]">
-              <paper-item value="[[item.name]]">
-                <paper-item-body two-line="">
-                  <div>[[item.name]]</div>
-                  <div secondary="">[[item.description]]</div>
-                </paper-item-body>
-              </paper-item>
-            </template>
-          </paper-listbox>
-        </paper-dropdown-menu>
-      </paper-dialog-scrollable>
-      <div class="progress">
-        <paper-progress
-          id="progress"
-          indeterminate=""
-          hidden$="[[!loading]]"
-        ></paper-progress>
-        <paper-progress
-          id="progresserror"
-          class="progresserror"
-          value="100"
-          hidden$="[[!formError]]"
-        ></paper-progress>
-        <p
-          id="progressmessage"
-          class="errormsg-container"
-          hidden$="[[!formError]]"
-        >
-          <iron-icon icon="icons:error-outline"></iron-icon
-          ><span id="errormsg"></span>
-        </p>
-      </div>
-      <div class="clearfix btn-group">
+        <div class="clearfix btn-group">
         <paper-button dialog-dismiss=""> Cancel </paper-button>
-        <paper-button
-          class$="[[_getClass(action)]]"
-          on-tap="createSnapshot"
-          disabled$="[[!snapshotName]]"
+          <paper-button
+            id="create-button"
+            class="blue"
+           on-tap="createSnapshot"
+            disabled$="[[!snapshotName]]"
+          >
+            Create
+          </paper-button>
+        </div>
+  
+    </paper-dialog-scrollable>
+    
+    <paper-dialog-scrollable">
+    <h3 hidden$="[[!isLoading]]"> Loading... </h3>
+      <paper-dropdown-menu
+        label="Select a snapshot"
+        class="dropdown-block"
+        horizontal-align="left"
+        no-animations=""
+      >
+        <paper-listbox
+          slot="dropdown-content"
+          attr-for-selected="value"
+          selected=""
+          class="dropdown-content"
         >
-          [[action]]
+          <template is="dom-repeat" items="[[snapshots]]">
+            <paper-item value="[[item.name]]">
+              <paper-item-body two-line="">
+                <div>[[item.name]]</div>
+                <div secondary="">[[item.description]]</div>
+              </paper-item-body>
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <div class="clearfix btn-group">
+        <paper-button id="remove-button" class="red" on-tap="removeSnapshot">
+          Remove
         </paper-button>
-      </div>
+        <paper-button dialog-dismiss=""> Cancel </paper-button>
+
+          <paper-button
+            id="revert-button"
+            class="blue"
+            on-tap="revertToSnapshot"
+          >
+            Revert
+          </paper-button>
+        </div>
+    </paper-dialog-scrollable>
+    <div class="progress">
+      <paper-progress
+        id="progress"
+        indeterminate=""
+        hidden$="[[!loading]]"
+      ></paper-progress>
+      <paper-progress
+        id="progresserror"
+        class="progresserror"
+        value="100"
+        hidden$="[[!formError]]"
+      ></paper-progress>
+      <p
+        id="progressmessage"
+        class="errormsg-container"
+        hidden$="[[!formError]]"
+      >
+        <iron-icon icon="icons:error-outline"></iron-icon
+        ><span id="errormsg"></span>
+      </p>
+    </div>
+    
     </paper-dialog>
     <iron-ajax
       id="snapshotRequest"
@@ -191,10 +210,6 @@ Polymer({
       type: String,
       value: '',
     },
-    action: {
-      type: String,
-      value: '',
-    },
     snapshotDescription: {
       type: String,
       value: '',
@@ -215,33 +230,22 @@ Polymer({
       type: Boolean,
       value: false,
     },
-    isCreate: {
+    isLoading: {
       type: Boolean,
       value: false,
-      computed: '_computeIsCreate(action)',
-    },
-    isRemove: {
-      type: Boolean,
-      value: false,
-      computed: '_computeIsRemove(action)',
-    },
-    isRevertTo: {
-      type: Boolean,
-      value: false,
-      computed: '_computeIsRevertTo(action)',
     },
   },
 
-  observers: ['_preselectSnapshot(snapshots, isCreate)'],
+  observers: [],
 
   _openDialog(_e) {
     this.clearError();
-    this._preselectSnapshot();
-    this.$.createSnapshotModal.open();
+    // this._preselectSnapshot();
+    this.$.snapshotsModal.open();
   },
 
   _closeDialog(_e) {
-    this.$.createSnapshotModal.close();
+    this.$.snapshotsModal.close();
     this.clearError();
     this.set('action', '');
   },
@@ -265,13 +269,21 @@ Polymer({
       this.set('snapshotName', '');
     }
   },
-
-  createSnapshot(_e) {
+  removeSnapshot() {
+    this.snapshotAction('remove');
+  },
+  revertToSnapshot() {
+    this.snapshotAction('revert');
+  },
+  createSnapshot() {
+    this.snapshotAction('create');
+  },
+  snapshotAction(action) {
     const request = this.$.snapshotRequest;
     request.url = `/api/v1/machines/${this.machine.id}`;
     request.headers['Content-Type'] = 'application/json';
     request.headers['Csrf-Token'] = CSRFToken.value;
-    if (this.isCreate) {
+    if (action === 'create') {
       request.body = {
         action: 'create_snapshot',
         snapshot_description: this.snapshotDescription,
@@ -279,12 +291,12 @@ Polymer({
         snapshot_dump_memory: this.snapshotDumpMemory,
         snapshot_quiesce: this.snapshotQuiesce,
       };
-    } else if (this.isRemove) {
+    } else if (action === 'remove') {
       request.body = {
         action: 'remove_snapshot',
         snapshot_name: this.snapshotName,
       };
-    } else if (this.isRevertTo) {
+    } else if (action === 'revert') {
       request.body = {
         action: 'revert_to_snapshot',
         snapshot_name: this.snapshotName,
@@ -293,9 +305,10 @@ Polymer({
     request.generateRequest();
   },
 
-  _snapshotRequest() {
+  _snapshotRequest(e) {
+    const action = e.detail.options.body.action.replace(/_/g, ' ');
     this.clearError();
-    const logMessage = `Sending request to ${this.action}.`;
+    const logMessage = `Sending request to ${action}.`;
     this.dispatchEvent(
       new CustomEvent('performing-action', {
         bubbles: true,
@@ -342,7 +355,7 @@ Polymer({
   clearError() {
     this.set('formError', false);
     this.$.errormsg.textContent = '';
-    this.$.createSnapshotModal.refit();
+    // this.$.createSnapshotModal.refit();
   },
 
   _getClass(action) {
