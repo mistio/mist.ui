@@ -8,9 +8,9 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -80,16 +80,16 @@ Polymer({
           <h4>Task Type</h4>
           <div>
             <paper-radio-group selected="{{taskType}}">
-              <paper-radio-button name="action" tabindex="1"
+              <paper-radio-button name="action" tabindex="-1"
                 >Perform action</paper-radio-button
               >
-              <paper-radio-button name="script" tabindex="1"
+              <paper-radio-button name="script" tabindex="-1"
                 >Run script</paper-radio-button
               >
             </paper-radio-group>
           </div>
           <div class="background" hidden$="[[!_computeIsAction(taskType)]]">
-            <paper-dropdown-menu no-animations=""  label="action">
+            <paper-dropdown-menu no-animations="" label="action">
               <paper-listbox
                 slot="dropdown-content"
                 attr-for-selected="value"
@@ -97,7 +97,7 @@ Polymer({
                 class="dropdown-content"
               >
                 <template is="dom-repeat" items="[[actions]]" as="action">
-                  <paper-item value="[[action.name]]" tabindex="1"
+                  <paper-item value="[[action.name]]" tabindex="-1"
                     >[[action.name]]</paper-item
                   >
                 </template>
@@ -105,7 +105,7 @@ Polymer({
             </paper-dropdown-menu>
           </div>
           <div class="background" hidden$="[[_computeIsAction(taskType)]]">
-            <paper-dropdown-menu no-animations=""  label="script">
+            <paper-dropdown-menu no-animations="" label="script">
               <paper-listbox
                 slot="dropdown-content"
                 attr-for-selected="value"
@@ -116,7 +116,7 @@ Polymer({
                   <paper-item disabled="">no scripts found</paper-item>
                 </template>
                 <template is="dom-repeat" items="[[scripts]]" as="script">
-                  <paper-item value="[[script.id]]" tabindex="1"
+                  <paper-item value="[[script.id]]" tabindex="-1"
                     >[[script.name]]</paper-item
                   >
                 </template>
@@ -131,13 +131,13 @@ Polymer({
           <h4>Task Schedule</h4>
           <div>
             <paper-radio-group selected="{{newSchedule.schedule_type}}">
-              <paper-radio-button name="interval" tabindex="1"
+              <paper-radio-button name="interval" tabindex="-1"
                 >Interval</paper-radio-button
               >
-              <paper-radio-button name="crontab" tabindex="1"
+              <paper-radio-button name="crontab" tabindex="-1"
                 >Crontab</paper-radio-button
               >
-              <paper-radio-button name="one_off" tabindex="1"
+              <paper-radio-button name="one_off" tabindex="-1"
                 >One off</paper-radio-button
               >
             </paper-radio-group>
@@ -149,19 +149,19 @@ Polymer({
             <paper-input
               id="interval"
               value="{{newSchedule.schedule_entry.every}}"
-              tabindex="1"
+              tabindex="-1"
             ></paper-input>
             <paper-radio-group
               id="period"
               selected="{{newSchedule.schedule_entry.period}}"
             >
-              <paper-radio-button name="days" tabindex="1"
+              <paper-radio-button name="days" tabindex="-1"
                 >days</paper-radio-button
               >
-              <paper-radio-button name="hours" tabindex="1"
+              <paper-radio-button name="hours" tabindex="-1"
                 >hours</paper-radio-button
               >
-              <paper-radio-button name="minutes" tabindex="1"
+              <paper-radio-button name="minutes" tabindex="-1"
                 >mins</paper-radio-button
               >
             </paper-radio-group>
@@ -174,7 +174,7 @@ Polymer({
             <paper-input
               id="crontab"
               value="{{crontabEntry}}"
-              tabindex="1"
+              tabindex="-1"
             ></paper-input>
             <span class="smaller"
               >UTC Time only. Example */10 5 * * * . Space separated values for
@@ -197,13 +197,13 @@ Polymer({
             </div>
           </div>
           <div class="clearfix btn-group">
-            <paper-button tabindex="1" on-tap="_closeEditScheduleModal"
+            <paper-button tabindex="-1" on-tap="_closeEditScheduleModal"
               >Cancel</paper-button
             >
             <paper-button
               class="blue"
               on-tap="_submitForm"
-              tabindex="1"
+              tabindex="-1"
               disabled$="[[!formReady]]"
               >Save</paper-button
             >
@@ -245,7 +245,9 @@ Polymer({
     },
     payload: {
       type: Object,
-      value: {},
+      value() {
+        return {};
+      },
     },
     scheduleEntry: {
       type: String,
@@ -350,10 +352,9 @@ Polymer({
         );
       }
 
-      this.taskType =
-        this._computeAction(this.schedule.task_type) !== undefined
-          ? 'action'
-          : 'script';
+      this.taskType = this._computeAction(this.schedule.task_type)
+        ? 'action'
+        : 'script';
     }
   },
 
@@ -460,6 +461,7 @@ Polymer({
   _updatePayload(_e) {
     const pl = {};
     if (this.schedule && this.newSchedule) {
+      pl.schedule_type = this.newSchedule.schedule_type;
       // check if task changed
       if (
         this.taskType === 'action' &&
@@ -476,7 +478,6 @@ Polymer({
       }
       // check if entry changed
       if (this.schedule.schedule_type !== this.newSchedule.schedule_type) {
-        pl.schedule_type = this.newSchedule.schedule_type;
         // clear max run count when editing form one_off to other type
         if (
           pl.schedule_type !== 'one_off' &&
@@ -571,12 +572,7 @@ Polymer({
   _isValidCrontab(entry) {
     let string = '';
     string = `${entry.minute}${entry.hour}${entry.day_of_week}${entry.day_of_month}${entry.month_of_year}`;
-    return (
-      entry &&
-      string.trim() !== '' &&
-      string.trim() !== '*****' &&
-      string.indexOf('undefined') === -1
-    );
+    return entry && string.trim() !== '' && string.indexOf('undefined') === -1;
   },
 
   _displayDate(date) {
@@ -614,12 +610,9 @@ Polymer({
     if (
       this.schedule &&
       this._computeIsCrontab(this.newSchedule.schedule_type) &&
-      crontab.value
+      crontab
     ) {
-      this.set(
-        'newSchedule.schedule_entry',
-        this._processCrontab(crontab.value)
-      );
+      this.set('newSchedule.schedule_entry', this._processCrontab(crontab));
     }
   },
 });
