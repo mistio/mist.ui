@@ -5,6 +5,7 @@ import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-radio-button/paper-radio-button.js';
 import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/paper-checkbox/paper-checkbox.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
@@ -24,6 +25,14 @@ Polymer({
         min-width: 370px;
       }
 
+      .snapshot-item {
+        display: flex;
+        justify-content: space-between;
+      }
+      #snapshotsModal {
+        padding: 20px;
+        width: 600px;
+      }
       :host .btn-group {
         margin: 0 0 24px 0;
       }
@@ -81,107 +90,89 @@ Polymer({
         top: 55px !important;
       }
     </style>
-    <paper-dialog
-      id="snapshotsModal"
-      entry-animation="scale-up-animation"
-      exit-animation="fade-out-animation"
-      with-backdrop=""
-    >
+    // [ // { // "id": 1, // "name": "hf", // "description": "", // "created":
+    "2021-06-07 20:46", // "state": "poweredOff" // } // ]
+    <paper-dialog id="snapshotsModal" with-backdrop="">
       <h2 class="title">Snapshots</h2>
-      <paper-dialog-scrollable">
-        <p>
-          Fill in a name for the snapshot.
-          <paper-input
-            label="Snapshot name"
-            value="{{snapshotName}}"
-          ></paper-input>
-          <paper-textarea
-            label="Snapshot description (optional)"
-            value="{{snapshotDescription}}"
-          ></paper-textarea
-          ><br />
-          <paper-checkbox checked="{{snapshotDumpMemory}}"
-            >Dump memory</paper-checkbox
-          ><br /><br />
-          <paper-checkbox checked="{{snapshotQuiesce}}"
-            >Enable guest file system quiescing</paper-checkbox
-          >
-        </p>
-        <div class="clearfix btn-group">
-        <paper-button dialog-dismiss=""> Cancel </paper-button>
-          <paper-button
-            id="create-button"
-            class="blue"
-           on-tap="createSnapshot"
-            disabled$="[[!snapshotName]]"
-          >
-            Create
-          </paper-button>
+      <h3 hidden$="[[!isLoading]]">Loading...</h3>
+      <paper-spinner
+        active$="[[isLoading]]"
+        hidden$="[[!isLoading]]"
+      ></paper-spinner>
+      <paper-spinner active="{{isLoading}}"></paper-spinner>
+      <template is="dom-repeat" items="[[snapshots]]">
+        <div class="snapshot-item">
+          <div>[[item.name]]</div>
+          <div secondary="">[[item.description]]</div>
+          <div class="clearfix btn-group">
+            <paper-button
+              id="remove-button"
+              class="red"
+              on-tap="removeSnapshot"
+            >
+              Remove
+            </paper-button>
+            <paper-button
+              id="revert-button"
+              class="blue"
+              on-tap="revertToSnapshot"
+            >
+              Revert
+            </paper-button>
+          </div>
         </div>
-  
-    </paper-dialog-scrollable>
-    
-    <paper-dialog-scrollable">
-    <h3 hidden$="[[!isLoading]]"> Loading... </h3>
-      <paper-dropdown-menu
-        label="Select a snapshot"
-        class="dropdown-block"
-        horizontal-align="left"
-        no-animations=""
-      >
-        <paper-listbox
-          slot="dropdown-content"
-          attr-for-selected="value"
-          selected=""
-          class="dropdown-content"
-        >
-          <template is="dom-repeat" items="[[snapshots]]">
-            <paper-item value="[[item.name]]">
-              <paper-item-body two-line="">
-                <div>[[item.name]]</div>
-                <div secondary="">[[item.description]]</div>
-              </paper-item-body>
-            </paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <div class="clearfix btn-group">
-        <paper-button id="remove-button" class="red" on-tap="removeSnapshot">
-          Remove
-        </paper-button>
-        <paper-button dialog-dismiss=""> Cancel </paper-button>
+      </template>
 
-          <paper-button
-            id="revert-button"
-            class="blue"
-            on-tap="revertToSnapshot"
-          >
-            Revert
-          </paper-button>
-        </div>
-    </paper-dialog-scrollable>
-    <div class="progress">
-      <paper-progress
-        id="progress"
-        indeterminate=""
-        hidden$="[[!loading]]"
-      ></paper-progress>
-      <paper-progress
-        id="progresserror"
-        class="progresserror"
-        value="100"
-        hidden$="[[!formError]]"
-      ></paper-progress>
-      <p
-        id="progressmessage"
-        class="errormsg-container"
-        hidden$="[[!formError]]"
-      >
-        <iron-icon icon="icons:error-outline"></iron-icon
-        ><span id="errormsg"></span>
+      <p>
+        Fill in a name for the snapshot.
+        <paper-input
+          label="Snapshot name"
+          value="{{snapshotName}}"
+        ></paper-input>
+        <paper-textarea
+          label="Snapshot description (optional)"
+          value="{{snapshotDescription}}"
+        ></paper-textarea
+        ><br />
+        <paper-checkbox checked="{{snapshotDumpMemory}}"
+          >Dump memory</paper-checkbox
+        ><br /><br />
+        <paper-checkbox checked="{{snapshotQuiesce}}"
+          >Enable guest file system quiescing</paper-checkbox
+        >
       </p>
-    </div>
-    
+      <div class="clearfix btn-group">
+        <paper-button dialog-dismiss=""> Cancel </paper-button>
+        <paper-button
+          id="create-button"
+          class="blue"
+          on-tap="createSnapshot"
+          disabled$="[[!snapshotName]]"
+        >
+          Create
+        </paper-button>
+      </div>
+      <div class="progress">
+        <paper-progress
+          id="progress"
+          indeterminate=""
+          hidden$="[[!loading]]"
+        ></paper-progress>
+        <paper-progress
+          id="progresserror"
+          class="progresserror"
+          value="100"
+          hidden$="[[!formError]]"
+        ></paper-progress>
+        <p
+          id="progressmessage"
+          class="errormsg-container"
+          hidden$="[[!formError]]"
+        >
+          <iron-icon icon="icons:error-outline"></iron-icon
+          ><span id="errormsg"></span>
+        </p>
+      </div>
     </paper-dialog>
     <iron-ajax
       id="snapshotRequest"
@@ -239,6 +230,7 @@ Polymer({
   observers: [],
 
   _openDialog(_e) {
+    console.log('isLoading ', this.isLoading);
     this.clearError();
     // this._preselectSnapshot();
     this.$.snapshotsModal.open();
