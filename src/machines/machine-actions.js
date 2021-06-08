@@ -319,6 +319,7 @@ Polymer({
     'perform-action': 'performAction',
     confirmation: 'confirmAction',
     'select-action': 'selectAction',
+    'reload-snapshots': '_getSnapshots',
   },
 
   ready() {},
@@ -334,6 +335,7 @@ Polymer({
     }
   },
   _getSnapshots() {
+    console.log('in get snapshots');
     this.$.getSnapshots.headers['Content-Type'] = 'application/json';
     this.$.getSnapshots.headers['Csrf-Token'] = CSRFToken.value;
     this.$.getSnapshots.url = `/api/v1/machines/${this.items[0].id}`;
