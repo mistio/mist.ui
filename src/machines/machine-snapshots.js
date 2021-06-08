@@ -25,6 +25,13 @@ Polymer({
         min-width: 370px;
       }
 
+      paper-spinner {
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        width: 50px;
+        height: 50px;
+      }
       .snapshot-item {
         display: flex;
         justify-content: space-between;
@@ -90,39 +97,37 @@ Polymer({
         top: 55px !important;
       }
     </style>
-    // [ // { // "id": 1, // "name": "hf", // "description": "", // "created":
-    "2021-06-07 20:46", // "state": "poweredOff" // } // ]
     <paper-dialog id="snapshotsModal" with-backdrop="">
       <h2 class="title">Snapshots</h2>
-      <h3 hidden$="[[!isLoading]]">Loading...</h3>
-      <paper-spinner
-        active$="[[isLoading]]"
-        hidden$="[[!isLoading]]"
-      ></paper-spinner>
-      <paper-spinner active="{{isLoading}}"></paper-spinner>
-      <template is="dom-repeat" items="[[snapshots]]">
-        <div class="snapshot-item">
-          <div>[[item.name]]</div>
-          <div secondary="">[[item.description]]</div>
-          <div class="clearfix btn-group">
-            <paper-button
-              id="remove-button"
-              class="red"
-              on-tap="removeSnapshot"
-            >
-              Remove
-            </paper-button>
-            <paper-button
-              id="revert-button"
-              class="blue"
-              on-tap="revertToSnapshot"
-            >
-              Revert
-            </paper-button>
+      <div id="snapshots">
+        <paper-spinner active="[[isLoading]]"></paper-spinner>
+        <template is="dom-repeat" items="[[snapshots]]">
+          <div class="snapshot-item">
+            <div>[[item.name]]</div>
+            <div secondary="">[[item.description]]</div>
+            <div class="clearfix btn-group">
+              <paper-button
+                id="remove-button"
+                class="red"
+                data-snapshot-name$="[[item.name]]"
+                on-tap="removeSnapshot"
+              >
+                Remove
+              </paper-button>
+              <paper-button
+                id="revert-button"
+                class="blue"
+                data-snapshot-name$="[[item.name]]"
+                on-tap="revertToSnapshot"
+              >
+                Revert
+              </paper-button>
+            </div>
           </div>
-        </div>
-      </template>
-
+        </template>
+      </div>
+      <hr />
+      <h2>Create a new snapshot</h2>
       <p>
         Fill in a name for the snapshot.
         <paper-input
@@ -223,7 +228,7 @@ Polymer({
     },
     isLoading: {
       type: Boolean,
-      value: false,
+      value: true,
     },
   },
 
@@ -261,16 +266,18 @@ Polymer({
       this.set('snapshotName', '');
     }
   },
-  removeSnapshot() {
-    this.snapshotAction('remove');
+  removeSnapshot(e) {
+    const { snapshotName } = e.target.dataset;
+    this.snapshotAction('remove', snapshotName);
   },
-  revertToSnapshot() {
-    this.snapshotAction('revert');
+  revertToSnapshot(e) {
+    const snapshotName = e.target.dataset.item;
+    this.snapshotAction('revert', snapshotName);
   },
   createSnapshot() {
     this.snapshotAction('create');
   },
-  snapshotAction(action) {
+  snapshotAction(action, snapshotName) {
     const request = this.$.snapshotRequest;
     request.url = `/api/v1/machines/${this.machine.id}`;
     request.headers['Content-Type'] = 'application/json';
@@ -286,12 +293,12 @@ Polymer({
     } else if (action === 'remove') {
       request.body = {
         action: 'remove_snapshot',
-        snapshot_name: this.snapshotName,
+        snapshot_name: snapshotName,
       };
     } else if (action === 'revert') {
       request.body = {
         action: 'revert_to_snapshot',
-        snapshot_name: this.snapshotName,
+        snapshot_name: snapshotName,
       };
     }
     request.generateRequest();

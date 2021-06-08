@@ -216,7 +216,7 @@ Polymer({
       id="snapshotdialog"
       machine="[[items.0]]"
       snapshots="[[snapshots]]"
-      isLoading="[[isLoadingSnapshots]]"
+      is-loading="[[isLoadingSnapshots]]"
     ></machine-snapshots>
     <attach-volume-on-machine
       id="attachvolumedialog"
