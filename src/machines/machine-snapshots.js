@@ -23,6 +23,7 @@ Polymer({
 
       paper-dialog {
         min-width: 370px;
+        min-height: 550px;
       }
 
       paper-spinner {
@@ -130,7 +131,6 @@ Polymer({
         <span hidden$="[[haveSnapshots(isLoading, snapshots.length)]]">You don't have any snapshots</span>
         </div>
       </div>
-      <hr />
       </paper-button>
       <paper-button
         id="create-snapshot-button"
@@ -254,7 +254,6 @@ Polymer({
   observers: [],
 
   _openDialog(_e) {
-    console.log('isLoading ', this.isLoading);
     this.clearError();
     // this._preselectSnapshot();
     this.$.snapshotsModal.open();
@@ -300,7 +299,7 @@ Polymer({
     this.snapshotAction('revert');
   },
   haveSnapshots() {
-    return !this.isLoading && this.snapshots.length > 0;
+    return this.isLoading || (!this.isLoading && this.snapshots.length > 0);
   },
   createSnapshot() {
     this.snapshotAction('create');
