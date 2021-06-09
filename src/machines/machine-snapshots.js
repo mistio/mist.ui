@@ -10,6 +10,7 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item-body.js';
+import '../helpers/dialog-element.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
@@ -32,6 +33,7 @@ Polymer({
         display: flex;
         width: 50px;
         height: 50px;
+        padding-top: 160px;
       }
       .snapshot-item {
         display: flex;
@@ -42,8 +44,9 @@ Polymer({
         padding: 20px;
         width: 600px;
       }
-      #snapshots {
+      #snapshots-container {
         margin-top: -20px;
+        min-height: 280px;
       }
       :host .btn-group {
         margin: 10px 0;
@@ -99,19 +102,25 @@ Polymer({
       }
 
       .snapshot-name {
-        font-weight: bold;
+        font-weight: 500;
       }
       .snapshot-description {
         font-size: 14px;
       }
-
+      .small {
+        transform: scale(0.9);
+        width: 100%;
+        left: -5%;
+        position: relative;
+      }
       .snapshot-item paper-button {
         margin: 0 15px;
       }
     </style>
     <paper-dialog id="snapshotsModal" with-backdrop="">
+    <paper-dialog-scrollable>
       <h2 class="title">Snapshots</h2>
-      <div id="snapshots">
+      <div id="snapshots-container">
         <paper-spinner active="[[isLoading]]" hidden$="[[!isLoading]]"></paper-spinner>
         <div id="snapshot-items">
         <template is="dom-repeat" items="[[snapshots]]" >
@@ -144,45 +153,8 @@ Polymer({
         </div>
       </div>
       </paper-button>
-      <paper-button
-        id="create-snapshot-button"
-        class="blue"
-        hidden$="[[createSnapshotVisible]]"
-        on-tap="_showCreateSnapshot"
-      >
-      Create a new snapshot
-      </paper-button>
-      <div id="create-snapshot-form" hidden$="[[!createSnapshotVisible]]">
-      <p>
-      Fill in a name for the snapshot.
-      <paper-input
-        label="Snapshot name"
-        value="{{snapshotName}}"
-      ></paper-input>
-      <paper-textarea
-        label="Snapshot description (optional)"
-        value="{{snapshotDescription}}"
-      ></paper-textarea
-      ><br />
-      <paper-checkbox checked="{{snapshotDumpMemory}}"
-        >Dump memory</paper-checkbox
-      ><br /><br />
-      <paper-checkbox checked="{{snapshotQuiesce}}"
-        >Enable guest file system quiescing</paper-checkbox
-      >
-    </p>
-    <div class="clearfix btn-group">
-      <paper-button on-tap="_hideCreateSnapshot"> Cancel </paper-button>
-      <paper-button
-        id="create-button"
-        class="blue"
-        on-tap="createSnapshot"
-        disabled$="[[!snapshotName]]"
-      >
-        Create
-      </paper-button>
-    </div>
-      </div>
+
+      <span class="show-action" hidden$="[[!action]]">[[_getCurrentAction(action)]]</span>
       <div class="progress">
         <paper-progress
           id="progress"
@@ -203,9 +175,53 @@ Polymer({
           <iron-icon icon="icons:error-outline"></iron-icon
           ><span id="errormsg"></span>
         </p>
-        <paper-button dialog-dismiss=""> Close </paper-button>
       </div>
+      <paper-button
+      id="create-snapshot-button"
+      class="blue"
+      hidden$="[[createSnapshotVisible]]"
+      on-tap="_showCreateSnapshot"
+    >
+    Create a new snapshot
+    </paper-button>
+    <div id="create-snapshot-form" hidden$="[[!createSnapshotVisible]]">
+    <p>
+    Fill in a name for the snapshot.
+    <paper-input
+      label="Snapshot name"
+      value="{{snapshotName}}"
+    ></paper-input>
+    <paper-textarea
+      label="Snapshot description (optional)"
+      value="{{snapshotDescription}}"
+    ></paper-textarea
+    ><br />
+    <paper-checkbox checked="{{snapshotDumpMemory}}"
+      >Dump memory</paper-checkbox
+    ><br /><br />
+    <paper-checkbox checked="{{snapshotQuiesce}}"
+      >Enable guest file system quiescing</paper-checkbox
+    >
+  </p>
+  <div class="clearfix btn-group">
+    <paper-button class="red" on-tap="_hideCreateSnapshot"> Cancel </paper-button>
+    <paper-button
+      id="create-button"
+      class="blue"
+      on-tap="createSnapshot"
+      disabled$="[[!snapshotName]]"
+    >
+      Create
+    </paper-button>
+  </div>
+
+    </div>
+    </paper-dialog-scrollable>
+    <div class="buttons">
+    <paper-button dialog-dismiss="" class="red">Close</paper-button>
+    </div>
     </paper-dialog>
+    <dialog-element id="confirmationDialog"></dialog-element>
     <iron-ajax
       id="snapshotRequest"
       method="POST"
@@ -262,9 +278,38 @@ Polymer({
       value: false,
     },
   },
-
+  listeners: {
+    confirmation: 'confirmAction',
+  },
   observers: [],
+  confirmAction(e) {
+    const { reason, response } = e.detail;
 
+    if (response === 'confirm') {
+      if (reason === 'remove snapshot') {
+        this.snapshotAction('remove');
+      } else if (reason === 'revert snapshot') {
+        this.snapshotAction('revert');
+      }
+    }
+  },
+  _getCurrentAction() {
+    let verb;
+    switch (this.action) {
+      case 'create':
+        verb = 'Creating';
+        break;
+      case 'remove':
+        verb = 'Removing';
+        break;
+      case 'revert':
+        verb = 'Reverting';
+        break;
+      default:
+        break;
+    }
+    return `${verb} snapshot: ${this.snapshotName}...`;
+  },
   _openDialog(_e) {
     this.clearError();
     // this._preselectSnapshot();
@@ -303,12 +348,28 @@ Polymer({
     this.createSnapshotVisible = false;
   },
   removeSnapshot(e) {
-    this.set('snapshotName', e.target.dataset.snapshotName);
-    this.snapshotAction('remove');
+    const { snapshotName } = e.target.dataset;
+    this.set('snapshotName', snapshotName);
+    this._showDialog({
+      title: 'Remove snapshot',
+      body: `Are you sure you want to remove snapshot: ${snapshotName}?`,
+      danger: true,
+      reason: 'remove snapshot',
+    });
+
+    // this.snapshotAction('remove');
   },
   revertToSnapshot(e) {
-    this.set('snapshotName', e.target.dataset.snapshotName);
-    this.snapshotAction('revert');
+    const { snapshotName } = e.target.dataset;
+    this.set('snapshotName', snapshotName);
+    this._showDialog({
+      title: 'Revert snapshot',
+      body: `Are you sure you want to revert snapshot: ${snapshotName}?`,
+      danger: true,
+      reason: 'revert snapshot',
+    });
+
+    // this.snapshotAction('revert');
   },
   haveSnapshots() {
     return this.isLoading || (!this.isLoading && this.snapshots.length > 0);
@@ -358,6 +419,7 @@ Polymer({
   },
 
   _snapshotResponse(e) {
+    this.action = null;
     console.log(e, e.detail);
     this.snapshots = [];
     // this._closeDialog();
@@ -386,6 +448,7 @@ Polymer({
   },
 
   _snapshotError(e) {
+    this.action = null;
     console.log(e, e.detail);
     const message = e.detail.request.xhr.response || e.detail.error.message;
     this.$.errormsg.textContent = message;
@@ -407,5 +470,12 @@ Polymer({
 
   _getClass(action) {
     return action === 'remove snapshot' ? 'red' : 'blue';
+  },
+  _showDialog(info) {
+    const dialog = this.$.confirmationDialog;
+    Object.keys(info || {}).forEach(i => {
+      dialog[i] = info[i];
+    });
+    dialog._openDialog();
   },
 });

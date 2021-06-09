@@ -584,6 +584,7 @@ Polymer({
       } else if (action.name === 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
       } else if (action.name === 'snapshots') {
+        this._getSnapshots();
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'remove snapshot') {
         this.$.snapshotdialog.snapshots = this.snapshots;
