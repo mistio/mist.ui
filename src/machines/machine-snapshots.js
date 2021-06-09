@@ -144,6 +144,7 @@ Polymer({
                 icon="icons:settings-backup-restore"
                 data-snapshot-name$="[[item.name]]"
                 on-tap="revertToSnapshot"
+                title="Revert machine to this snapshot"
                 >
                   Revert
                 </paper-icon-button>
@@ -152,6 +153,7 @@ Polymer({
                   icon="icons:delete"
                   data-snapshot-name$="[[item.name]]"
                   on-tap="removeSnapshot"
+                  title="Remove snapshot"
                 >
                   Remove
                 </paper-icon-button>
@@ -379,6 +381,7 @@ Polymer({
   },
   createSnapshot() {
     this.snapshotAction('create');
+    this.$['create-button'].disabled = true;
   },
   snapshotAction(action) {
     this.action = action;
@@ -425,7 +428,6 @@ Polymer({
     console.log(e, e.detail);
     this.action = null;
     this.snapshots = [];
-    // this._closeDialog();
     this.dispatchEvent(
       new CustomEvent('reload-snapshots', {
         bubbles: true,
@@ -448,6 +450,7 @@ Polymer({
         detail: { msg: 'Snapshot request sent successfully.', duration: 5000 },
       })
     );
+    this.$['create-button'].disabled = false;
   },
 
   _snapshotError(e) {

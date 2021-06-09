@@ -330,11 +330,7 @@ Polymer({
     this.$.request.headers['Csrf-Token'] = CSRFToken.value;
     this.$.request.method = 'POST';
   },
-  _machineProviderChanged(hasSnapshots) {
-    if (hasSnapshots && this.items.length === 1) {
-      this._getSnapshots();
-    }
-  },
+
   _getSnapshots() {
     console.log('in get snapshots');
     this.$.getSnapshots.headers['Content-Type'] = 'application/json';
@@ -583,9 +579,9 @@ Polymer({
       } else if (action.name === 'attach volume') {
         this.$.attachvolumedialog._openDialog();
       } else if (action.name === 'transfer ownership') {
-        this._getSnapshots();
         this.$.ownershipdialog._openDialog();
       } else if (action.name === 'snapshot') {
+        this._getSnapshots();
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'rename') {
         this.$.renamedialog._openDialog();
