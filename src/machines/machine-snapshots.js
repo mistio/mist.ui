@@ -32,9 +32,11 @@ Polymer({
         display: flex;
         width: 50px;
         height: 50px;
+        margin-top: 30px;
+        margin-bottom:#snapshots
       }
-      .snapshot-item {
-        display: flex;
+      .snapshot-item {#snapshots
+        display: flex;#snapshots
         align-items: center;
         justify-content: space-between;
       }
@@ -44,6 +46,7 @@ Polymer({
       }
       #snapshots {
         margin-top: -20px;
+        margin-bottom: 50px;
       }
       :host .btn-group {
         margin: 10px 0;
@@ -110,79 +113,80 @@ Polymer({
       }
     </style>
     <paper-dialog id="snapshotsModal" with-backdrop="">
-      <h2 class="title">Snapshots</h2>
+      <h2 class="title"><span hidden$="[[isLoading]]">Existing</span><span hidden$="[[!isLoading]]">Loading</span> snapshots</h2>
       <div id="snapshots">
-        <paper-spinner active="[[isLoading]]" hidden$="[[!isLoading]]"></paper-spinner>
+        <paper-spinner active="[[isLoading]]" hidden$="[[!isLoading]]" ></paper-spinner>
         <div id="snapshot-items">
-        <template is="dom-repeat" items="[[snapshots]]" >
-          <div class="snapshot-item" hidden$="[[isLoading]]">
-          <div>
-          <div class="snapshot-name">[[item.name]]</div>
-          <div class="snapshot-description" secondary="">[[item.description]]</div>
-          </div>
-            <div class="clearfix btn-group">
-            <paper-button
-            id="revert-button"
-            class="blue"
-            data-snapshot-name$="[[item.name]]"
-            on-tap="revertToSnapshot"
-          >
-            Revert
-          </paper-button>
-              <paper-button
-                id="remove-button"
-                class="red"
+          <template is="dom-repeat" items="[[snapshots]]" >
+            <div class="snapshot-item" hidden$="[[isLoading]]">
+              <div class="snapshot-name">[[item.name]]</div>
+              <div class="snapshot-description" secondary="">[[item.description]]</div>
+              <div class="clearfix btn-group">
+                <paper-icon-button
+                id="revert-button"
+                icon="icons:settings-backup-restore"
                 data-snapshot-name$="[[item.name]]"
-                on-tap="removeSnapshot"
-              >
-                Remove
-              </paper-button>
+                on-tap="revertToSnapshot"
+                >
+                  Revert
+                </paper-icon-button>
+                <paper-icon-button
+                  id="remove-button"
+                  icon="icons:delete"
+                  data-snapshot-name$="[[item.name]]"
+                  on-tap="removeSnapshot"
+                >
+                  Remove
+                </paper-icon-button>
+              </div>
             </div>
-          </div>
-        </template>
-        <span hidden$="[[haveSnapshots(isLoading, snapshots.length)]]">You don't have any snapshots</span>
+          </template>
+        <span hidden$="[[haveSnapshots(isLoading, snapshots.length)]]">No snapshots available for machine</span>
         </div>
       </div>
-      </paper-button>
-      <paper-button
-        id="create-snapshot-button"
-        class="blue"
-        hidden$="[[createSnapshotVisible]]"
-        on-tap="_showCreateSnapshot"
-      >
+      <!-- <paper-button
+          id="create-snapshot-button"
+          class="blue"
+          hidden$="[[createSnapshotVisible]]"
+          on-tap="_showCreateSnapshot"
+        >
       Create a new snapshot
-      </paper-button>
-      <div id="create-snapshot-form" hidden$="[[!createSnapshotVisible]]">
-      <p>
-      Fill in a name for the snapshot.
-      <paper-input
-        label="Snapshot name"
-        value="{{snapshotName}}"
-      ></paper-input>
-      <paper-textarea
-        label="Snapshot description (optional)"
-        value="{{snapshotDescription}}"
-      ></paper-textarea
-      ><br />
-      <paper-checkbox checked="{{snapshotDumpMemory}}"
-        >Dump memory</paper-checkbox
-      ><br /><br />
-      <paper-checkbox checked="{{snapshotQuiesce}}"
-        >Enable guest file system quiescing</paper-checkbox
-      >
-    </p>
-    <div class="clearfix btn-group">
-      <paper-button on-tap="_hideCreateSnapshot"> Cancel </paper-button>
-      <paper-button
-        id="create-button"
-        class="blue"
-        on-tap="createSnapshot"
-        disabled$="[[!snapshotName]]"
-      >
-        Create
-      </paper-button>
-    </div>
+      </paper-button> -->
+      <h2 class="title">Create new snapshot</h2>
+      <div id="create-snapshot-form">
+        <!-- hidden$="[[!createSnapshotVisible]]"> -->
+        <p>
+        Fill in a name for the snapshot.
+        <paper-input
+          label="Snapshot name"
+          value="{{snapshotName}}"
+        ></paper-input>
+        <paper-textarea
+          label="Snapshot description (optional)"
+          value="{{snapshotDescription}}"
+        ></paper-textarea
+        ><br />
+        <paper-checkbox checked="{{snapshotDumpMemory}}"
+          >Dump memory</paper-checkbox
+        ><br /><br />
+        <paper-checkbox checked="{{snapshotQuiesce}}"
+          >Enable guest file system quiescing</paper-checkbox
+        >
+        </p>
+        <div class="clearfix btn-group">
+          <paper-button dialog-dismiss=""  on-tap="_hideCreateSnapshot"> Cancel </paper-button>
+          <paper-button
+            id="create-button"
+            class="blue"
+            on-tap="createSnapshot"
+            disabled$="[[!snapshotName]]"
+          >
+            Create
+          </paper-button>
+        </div>
       </div>
+      </div>
+      </paper-button>
       <div class="progress">
         <paper-progress
           id="progress"
@@ -203,7 +207,6 @@ Polymer({
           <iron-icon icon="icons:error-outline"></iron-icon
           ><span id="errormsg"></span>
         </p>
-        <paper-button dialog-dismiss=""> Close </paper-button>
       </div>
     </paper-dialog>
     <iron-ajax

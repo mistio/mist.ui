@@ -32,10 +32,9 @@ const MACHINE_ACTIONS = {
     multi: false,
     single: true,
   },
-  snapshots: {
-    name: 'snapshots',
+  snapshot: {
+    name: 'snapshot',
     icon: 'image:add-a-photo',
-    confirm: true,
     multi: false,
   },
   // remove_snapshot: {
@@ -301,7 +300,9 @@ Polymer({
     },
     snapshots: {
       type: Array,
-      value: [],
+      value() {
+        return [];
+      },
     },
     isProviderWithSnapshots: {
       type: Boolean,
@@ -414,7 +415,7 @@ Polymer({
           arr.push(action);
       });
     }
-    if (machine.actions.create_snapshot) arr.push('snapshots');
+    if (machine.actions.create_snapshot) arr.push('snapshot');
     if (machine.key_associations && machine.key_associations.length) {
       arr.push('run-script');
     }
@@ -447,7 +448,7 @@ Polymer({
       'delete',
       'power_cycle',
       'attach-volume',
-      'snapshots',
+      'snapshot',
       'associate-key',
       'rename',
       'run-script',
@@ -551,7 +552,7 @@ Polymer({
           'associate key',
           'resize',
           'webconfig',
-          'snapshots',
+          'snapshot',
         ].indexOf(action.name) === -1
       ) {
         const plural = this.items.length === 1 ? '' : 's';
@@ -583,15 +584,7 @@ Polymer({
         this.$.attachvolumedialog._openDialog();
       } else if (action.name === 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
-      } else if (action.name === 'snapshots') {
-        this.$.snapshotdialog._openDialog();
-      } else if (action.name === 'remove snapshot') {
-        this.$.snapshotdialog.snapshots = this.snapshots;
-        this.$.snapshotdialog.action = action.name;
-        this.$.snapshotdialog._openDialog();
-      } else if (action.name === 'revert to snapshot') {
-        this.$.snapshotdialog.snapshots = this.snapshots;
-        this.$.snapshotdialog.action = action.name;
+      } else if (action.name === 'snapshot') {
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'rename') {
         this.$.renamedialog._openDialog();
