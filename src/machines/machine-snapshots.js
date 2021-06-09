@@ -98,6 +98,16 @@ Polymer({
         text-transform: capitalize;
       }
 
+      .snapshot-name {
+        font-weight: bold;
+      }
+      .snapshot-description {
+        font-size: 14px;
+      }
+
+      .snapshot-item paper-button {
+        margin: 0 15px;
+      }
     </style>
     <paper-dialog id="snapshotsModal" with-backdrop="">
       <h2 class="title">Snapshots</h2>
@@ -106,9 +116,19 @@ Polymer({
         <div id="snapshot-items">
         <template is="dom-repeat" items="[[snapshots]]" >
           <div class="snapshot-item" hidden$="[[isLoading]]">
-            <div>[[item.name]]</div>
-            <div secondary="">[[item.description]]</div>
+          <div>
+          <div class="snapshot-name">[[item.name]]</div>
+          <div class="snapshot-description" secondary="">[[item.description]]</div>
+          </div>
             <div class="clearfix btn-group">
+            <paper-button
+            id="revert-button"
+            class="blue"
+            data-snapshot-name$="[[item.name]]"
+            on-tap="revertToSnapshot"
+          >
+            Revert
+          </paper-button>
               <paper-button
                 id="remove-button"
                 class="red"
@@ -116,14 +136,6 @@ Polymer({
                 on-tap="removeSnapshot"
               >
                 Remove
-              </paper-button>
-              <paper-button
-                id="revert-button"
-                class="blue"
-                data-snapshot-name$="[[item.name]]"
-                on-tap="revertToSnapshot"
-              >
-                Revert
               </paper-button>
             </div>
           </div>
