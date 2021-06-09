@@ -2072,7 +2072,11 @@ Polymer({
 
   _computeAddImageTitle(selectedCloud) {
     let provider = '';
-    if (selectedCloud) {
+    if (
+      selectedCloud &&
+      this.model.clouds &&
+      this.model.clouds[selectedCloud]
+    ) {
       provider = this.model.clouds[this.selectedCloud].provider;
     }
     return provider === 'lxd' ? 'Pull image from URL:' : 'Create image';
@@ -2080,7 +2084,11 @@ Polymer({
 
   _computeAddImageLabel(selectedCloud) {
     let provider = '';
-    if (selectedCloud) {
+    if (
+      selectedCloud &&
+      this.model.clouds &&
+      this.model.clouds[selectedCloud]
+    ) {
       provider = this.model.clouds[this.selectedCloud].provider;
     }
     return provider === 'lxd' ? 'Image URL:' : "Image's path";
