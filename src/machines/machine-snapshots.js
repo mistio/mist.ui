@@ -44,6 +44,7 @@ Polymer({
       #snapshotsModal {
         padding: 20px;
         width: 600px;
+        min-height: 370px;
       }
       #snapshots {
         margin-top: -20px;
@@ -58,7 +59,7 @@ Polymer({
       }
 
       .progress {
-        margin: 24px -24px 24px -24px;
+        margin: 24px 0;
         width: 100%;
       }
 
@@ -111,8 +112,15 @@ Polymer({
         font-weight: 500;
         font-size: 18px;
       }
+
+      .snapshot-name > time, .snapshot-date {
+        font-weight: 400;
+        font-size: 11px;
+        color: #666;
+      }
       .snapshot-description {
-        font-size: 14px;
+        font-size: 11px;
+        width: 160px;
       }
 
       .small {
@@ -128,16 +136,16 @@ Polymer({
     </style>
     <paper-dialog id="snapshotsModal" with-backdrop="">
       <paper-dialog-scrollable>
-        <h2 class="title"><span hidden$="[[isLoading]]">Existing</span><span hidden$="[[!isLoading]]">Loading</span> snapshots</h2>
-      <div id="snapshots">
+        <h2 class="title" hidden$="[[!haveSnapshots(isLoading, snapshots.length)]]"><span hidden$="[[isLoading]]">Existing</span><span hidden$="[[!isLoading]]">Loading</span> snapshots</h2>
+        <div id="snapshots" hidden$="[[!haveSnapshots(isLoading, snapshots.length)]]">
         <paper-spinner active="[[isLoading]]" hidden$="[[!isLoading]]" ></paper-spinner>
         <div id="snapshot-items">
           <template is="dom-repeat" items="[[snapshots]]" >
             <div class="snapshot-item" hidden$="[[isLoading]]">
-            <div>
-            <div class="snapshot-name">[[item.name]]</div>
-            <div class="snapshot-description" secondary="">[[item.description]]</div>
-            </div>
+              <div class="snapshot-date"><time datetime$=[[item.created]]>[[item.created]]</time></div>
+              <div class="snapshot-name">[[item.name]]</div>
+              <div class="snapshot-description" secondary="">[[item.description]]</div>
+
               <div class="clearfix btn-group">
                 <paper-icon-button
                 id="revert-button"

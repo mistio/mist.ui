@@ -37,18 +37,6 @@ const MACHINE_ACTIONS = {
     icon: 'image:add-a-photo',
     multi: false,
   },
-  // remove_snapshot: {
-  //   name: 'remove snapshot',
-  //   icon: 'image:monochrome-photos',
-  //   confirm: true,
-  //   multi: false,
-  // },
-  // revert_to_snapshot: {
-  //   name: 'revert to snapshot',
-  //   icon: 'social:party-mode',
-  //   confirm: true,
-  //   multi: false,
-  // },
   shell: {
     name: 'shell',
     icon: 'vaadin:terminal',
