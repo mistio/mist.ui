@@ -32,22 +32,9 @@ const MACHINE_ACTIONS = {
     multi: false,
     single: true,
   },
-  create_snapshot: {
-    name: 'create snapshot',
+  snapshot: {
+    name: 'snapshot',
     icon: 'image:add-a-photo',
-    confirm: true,
-    multi: false,
-  },
-  remove_snapshot: {
-    name: 'remove snapshot',
-    icon: 'image:monochrome-photos',
-    confirm: true,
-    multi: false,
-  },
-  revert_to_snapshot: {
-    name: 'revert to snapshot',
-    icon: 'social:party-mode',
-    confirm: true,
     multi: false,
   },
   shell: {
@@ -215,8 +202,8 @@ Polymer({
     <machine-snapshots
       id="snapshotdialog"
       machine="[[items.0]]"
-      snapshots=""
-      action=""
+      snapshots="[[snapshots]]"
+      is-loading="[[isLoadingSnapshots]]"
     ></machine-snapshots>
     <attach-volume-on-machine
       id="attachvolumedialog"
@@ -248,6 +235,13 @@ Polymer({
       loading="{{loadingData}}"
       on-response="handleResponse"
       on-error="handleError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getSnapshots"
+      handle-as="json"
+      on-request="handleGetSnapshotsRequest"
+      on-response="handleGetSnapshotsResponse"
+      on-error="handleGetSnapshotsError"
     ></iron-ajax>
     <slot>
       <mist-list-actions actions="[[allowedActions]]"></mist-list-actions>
@@ -292,14 +286,29 @@ Polymer({
         return VOLUME_CREATE_FIELDS.map(i => i.provider);
       },
     },
+    snapshots: {
+      type: Array,
+      value() {
+        return [];
+      },
+    },
+    isProviderWithSnapshots: {
+      type: Boolean,
+      value: false,
+    },
+    isLoadingSnapshots: {
+      type: Boolean,
+      value: false,
+    },
   },
-
+  observers: ['_machineProviderChanged(isProviderWithSnapshots)'],
   listeners: {
     'rename-machine': 'renameAction',
     'transfer-ownership': 'transferOwnership',
     'perform-action': 'performAction',
     confirmation: 'confirmAction',
     'select-action': 'selectAction',
+    'reload-snapshots': '_getSnapshots',
   },
 
   ready() {},
@@ -310,6 +319,25 @@ Polymer({
     this.$.request.method = 'POST';
   },
 
+  _getSnapshots() {
+    console.log('in get snapshots');
+    this.$.getSnapshots.headers['Content-Type'] = 'application/json';
+    this.$.getSnapshots.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.getSnapshots.url = `/api/v1/machines/${this.items[0].id}`;
+    this.$.getSnapshots.method = 'POST';
+    this.$.getSnapshots.body = {
+      action: 'list_snapshots',
+    };
+    this.$.getSnapshots.generateRequest();
+  },
+
+  handleGetSnapshotsRequest(_e) {
+    this.set('isLoadingSnapshots', true);
+  },
+  handleGetSnapshotsResponse(e) {
+    this.set('snapshots', e.detail.response);
+    this.set('isLoadingSnapshots', false);
+  },
   getProviders(machines) {
     const providers = [];
     for (let i = 0; i < machines.length; i++) {
@@ -367,9 +395,11 @@ Polymer({
     }
     if (machine && machine.actions) {
       Object.keys(machine.actions || {}).forEach(action => {
-        if (machine.actions[action]) arr.push(action);
+        if (machine.actions[action] && !action.includes('snapshot'))
+          arr.push(action);
       });
     }
+    if (machine.actions.create_snapshot) arr.push('snapshot');
     if (machine.key_associations && machine.key_associations.length) {
       arr.push('run-script');
     }
@@ -402,9 +432,7 @@ Polymer({
       'delete',
       'power_cycle',
       'attach-volume',
-      'create_snapshot',
-      'revert_to_snapshot',
-      'remove_snapshot',
+      'snapshot',
       'associate-key',
       'rename',
       'run-script',
@@ -440,15 +468,15 @@ Polymer({
   },
   _computeAllowedActions(actions) {
     if (actions.length > 0) {
-      return actions.filter(action => {
-        return this.checkPerm(
+      return actions.filter(action =>
+        this.checkPerm(
           'machine',
           action.name,
           this._getMachine().id,
           this.model.org,
           this.model.user
-        );
-      });
+        )
+      );
     }
     return [];
   },
@@ -508,9 +536,7 @@ Polymer({
           'associate key',
           'resize',
           'webconfig',
-          'create snapshot',
-          'remove snapshot',
-          'revert to snapshot',
+          'snapshot',
         ].indexOf(action.name) === -1
       ) {
         const plural = this.items.length === 1 ? '' : 's';
@@ -542,16 +568,8 @@ Polymer({
         this.$.attachvolumedialog._openDialog();
       } else if (action.name === 'transfer ownership') {
         this.$.ownershipdialog._openDialog();
-      } else if (action.name === 'create snapshot') {
-        this.$.snapshotdialog.action = action.name;
-        this.$.snapshotdialog._openDialog();
-      } else if (action.name === 'remove snapshot') {
-        this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
-        this.$.snapshotdialog.action = action.name;
-        this.$.snapshotdialog._openDialog();
-      } else if (action.name === 'revert to snapshot') {
-        this.$.snapshotdialog.snapshots = this.items[0].extra.snapshots;
-        this.$.snapshotdialog.action = action.name;
+      } else if (action.name === 'snapshot') {
+        this._getSnapshots();
         this.$.snapshotdialog._openDialog();
       } else if (action.name === 'rename') {
         this.$.renamedialog._openDialog();

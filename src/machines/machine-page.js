@@ -1205,7 +1205,8 @@ Polymer({
   },
 
   observers: [
-    '_machineChanged(machine.*, model.machines.*)',
+    '_machineChanged(machine.*)',
+    '_machineUpdated(machine.*, model.machines.*)',
     '_getMachineCloud(model.clouds.*, machine.cloud)',
     '_renderMachineKeys(machineKeys.length)',
   ],
@@ -1214,7 +1215,7 @@ Polymer({
     confirmation: '_machineActionConfirmation',
     'pending-key-request': '_updateKeyLoader',
     'pending-expiration-request': '_updateExpirationLoader',
-    'select-action': 'selectAction',
+    'select-action': 'selectAction'
   },
 
   ready() {
@@ -1361,8 +1362,13 @@ Polymer({
       })
     );
   },
-
-  _machineChanged(_machine) {
+  _machineChanged(_machine){
+    if(this.machine && this.machine.actions['create_snapshot']) {
+      this.$.actions_machine.isProviderWithSnapshots = true;
+    }
+    return
+  },
+  _machineUpdated(_machine) {
     if (this.machine) {
       this.set('itemArray', [this.machine]);
       // Check if tags changed, update if they did
@@ -1370,7 +1376,7 @@ Polymer({
         this._transformTagsToArray(this.machine.tags).join(',') !==
         this.machineTags.join(',')
       )
-        this._machineTagsChanged(this.machine, this.machine.tags);
+        this._machineTagsChanged();
     }
   },
 
@@ -1484,7 +1490,7 @@ Polymer({
     return (this.machine && this.machine.state) || '';
   },
 
-  _machineTagsChanged(_machine, _tags) {
+  _machineTagsChanged() {
     if (this.machine) {
       this.set('machineTags', this._transformTagsToArray(this.machine.tags));
     }
