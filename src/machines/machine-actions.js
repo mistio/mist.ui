@@ -583,6 +583,7 @@ Polymer({
       } else if (action.name === 'attach volume') {
         this.$.attachvolumedialog._openDialog();
       } else if (action.name === 'transfer ownership') {
+        this._getSnapshots();
         this.$.ownershipdialog._openDialog();
       } else if (action.name === 'snapshot') {
         this.$.snapshotdialog._openDialog();

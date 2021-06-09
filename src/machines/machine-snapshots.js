@@ -10,6 +10,7 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item-body.js';
+import '../helpers/dialog-element.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
@@ -35,8 +36,8 @@ Polymer({
         margin-top: 30px;
         margin-bottom:#snapshots
       }
-      .snapshot-item {#snapshots
-        display: flex;#snapshots
+      .snapshot-item {
+        display: flex;
         align-items: center;
         justify-content: space-between;
       }
@@ -80,6 +81,11 @@ Polymer({
         color: inherit;
       }
 
+      #revert-button, #remove-button {
+        width: 50px;
+        height: 50px;
+      }
+
       .errormsg-container {
         color: var(--red-color);
         padding-left: 24px;
@@ -102,10 +108,18 @@ Polymer({
       }
 
       .snapshot-name {
-        font-weight: bold;
+        font-weight: 500;
+        font-size: 18px;
       }
       .snapshot-description {
         font-size: 14px;
+      }
+
+      .small {
+        transform: scale(0.9);
+        width: 100%;
+        left: -5%;
+        position: relative;
       }
 
       .snapshot-item paper-button {
@@ -113,14 +127,17 @@ Polymer({
       }
     </style>
     <paper-dialog id="snapshotsModal" with-backdrop="">
-      <h2 class="title"><span hidden$="[[isLoading]]">Existing</span><span hidden$="[[!isLoading]]">Loading</span> snapshots</h2>
+      <paper-dialog-scrollable>
+        <h2 class="title"><span hidden$="[[isLoading]]">Existing</span><span hidden$="[[!isLoading]]">Loading</span> snapshots</h2>
       <div id="snapshots">
         <paper-spinner active="[[isLoading]]" hidden$="[[!isLoading]]" ></paper-spinner>
         <div id="snapshot-items">
           <template is="dom-repeat" items="[[snapshots]]" >
             <div class="snapshot-item" hidden$="[[isLoading]]">
-              <div class="snapshot-name">[[item.name]]</div>
-              <div class="snapshot-description" secondary="">[[item.description]]</div>
+            <div>
+            <div class="snapshot-name">[[item.name]]</div>
+            <div class="snapshot-description" secondary="">[[item.description]]</div>
+            </div>
               <div class="clearfix btn-group">
                 <paper-icon-button
                 id="revert-button"
@@ -187,6 +204,7 @@ Polymer({
       </div>
       </div>
       </paper-button>
+      <span class="show-action" hidden$="[[!action]]">[[_getCurrentAction(action)]]</span>
       <div class="progress">
         <paper-progress
           id="progress"
@@ -208,7 +226,9 @@ Polymer({
           ><span id="errormsg"></span>
         </p>
       </div>
+      <paper-dialog-scrollable>
     </paper-dialog>
+    <dialog-element id="confirmationDialog"></dialog-element>
     <iron-ajax
       id="snapshotRequest"
       method="POST"
@@ -265,7 +285,9 @@ Polymer({
       value: false,
     },
   },
-
+  listeners: {
+    confirmation: 'confirmAction',
+  },
   observers: [],
 
   _openDialog(_e) {
@@ -279,7 +301,34 @@ Polymer({
     this.clearError();
     this.set('action', '');
   },
+  confirmAction(e) {
+    const { reason, response } = e.detail;
 
+    if (response === 'confirm') {
+      if (reason === 'remove snapshot') {
+        this.snapshotAction('remove');
+      } else if (reason === 'revert snapshot') {
+        this.snapshotAction('revert');
+      }
+    }
+  },
+  _getCurrentAction() {
+    let verb;
+    switch (this.action) {
+      case 'create':
+        verb = 'Creating';
+        break;
+      case 'remove':
+        verb = 'Removing';
+        break;
+      case 'revert':
+        verb = 'Reverting';
+        break;
+      default:
+        break;
+    }
+    return `${verb} snapshot: ${this.snapshotName}...`;
+  },
   _computeIsCreate(_action) {
     return this.action === 'create snapshot';
   },
@@ -306,12 +355,24 @@ Polymer({
     this.createSnapshotVisible = false;
   },
   removeSnapshot(e) {
-    this.set('snapshotName', e.target.dataset.snapshotName);
-    this.snapshotAction('remove');
+    const { snapshotName } = e.target.dataset;
+    this.set('snapshotName', snapshotName);
+    this._showDialog({
+      title: 'Remove snapshot',
+      body: `Are you sure you want to remove snapshot: ${snapshotName}?`,
+      danger: true,
+      reason: 'remove snapshot',
+    });
   },
   revertToSnapshot(e) {
-    this.set('snapshotName', e.target.dataset.snapshotName);
-    this.snapshotAction('revert');
+    const { snapshotName } = e.target.dataset;
+    this.set('snapshotName', snapshotName);
+    this._showDialog({
+      title: 'Revert snapshot',
+      body: `Are you sure you want to revert snapshot: ${snapshotName}?`,
+      danger: true,
+      reason: 'revert snapshot',
+    });
   },
   haveSnapshots() {
     return this.isLoading || (!this.isLoading && this.snapshots.length > 0);
@@ -362,6 +423,7 @@ Polymer({
 
   _snapshotResponse(e) {
     console.log(e, e.detail);
+    this.action = null;
     this.snapshots = [];
     // this._closeDialog();
     this.dispatchEvent(
@@ -390,6 +452,7 @@ Polymer({
 
   _snapshotError(e) {
     console.log(e, e.detail);
+    this.action = null;
     const message = e.detail.request.xhr.response || e.detail.error.message;
     this.$.errormsg.textContent = message;
     this.set('formError', true);
@@ -410,5 +473,12 @@ Polymer({
 
   _getClass(action) {
     return action === 'remove snapshot' ? 'red' : 'blue';
+  },
+  _showDialog(info) {
+    const dialog = this.$.confirmationDialog;
+    Object.keys(info || {}).forEach(i => {
+      dialog[i] = info[i];
+    });
+    dialog._openDialog();
   },
 });
