@@ -776,6 +776,7 @@ Polymer({
       // if is openstack do not require network/locations
       if (this.model.clouds[this.selectedCloud].provider === 'openstack') {
         this._updateFieldsForOpenstack();
+        this._updateSecurityGroups(this.selectedCloud);
       }
 
       // if is equinix metal construct ip_addresses value
@@ -2496,11 +2497,24 @@ Polymer({
 
   _handleGetSecurityGroupsResponse(e) {
     const secGroups = [];
-    for (let i = 0; i < e.detail.response.length; i++)
+    if (
+      this.cloud.provider === 'openstack'
+    ){
+      for (let i = 0; i < e.detail.response.length; i++) {
+        secGroups.push({
+          name: e.detail.response[i].name,
+          description: e.detail.response[i].description,
+          id: e.detail.response[i].id,
+        });
+      }
+    }
+    else{
+      for (let i = 0; i < e.detail.response.length; i++)
       secGroups.push({
         title: e.detail.response[i].name,
         val: e.detail.response[i].id,
       });
+    }
     this.set(
       `machineFields.${this.securityGroupsFieldIndex}.options`,
       secGroups || []

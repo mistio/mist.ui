@@ -568,6 +568,16 @@ MACHINE_CREATE_FIELDS.push({
   provider: 'openstack',
   fields: [
     {
+      name: 'security_group',
+      label: 'Security group *',
+      type: 'checkboxes',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      options: [],
+    },
+    {
       name: 'networks',
       label: 'Networks *',
       type: 'checkboxes',
