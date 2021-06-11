@@ -372,6 +372,7 @@ Polymer({
       body: `Are you sure you want to remove snapshot: ${snapshotName}?`,
       danger: true,
       reason: 'remove snapshot',
+      action: 'Remove',
     });
   },
   revertToSnapshot(e) {
@@ -382,6 +383,7 @@ Polymer({
       body: `Are you sure you want to revert snapshot: ${snapshotName}?`,
       danger: true,
       reason: 'revert snapshot',
+      action: 'Revert',
     });
   },
   haveSnapshots() {
