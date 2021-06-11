@@ -436,6 +436,7 @@ Polymer({
 
   _snapshotResponse(e) {
     console.log(e, e.detail);
+    this.resetForm();
     this.action = null;
     this.snapshots = [];
     this.dispatchEvent(
@@ -486,6 +487,10 @@ Polymer({
 
   _getClass(action) {
     return action === 'remove snapshot' ? 'red' : 'blue';
+  },
+  resetForm() {
+    this.set('snapshotName', '');
+    this.set('snapshotDescription', '');
   },
   _showDialog(info) {
     const dialog = this.$.confirmationDialog;
