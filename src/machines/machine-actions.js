@@ -740,9 +740,30 @@ Polymer({
           let message = '';
           if (xhr.status === 200) {
             console.log(action, 'success');
-            message = `Successfully ${this.inPast(
-              action.name
-            )} machine. Updating...`;
+            if (xhr.response && xhr.response.indexOf('clone_machine') !== -1) {
+              const response = JSON.parse(xhr.response);
+              this.dispatchEvent(
+                new CustomEvent('set-job-id', {
+                  bubbles: true,
+                  composed: true,
+                  detail: response,
+                })
+              );
+              this.dispatchEvent(
+                new CustomEvent('go-to', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    url: '/machines',
+                  },
+                })
+              );
+              message = `Successfully sent clone request...`;
+            } else {
+              message = `Successfully ${this.inPast(
+                action.name
+              )} machine. Updating...`;
+            }
             this.dispatchEvent(
               new CustomEvent('action-finished', {
                 bubbles: true,
@@ -752,7 +773,6 @@ Polymer({
                 },
               })
             );
-
             // for machines destroy only and only if in machine page
             if (
               ['destroy', 'remove'].indexOf(action.name) > -1 &&
