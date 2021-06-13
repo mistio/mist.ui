@@ -372,6 +372,7 @@ Polymer({
       body: `Are you sure you want to remove snapshot: ${snapshotName}?`,
       danger: true,
       reason: 'remove snapshot',
+      action: 'Remove',
     });
   },
   revertToSnapshot(e) {
@@ -382,6 +383,7 @@ Polymer({
       body: `Are you sure you want to revert snapshot: ${snapshotName}?`,
       danger: true,
       reason: 'revert snapshot',
+      action: 'Revert',
     });
   },
   haveSnapshots() {
@@ -434,6 +436,7 @@ Polymer({
 
   _snapshotResponse(e) {
     console.log(e, e.detail);
+    this.resetForm();
     this.action = null;
     this.snapshots = [];
     this.dispatchEvent(
@@ -484,6 +487,10 @@ Polymer({
 
   _getClass(action) {
     return action === 'remove snapshot' ? 'red' : 'blue';
+  },
+  resetForm() {
+    this.set('snapshotName', '');
+    this.set('snapshotDescription', '');
   },
   _showDialog(info) {
     const dialog = this.$.confirmationDialog;

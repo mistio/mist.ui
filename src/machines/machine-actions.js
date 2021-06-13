@@ -727,7 +727,10 @@ Polymer({
 
         form.submit();
         return;
-      } else if (action.name === 'transfer ownership') {
+      } else if (
+        action.name === 'transfer ownership' ||
+        action.name === 'snapshot'
+      ) {
         return;
       } else {
         console.error('unknown action', action, 'on item', item);
