@@ -952,8 +952,7 @@ MACHINE_CREATE_FIELDS.push({
 // add common fields
 MACHINE_CREATE_FIELDS.forEach(p => {
   const addImage = ['libvirt', 'kubevirt'].indexOf(p.provider) !== -1;
-  const showLocation =
-    ['lxd', 'cloudsigma'].indexOf(p.provider) === -1;
+  const showLocation = ['lxd', 'cloudsigma'].indexOf(p.provider) === -1;
 
   // add common machine properties fields
   p.fields.splice(
@@ -1120,7 +1119,7 @@ MACHINE_CREATE_FIELDS.forEach(p => {
         },
       ],
     });
-  } else if (['vsphere', 'lxd', 'kubevirt'].indexOf(p.provider) !== -1) {
+  } else if (['lxd', 'kubevirt'].indexOf(p.provider) !== -1) {
     p.fields.splice(3, 0, {
       name: 'size',
       label: 'Size *',
@@ -1171,6 +1170,46 @@ MACHINE_CREATE_FIELDS.forEach(p => {
           required: false,
           unit: 'GB',
           helptext: 'Custom disk size in GB.',
+        },
+      ],
+    });
+  } else if (p.provider === 'vsphere') {
+    p.fields.splice(3, 0, {
+      name: 'size',
+      label: 'Size *',
+      type: 'mist_size',
+      value: 'custom',
+      defaultValue: 'custom',
+      custom: true,
+      customValue: null,
+      show: true,
+      required: true,
+      customSizeFields: [
+        {
+          name: 'ram',
+          label: 'RAM MB',
+          type: 'slider',
+          value: 256,
+          defaultValue: '',
+          min: 256,
+          max: 6223,
+          step: 256,
+          show: true,
+          required: false,
+          unit: 'MB',
+        },
+        {
+          name: 'cpu',
+          label: 'CPU cores',
+          type: 'slider',
+          value: 1,
+          defaultValue: '',
+          min: 1,
+          max: 8,
+          step: 1,
+          show: true,
+          required: false,
+          unit: 'cores',
         },
       ],
     });

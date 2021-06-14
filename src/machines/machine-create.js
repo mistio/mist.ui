@@ -894,7 +894,6 @@ Polymer({
                 allowedSizes.push(constr.size);
               }
             });
-
             f.allowed = allowedSizes;
           }
           if (notAllowedConstraints.length > 0) {
@@ -1839,29 +1838,29 @@ Polymer({
         }
       }
 
-      const sizeInd = this._fieldIndexByName('size');
-      const minSize = Math.max(
-        current.extra.disk_size,
-        this.machineFields[sizeInd].customSizeFields[2].min
-      );
-      if (current.extra.type === 'ovf') {
-        this.set(`machineFields.${sizeInd}.customSizeFields.${2}.min`, minSize);
-        this.set(`machineFields.${sizeInd}.customSizeFields.${2}.max`, 1);
-        this.set(
-          `machineFields.${sizeInd}.customSizeFields.${2}.value`,
-          minSize
-        );
-      } else {
-        this.set(`machineFields.${sizeInd}.customSizeFields.${2}.min`, minSize);
-        this.set(`machineFields.${sizeInd}.customSizeFields.${2}.max`, 512);
-        this.set(
-          `machineFields.${sizeInd}.customSizeFields.${2}.value`,
-          Math.max(
-            minSize,
-            this.machineFields[sizeInd].customSizeFields[2].value
-          )
-        );
-      }
+      // const sizeInd = this._fieldIndexByName('size');
+      // const minSize = Math.max(
+      //   current.extra.disk_size,
+      //   this.machineFields[sizeInd].customSizeFields[2].min
+      // );
+      // if (current.extra.type === 'ovf') {
+      //   this.set(`machineFields.${sizeInd}.customSizeFields.${2}.min`, minSize);
+      //   this.set(`machineFields.${sizeInd}.customSizeFields.${2}.max`, 1);
+      //   this.set(
+      //     `machineFields.${sizeInd}.customSizeFields.${2}.value`,
+      //     minSize
+      //   );
+      // } else {
+      //   this.set(`machineFields.${sizeInd}.customSizeFields.${2}.min`, minSize);
+      //   this.set(`machineFields.${sizeInd}.customSizeFields.${2}.max`, 512);
+      //   this.set(
+      //     `machineFields.${sizeInd}.customSizeFields.${2}.value`,
+      //     Math.max(
+      //       minSize,
+      //       this.machineFields[sizeInd].customSizeFields[2].value
+      //     )
+      //   );
+      // }
     }
   },
 
@@ -2497,9 +2496,7 @@ Polymer({
 
   _handleGetSecurityGroupsResponse(e) {
     const secGroups = [];
-    if (
-      this.cloud.provider === 'openstack'
-    ){
+    if (this.cloud.provider === 'openstack') {
       for (let i = 0; i < e.detail.response.length; i++) {
         secGroups.push({
           name: e.detail.response[i].name,
@@ -2507,13 +2504,12 @@ Polymer({
           id: e.detail.response[i].id,
         });
       }
-    }
-    else{
+    } else {
       for (let i = 0; i < e.detail.response.length; i++)
-      secGroups.push({
-        title: e.detail.response[i].name,
-        val: e.detail.response[i].id,
-      });
+        secGroups.push({
+          title: e.detail.response[i].name,
+          val: e.detail.response[i].id,
+        });
     }
     this.set(
       `machineFields.${this.securityGroupsFieldIndex}.options`,
