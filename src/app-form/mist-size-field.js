@@ -248,12 +248,11 @@ Polymer({
     }
     if (allowedCustom.length > 0 && this.field.options.length === 0) {
       allowedCustom.forEach(size => {
-        size.disk_primary = size.disk;
         size.name = `CPU: ${size.cpu} cores, RAM: ${size.ram} MB`;
         let toHash = `${size.ram}${size.cpu}`;
-        if (size.disk > 0) {
-          size.name += `, Disk: ${size.disk} GB`;
-          toHash += `${size.disk}`;
+        if (size.disk_primary > 0) {
+          size.name += `, Disk: ${size.disk_primary} GB`;
+          toHash += `${size.disk_primary}`;
         }
         if (size.userFriendlyName) {
           size.name = `${size.userFriendlyName} (${size.name})`;
