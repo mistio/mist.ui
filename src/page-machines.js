@@ -470,6 +470,18 @@ Polymer({
           ) {
             return './assets/providers/kvm.png';
           }
+          if (
+            _this.model.clouds[row.cloud].provider === 'kubernetes' &&
+            row.machine_type === 'node'
+          ) {
+            return './assets/providers/k8s-node.png';
+          }
+          if (
+            _this.model.clouds[row.cloud].provider === 'kubernetes' &&
+            row.machine_type === 'pod'
+          ) {
+            return './assets/providers/k8s-pod.png';
+          }
           return `./assets/providers/provider-${_this.model.clouds[
             row.cloud
           ].provider
