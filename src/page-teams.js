@@ -7,9 +7,9 @@ import './teams/member-page.js';
 import './teams/members-add.js';
 import './teams/member-add-in-teams.js';
 import './teams/team-add.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
 Polymer({
   _template: html`
@@ -47,7 +47,7 @@ Polymer({
           sort-order="[[sortOrder]]"
           renderers="[[_getRenderers()]]"
           route="{{route}}"
-          items="[[model.teamsArray]]"
+          item-map="[[model.teams]]"
           actions="[[actions]]"
           user-filter="[[model.sections.teams.q]]"
           filter-method="[[_isMemberOfFilter()]]"
@@ -159,11 +159,9 @@ Polymer({
                 )
                   return false;
               } else {
-                const ownerObj = _this.model.membersArray.find(m => {
-                  return (
-                    [m.name, m.email, m.username, m.id].indexOf(owner) > -1
-                  );
-                });
+                const ownerObj = _this.model.membersArray.find(
+                  m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+                );
                 if (
                   !ownerObj ||
                   !item.members.length ||
@@ -212,11 +210,10 @@ Polymer({
           }
           return `<strong class='name'>${item}</strong>`;
         },
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       members: {
         body: (item, _row) => {
