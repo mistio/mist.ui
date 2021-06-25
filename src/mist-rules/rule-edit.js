@@ -10,10 +10,10 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import './mist-dropdown-multi.js';
 import './rule-metrics.js';
-import { CSRFToken } from '../helpers/utils.js';
-import { validateRuleBehavior } from './validate-rule-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
+import { validateRuleBehavior } from './validate-rule-behavior.js';
 
 Polymer({
   _template: html`
@@ -746,7 +746,11 @@ Polymer({
                   value="{{ruleAction.url}}"
                   pattern="^https://*"
                 ></paper-input>
-                <paper-dropdown-menu no-animations=""  label="method" class="inline">
+                <paper-dropdown-menu
+                  no-animations=""
+                  label="method"
+                  class="inline"
+                >
                   <paper-listbox
                     slot="dropdown-content"
                     attr-for-selected="value"
@@ -800,7 +804,11 @@ Polymer({
                 ></paper-textarea>
               </template>
               <template is="dom-if" if="[[_isAlertSelected(ruleAction.type)]]">
-                <paper-dropdown-menu no-animations=""  label="level" class="alert-level">
+                <paper-dropdown-menu
+                  no-animations=""
+                  label="level"
+                  class="alert-level"
+                >
                   <paper-listbox
                     slot="dropdown-content"
                     attr-for-selected="value"
@@ -1138,20 +1146,38 @@ Polymer({
   _handleMetricResponse(data) {
     const output = {};
     if (data.detail.response) {
-      // console.log('_handleMetricResponse response data', data.detail.response);
-      Object.keys(data.detail.response).forEach(metric => {
-        let res = output;
-        const chunks = metric.split('.');
-        for (let i = 0; i < chunks.length; i++) {
-          if (!res[chunks[i]]) {
-            res[chunks[i]] = {};
+      if (this.resource.monitoring.method.indexOf('victoria') !== -1) {
+        Object.keys(data.detail.response).forEach(metricName => {
+          let res = output;
+          let metrics = metricName.replace('}', '');
+          metrics = metrics.replace('total_threads', 'total-threads');
+          metrics = metrics.replace('{', '_');
+          const chunks = metrics.split('_');
+          if (metricName.indexOf('threads') !== -1)
+            for (let i = 0; i < chunks.length; i++) {
+              if (!res[chunks[i]]) res[chunks[i]] = {};
+              if (i === chunks.length - 1) {
+                res[chunks[i]] = data.detail.response[metricName].id;
+              }
+              res = res[chunks[i]];
+            }
+        });
+      } else {
+        // console.log('_handleMetricResponse response data', data.detail.response);
+        Object.keys(data.detail.response).forEach(metric => {
+          let res = output;
+          const chunks = metric.split('.');
+          for (let i = 0; i < chunks.length; i++) {
+            if (!res[chunks[i]]) {
+              res[chunks[i]] = {};
+            }
+            if (i === chunks.length - 1) {
+              res[chunks[i]] = data.detail.response[metric].id;
+            }
+            res = res[chunks[i]];
           }
-          if (i === chunks.length - 1) {
-            res[chunks[i]] = data.detail.response[metric].id;
-          }
-          res = res[chunks[i]];
-        }
-      });
+        });
+      }
     }
     this.set('availableMetrics', this._computeMetricsArray(output));
     // Store metrics in resource if available, ie we are in a single page, so as to improve performance
@@ -1199,7 +1225,7 @@ Polymer({
       if (totalIndex > 0)
         elem.options.splice(0, 0, elem.options.splice(totalIndex, 1)[0]);
     });
-    return arr;
+    return arr.sort((a, b) => a.name.localeCompare(b.name));
   },
 
   _handleMetricError(error) {
@@ -1902,15 +1928,14 @@ Polymer({
           'teams',
           'members',
         ];
-        type = resources.find(res => {
-          return (
+        type = resources.find(
+          res =>
             that.model &&
             that.model[res] &&
             Object.values(that.model[res])
               .map(x => x.id)
               .indexOf(that.resource.id) > -1
-          );
-        });
+        );
       }
       payload.selectors = [
         {
