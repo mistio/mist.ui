@@ -1150,10 +1150,9 @@ Polymer({
         Object.keys(data.detail.response).forEach(metricName => {
           let res = output;
           let metrics = metricName.replace('}', '');
-          metrics = metrics.replace('total_threads', 'total-threads');
           metrics = metrics.replace('{', '_');
           const chunks = metrics.split('_');
-          if (metricName.indexOf('threads') !== -1)
+          try {
             for (let i = 0; i < chunks.length; i++) {
               if (!res[chunks[i]]) res[chunks[i]] = {};
               if (i === chunks.length - 1) {
@@ -1161,6 +1160,12 @@ Polymer({
               }
               res = res[chunks[i]];
             }
+          } catch (e) {
+            console.warn(
+              `Metric ${metricName} encountered a problem during listing.`
+            );
+            output[chunks[0]][metricName] = data.detail.response[metricName].id;
+          }
         });
       } else {
         // console.log('_handleMetricResponse response data', data.detail.response);
