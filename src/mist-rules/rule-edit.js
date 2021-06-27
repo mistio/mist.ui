@@ -145,6 +145,11 @@ Polymer({
         top: 2px;
       }
 
+      paper-input.search {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
       span.keyword {
         font-weight: 600;
         font-family: monospace;
@@ -547,39 +552,46 @@ Polymer({
                   on-selected-item-changed="_validateRule"
                   no-animations=""
                 >
-                  <paper-listbox
-                    id$="metricsListbox-[[index]]"
-                    slot="dropdown-content"
-                    attr-for-selected="value"
-                    selected="[[query.target]]"
-                    class="dropdown-content"
-                  >
-                    <template
-                      is="dom-if"
-                      if="[[availableMetrics.length]]"
-                      restamp
+                  <div slot="dropdown-content" class="dropdown-content">
+                    <paper-input
+                      class="search"
+                      label$="Search metric"
+                      value="{{metricSearch}}"
+                    ></paper-input>
+                    <paper-listbox
+                      id$="metricsListbox-[[index]]"
+                      slot="dropdown-content"
+                      attr-for-selected="value"
+                      selected="[[query.target]]"
+                      class="dropdown-content"
                     >
                       <template
-                        is="dom-repeat"
-                        items="[[availableMetrics]]"
-                        initial-count="1"
+                        is="dom-if"
+                        if="[[availableMetrics.length]]"
+                        restamp
                       >
-                        <rule-metrics
-                          metric="[[item]]"
-                          query-index="[[_getQueryIndex(query)]]"
-                        ></rule-metrics>
+                        <template
+                          is="dom-repeat"
+                          items="[[_filter(availableMetrics, metricSearch)]]"
+                          initial-count="1"
+                        >
+                          <rule-metrics
+                            metric="[[item]]"
+                            query-index="[[_getQueryIndex(query)]]"
+                          ></rule-metrics>
+                        </template>
                       </template>
-                    </template>
-                    <template
-                      is="dom-if"
-                      if="[[!availableMetrics.length]]"
-                      restamp
-                    >
-                      <paper-item hidden$="[[loadingMetrics]]" disabled
-                        >No metrics available</paper-item
+                      <template
+                        is="dom-if"
+                        if="[[!availableMetrics.length]]"
+                        restamp
                       >
-                    </template>
-                  </paper-listbox>
+                        <paper-item hidden$="[[loadingMetrics]]" disabled
+                          >No metrics available</paper-item
+                        >
+                      </template>
+                    </paper-listbox>
+                  </div>
                 </paper-dropdown-menu>
                 <paper-spinner
                   active="[[loadingMetrics]]"
@@ -1063,6 +1075,10 @@ Polymer({
       type: Boolean,
       value: false,
     },
+    metricSearch: {
+      type: String,
+      value: '',
+    },
   },
 
   observers: [
@@ -1144,41 +1160,8 @@ Polymer({
       : '';
   },
   _handleMetricResponse(data) {
-    const output = {};
-    if (data.detail.response) {
-      if (this.resource.monitoring.method.indexOf('victoria') !== -1) {
-        Object.keys(data.detail.response).forEach(metricName => {
-          let res = output;
-          let metrics = metricName.replace('}', '');
-          metrics = metrics.replace('total_threads', 'total-threads');
-          metrics = metrics.replace('{', '_');
-          const chunks = metrics.split('_');
-          if (metricName.indexOf('threads') !== -1)
-            for (let i = 0; i < chunks.length; i++) {
-              if (!res[chunks[i]]) res[chunks[i]] = {};
-              if (i === chunks.length - 1) {
-                res[chunks[i]] = data.detail.response[metricName].id;
-              }
-              res = res[chunks[i]];
-            }
-        });
-      } else {
-        // console.log('_handleMetricResponse response data', data.detail.response);
-        Object.keys(data.detail.response).forEach(metric => {
-          let res = output;
-          const chunks = metric.split('.');
-          for (let i = 0; i < chunks.length; i++) {
-            if (!res[chunks[i]]) {
-              res[chunks[i]] = {};
-            }
-            if (i === chunks.length - 1) {
-              res[chunks[i]] = data.detail.response[metric].id;
-            }
-            res = res[chunks[i]];
-          }
-        });
-      }
-    }
+    const output = data.detail.response || {};
+
     this.set('availableMetrics', this._computeMetricsArray(output));
     // Store metrics in resource if available, ie we are in a single page, so as to improve performance
     if (!this.model.metrics) {
@@ -1202,29 +1185,10 @@ Polymer({
   _computeMetricsArray(output) {
     const arr = [];
     if (output) {
-      if (output && typeof output === 'object') {
-        let obj = {};
-        Object.keys(output || {}).forEach(p => {
-          if (typeof output[p] === 'object') {
-            obj = { name: p, options: this._computeMetricsArray(output[p]) };
-          } else {
-            obj = { name: output[p], options: [] };
-          }
-          arr.push(obj);
-        });
-      }
+      Object.keys(output).forEach(entry => {
+        arr.push({ name: entry });
+      });
     }
-    arr.forEach(elem => {
-      let totalIndex = 0;
-      for (let i = 0; i < elem.options.length; i++) {
-        if (elem.options[i].name.includes('total')) {
-          totalIndex = i;
-          break;
-        }
-      }
-      if (totalIndex > 0)
-        elem.options.splice(0, 0, elem.options.splice(totalIndex, 1)[0]);
-    });
     return arr.sort((a, b) => a.name.localeCompare(b.name));
   },
 
@@ -2100,5 +2064,19 @@ Polymer({
     } else if (e.detail.value === 'webhook') {
       e.model.__data.ruleAction.method = 'post';
     }
+  },
+
+  _filter(metrics, search) {
+    if (!search || search === '') return metrics;
+    const searchTerms = search.split(' ');
+    let ret = metrics;
+    searchTerms.forEach(term => {
+      ret = ret.filter(
+        metric =>
+          metric.name &&
+          metric.name.toLowerCase().indexOf(term.toLowerCase()) !== -1
+      );
+    });
+    return ret;
   },
 });
