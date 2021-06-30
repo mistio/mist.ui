@@ -106,6 +106,7 @@ Polymer({
           resizable
           column-menu
           multi-sort
+          tree-view
           sorters="[[sorters]]"
           item-map="[[model.machines]]"
           name="Machines"
