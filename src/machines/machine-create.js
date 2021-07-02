@@ -3227,10 +3227,12 @@ Polymer({
     if (this.selectedCloud && this.model.clouds) {
       const sizeInd = this._fieldIndexByName('size');
       const locInd = this._fieldIndexByName('location');
+      const sizesLen = Object.keys(this.model.clouds[this.selectedCloud].sizes || {}).length;
+      const locationsLen = Object.keys(this.model.clouds[this.selectedCloud].locations || {}).length
       if (
-        (this.machineFields[sizeInd].options.length === 0 &&
-          !this.machineFields[sizeInd].custom) ||
-        this.machineFields[locInd].options.length === 0
+        (sizeInd > -1 && this.machineFields[sizeInd].options.length === 0 &&
+          !this.machineFields[sizeInd].custom && sizesLen > 0) ||
+        (locInd > -1 && this.machineFields[locInd].options.length === 0 && locationsLen > 0)
       ) {
         this._cloudChanged(this.selectedCloud);
       }
