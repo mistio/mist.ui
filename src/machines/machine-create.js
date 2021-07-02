@@ -382,6 +382,8 @@ Polymer({
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
     '_providersChanged(providers)',
+    '_cloudLocationsUpdated(cloud.locationsArray)',
+    '_cloudImagesUpdated(cloud.imagesArray)',
   ],
 
   listeners: {
@@ -400,6 +402,44 @@ Polymer({
   _teamsChanged() {
     console.log('_teamsChanged CALL checkPermissions');
     this.checkPermissions();
+  },
+
+  _cloudImagesUpdated(images) {
+    if (!this.cloud || !this.cloud.images || !images) return;
+    const locationIndex = this.machineFields.findIndex(
+      field => field.name === 'location'
+    );
+    const lid = this.get(`machineFields.${locationIndex}.value`);
+    const imageIndex = this.machineFields.findIndex(
+      field => field.name === 'image'
+    );
+    if (lid) {
+      this.set(
+        `machineFields.${imageIndex}.options`,
+        this._getLocationImages(lid)
+      );
+    }
+  },
+
+  _cloudLocationsUpdated(locations) {
+    if (!this.cloud || !this.cloud.locations || !locations) return;
+    const locArray = Object.values(this.cloud.locations);
+    if (locArray.length === 1) {
+      // If there's a single location preselect it
+      const lid = locArray[0].id;
+      const locationIndex = this.machineFields.findIndex(
+        field => field.name === 'location'
+      );
+      this.set(`machineFields.${locationIndex}.options`, locArray);
+      this.set(`machineFields.${locationIndex}.value`, lid);
+      const imageIndex = this.machineFields.findIndex(
+        field => field.name === 'image'
+      );
+      const imagesArray = this._getLocationImages(lid);
+      if (imagesArray) {
+        this.set(`machineFields.${imageIndex}.options`, imagesArray);
+      }
+    }
   },
 
   checkPermissions() {
@@ -635,6 +675,7 @@ Polymer({
     this.set('newImage', '');
     if (selectedCloud && this.model) {
       this.set('cloud', this.model.clouds[selectedCloud]);
+      this.linkPaths('cloud', `model.clouds.${selectedCloud}`);
       localStorage.setItem('createMachine#cloud', selectedCloud);
     }
     if (!this.docs && this.machinesFields) {
@@ -3227,12 +3268,20 @@ Polymer({
     if (this.selectedCloud && this.model.clouds) {
       const sizeInd = this._fieldIndexByName('size');
       const locInd = this._fieldIndexByName('location');
-      const sizesLen = Object.keys(this.model.clouds[this.selectedCloud].sizes || {}).length;
-      const locationsLen = Object.keys(this.model.clouds[this.selectedCloud].locations || {}).length
+      const sizesLen = Object.keys(
+        this.model.clouds[this.selectedCloud].sizes || {}
+      ).length;
+      const locationsLen = Object.keys(
+        this.model.clouds[this.selectedCloud].locations || {}
+      ).length;
       if (
-        (sizeInd > -1 && this.machineFields[sizeInd].options.length === 0 &&
-          !this.machineFields[sizeInd].custom && sizesLen > 0) ||
-        (locInd > -1 && this.machineFields[locInd].options.length === 0 && locationsLen > 0)
+        (sizeInd > -1 &&
+          this.machineFields[sizeInd].options.length === 0 &&
+          !this.machineFields[sizeInd].custom &&
+          sizesLen > 0) ||
+        (locInd > -1 &&
+          this.machineFields[locInd].options.length === 0 &&
+          locationsLen > 0)
       ) {
         this._cloudChanged(this.selectedCloud);
       }
