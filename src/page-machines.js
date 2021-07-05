@@ -108,7 +108,7 @@ Polymer({
           multi-sort
           tree-view
           sorters="[[sorters]]"
-          item-map="[[model.machines]]"
+          item-map="[[itemMap]]"
           name="Machines"
           selected-items="{{selectedItems}}"
           filtered-items-length="{{filteredItemsLength}}"
@@ -238,6 +238,10 @@ Polymer({
     renderers: {
       type: Object,
       computed: '_getRenderers(model.schedules)',
+    },
+    itemMap: {
+      type: Object,
+      computed: '_computeItemMap(model.machines)',
     },
   },
 
@@ -787,6 +791,21 @@ Polymer({
   _ratedCost(cost, rate) {
     return ratedCost(cost, rate);
   },
+
+  /* eslint-disable no-param-reassign */
+  _computeItemMap(machines) {
+    Object.values(machines || {}).forEach(machine => {
+      if (
+        machine.machine_type === 'node' ||
+        machine.machine_type === 'pod' ||
+        machine.machine_type === 'hypervisor' ||
+        machine.machine_type === 'container-host'
+      )
+        machine.treeNode = true;
+    });
+    return machines;
+  },
+  /* eslint-enable no-param-reassign */
 
   _computeImage(row, item) {
     // FIXME This needs to be standarized in the backend to remove the cruft below
