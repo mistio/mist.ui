@@ -616,12 +616,8 @@ Polymer({
     );
     if (data.length && !cloudsResources && ret)
       cloudsResources = data
-        .map(d => {
-          return !!(d.machines || d.images || d.networks);
-        })
-        .reduce((b1, b2) => {
-          return b1 || b2;
-        });
+        .map(d => !!(d.machines || d.images || d.networks))
+        .reduce((b1, b2) => b1 || b2);
     if (!cloudsResources) {
       this.set('model.onboarding.isLoadingMachines', false);
       this.set('model.onboarding.isLoadingImages', false);
@@ -708,11 +704,9 @@ Polymer({
               // check if machine has this key, if not add
               const keyIndex = this.model.clouds[cloud].machines[
                 machine
-              ].key_associations.findIndex(k => {
-                return (
-                  k.key === key.id && k.port === port
-                );
-              });
+              ].key_associations.findIndex(
+                k => k.key === key.id && k.port === port
+              );
               if (keyIndex > -1) {
                 this.set(
                   `model.clouds.${cloud}.machines.${machine}.key_associations.${keyIndex}`,
@@ -745,20 +739,17 @@ Polymer({
           const machine = _this.model.machines[m];
           const associationIndexMachine =
             (machine &&
-              machine.key_associations.findIndex(k => {
-                return k.key === key.id;
-              })) ||
+              machine.key_associations.findIndex(k => k.key === key.id)) ||
             -1;
           if (associationIndexMachine > -1) {
-            associationIndexKey = key.machines.findIndex(ka => {
-              return (
+            associationIndexKey = key.machines.findIndex(
+              ka =>
                 ka[0] === machine.cloud &&
                 ka[1] === machine.machine_id &&
                 ka[3] ===
                   machine.key_associations[associationIndexMachine].ssh_user &&
                 ka[5] === machine.key_associations[associationIndexMachine].port
-              );
-            });
+            );
             if (associationIndexKey === -1) {
               _this.model.machines[m].key_associations.splice(
                 associationIndexMachine,
@@ -849,8 +840,18 @@ Polymer({
     this.set('model.sections.images.count', allImages.length);
     return true;
   },
-  /* eslint-enable no-param-reassign */
+
   _updateMachines(data) {
+    data.machines.forEach(machine => {
+      if (
+        machine &&
+        (machine.machine_type === 'node' ||
+          machine.machine_type === 'pod' ||
+          machine.machine_type === 'hypervisor' ||
+          machine.machine_type === 'container-host')
+      )
+        machine.treeNode = true;
+    });
     loadedResourceCounters.machines -= 1;
     if (loadedResourceCounters.machines <= 0) {
       this.set('model.onboarding.isLoadingMachines', false);
@@ -858,7 +859,7 @@ Polymer({
 
     this._updateCloudResources(data, 'machines', 'machine_id');
   },
-
+  /* eslint-enable no-param-reassign */
   _updateNetworks(data) {
     this.set('model.onboarding.isLoadingNetworks', false);
     this._updateCloudResources(data, 'networks', 'network_id');
@@ -1040,11 +1041,9 @@ Polymer({
   _machineKeys(machineID, cloudID) {
     // console.log('Update _machineKeys',cloudID,machineID);
     if (machineID && cloudID) {
-      const keys = this.model.keysArray.filter(k => {
-        return k.machines.find(m => {
-          return m[1] === machineID && m[0] === cloudID;
-        });
-      });
+      const keys = this.model.keysArray.filter(k =>
+        k.machines.find(m => m[1] === machineID && m[0] === cloudID)
+      );
       return keys || [];
     }
     return [];
@@ -1076,9 +1075,10 @@ Polymer({
         if (this.model.clouds[cloudID].machines[machineID].rules) {
           ruleExists = this.model.clouds[cloudID].machines[
             machineID
-          ].rules.find(r => {
-            return r.id === this.model.monitoring.rules[rule].id;
-          }, this);
+          ].rules.find(
+            r => r.id === this.model.monitoring.rules[rule].id,
+            this
+          );
         }
         if (!ruleExists) {
           rules.push(this.model.monitoring.rules[rule]);
@@ -1092,9 +1092,9 @@ Polymer({
     let newImagesArray = [];
     if (cloudId && this.model && this.model.imagesArray) {
       // images
-      newImagesArray = this.model.imagesArray.filter(im => {
-        return im.cloud && im.cloud.id !== cloudId;
-      });
+      newImagesArray = this.model.imagesArray.filter(
+        im => im.cloud && im.cloud.id !== cloudId
+      );
     }
     this.set('model.imagesArray', newImagesArray);
     this.set('model.images', _generateMap(newImagesArray));
