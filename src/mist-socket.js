@@ -702,14 +702,13 @@ Polymer({
               this.model.clouds[cloud].machines[machine]
             ) {
               // check if machine has this key, if not add
-              const keyIndex = this.model.clouds[cloud].machines[
-                machine
-              ].key_associations.findIndex(
-                k => k.key === key.id && k.port === port
-              );
-              if (keyIndex > -1) {
+              const keyId = Object.values(
+                this.model.clouds[cloud].machines[machine].key_associations ||
+                  {}
+              ).filter(k => k.key === key.id && k.port === port);
+              if (keyId) {
                 this.set(
-                  `model.clouds.${cloud}.machines.${machine}.key_associations.${keyIndex}`,
+                  `model.clouds.${cloud}.machines.${machine}.key_associations.${keyId}`,
                   {
                     key: key.id,
                     last_used: lastUsed,
@@ -735,28 +734,15 @@ Polymer({
         if (this.model && this.model.machines)
           machineIds = Object.keys(this.model.machines);
         machineIds.forEach(m => {
-          let associationIndexKey;
           const machine = _this.model.machines[m];
-          const associationIndexMachine =
+          const [associationId] =
             (machine &&
-              machine.key_associations.findIndex(k => k.key === key.id)) ||
+              Object.keys(machine.key_associations).filter(
+                k => k === key.id
+              )) ||
             -1;
-          if (associationIndexMachine > -1) {
-            associationIndexKey = key.machines.findIndex(
-              ka =>
-                ka[0] === machine.cloud &&
-                ka[1] === machine.machine_id &&
-                ka[3] ===
-                  machine.key_associations[associationIndexMachine].ssh_user &&
-                ka[5] === machine.key_associations[associationIndexMachine].port
-            );
-            if (associationIndexKey === -1) {
-              _this.model.machines[m].key_associations.splice(
-                associationIndexMachine,
-                1
-              );
-            }
-          }
+          if (associationId)
+            delete _this.model.machines[m].key_associations[associationId];
         });
       }
     }

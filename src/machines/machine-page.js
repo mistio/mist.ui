@@ -15,7 +15,7 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { ratedCost, itemUid, CSRFToken } from '../helpers/utils.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
-
+/* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
     <style include="shared-styles tags-and-labels info-table-style single-page">
@@ -764,7 +764,7 @@ Polymer({
             </div>
             <br />
           </div>
-          <div hidden$="[[!machine.key_associations.length]]">
+          <div hidden$="[[!_hasKeys(machine.key_associations)]]">
             <div class="m-info-head">Associated Keys</div>
             <div class="associatedKeys">
               <template
@@ -1215,7 +1215,7 @@ Polymer({
     confirmation: '_machineActionConfirmation',
     'pending-key-request': '_updateKeyLoader',
     'pending-expiration-request': '_updateExpirationLoader',
-    'select-action': 'selectAction'
+    'select-action': 'selectAction',
   },
 
   ready() {
@@ -1272,17 +1272,15 @@ Polymer({
     if (rules && machineId) {
       Object.keys(rules || {}).forEach(p => {
         const noData =
-          rules[p].actions.find(a => {
-            return a.type === 'no_data';
-          }) !== undefined;
+          rules[p].actions.find(a => a.type === 'no_data') !== undefined;
         // applies on all machines
         if (!rules[p].selectors || !rules[p].selectors.length || noData) {
           check = true;
         } else if (
           rules[p].data_type === 'logs' &&
-          rules[p].queries.find(q => {
-            return q.target.indexOf(`machine_id:${machineId}`) > -1;
-          }) !== undefined
+          rules[p].queries.find(
+            q => q.target.indexOf(`machine_id:${machineId}`) > -1
+          ) !== undefined
         ) {
           check = true;
         } else if (rules[p].selectors && rules[p].selectors.length > 0) {
@@ -1298,9 +1296,7 @@ Polymer({
               // machine has no tags
               else {
                 for (const q of Object.keys(selector.include || {})) {
-                  const mtag = this.machineTags.find(t => {
-                    return t.key === q;
-                  });
+                  const mtag = this.machineTags.find(t => t.key === q);
                   if (!mtag) {
                     // machine has no such tag
                     check = false;
@@ -1331,12 +1327,11 @@ Polymer({
   _getMachineVolumes(_volumes, _machine) {
     const that = this;
     if (this.machine) {
-      return Object.keys(that.model.volumes).filter(k => {
-        return (
+      return Object.keys(that.model.volumes).filter(
+        k =>
           that.model.volumes[k] &&
           that.model.volumes[k].attached_to.indexOf(that.machine.id) > -1
-        );
-      });
+      );
     }
     return [];
   },
@@ -1362,11 +1357,10 @@ Polymer({
       })
     );
   },
-  _machineChanged(_machine){
-    if(this.machine && this.machine.actions['create_snapshot']) {
+  _machineChanged(_machine) {
+    if (this.machine && this.machine.actions.create_snapshot) {
       this.$.actions_machine.isProviderWithSnapshots = true;
     }
-    return
   },
   _machineUpdated(_machine) {
     if (this.machine) {
@@ -1380,6 +1374,9 @@ Polymer({
     }
   },
 
+  _hasKeys(associations) {
+    return Object.keys(associations || {}).length > 0;
+  },
   _visibleKey(model, association) {
     return this.model && this.model.keys && this.model.keys[association.key];
   },
@@ -1412,7 +1409,7 @@ Polymer({
       this._renderMachineKeys();
     }, 500);
     return this.machine && this.machine.key_associations
-      ? this.machine.key_associations
+      ? Object.values(this.machine.key_associations || {})
       : [];
   },
 
@@ -2092,9 +2089,7 @@ Polymer({
         },
       },
       user_id: {
-        title: () => {
-          return 'user';
-        },
+        title: () => 'user',
         body: item => {
           if (
             _this.model &&
@@ -2137,9 +2132,9 @@ Polymer({
 
   _filterMachinesIncidents(_incarray) {
     if (this.model && this.model.incidentsArray)
-      return this.model.incidentsArray.filter(inc => {
-        return this._isMachinesIncident(inc);
-      });
+      return this.model.incidentsArray.filter(inc =>
+        this._isMachinesIncident(inc)
+      );
     return [];
   },
 
@@ -2261,9 +2256,12 @@ Polymer({
     this.$.expirationdialog._openDialog();
   },
   _canShowCost() {
-    if (this.machine && this.machine.cost){
-      return typeof this.machine.cost.monthly === 'number' && this.checkPerm('cloud', 'read_cost') === true;
+    if (this.machine && this.machine.cost) {
+      return (
+        typeof this.machine.cost.monthly === 'number' &&
+        this.checkPerm('cloud', 'read_cost') === true
+      );
     }
     return false;
-  }
+  },
 });
