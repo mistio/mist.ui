@@ -791,8 +791,18 @@ Polymer({
     this.set('model.sections.images.count', allImages.length);
     return true;
   },
-  /* eslint-enable no-param-reassign */
+
   _updateMachines(data) {
+    data.machines.forEach(machine => {
+      if (
+        machine &&
+        (machine.machine_type === 'node' ||
+          machine.machine_type === 'pod' ||
+          machine.machine_type === 'hypervisor' ||
+          machine.machine_type === 'container-host')
+      )
+        machine.treeNode = true;
+    });
     loadedResourceCounters.machines -= 1;
     if (loadedResourceCounters.machines <= 0) {
       this.set('model.onboarding.isLoadingMachines', false);
@@ -800,7 +810,7 @@ Polymer({
 
     this._updateCloudResources(data, 'machines', 'machine_id');
   },
-
+  /* eslint-enable no-param-reassign */
   _updateNetworks(data) {
     this.set('model.onboarding.isLoadingNetworks', false);
     this._updateCloudResources(data, 'networks', 'network_id');

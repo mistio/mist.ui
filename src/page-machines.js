@@ -106,9 +106,9 @@ Polymer({
           resizable
           column-menu
           multi-sort
-          tree-view
+          tree-view="[[_getTreeView()]]"
           sorters="[[sorters]]"
-          item-map="[[itemMap]]"
+          item-map="[[model.machines]]"
           name="Machines"
           selected-items="{{selectedItems}}"
           filtered-items-length="{{filteredItemsLength}}"
@@ -241,7 +241,9 @@ Polymer({
     },
     itemMap: {
       type: Object,
-      computed: '_computeItemMap(model.machines)',
+      value() {
+        return {};
+      },
     },
   },
 
@@ -475,17 +477,23 @@ Polymer({
           ) {
             return './assets/providers/kvm.png';
           }
-          if (
-            _this.model.clouds[row.cloud].provider === 'kubernetes' &&
-            row.machine_type === 'node'
-          ) {
-            return './assets/providers/k8s-node.png';
+          if (_this.model.clouds[row.cloud].provider === 'kubernetes') {
+            if (row.machine_type === 'node')
+              return './assets/providers/k8s-node.png';
+
+            if (row.machine_type === 'pod')
+              return './assets/providers/k8s-pod.png';
+
+            if (row.machine_type === 'container')
+              return './assets/providers/k8s-container.png';
           }
-          if (
-            _this.model.clouds[row.cloud].provider === 'kubernetes' &&
-            row.machine_type === 'pod'
-          ) {
-            return './assets/providers/k8s-pod.png';
+          if (_this.model.clouds[row.cloud].provider === 'openshift') {
+            if (row.machine_type === 'node')
+              return './assets/providers/openshift-node.png';
+            if (row.machine_type === 'pod')
+              return './assets/providers/openshift-pod.png';
+            if (row.machine_type === 'container')
+              return './assets/providers/openshift-container.png';
           }
           return `./assets/providers/provider-${_this.model.clouds[
             row.cloud
@@ -792,21 +800,6 @@ Polymer({
     return ratedCost(cost, rate);
   },
 
-  /* eslint-disable no-param-reassign */
-  _computeItemMap(machines) {
-    Object.values(machines || {}).forEach(machine => {
-      if (
-        machine.machine_type === 'node' ||
-        machine.machine_type === 'pod' ||
-        machine.machine_type === 'hypervisor' ||
-        machine.machine_type === 'container-host'
-      )
-        machine.treeNode = true;
-    });
-    return machines;
-  },
-  /* eslint-enable no-param-reassign */
-
   _computeImage(row, item) {
     // FIXME This needs to be standarized in the backend to remove the cruft below
     let imageID = item || row.image;
@@ -989,5 +982,12 @@ Polymer({
     return {
       apply: (action, rid) => this.checkPerm('machine', action, rid),
     };
+  },
+  _getTreeView() {
+    const isTreeView = JSON.parse(
+      localStorage.getItem(`mist-list#machinesList/treeView`)
+    );
+    if (typeof isTreeView === 'boolean') return isTreeView;
+    return true;
   },
 });
