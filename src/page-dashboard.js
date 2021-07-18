@@ -1,3 +1,4 @@
+/* eslint-disable lit-a11y/anchor-is-valid */
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-spinner/paper-spinner.js';
@@ -20,7 +21,6 @@ import './clouds/cloud-chip.js';
 import moment from 'moment/src/moment.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import { CSRFToken } from './helpers/utils.js';
 
 Polymer({
   is: 'page-dashboard',
@@ -287,10 +287,6 @@ Polymer({
         display: block;
       }
 
-      .disable-monitoring {
-        font-size: 0.9em;
-      }
-
       .viewMore[closed='true'] {
         height: 0;
       }
@@ -369,41 +365,16 @@ Polymer({
                 </template>
               </template>
             </div>
-            <paper-material
-              class="graphs"
-              hidden="[[!model.monitoring.machines.length]]"
-            >
-              <template is="dom-if" if="[[viewingDashboard]]" restamp>
-                <mist-monitoring
-                  monitoring="[[model.monitoring]]"
+            <template is="dom-if" if="[[monitoredResources.length]]" restamp>
+              <paper-material class="graphs">
+                <polyana-dashboard
+                  id="dashboard"
+                  uri="/api/v1/dashboard"
+                  datasources="[[datasources]]"
                   replace-targets="[[replaceTargets]]"
-                  home-dashboard
-                ></mist-monitoring>
-                <div
-                  hidden$="[[!hasMissingMonitored.length]]"
-                  class="monitoring-on-missing-machines"
-                >
-                  <p>
-                    It seems you have monitoring enabled on missing machines.
-                    <paper-button
-                      on-tap="_disableMonitoringOnNonExisting"
-                      class="disable-monitoring"
-                      >disable monitoring on [[hasMissingMonitored.length]]
-                      missing machines</paper-button
-                    >
-                  </p>
-                  <div id="viewMore" class="disable-monitoring">
-                    Missing machines<br />
-                    <template is="dom-repeat" items="[[hasMissingMonitored]]">
-                      <div>
-                        [[index]]. Cloud: [[_computeName(item.0)]], Machine ID:
-                        [[item.1]]
-                      </div>
-                    </template>
-                  </div>
-                </div>
-              </template>
-            </paper-material>
+                ></polyana-dashboard>
+              </paper-material>
+            </template>
           </div>
           <div class="left">
             <div class="costs">
@@ -413,7 +384,7 @@ Polymer({
                 docs="[[docs]]"
                 currency="[[currency]]"
                 q="[[q]]"
-                hidden$=[[!checkPerm('cloud', 'read_cost')]]
+                hidden$="[[!checkPerm('cloud', 'read_cost')]]"
               >
               </app-costs>
             </div>
@@ -459,7 +430,7 @@ Polymer({
       </template>
       <div class="is-loading" hidden$="[[!model.onboarding.isLoadingClouds]]">
         <paper-spinner
-          active=[[model.onboarding.isLoadingClouds]]
+          active$="[[model.onboarding.isLoadingClouds]]"
         ></paper-spinner>
       </div>
     </div>
@@ -487,8 +458,7 @@ Polymer({
     },
     replaceTargets: {
       type: Object,
-      computed:
-        '_computeReplaceTargets(model.monitoring.machines.length, model.machines.*)',
+      computed: '_computeReplaceTargets(monitoredResources.length)',
     },
     openedCloud: {
       type: String,
@@ -500,22 +470,26 @@ Polymer({
         '_computeshowDashboard(model.cloudsArray.length, model.onboarding.isLoadingClouds)',
       notify: true,
     },
+    datasources: {
+      type: Array,
+      value() {
+        return [
+          {
+            id: 1,
+            orgId: 1,
+            name: 'mist.monitor',
+            type: 'mist.monitor',
+            uri: '/api/v1/stats',
+          },
+        ];
+      },
+    },
     sidebarIsOpen: {
       type: Boolean,
       value: true,
     },
     matrix: {
       type: Array,
-    },
-    viewingDashboard: {
-      type: Boolean,
-      value: true,
-    },
-    hasMissingMonitored: {
-      type: Array,
-      computed:
-        '_computeHasMissingMonitored(model.machines.*, model.monitoring.*, model.onboarding.isLoadingMachines)',
-      value: [],
     },
     xsmallscreen: {
       type: Boolean,
@@ -531,8 +505,15 @@ Polymer({
     currency: {
       type: Object,
     },
+    monitoredResources: {
+      type: Array,
+      computed: '_computeMonitoredResources(model.machines.*)',
+    },
   },
-  observers: ['cloudLayoutMatrix(model.clouds.*, sidebarIsOpen)'],
+  observers: [
+    'cloudLayoutMatrix(model.clouds.*, sidebarIsOpen)',
+    '_importPolyana(monitoredResources.length)',
+  ],
   listeners: {
     'close-cloud-info': '_closeCloudChips',
   },
@@ -546,6 +527,23 @@ Polymer({
       that.cloudLayoutMatrix(that.model.clouds, that.sidebarIsOpen);
     }, 50);
   },
+  _computeMonitoredResources(_machines) {
+    return Object.values(this.model.machines).filter(
+      m => m.monitoring.hasmonitoring
+    );
+  },
+  _importPolyana(resourceCount) {
+    if (resourceCount) {
+      import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
+        () => {
+          console.log('imported polyana-dashboard');
+        },
+        reason => {
+          console.error('Failed to import polyana-dashboard:', reason);
+        }
+      );
+    }
+  },
   isOnline(cloud) {
     return cloud.state === 'online' && 'online';
   },
@@ -556,9 +554,10 @@ Polymer({
     // incidents must be unresolved to count
     return !!(
       this.model.incidents &&
-      Object.values(this.model.incidents).filter(incident => {
-        return !incident.finished_at;
-      }, this).length
+      Object.values(this.model.incidents).filter(
+        incident => !incident.finished_at,
+        this
+      ).length
     );
   },
   _computeshowDashboard(cloudslength, isLoadingClouds) {
@@ -582,22 +581,10 @@ Polymer({
     }, 2400);
     this.set('sidebarIsOpen', false);
   },
-  _computeReplaceTargets(_monitoring) {
+  _computeReplaceTargets(_resourceCount) {
     const ret = {};
-    const mIds = Object.keys(
-      this.get('model.monitoring.monitored_machines') || {}
-    );
-    for (let i = 0; i < mIds.length; i++) {
-      const mref = this.model.monitoring.monitored_machines[mIds[i]];
-      let m;
-      if (
-        this.model.clouds &&
-        this.model.clouds[mref.cloud_id] &&
-        this.model.clouds[mref.cloud_id].machines &&
-        this.model.clouds[mref.cloud_id].machines[mref.machine_id]
-      )
-        m = mref && this.model.clouds[mref.cloud_id].machines[mref.machine_id];
-      ret[mIds[i]] = m ? m.name : 'unknown';
+    for (let i = 0; i < this.monitoredResources.length; i++) {
+      ret[this.monitoredResources[i].id] = this.monitoredResources[i].name;
     }
     return ret;
   },
@@ -654,45 +641,6 @@ Polymer({
       });
     }
     return show;
-  },
-  _computeHasMissingMonitored(_machines, _monitoring, _machinesLoading) {
-    const hasNonExisting = [];
-    if (
-      this.model &&
-      this.model.clouds &&
-      this.model.monitoring &&
-      this.model.monitoring.monitored_machines
-      && !this.model.onboarding.isLoadingMachines
-    ) {
-      Object.keys(this.model.monitoring.monitored_machines || {}).forEach(p => {
-        if (!this.model.machines[p]) {
-          hasNonExisting.push([
-            this.model.monitoring.monitored_machines[p].cloud_id,
-            this.model.monitoring.monitored_machines[p].machine_id,
-          ]);
-        }
-      });
-    }
-    return hasNonExisting;
-  },
-  _disableMonitoringOnNonExisting(_e) {
-    Object.keys(this.model.monitoring.monitored_machines || {}).forEach(p => {
-      if (!this.model.machines[p]) {
-        console.log('not existing');
-        this._disableMonitoring([
-          this.model.monitoring.monitored_machines[p].cloud_id,
-          p,
-        ]);
-      }
-    });
-  },
-  _disableMonitoring(m) {
-    const payload = {};
-    payload.action = 'disable';
-    this.$.monitoringRequest.headers['Csrf-Token'] = CSRFToken.value;
-    this.$.monitoringRequest.url = `/api/v1/machines/${m[1]}/monitoring`;
-    this.$.monitoringRequest.params = payload;
-    this.$.monitoringRequest.generateRequest();
   },
   _computeName(item) {
     if (this.model && this.model.clouds && this.model.clouds[item])
@@ -772,9 +720,9 @@ Polymer({
   _getFilteredResources(resources, q) {
     let owned;
     if (q === 'owner:$me' && this.model && resources) {
-      owned = Object.values(resources).filter(item => {
-        return item.owned_by === this.model.user.id;
-      });
+      owned = Object.values(resources).filter(
+        item => item.owned_by === this.model.user.id
+      );
     }
     return owned !== undefined ? owned : Object.values(resources);
   },
@@ -782,9 +730,9 @@ Polymer({
   _getSectionCount(name, _sections, q) {
     let count;
     if (q === 'owner:$me' && this.model && this.model[name]) {
-      count = Object.values(this.model[name]).filter(item => {
-        return item.owned_by === this.model.user.id;
-      }).length;
+      count = Object.values(this.model[name]).filter(
+        item => item.owned_by === this.model.user.id
+      ).length;
     }
     return count !== undefined ? count : this.model.sections[name].count;
   },
