@@ -258,7 +258,7 @@ Polymer({
       if (this.model.clouds[cloudId].provider === 'azure_arm') {
         this._updateResourceGroups(cloudId);
       }
-      if (this.model.clouds[cloudId].provider === 'kubevirt') {
+      if (this.model.clouds[cloudId].provider === 'kubevirt' || this.model.clouds[cloudId].provider === 'openstack') {
         this._updateStorageClasses(cloudId);
       }
 
