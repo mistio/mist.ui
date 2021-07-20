@@ -680,75 +680,40 @@ Polymer({
     // data.teams = data.members = undefined;
     this.set('model.org', data);
   },
-
+  /* eslint-disable no-param-reassign */
   _updateKeys(data) {
-    const _this = this;
     this.set('model.onboarding.isLoadingKeys', false);
     this.fire('update-keys');
     if (data) {
       for (let i = 0; i < data.length; i++) {
         const key = data[i];
-        if (this.model.clouds && key.machines) {
-          key.machines.forEach(m => {
-            const cloud = m[0];
-            const machine = m[1];
-            const lastUsed = m[2];
-            const user = m[3];
-            const port = m[5];
-            if (
-              this.model.clouds &&
-              this.model.clouds[cloud] &&
-              this.model.clouds[cloud].machines &&
-              this.model.clouds[cloud].machines[machine]
-            ) {
-              // check if machine has this key, if not add
-              const keyId = Object.values(
-                this.model.clouds[cloud].machines[machine].key_associations ||
-                  {}
-              ).filter(k => k.key === key.id && k.port === port);
-              if (keyId) {
-                this.set(
-                  `model.clouds.${cloud}.machines.${machine}.key_associations.${keyId}`,
-                  {
-                    key: key.id,
-                    last_used: lastUsed,
-                    port,
-                    ssh_user: user,
-                  }
-                );
-              } else {
-                const mid = this.model.clouds[cloud].machines[machine].id;
-                this.push(`model.machines.${mid}.key_associations`, {
-                  key: key.id,
-                  last_used: lastUsed,
-                  port,
-                  ssh_user: user,
-                });
-              }
-            }
-          }, this);
-        }
-
-        // remove disassociated keys from machines
-        let machineIds = [];
-        if (this.model && this.model.machines)
-          machineIds = Object.keys(this.model.machines);
-        machineIds.forEach(m => {
-          const machine = _this.model.machines[m];
-          const [associationId] =
-            (machine &&
-              Object.keys(machine.key_associations).filter(
-                k => k === key.id
-              )) ||
-            -1;
-          if (associationId)
-            delete _this.model.machines[m].key_associations[associationId];
+        // remove disassociated keys from machines or add new associations
+        const machineIds = {};
+        key.machines.forEach(k => {
+          machineIds[k.machine_id] = k;
         });
+        if (this.model && Object.keys(this.model.machines || {}).length > 0) {
+          Object.values(this.model.machines).forEach(m => {
+            if (Object.keys(machineIds).includes(m.id))
+              m.key_associations[machineIds[m.id].association_id] = {
+                key: key.id,
+                last_used: machineIds[m.id].last_used,
+                port: machineIds[m.id].port,
+                ssh_user: machineIds[m.id].ssh_user,
+              };
+            else if (m.key_associations) {
+              Object.keys(m.key_associations).forEach(keyAssoc => {
+                if (m.key_associations[keyAssoc].key === key.id)
+                  delete m.key_associations[keyAssoc];
+              });
+            }
+          });
+        }
       }
     }
     return this._updateModel('keys', data);
   },
-
+  /* eslint-enable no-param-reassign */
   _updateScripts(data) {
     this.set('model.onboarding.isLoadingScripts', false);
     return this._updateModel('scripts', data);
