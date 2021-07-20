@@ -604,6 +604,19 @@ VOLUME_CREATE_FIELDS.forEach(p => {
       options: [],
     });
   }
+
+  if (p.provider === 'openstack' ) {
+    p.fields.splice(1, 0, {
+      name: 'location',
+      label: 'Location',
+      type: 'mist_dropdown',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: false,
+      options: [],
+    });
+  }
 });
 
 export { VOLUME_CREATE_FIELDS };
