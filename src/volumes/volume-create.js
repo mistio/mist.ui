@@ -289,6 +289,10 @@ Polymer({
               }
               return false;
             });
+          } else if (this.model.clouds[cloudId].provider === 'openstack') {
+            locations = locations.filter(l => {
+                return l.extra.storage === true;
+            });
           }
           f.options = locations;
         }
