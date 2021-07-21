@@ -1449,32 +1449,25 @@ Polymer({
     return a === b;
   },
 
-  _computeIsActivated(machine, _monitoring) {
+  _computeIsActivated(_machine, _monitoring) {
     if (
       !this.machine ||
-      !this.model.monitoring ||
-      !this.model.monitoring.monitored_machines ||
-      !this.model.monitoring.monitored_machines[machine.id] ||
-      !this.model.monitoring.monitored_machines[machine.id].installation_status
-        .activated_at
+      !this.machine.monitoring ||
+      !this.machine.monitoring.installation_status.activated_at
     ) {
       console.warn('machine monitoring is not activated');
       return false;
     }
     if (
-      this.model &&
-      this.model.monitoring &&
-      this.model.monitoring.monitored_machines &&
-      this.model.monitoring.monitored_machines[machine.id] &&
-      this.model.monitoring.monitored_machines[machine.id].installation_status
+      this.machine &&
+      this.machine.monitoring &&
+      this.machine.monitoring.installation_status
     ) {
       console.warn(
         'machine monitoring is activated at: ',
-        this.model.monitoring.monitored_machines[machine.id].installation_status
-          .activated_at
+        this.machine.monitoring.installation_status.activated_at
       );
-      return this.model.monitoring.monitored_machines[machine.id]
-        .installation_status.activated_at;
+      return this.machine.monitoring.installation_status.activated_at;
     }
     return '';
   },
