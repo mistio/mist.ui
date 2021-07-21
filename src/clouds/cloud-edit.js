@@ -129,7 +129,7 @@ Polymer({
         this._fillIn('url', 'url');
       }
 
-      if (this.cloud.provider === 'bare_metal' && this.cloud.machines) {
+      if (this.cloud.provider === 'other' && this.cloud.machines) {
         this.async(() => {
           this._fillInHosts(Object.values(this.cloud.machines));
         }, 200);

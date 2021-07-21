@@ -255,7 +255,7 @@ Polymer({
   },
 
   _isBareMetal(provider) {
-    return provider === 'bare_metal';
+    return provider === 'other';
   },
 
   _isKvmLibvirt(provider) {
