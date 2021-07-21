@@ -864,6 +864,13 @@ Polymer({
               }
             });
           }
+          if (this.model.clouds[cloudId].provider === 'openstack') {
+            locations.forEach(l => {
+              if (l.extra.compute === false) {
+                l.disabled = true;
+              }
+            });
+          }
           f.options = locations;
           if (locations.length === 1) {
             // If there's a single location preselect it
@@ -1910,9 +1917,6 @@ Polymer({
     if (locInd > -1) {
       this.set(`machineFields.${locInd}.required`, false);
       this.set(`machineFields.${locInd}.label`, 'Location');
-      if (this.get(`machineFields.${locInd}.options`).length === 0) {
-        this.set(`machineFields.${locInd}.show`, false);
-      }
     }
   },
 
