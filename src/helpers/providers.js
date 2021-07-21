@@ -1469,8 +1469,8 @@ PROVIDERS.push({
 // OTHER SERVER
 PROVIDERS.push({
   title: 'Other Server',
-  val: 'bare_metal',
-  className: 'provider-baremetal',
+  val: 'other',
+  className: 'provider-other',
   options: [
     {
       name: 'title',

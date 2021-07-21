@@ -360,7 +360,7 @@ Polymer({
       ) {
         categories[3].providers.push(provider);
       }
-      if (['bare_metal'].indexOf(provider.val) > -1) {
+      if (['other'].indexOf(provider.val) > -1) {
         categories[4].providers.push(provider);
       }
     }
