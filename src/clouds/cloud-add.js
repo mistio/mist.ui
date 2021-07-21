@@ -355,7 +355,9 @@ Polymer({
         categories[2].providers.push(provider);
       }
       if (
-        ['docker', 'kubevirt', 'lxd', 'kubernetes'].indexOf(provider.val) > -1
+        ['docker', 'kubevirt', 'lxd', 'kubernetes', 'openshift'].indexOf(
+          provider.val
+        ) > -1
       ) {
         categories[3].providers.push(provider);
       }
