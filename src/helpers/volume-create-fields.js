@@ -182,7 +182,22 @@ VOLUME_CREATE_FIELDS.push({
 // OPENSTACK
 VOLUME_CREATE_FIELDS.push({
   provider: 'openstack',
-  fields: [],
+  fields: [
+    {
+      name: 'storage_class_name',
+      label: 'Volume Type',
+      type: 'dropdown',
+      class: 'margin-bottom',
+      value: '',
+      defaultValue: '',
+      options: [],
+      helptext: `Select a volume type. If not selected, Openstack's default volume type will be used.`,
+      errorMessage: 'Please select a volume type.',
+      show: true,
+      required: false,
+      excludeFromPayload: false,
+    }, 
+  ],
 });
 
 // EQUINIX METAL
@@ -586,6 +601,19 @@ VOLUME_CREATE_FIELDS.forEach(p => {
       defaultValue: '',
       show: true,
       required: true, // non required for os, do, // required for azure
+      options: [],
+    });
+  }
+
+  if (p.provider === 'openstack' ) {
+    p.fields.splice(1, 0, {
+      name: 'location',
+      label: 'Location',
+      type: 'mist_dropdown',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: false,
       options: [],
     });
   }
