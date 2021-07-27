@@ -2257,4 +2257,7 @@ Polymer({
     }
     return false;
   },
+  updateKeys(_e) {
+    this.set('machineKeys', this._computeAssociatedKeys());
+  },
 });

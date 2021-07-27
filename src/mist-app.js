@@ -596,6 +596,18 @@ Polymer({
         .updateKeys(e);
     }
     if (
+      pagesElement.querySelector('page-machines') &&
+      pagesElement.querySelector('page-machines').shadowRoot &&
+      pagesElement
+        .querySelector('page-machines')
+        .shadowRoot.querySelector('machine-page')
+    ) {
+      pagesElement
+        .querySelector('page-machines')
+        .shadowRoot.querySelector('machine-page')
+        .updateKeys(e);
+    }
+    if (
       pagesElement.querySelector('page-clouds') &&
       pagesElement.querySelector('page-clouds').shadowRoot &&
       pagesElement
@@ -1366,9 +1378,8 @@ Polymer({
         // set counts to filtered model resources length
         this.set(
           `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).filter(r => {
-            return that._filterModel(r, q);
-          }).length
+          Object.values(this.model[prop]).filter(r => that._filterModel(r, q))
+            .length
         );
       }
     });
@@ -1391,9 +1402,9 @@ Polymer({
         const ownerObj =
           this.model &&
           this.model.membersArray &&
-          this.model.membersArray.find(m => {
-            return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
-          });
+          this.model.membersArray.find(
+            m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+          );
         if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
           return false;
       }
@@ -1435,7 +1446,7 @@ Polymer({
 
 document.addEventListener(
   'iron-overlay-opened',
-  function moveBackdrop(event) {
+  event => {
     const dialog = dom(event).rootTarget;
     if (dialog.withBackdrop) {
       dialog.parentNode.insertBefore(dialog.backdropElement, dialog);

@@ -683,7 +683,6 @@ Polymer({
   /* eslint-disable no-param-reassign */
   _updateKeys(data) {
     this.set('model.onboarding.isLoadingKeys', false);
-    this.fire('update-keys');
     if (data) {
       for (let i = 0; i < data.length; i++) {
         const key = data[i];
@@ -711,6 +710,7 @@ Polymer({
         }
       }
     }
+    this.fire('update-keys');
     return this._updateModel('keys', data);
   },
   /* eslint-enable no-param-reassign */
