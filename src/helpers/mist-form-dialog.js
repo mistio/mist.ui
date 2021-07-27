@@ -89,6 +89,13 @@ Polymer({
             on-mist-form-cancel="_dismissDialog"
             on-mist-form-value-changed="_updateFormValue"
           >
+            <div id="mist-form-custom">
+              <mist-size-field
+                mist-form-type="mistSizeField"
+                mist-form-value-change="value-changed"
+                mist-form-value-path="detail.value"
+              ></mist-size-field>
+            </div>
           </mist-form>
           <template is="dom-if" if="[[showJSON]]" restamp="">
             <code-viewer

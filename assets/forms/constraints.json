@@ -1,276 +1,384 @@
 {
-	"type":"object",
-	"id":"constraints-form",
-	"$schema":"http://json-schema.org/draft-07/schema#",
-	"description":"Constraints form",
-	"submitButtonLabel":"OK",
-	"canClose":true,
-	"additionalProperties":false,
-	"properties":{
-	  "costConstraintContainer":{
-		"name":"cost",
-		"label":"Cost quotas",
-		"id":"cost_constraint_container",
+   "type":"object",
+   "format":"form",
+   "id":"constraints-form",
+   "$schema":"http://json-schema.org/draft-07/schema#",
+   "description":"Constraints form",
+   "submitButtonLabel":"OK",
+   "canClose":true,
+   "additionalProperties":false,
+   "properties":{
+      "costConstraintContainer":{
+         "name":"cost",
+         "label":"Cost quotas",
+         "id":"cost_constraint_container",
+         "type":"object",
+         "format":"subformContainer",
+         "hasToggle":true,
+         "properties":{
+            "subform":{
+               "$ref":"#/definitions/costConstraints"
+            }
+         }
+      },
+      "sizeConstraintContainer":{
+         "name":"size",
+         "label":"Machine sizes",
+         "id":"size_constraint_container",
+         "type":"object",
+         "format":"subformContainer",
+         "hasToggle":true,
+         "properties":{
+            "subform":{
+               "$ref":"#/definitions/sizeConstraints"
+            }
+         }
+      },
+      "expirationConstraintContainer":{
+         "name":"expiration",
+         "label":"Expiration requirements",
+         "id":"expiration_constraint_container",
+         "type":"object",
+         "format":"subformContainer",
+         "hasToggle":true,
+         "properties":{
+            "subform":{
+               "$ref":"#/definitions/expirationConstraints"
+            }
+         }
+      },
+      "fieldConstraintContainer":{
+         "name":"field",
+         "label":"Field visibility & defaults",
+         "id":"field_constraint_container",
+         "type":"object",
+         "format":"subformContainer",
+         "hasToggle":true,
+         "omitTitle":true,
+         "properties":{
+            "subform":{
+               "$ref":"#/definitions/fieldConstraints"
+            }
+         }
+      }
+   },
+   "definitions":{
+      "sizeSubform":{
+         "id":"size_subform",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "min":{
+               "label":"Minimum size",
+               "id":"min",
+               "type":"string",
+               "format":"number",
+               "value":"",
+               "minimum":1,
+               "autoValidate":true,
+               "errorMessage":"A minimum of 1 is required"
+            },
+            "max":{
+               "label":"Maximum size",
+               "id":"max",
+               "type":"string",
+               "format":"number",
+               "value":"",
+               "minimum":1,
+               "autoValidate":true,
+               "errorMessage":"A minimum of 1 is required"
+            },
+            "showToggle":{
+               "label":"Show field",
+               "name":"show",
+               "id":"show",
+               "checked":true,
+               "type":"boolean"
+            }
+         }
+      },
+      "notifySubform":{
+         "id":"notify_subform",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "default":{
+               "name":"default",
+               "id":"default",
+               "label":"Notify before: ",
+               "type":"string",
+               "format":"durationField"
+            },
+            "require":{
+               "label":"Require",
+               "id":"require",
+               "type":"boolean"
+            },
+            "msg":{
+               "label":"Email message",
+               "id":"message",
+               "type":"string",
+               "format":"textArea"
+            }
+         }
+      },
+      "actionsSubform":{
+         "id":"actions_subform",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "available":{
+               "id":"available",
+               "type":"string",
+               "format":"checkboxGroup",
+               "enum":[
+                  "destroy",
+                  "stop",
+                  "undefine"
+               ]
+            },
+            "default":{
+               "label":"Default expiration action",
+               "id":"default_action",
+               "type":"string",
+               "format":"dropdown",
+               "x-mist-enum":"getDefaultActions"
+            }
+         }
+      },
+      "costConstraints":{
+         "id":"cost_constraints",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "max_team_run_rate":{
+               "label":"Maximum run rate for your team",
+               "name":"max_team_run_rate",
+               "id":"cost_max_team_run_rate",
+               "type":"string",
+               "format":"number",
+               "minimum":1,
+               "autoValidate":true,
+               "errorMessage":"A minimum of 1 is required",
+               "preffix":"$"
+            },
+            "max_total_run_rate":{
+               "label":"Maximum run rate for your entire organization",
+               "name":"max_total_run_rate",
+               "id":"cost_max_total_run_rate",
+               "type":"string",
+               "format":"number",
+               "minimum":1,
+               "autoValidate":true,
+               "errorMessage":"A minimum of 1 is required",
+               "preffix":"$"
+            }
+         }
+      },
+      "fieldConstraints":{
+         "id":"field_constraints",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "field":{
+               "name":"field",
+               "label":"Field",
+               "id":"field",
+               "type":"object",
+               "format":"multiRow",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/fieldElementSubform"
+                  }
+               }
+            }
+         }
+      },
+      "fieldElementSubform":{
+         "id":"field_element_subform",
+         "type":"object",
+         "format":"rowDefinition",
+         "properties":{
+            "cloud":{
+               "label":"Cloud",
+               "id":"cloud",
+               "type":"string",
+               "format":"dropdown",
+               "x-mist-enum":"clouds"
+            },
+            "fieldName":{
+               "label":"Field name",
+               "name":"name",
+               "type":"string"
+            },
+            "fieldValue":{
+               "label":"Field value",
+               "name":"value",
+               "type":"string"
+            },
+            "show":{
+               "label":"Show",
+               "name":"show",
+               "id":"show",
+               "checked":true,
+               "type":"boolean",
+               "noLabelFloat":true
+            }
+         }
+      },
+      "expirationConstraints":{
+         "id":"expiration_constraints",
+         "type":"object",
+         "format":"subform",
+         "properties":{
+            "default":{
+               "name":"default",
+               "id":"default",
+               "label":"Default expiration date",
+               "type":"string",
+               "format":"durationField"
+            },
+            "max":{
+               "name":"max",
+               "id":"max",
+               "label":"Max expiration date",
+               "type":"string",
+               "format":"durationField"
+            },
+            "actions":{
+               "name":"actions",
+               "label":"Available actions:",
+               "id":"expiration_actions",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/actionsSubform"
+                  }
+               }
+            },
+            "notify":{
+               "name":"notify",
+               "label":"Notification email",
+               "id":"expiration_notify",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/notifySubform"
+                  }
+               }
+            }
+         }
+      },
+      "sizeConstraints":{
+         "id":"size_constraints",
+         "type":"object",
+         "properties":{
+			"allowed":{
+				"name":"allowed",
+				"label":"Allowed sizes",
+				"id":"allowed_sizes",
+				"type":"object",
+				"format":"multiRow",
+				"properties":{
+				   "subform":{
+					  "$ref":"#/definitions/sizeElementSubform"
+				   }
+				}
+			 },
+			 "not_allowed":{
+				"name":"not_allowed",
+				"label":"Disallowed sizes",
+				"id":"disallowed_sizes",
+				"type":"object",
+				"format":"multiRow",
+				"properties":{
+				   "subform":{
+					  "$ref":"#/definitions/sizeElementSubform"
+				   }
+				}
+			 },
+            "cpu":{
+               "name":"cpu",
+               "label":"Cpu constraints",
+               "id":"cpu_constraint",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/sizeSubform"
+                  }
+               }
+            },
+            "ram":{
+               "name":"ram",
+               "label":"Ram constraints",
+               "id":"ram_constraint",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/sizeSubform"
+                  }
+               }
+            },
+            "primary_disk":{
+               "name":"disk",
+               "label":"Primary disk constraints",
+               "id":"primary_disk_constraint",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/sizeSubform"
+                  }
+               }
+            },
+            "swap_disk":{
+               "name":"swap_disk",
+               "label":"Swap disk constraints",
+               "id":"swap_disk_constraint",
+               "type":"object",
+               "format":"subformContainer",
+               "properties":{
+                  "subform":{
+                     "$ref":"#/definitions/sizeSubform"
+                  }
+               }
+            }
+         }
+      },
+	  "sizeElementSubform":{
+		"id":"field_element_subform",
 		"type":"object",
-		"hasToggle":true,
+		"format":"rowDefinition",
 		"properties":{
-		  "subform":{
-			"$ref":"#/definitions/costConstraints"
-		  }
+		   "cloud":{
+			  "label":"Cloud",
+			  "name": "cloud",
+			  "id":"cloud",
+			  "type":"string",
+			  "format":"dropdown",
+			  "x-mist-enum":"clouds"
+		   },
+		   "size":{
+			"label":"Size",
+			"name": "size",
+			"id":"size",
+			"type": "string",
+			"format":"mistSizeField",
+         "deps": [
+            {"prop": "hidden", "func": "hideSize", "dependsOn": ".cloud"},
+            {"prop": "field", "func": "getField", "dependsOn": ".cloud"}]
+		  },
+		   "userFriendlyName":{
+			  "label":"Human friendly size name",
+			  "userFriendlyName":"name",
+			  "type":"string",
+			  "deps": [{"prop": "hidden",  "func": "hideUserFriendlyName", "dependsOn": ".cloud"}]
+		   }
 		}
-	  },
-	  "sizeConstraintContainer":{
-		"name":"size",
-		"label":"Machine sizes",
-		"id":"size_constraint_container",
-		"type":"object",
-		"hasToggle":true,
-		"properties":{
-		  "subform":{
-			"$ref":"#/definitions/sizeConstraints"
-		  }
-		}
-	  },
-	  "expirationConstraintContainer":{
-		"name":"expiration",
-		"label":"Expiration requirements",
-		"id":"expiration_constraint_container",
-		"type":"object",
-		"hasToggle":true,
-		"properties":{
-		  "subform":{
-			"$ref":"#/definitions/expirationConstraints"
-		  }
-		}
-	  },
-	  "fieldConstraintContainer":{
-		"name":"field",
-		"label":"Field visibility & defaults",
-		"id":"field_constraint_container",
-		"type":"object",
-		"hasToggle":true,
-		"omitTitle": true,
-		"properties":{
-		  "subform":{
-			"$ref":"#/definitions/fieldConstraints"
-		  }
-		}
-	  }
-	},
-	"definitions":{
-	  "sizeSubform":{
-		"id":"size_subform",
-		"type":"object",
-		"properties":{
-		  "min":{
-			"label":"Minimum size",
-			"id":"min",
-			"type":"string",
-			"format":"number",
-			"value":"",
-			"minimum":1,
-			"autoValidate":true,
-			"errorMessage": "A minimum of 1 is required"
-		  },
-		  "max":{
-			"label":"Maximum size",
-			"id":"max",
-			"type":"string",
-			"format":"number",
-			"value":"",
-			"minimum":1,
-			"autoValidate":true,
-			"errorMessage": "A minimum of 1 is required"
-		  },
-		  "showToggle":{
-			"label":"Show field",
-			"name":"show",
-			"id":"show",
-			"checked":true,
-			"type":"boolean"
-		  }
-		}
-	  },
-	  "notifySubform":{
-		"id":"notify_subform",
-		"type":"object",
-		"properties":{
-		  "default":{
-			"name":"default",
-			"id": "default",
-			"label":"Notify before: ",
-			"type":"durationField"
-		  },
-		  "require":{
-			"label":"Require",
-			"id": "require",
-			"type":"boolean"
-		  },
-		  "msg":{
-			"label":"Email message",
-			"id": "message",
-			"type":"textArea"
-		  }
-		}
-	  },
-	  "actionsSubform":{
-		"id":"actions_subform",
-		"type":"object",
-		"properties":{
-		  "available":{
-			"id":"available",
-			"type":"string",
-			"format":"checkboxGroup",
-			"enum":[
-			  "destroy",
-			  "stop",
-			  "undefine"
-			]
-		  },
-		  "default":{
-			"label":"Default expiration action",
-			"id":"default_action",
-			"type":"string",
-			"format":"dropdown",
-			"x-mist-enum":"getDefaultActions"
-		  }
-		}
-	  },
-	  "costConstraints":{
-		"id":"cost_constraints",
-		"type":"object",
-		"properties":{
-		  "max_team_run_rate":{
-			"label":"Maximum run rate for your team",
-			"name":"max_team_run_rate",
-			"id":"cost_max_team_run_rate",
-			"type":"string",
-			"format":"number",
-			"minimum":1,
-			"autoValidate":true,
-			"errorMessage": "A minimum of 1 is required",
-			"preffix":"$"
-		  },
-		  "max_total_run_rate":{
-			"label":"Maximum run rate for your entire organization",
-			"name":"max_total_run_rate",
-			"id":"cost_max_total_run_rate",
-			"type":"string",
-			"format":"number",
-			"minimum":1,
-			"autoValidate":true,
-			"errorMessage": "A minimum of 1 is required",
-			"preffix":"$"
-		  }
-		}
-	  },
-	  "fieldConstraints":{
-		"id":"field_constraints",
-		"type":"object",
-		"properties":{
-		  "field":{
-			"label":"Fields",
-			"type":"fieldElement"
-		  }
-		}
-	  },
-	  "expirationConstraints":{
-		"id":"expiration_constraints",
-		"type":"object",
-		"properties":{
-		  "default":{
-			"name":"default",
-			"id": "default",
-			"label":"Default expiration date",
-			"type":"durationField"
-		  },
-		  "max":{
-			"name":"max",
-			"id": "max",
-			"label":"Max expiration date",
-			"type":"durationField"
-		  },
-		  "actions":{
-			"name":"actions",
-			"label":"Available actions:",
-			"id":"expiration_actions",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/actionsSubform"
-			  }
-			}
-		  },
-		  "notify":{
-			"name":"notify",
-			"label":"Notification email",
-			"id":"expiration_notify",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/notifySubform"
-			  }
-			}
-		  }
-		}
-	  },
-	  "sizeConstraints":{
-		"id":"size_constraints",
-		"type":"object",
-		"properties":{
-		  "allowed":{
-			"label":"Allowed sizes",
-			"type":"sizeElement"
-		  },
-		  "not_allowed":{
-			"label":"Disallowed sizes",
-			"type":"sizeElement"
-		  },
-		  "cpu":{
-			"name":"cpu",
-			"label":"Cpu constraints",
-			"id":"cpu_constraint",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/sizeSubform"
-			  }
-			}
-		  },
-		  "ram":{
-			"name":"ram",
-			"label":"Ram constraints",
-			"id":"ram_constraint",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/sizeSubform"
-			  }
-			}
-		  },
-		  "primary_disk":{
-			"name":"disk",
-			"label":"Primary disk constraints",
-			"id":"primary_disk_constraint",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/sizeSubform"
-			  }
-			}
-		  },
-		  "swap_disk":{
-			"name":"swap_disk",
-			"label":"Swap disk constraints",
-			"id":"swap_disk_constraint",
-			"type":"object",
-			"properties":{
-			  "subform":{
-				"$ref":"#/definitions/sizeSubform"
-			  }
-			}
-		  }
-		}
-	  }
-	}
-  }
+	 }
+   }
+}

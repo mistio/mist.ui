@@ -4,7 +4,7 @@ import '@polymer/paper-listbox/paper-listbox.js';
 import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-textarea.js';
-
+import { getNestedValueFromPath } from '@mistio/mist-form/src/utilities.js';
 import '../helpers/mist-form-dialog.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -120,64 +120,97 @@ Polymer({
         return {
           src: './assets/forms/constraints.json',
           formData: {
-            getDefaultActions: {
-              func: new Promise(resolve => {
-                resolve(formValues => {
-                  const values =
-                    formValues &&
-                    formValues.expiration &&
-                    formValues.expiration.actions &&
-                    formValues.expiration.actions.available;
-                  return values || [];
-                });
-              }),
-              dependencies: ['expiration.actions.available'],
+            dynamicData: {
+              clouds: {
+                func: new Promise(resolve => {
+                  resolve(() =>
+                    this.model.cloudsArray
+                      .flatMap(cloud => {
+                        const providerFields = MACHINE_CREATE_FIELDS.find(
+                          field => field.provider === cloud.provider
+                        );
+
+                        if (!providerFields) {
+                          return [];
+                        }
+
+                        const size = providerFields.fields.find(
+                          field => field.name === 'size'
+                        );
+
+                        if (
+                          Object.prototype.hasOwnProperty.call(
+                            cloud,
+                            'sizesArray'
+                          )
+                        ) {
+                          size.options = [...cloud.sizesArray];
+                        }
+                        // Allow minimum value of 'disk' field to be 0
+                        if (size.customSizeFields) {
+                          size.customSizeFields.map(field => {
+                            if (field.name.includes('disk')) {
+                              field.min = 0;
+                            }
+                            return field;
+                          });
+                        }
+
+                        return [
+                          {
+                            id: cloud.id,
+                            provider: cloud.provider,
+                            title: cloud.title,
+                            size: { ...size },
+                          },
+                        ];
+                      })
+                      .filter(
+                        cloud =>
+                          cloud.size.custom || cloud.size.options.length > 0
+                      )
+                  );
+                }),
+              },
             },
-            clouds: () =>
-              // Merge the "size" field from MACHINE_CREATE_FIELDS with the sizes from cloudArray
-              // This is done especially for clouds with custom sizes
-              // I use flatMap instead of map so to remove invalid/deprecated clouds
-              this.model.cloudsArray
-                .flatMap(cloud => {
-                  const providerFields = MACHINE_CREATE_FIELDS.find(
-                    field => field.provider === cloud.provider
+            conditionals: {
+              hideSize: {
+                // Hide the user friendly name field if the size is custom
+                func: cloudId => !cloudId,
+              },
+              getField: {
+                func: (cloudId, fieldPath) => {
+                  const cloudSize = this._getCloud(cloudId);
+                  const sizeFieldPath = `${fieldPath
+                    .split('.')
+                    .slice(0, -1)
+                    .join('.')}.size`;
+                  const value = getNestedValueFromPath(
+                    sizeFieldPath,
+                    this.rule.constraints
                   );
 
-                  if (!providerFields) {
-                    return [];
-                  }
-
-                  const size = providerFields.fields.find(
-                    field => field.name === 'size'
-                  );
-
-                  if (
-                    Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')
-                  ) {
-                    size.options = [...cloud.sizesArray];
-                  }
-                  // Allow minimum value of 'disk' field to be 0
-                  if (size.customSizeFields) {
-                    size.customSizeFields.map(field => {
-                      if (field.name.includes('disk')) {
-                        field.min = 0;
+                  if (cloudSize.size.value === 'custom') {
+                    cloudSize.size.customValue = value;
+                    cloudSize.size.customSizeFields.forEach(field => {
+                      if (value[field.name] !== undefined) {
+                        field.value = value[field.name];
                       }
-                      return field;
                     });
+                  } else {
+                    cloudSize.size.value = value;
                   }
-
-                  return [
-                    {
-                      id: cloud.id,
-                      provider: cloud.provider,
-                      title: cloud.title,
-                      size: { ...size },
-                    },
-                  ];
-                })
-                .filter(
-                  cloud => cloud.size.custom || cloud.size.options.length > 0
-                ),
+                  return cloudSize.size;
+                },
+              },
+              hideUserFriendlyName: {
+                // Hide the user friendly name field if the size is custom
+                func: cloudId => !this._cloudHasCustomSize(cloudId),
+              },
+              getDefaultActions: {
+                func: defaultActions => defaultActions || [],
+              },
+            },
           },
         };
       },
@@ -265,5 +298,53 @@ Polymer({
     // fill in fields with constraints corresponding values
     const constraints = JSON.stringify(this.rule.constraints, undefined, 2);
     this.set('fields.0.value', constraints || '{}');
+  },
+  _cloudHasCustomSize(cloudId) {
+    const cloud = this._getCloud(cloudId);
+    return cloud.size.custom;
+  },
+  _getCloud(cloudId) {
+    const cloudSizes = this._getCloudSizes() || [];
+    return JSON.parse(
+      JSON.stringify(
+        cloudSizes.find(cloudSize => cloudSize.id === cloudId) || {}
+      )
+    );
+  },
+  _getCloudSizes() {
+    return this.model.cloudsArray
+      .flatMap(cloud => {
+        const providerFields = MACHINE_CREATE_FIELDS.find(
+          field => field.provider === cloud.provider
+        );
+
+        if (!providerFields) {
+          return [];
+        }
+
+        const size = providerFields.fields.find(field => field.name === 'size');
+
+        if (Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')) {
+          size.options = [...cloud.sizesArray];
+        }
+        // Allow minimum value of 'disk' field to be 0
+        if (size.customSizeFields) {
+          size.customSizeFields.map(field => {
+            if (field.name.includes('disk')) {
+              field.min = 0;
+            }
+            return field;
+          });
+        }
+        return [
+          {
+            id: cloud.id,
+            provider: cloud.provider,
+            title: cloud.title,
+            size: { ...size },
+          },
+        ];
+      })
+      .filter(cloud => cloud.size.custom || cloud.size.options.length > 0);
   },
 });
