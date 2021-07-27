@@ -529,7 +529,7 @@ Polymer({
   },
   _computeMonitoredResources(_machines) {
     return Object.values(this.model.machines).filter(
-      m => m.monitoring.hasmonitoring
+      m => m.monitoring && m.monitoring.hasmonitoring
     );
   },
   _importPolyana(resourceCount) {
