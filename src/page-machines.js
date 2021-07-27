@@ -510,6 +510,8 @@ Polymer({
         },
         cmp: (row1, row2) => {
           if (!row1 && !row2) return 0;
+          if (row1 && !row2) return -1;
+          if (!row1 && row2) return 1;
           if (row1 && row1.monitoring && (!row2 || !row2.monitoring)) {
             return -1;
           }
