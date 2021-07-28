@@ -1146,7 +1146,10 @@ Polymer({
   _handleMetricResponse(data) {
     const output = {};
     if (data.detail.response) {
-      if (this.resource.monitoring.method.indexOf('victoria') !== -1) {
+      if (
+        this.resource.monitoring.method &&
+        this.resource.monitoring.method.indexOf('victoria') !== -1
+      ) {
         Object.keys(data.detail.response).forEach(metricName => {
           let res = output;
           let metrics = metricName.replace('}', '');

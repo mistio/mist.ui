@@ -400,7 +400,10 @@ Polymer({
       });
     }
     if (machine.actions.create_snapshot) arr.push('snapshot');
-    if (machine.key_associations && machine.key_associations.length) {
+    if (
+      machine.key_associations &&
+      Object.keys(machine.key_associations).length
+    ) {
       arr.push('run-script');
     }
     if (
