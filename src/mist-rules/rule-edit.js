@@ -1146,46 +1146,43 @@ Polymer({
   _handleMetricResponse(data) {
     const output = {};
     if (data.detail.response) {
-      if (
-        this.resource.monitoring &&
-        this.resource.monitoring.method.indexOf('victoria') !== -1
-      ) {
-        Object.keys(data.detail.response).forEach(metricName => {
-          let res = output;
-          let metrics = metricName.replace('}', '');
-          metrics = metrics.replace('{', '_');
-          const chunks = metrics.split('_');
-          try {
-            for (let i = 0; i < chunks.length; i++) {
-              if (!res[chunks[i]]) res[chunks[i]] = {};
-              if (i === chunks.length - 1) {
-                res[chunks[i]] = data.detail.response[metricName].id;
-              }
-              res = res[chunks[i]];
-            }
-          } catch (e) {
-            console.warn(
-              `Metric ${metricName} encountered a problem during listing.`
-            );
-            output[chunks[0]][metricName] = data.detail.response[metricName].id;
-          }
-        });
-      } else {
-        // console.log('_handleMetricResponse response data', data.detail.response);
-        Object.keys(data.detail.response).forEach(metric => {
-          let res = output;
-          const chunks = metric.split('.');
+      // console.log('_handleMetricResponse response data', data.detail.response);
+      const allMetrics = {};
+      // By doing the below two metrics with similar name eg.
+      // mem.active and mem_active (influx & victoria)
+      // will result in a single metric in the output, the one that gets
+      // read last. This bug should be fixed if multiple monitoring gets
+      // popular.
+      Object.keys(data.detail.response).forEach(metricName => {
+        if (data.detail.response[metricName].db_type === 'victoria_metrics') {
+          let metric = metricName.replace('}', '');
+          metric = metric.replace('{', '_');
+          metric = metric.replaceAll('_', '.');
+          allMetrics[metric] = data.detail.response[metricName];
+        } else {
+          allMetrics[metricName] = data.detail.response[metricName];
+        }
+      });
+      Object.keys(allMetrics).forEach(metric => {
+        let res = output;
+        const chunks = metric.split('.');
+        try {
           for (let i = 0; i < chunks.length; i++) {
             if (!res[chunks[i]]) {
               res[chunks[i]] = {};
             }
             if (i === chunks.length - 1) {
-              res[chunks[i]] = data.detail.response[metric].id;
+              res[chunks[i]] = allMetrics[metric].id;
             }
             res = res[chunks[i]];
           }
-        });
-      }
+        } catch (e) {
+          console.warn(
+            `Metric ${metric} encountered a problem during listing.`
+          );
+          output[chunks[0]][metric] = allMetrics[metric].id;
+        }
+      });
     }
     this.set('availableMetrics', this._computeMetricsArray(output));
     // Store metrics in resource if available, ie we are in a single page, so as to improve performance
