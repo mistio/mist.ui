@@ -764,7 +764,7 @@ Polymer({
             </div>
             <br />
           </div>
-          <div hidden$="[[!_hasKeys(machine.key_associations)]]">
+          <div hidden$="[[!_hasKeys(machine.key_associations, machineKeys)]]">
             <div class="m-info-head">Associated Keys</div>
             <div class="associatedKeys">
               <template
