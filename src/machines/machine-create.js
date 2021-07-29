@@ -383,7 +383,7 @@ Polymer({
     '_locationChanged(machineFields.1.value)',
     '_cloudsChanged(clouds)',
     '_cloudLocationsUpdated(cloud.locationsArray)',
-    '_cloudImagesUpdated(cloud.imagesArray)',
+    '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
   ],
 
   listeners: {
