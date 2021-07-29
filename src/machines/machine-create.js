@@ -151,7 +151,7 @@ Polymer({
           <div class="subtitle">Provision compute resources across clouds</div>
         </div>
       </paper-material>
-      <paper-material hidden$="[[_hasProviders(providers)]]">
+      <paper-material hidden$="[[_hasClouds(clouds)]]">
         <p>
           You don't have any clouds.
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
@@ -160,7 +160,7 @@ Polymer({
           </span>
         </p>
       </paper-material>
-      <paper-material hidden$="[[!_hasProviders(providers)]]">
+      <paper-material hidden$="[[!_hasClouds(clouds)]]">
         <div class="grid-row">
           <paper-dropdown-menu
             class="dropdown-block l6 xs12 dropdown-with-logos"
@@ -174,16 +174,16 @@ Polymer({
               selected="{{selectedCloud::iron-select}}"
               class="dropdown-content"
             >
-              <template is="dom-repeat" items="[[providers]]" as="provider">
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
                 <paper-item
-                  value="[[provider.id]]"
-                  disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
                 >
                   <img
-                    src="[[_computeProviderLogo(provider.provider)]]"
+                    src="[[_computeProviderLogo(cloud.provider)]]"
                     width="24px"
-                    alt="[[provider.title]]"
-                  />[[provider.title]]</paper-item
+                    alt="[[cloud.title]]"
+                  />[[cloud.title]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -327,12 +327,12 @@ Polymer({
         return VOLUME_CREATE_FIELDS;
       },
     },
-    providers: {
+    clouds: {
       type: Array,
       value() {
         return [];
       },
-      computed: '_computeProviders(model, model.clouds, model.teams.*)',
+      computed: '_computeClouds(model, model.clouds, model.teams.*)',
     },
     newImage: {
       type: String,
@@ -381,7 +381,7 @@ Polymer({
     '_machineFieldsChanged(machineFields.*)',
     '_prefillOptions(route.*)',
     '_locationChanged(machineFields.1.value)',
-    '_providersChanged(providers)',
+    '_cloudsChanged(clouds)',
     '_cloudLocationsUpdated(cloud.locationsArray)',
     '_cloudImagesUpdated(cloud.imagesArray)',
   ],
@@ -715,7 +715,6 @@ Polymer({
       this.set('machineFields', fields);
     }
 
-    // set values by provider
     this._updateFields(selectedCloud);
   },
 
@@ -727,7 +726,7 @@ Polymer({
     if (!locationId) return;
     const sizeIndex = this._fieldIndexByName('size');
     if (sizeIndex === -1) {
-      // provider has no size field
+      // cloud has no size field
       return;
     }
     if (
@@ -786,7 +785,7 @@ Polymer({
       // Reset Form Fields Validation
       this._resetField(el, index);
     });
-    this._providersChanged(this.providers);
+    this._cloudsChanged(this.clouds);
   },
 
   _resetField(el, index) {
@@ -1046,7 +1045,7 @@ Polymer({
 
         // for volumes options
         if (f.name === 'volumes') {
-          const { provider } = this.model.clouds[cloudId];
+          const { provider } = this.model.clouds[cloudId].provider;
           const fieldset = this.volumeFields.find(
             fieldSet => fieldSet.provider === provider
           );
@@ -3008,7 +3007,7 @@ Polymer({
     // console.log('creation failed', e)
   },
 
-  _computeProviders(_model, _clouds) {
+  _computeClouds(_model, _clouds) {
     // exclude bare metals and not allowed clouds from provider dropdown list
     return this._toArray(this.model.clouds).filter(
       c =>
@@ -3213,8 +3212,8 @@ Polymer({
     }
   },
 
-  _hasProviders(providers) {
-    if (providers && providers.length) return true;
+  _hasClouds(clouds) {
+    if (clouds && clouds.length) return true;
     return false;
   },
 
@@ -3248,23 +3247,23 @@ Polymer({
     }
     return newValue;
   },
-  _providersChanged(providers) {
-    if (providers.length >= 1) {
+  _cloudsChanged(clouds) {
+    if (clouds.length >= 1) {
       const localStorageCloud = localStorage.getItem('createMachine#cloud');
-      let cloud = '';
+      let selectedCloud = '';
       if (localStorageCloud === 'false' || localStorageCloud == null) {
         let maxMachines = 0;
-        for (const provider of providers) {
+        for (const cloud of clouds) {
           if (
-            provider.machines &&
-            Object.keys(provider.machines).length > maxMachines
+            cloud.machines &&
+            Object.keys(cloud.machines).length > maxMachines
           ) {
-            maxMachines = Object.keys(provider.machines).length;
-            cloud = provider.id;
+            maxMachines = Object.keys(cloud.machines).length;
+            selectedCloud = cloud.id;
           }
         }
-      } else cloud = localStorageCloud;
-      this.set('selectedCloud', cloud);
+      } else selectedCloud = localStorageCloud;
+      this.set('selectedCloud', selectedCloud);
     }
   },
   _checkSizeLocationOptions(event) {
