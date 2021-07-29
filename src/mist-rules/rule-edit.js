@@ -1154,7 +1154,9 @@ Polymer({
       // read last. This bug should be fixed if multiple monitoring gets
       // popular.
       Object.keys(data.detail.response).forEach(metricName => {
-        if (data.detail.response[metricName].db_type === 'victoria_metrics') {
+        if (
+          data.detail.response[metricName].method === 'telegraf-victoriametrics'
+        ) {
           let metric = metricName.replace('}', '');
           metric = metric.replace('{', '_');
           metric = metric.replaceAll('_', '.');
