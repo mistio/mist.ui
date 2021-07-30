@@ -68,14 +68,11 @@ export const machinesListBehavior = {
         },
       },
       name: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       state: {
         body: (item, row) => {
@@ -158,38 +155,29 @@ export const machinesListBehavior = {
         },
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
       },
       created: {
-        body: (item, _row) => {
-          return moment(item).isValid() ? moment.utc(item).fromNow() : '';
-        },
+        body: (item, _row) =>
+          moment(item).isValid() ? moment.utc(item).fromNow() : '',
       },
       size: {
-        body: (item, row) => {
-          return _this.computeSize(row, item);
-        },
+        body: (item, row) => _this.computeSize(row, item),
         cmp: (row1, row2) => {
           const item1 = row1.size;
           const item2 = row2.size;
@@ -206,12 +194,8 @@ export const machinesListBehavior = {
         },
       },
       image_id: {
-        title: (_item, _row) => {
-          return 'image';
-        },
-        body: (item, row) => {
-          return _this._computeImage(row, item);
-        },
+        title: (_item, _row) => 'image',
+        body: (item, row) => _this._computeImage(row, item),
         cmp: (row1, row2) => {
           const item1 = row1.image_id;
           const item2 = row2.image_id;
@@ -253,28 +237,20 @@ export const machinesListBehavior = {
           return display;
         },
       },
-      machine_id: {
+      external_id: {
         title: 'id (external)',
-        body: i => {
-          return i;
-        },
+        body: i => i,
       },
       public_ips: {
         title: "public ip's",
-        body: ips => {
-          return ips && ips.join(', ');
-        },
+        body: ips => ips && ips.join(', '),
       },
       private_ips: {
         title: "private ip's",
-        body: ips => {
-          return ips.join(', ');
-        },
+        body: ips => ips.join(', '),
       },
       hostname: {
-        body: hostname => {
-          return hostname || '';
-        },
+        body: hostname => hostname || '',
       },
     };
   },
@@ -381,13 +357,12 @@ export const machinesListBehavior = {
 
   _machineHasIncidents(machine, incidents) {
     const machineIncidents = incidents
-      ? incidents.filter(inc => {
-          return (
-            inc.machine_id === machine.machine_id &&
+      ? incidents.filter(
+          inc =>
+            inc.external_id === machine.external_id &&
             inc.cloud_id === machine.cloud &&
             !inc.finished_at
-          );
-        })
+        )
       : [];
     return machineIncidents ? machineIncidents.length * 1000 : 0;
   },

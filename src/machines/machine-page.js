@@ -908,7 +908,7 @@ Polymer({
               </tr>
               <tr>
                 <td>Machine ID given by the provider</td>
-                <td>[[machine.machine_id]]</td>
+                <td>[[machine.external_id]]</td>
               </tr>
               <tr>
                 <td>Public IPs</td>
@@ -1991,7 +1991,7 @@ Polymer({
     if (machine)
       return {
         cloud_id: machine.cloud,
-        machine_id: machine.machine_id,
+        external_id: machine.external_id,
       };
     return {};
   },

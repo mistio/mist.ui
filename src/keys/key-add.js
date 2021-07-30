@@ -7,9 +7,9 @@ import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '../helpers/custom-validator.js';
 import '../helpers/file-upload.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -282,9 +282,10 @@ Polymer({
       const inputs = this.shadowRoot.querySelectorAll(
         'paper-input, paper-textarea'
       );
-      const valid = [].every.call(inputs, el => {
-        return !((el.required && !el.value) || el.invalid);
-      });
+      const valid = [].every.call(
+        inputs,
+        el => !((el.required && !el.value) || el.invalid)
+      );
 
       this.set('formReady', valid && !sendingData);
     });
@@ -295,9 +296,7 @@ Polymer({
   },
 
   isUniqueValidator(value) {
-    const isUnique = this.model.keysArray.every(key => {
-      return key.name !== value;
-    });
+    const isUnique = this.model.keysArray.every(key => key.name !== value);
     return isUnique;
   },
 
@@ -357,7 +356,6 @@ Polymer({
         })
       );
     } else {
-      // if origin machines/machine_id reopen associate key dialog
       if (
         this.origin.startsWith('/machines/') &&
         this.origin !== '/machines/+create'

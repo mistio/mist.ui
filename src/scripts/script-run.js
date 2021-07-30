@@ -132,7 +132,7 @@ Polymer({
     const arr = this.machinesOptions || [];
     const fields = [
       {
-        name: 'machine_uuid',
+        name: 'machine_id',
         label: 'Select Machine *',
         type: 'mist_dropdown',
         value: '',
