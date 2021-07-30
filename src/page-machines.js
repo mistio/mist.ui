@@ -762,7 +762,7 @@ export default class PageMachines extends mixinBehaviors(
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
-      machine_id: {
+      external_id: {
         title: 'id (external)',
         body: i => i,
       },
@@ -949,7 +949,7 @@ export default class PageMachines extends mixinBehaviors(
     const machineIncidents = incidents
       ? incidents.filter(
           inc =>
-            inc.machine_id === machine.machine_id &&
+            inc.external_id === machine.external_id &&
             inc.cloud_id === machine.cloud &&
             !inc.finished_at
         )

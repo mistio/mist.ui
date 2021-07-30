@@ -819,7 +819,7 @@ Polymer({
       this.set('model.onboarding.isLoadingMachines', false);
     }
 
-    this._updateCloudResources(data, 'machines', 'machine_id');
+    this._updateCloudResources(data, 'machines', 'external_id');
   },
   /* eslint-enable no-param-reassign */
   _updateNetworks(data) {
@@ -1062,7 +1062,7 @@ Polymer({
     this.set('model.images', _generateMap(newImagesArray));
 
     // machines
-    this.cleanUpCloudResources(cloudId, 'machines', 'machine_id');
+    this.cleanUpCloudResources(cloudId, 'machines', 'external_id');
     // networks
     this.cleanUpCloudResources(cloudId, 'networks', 'network_id');
     // volumes

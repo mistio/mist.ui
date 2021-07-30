@@ -7,9 +7,9 @@ import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-listbox/paper-listbox.js';
 import '@vaadin/vaadin-dialog/vaadin-dialog.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -36,7 +36,11 @@ Polymer({
         <div class="paper-dialog-scrollable">
           <p>
             <span class="grey"> Choose from your existing scripts. </span>
-            <paper-dropdown-menu no-animations=""  label="Select script" horizontal-align="left">
+            <paper-dropdown-menu
+              no-animations=""
+              label="Select script"
+              horizontal-align="left"
+            >
               <paper-listbox
                 slot="dropdown-content"
                 id="scripts"
@@ -135,7 +139,7 @@ Polymer({
         itemId = item.id;
       }
       request.body = {
-        machine_uuid: itemId,
+        machine_id: itemId,
         params: scriptparams,
       };
       request.headers['Content-Type'] = 'application/json';

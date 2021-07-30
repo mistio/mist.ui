@@ -7,6 +7,7 @@ import './rule-edit.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
+/* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
     <style include="shared-styles tags-and-labels">
@@ -463,12 +464,11 @@ Polymer({
       !r.selectors ||
       !r.selectors.length ||
       (r.selectors &&
-        r.selectors.find(s => {
-          return (
+        r.selectors.find(
+          s =>
             (s.type === type && s.ids.indexOf(that.resource.id) > -1) ||
             (s.type === 'tags' && that._tagsInResource(s.include, resource))
-          );
-        }));
+        ));
     return !!m;
   },
 
@@ -505,11 +505,7 @@ Polymer({
       const s = r.selectors || [];
       // rule applies on all machines or rule is no-data-rule
       if (r.arbitrary || !r.resource_type) {
-        if (
-          !categories.find(c => {
-            return c.type === 'arbitrary';
-          })
-        ) {
+        if (!categories.find(c => c.type === 'arbitrary')) {
           categories.push({
             name: 'Organization Rules',
             type: 'arbitrary',
@@ -517,11 +513,7 @@ Polymer({
             selectors: [],
           });
         } else {
-          categories
-            .find(c => {
-              return c.type === 'arbitrary';
-            })
-            .rules.push(r);
+          categories.find(c => c.type === 'arbitrary').rules.push(r);
         }
       }
       if (
@@ -535,9 +527,9 @@ Polymer({
       ) {
         // rule is no-data-rule
         if (r.title === 'NoData') {
-          const existingCategory = categories.find(c => {
-            return c.type === 'all_machines';
-          });
+          const existingCategory = categories.find(
+            c => c.type === 'all_machines'
+          );
           if (!existingCategory) {
             categories.push({
               name: 'Apply on all machines',
@@ -556,11 +548,7 @@ Polymer({
         }
         // rule applies on all of a resource_type
         if (s && !s.length && r.resource_type) {
-          if (
-            !categories.find(c => {
-              return c.type === `all_${r.resource_type}s`;
-            })
-          ) {
+          if (!categories.find(c => c.type === `all_${r.resource_type}s`)) {
             categories.push({
               name: `Apply on all ${r.resource_type}s`,
               type: `all_${r.resource_type}s`,
@@ -570,9 +558,7 @@ Polymer({
             });
           } else {
             categories
-              .find(c => {
-                return c.type === `all_${r.resource_type}s`;
-              })
+              .find(c => c.type === `all_${r.resource_type}s`)
               .rules.push(r);
           }
         }
@@ -585,12 +571,11 @@ Polymer({
             const stringifiedTags = that._removeBrackets(
               JSON.stringify(sl.include)
             );
-            const existingCategory = categories.find(c => {
-              return (
+            const existingCategory = categories.find(
+              c =>
                 c.type === `tagged_${r.resource_type}s` &&
                 c.stringifiedTags === stringifiedTags
-              );
-            });
+            );
             if (!existingCategory) {
               categories.push({
                 id: `apply-on-tags-of-${r.resource_type}s`,
@@ -677,12 +662,12 @@ Polymer({
         if (this.customMetrics[q].machines) {
           const machineHasCustomMetric =
             this.resource &&
-            this.customMetrics[q].machines.find(m => {
-              return (
+            this.customMetrics[q].machines.find(
+              m =>
                 m[0] === this.resource.cloud &&
-                m[1] === this.resource.machine_id
-              );
-            }, this);
+                m[1] === this.resource.external_id,
+              this
+            );
           if (machineHasCustomMetric || !this.resource)
             metrics.push(this.customMetrics[q]);
         }
@@ -695,9 +680,9 @@ Polymer({
     if (!rule || !incidents) {
       return false;
     }
-    const find = this.incidents.findIndex(inc => {
-      return !inc.finished_at && inc.rule_id === rule.id;
-    });
+    const find = this.incidents.findIndex(
+      inc => !inc.finished_at && inc.rule_id === rule.id
+    );
     return find !== -1;
   },
 
