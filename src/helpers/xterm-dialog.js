@@ -288,7 +288,7 @@ Polymer({
       cols: newCols,
       rows: newRows,
       cloud_id: '',
-      machine_id: '',
+      external_id: '',
       host: '',
     };
 
@@ -298,7 +298,7 @@ Polymer({
       payload.host = '';
     } else {
       payload.cloud_id = this.target.cloud;
-      payload.machine_id = this.target.id;
+      payload.external_id = this.target.id;
       this.set('style.position', 'fixed');
     }
 
@@ -316,7 +316,7 @@ Polymer({
       [payload.host] = ips;
     } else {
       payload.cloud_id = this.target.cloud;
-      payload.machine_id = this.target.id;
+      payload.external_id = this.target.id;
       [payload.host] = ips; // TODO: Remove this
     }
 

@@ -132,7 +132,7 @@ Polymer({
     const arr = this.machinesOptions || [];
     const fields = [
       {
-        name: 'machine_uuid',
+        name: 'machine_id',
         label: 'Select Machine *',
         type: 'mist_dropdown',
         value: '',
@@ -176,9 +176,7 @@ Polymer({
   },
 
   _computeMachinesOptions(_clouds) {
-    return Object.values(this.model.machines).filter(cloud => {
-      return cloud.enabled;
-    });
+    return Object.values(this.model.machines).filter(cloud => cloud.enabled);
   },
 
   _computeHasMachines(machinesOptions) {
@@ -199,9 +197,7 @@ Polymer({
   },
 
   _fieldsChanged() {
-    const machine = this.fields.find(f => {
-      return f.name.startsWith('machine');
-    });
+    const machine = this.fields.find(f => f.name.startsWith('machine'));
     if (machine && machine.value) {
       const machineId = machine.value;
       this.set('machine', this.model.machines[machineId]);
