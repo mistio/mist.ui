@@ -441,7 +441,7 @@ Polymer({
       if (this.type === 'machine') {
         newItem.resource = {
           type: this.type,
-          item_id: this.model.machines[itemId].external_id,
+          item_id: this.model.machines[itemId].id,
           cloud_id: this.model.machines[itemId].cloud,
         };
       } else {

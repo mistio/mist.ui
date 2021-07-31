@@ -595,7 +595,7 @@ export default class PageMachines extends mixinBehaviors(
         body: (item, _row) => {
           if (_this.model && _this.model.clouds)
             return _this.model.clouds[item]
-              ? _this.model.clouds[item].title
+              ? _this.model.clouds[item].name
               : '';
           return '';
         },
