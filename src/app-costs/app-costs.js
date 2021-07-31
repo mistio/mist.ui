@@ -1,9 +1,9 @@
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/iron-icons/iron-icons.js';
-import { ratedCost } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { ratedCost } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -275,9 +275,9 @@ Polymer({
   _getFilteredResources(resources, q) {
     let owned;
     if (q === 'owner:$me' && this.model && resources) {
-      owned = Object.values(resources).filter(item => {
-        return item && item.owned_by && item.owned_by === this.model.user.id;
-      });
+      owned = Object.values(resources).filter(
+        item => item && item.owned_by && item.owned_by === this.model.user.id
+      );
     }
     return owned || Object.values(resources);
   },
@@ -291,9 +291,7 @@ Polymer({
       const machinesWithCost = this._getFilteredResources(
         this.model.machines,
         this.q
-      ).map(m => {
-        return m && m.cost && m.cost.monthly ? m.cost.monthly : 0;
-      });
+      ).map(m => (m && m.cost && m.cost.monthly ? m.cost.monthly : 0));
       // add all cost values
       if (machinesWithCost.length) {
         cost = machinesWithCost.reduce((previous, current, _index) => {
@@ -335,7 +333,7 @@ Polymer({
           }
         }
         const cloud = {};
-        cloud.name = c.title;
+        cloud.name = c.name;
         cloud.cost = cloudCost;
         cloud.machinesCount = machinesCount;
         if (cloudCost > 0) {
@@ -372,9 +370,9 @@ Polymer({
           mcost =
             parseFloat(mcost) / ((that.currency && that.currency.rate) || 1);
           for (const t of Object.keys(m.tags)) {
-            const tagExists = tagsArray.find(prevt => {
-              return prevt.key === t && prevt.value === m.tags[t];
-            });
+            const tagExists = tagsArray.find(
+              prevt => prevt.key === t && prevt.value === m.tags[t]
+            );
             if (tagExists) {
               tagExists.count++;
               tagExists.cost += Math.round(parseInt(mcost, 10));
