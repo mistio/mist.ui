@@ -1,6 +1,8 @@
 import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
@@ -8,8 +10,7 @@ import '../mist-rules/mist-rules.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import './image-actions.js';
 import { CSRFToken, itemUid } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -148,7 +149,7 @@ Polymer({
             [[_computeImageName(image.name)]]
             <iron-icon icon="star" hidden$="{{!image.starred}}"></iron-icon>
           </h2>
-          <div class="subtitle">on [[image.cloud.title]]</div>
+          <div class="subtitle">on [[image.cloud.name]]</div>
         </div>
         <image-actions
           actions="{{actions}}"

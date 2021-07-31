@@ -534,7 +534,7 @@ Polymer({
     for (let i = 0; i < images.length; i++) {
       images[i].cloud = {
         id: e.detail.cloud.id,
-        title: e.detail.cloud.title,
+        name: e.detail.cloud.name,
         provider: e.detail.cloud.provider,
       };
       this.push('model.imagesArray', images[i]);
@@ -1313,7 +1313,98 @@ Polymer({
     script.onload = e.detail.cb;
     document.body.appendChild(script);
   },
+  _qChanged(q) {
+    if (this._isPage('dashboard')) {
+      if (!q || !q.trim || !q.trim()) {
+        // restore section counts
+        this._restoreSectionsCounts();
+      } else {
+        // update section counts according to q
+        this._updateSectionsCounts(q);
+      }
+    } else {
+      // update section counts according to stored default
+      // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+    }
+  },
+  _restoreSectionsCounts() {
+    Object.keys(this.model || {}).forEach(prop => {
+      if (this.model.sections[prop] && this.model[prop]) {
+        // set counts to full model resources length
+        this.set(
+          `model.sections.${prop}.count`,
+          Object.values(this.model[prop]).length
+        );
+      }
+    });
+  },
+  _updateSectionsCounts(q) {
+    const that = this;
+    Object.keys(this.model || {}).forEach(prop => {
+      if (this.model.sections[prop] && this.model[prop]) {
+        // set counts to filtered model resources length
+        this.set(
+          `model.sections.${prop}.count`,
+          Object.values(this.model[prop]).filter(r => that._filterModel(r, q))
+            .length
+        );
+      }
+    });
+  },
+  /* eslint-disable no-param-reassign */
+  _filterModel(item, q) {
+    q = q || '';
+    const filterOwner = q.indexOf('owner:') > -1;
+    const ownerRegex = /owner:(\S*)\s?/;
+    const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+    let str;
 
+    if (filterOwner && owner && owner.length) {
+      q = q.replace('owner:', '').replace(`${owner}`, '');
+
+      if (owner === '$me') {
+        if (!item.owned_by || item.owned_by !== this.model.user.id)
+          return false;
+      } else {
+        const ownerObj =
+          this.model &&
+          this.model.membersArray &&
+          this.model.membersArray.find(
+            m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+          );
+        if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
+          return false;
+      }
+    }
+
+    const queryTerms = q.split(' ');
+    str = JSON.stringify(item);
+    if (
+      this.model &&
+      this.model.clouds &&
+      item &&
+      item.cloud &&
+      this.model.clouds[item.cloud]
+    ) {
+      str += `${this.model.clouds[item.cloud].provider}${
+        this.model.clouds[item.cloud].name
+      }`;
+    }
+
+    if (q && q.trim().length > 0) {
+      // Check if all terms exist in stringified item
+      for (let i = 0; i < queryTerms.length; i++) {
+        if (
+          queryTerms[i] &&
+          queryTerms[i].length &&
+          str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0
+        ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
   /* eslint-enable no-param-reassign */
   _stopPropagation(e) {
     e.stopPropagation();

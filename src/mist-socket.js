@@ -781,7 +781,7 @@ Polymer({
           cloud.imagesArray.forEach(image => {
             image.cloud = {
               id: cloud.id,
-              title: cloud.title,
+              name: cloud.name,
               provider: cloud.provider,
             };
             self.model.imagesArray.push(image);
