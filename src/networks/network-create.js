@@ -575,16 +575,16 @@ Polymer({
               selected="{{selectedCloud::iron-select}}"
               class="dropdown-content"
             >
-              <template is="dom-repeat" items="[[providers]]" as="provider">
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
                 <paper-item
-                  value="[[provider.id]]"
-                  disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
                 >
                   <img
-                    src="[[_computeProviderLogo(provider.provider)]]"
-                    alt="[[provider.provider]]"
+                    src="[[_computeProviderLogo(cloud.provider)]]"
+                    alt="[[cloud.provider]]"
                     width="24px"
-                  />[[provider.title]]</paper-item
+                  />[[cloud.name]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -616,7 +616,7 @@ Polymer({
     model: {
       type: Object,
     },
-    providers: {
+    clouds: {
       type: Array,
     },
     form: {
@@ -725,7 +725,7 @@ Polymer({
   updatePayload() {
     if (this.fields.length) {
       const payload = {};
-      const { provider } = this.model.clouds[this.selectedCloud];
+      const { provider } = this.model.clouds[this.selectedCloud].provider;
       payload.network = {};
       // create network
       for (let i = 0; i < this.fields.length; i++) {
