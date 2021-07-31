@@ -426,8 +426,8 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[hasCloudsWithNetworks]]">
         <p>
-          To add a network you need to have an enabled Openstack, GCE or
-          EC2 cloud in your account. <br />
+          To add a network you need to have an enabled Openstack, GCE or EC2
+          cloud in your account. <br />
           Add a cloud using the
           <a href="/clouds/+add" class="blue-link regular">add cloud form</a>
           or enable your Openstack or GCE clouds available in
@@ -448,15 +448,16 @@ Polymer({
               selected="{{selectedCloud::iron-select}}"
               class="dropdown-content"
             >
-              <template is="dom-repeat" items="[[providers]]" as="provider">
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
                 <paper-item
-                  value="[[provider.id]]"
-                  disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
                 >
                   <img
-                    src="[[_computeProviderLogo(provider.provider)]]"
+                    src="[[_computeProviderLogo(cloud.provider)]]"
+                    alt="[[cloud.provider]]"
                     width="24px"
-                  />[[provider.title]]</paper-item
+                  />[[cloud.name]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -488,7 +489,7 @@ Polymer({
     model: {
       type: Object,
     },
-    providers: {
+    clouds: {
       type: Array,
     },
     form: {
@@ -528,13 +529,10 @@ Polymer({
   _cloudsChanged(_clouds) {
     const networkClouds =
       this.model &&
-      this.model.cloudsArray.filter(cloud => {
-        return (
-          ['openstack', 'gce', 'ec2', 'lxd'].indexOf(cloud.provider) >
-          -1
-        );
-      });
-    this.set('providers', networkClouds);
+      this.model.cloudsArray.filter(
+        cloud => ['openstack', 'gce', 'ec2', 'lxd'].indexOf(cloud.provider) > -1
+      );
+    this.set('clouds', networkClouds);
     this.set(
       'hasCloudsWithNetworks',
       !!(networkClouds && networkClouds.length > 0)
@@ -559,9 +557,7 @@ Polymer({
     let cloudName = '';
     if (this.selectedCloud) {
       cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => {
-        return c.provider === cloudName;
-      });
+      networkFields = this.networksFields.find(c => c.provider === cloudName);
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
@@ -597,7 +593,7 @@ Polymer({
   updatePayload() {
     if (this.fields.length) {
       const payload = {};
-      const { provider } = this.model.clouds[this.selectedCloud];
+      const { provider } = this.model.clouds[this.selectedCloud].provider;
       payload.network = {};
       // create network
       for (let i = 0; i < this.fields.length; i++) {
@@ -657,9 +653,7 @@ Polymer({
   },
 
   fieldIndexByName(name) {
-    const field = this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    const field = this.fields.findIndex(f => f.name === name);
     return field;
   },
 

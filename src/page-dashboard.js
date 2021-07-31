@@ -331,9 +331,7 @@ Polymer({
                   id$="[[item.id]]"
                 >
                   <div class="icon" slot="icon"></div>
-                  <div class="cloud-title" slot="cloud-title">
-                    [[item.title]]
-                  </div>
+                  <div class="cloud-name" slot="cloud-name">[[item.name]]</div>
                 </cloud-chip>
               </a>
             </template>
