@@ -1474,7 +1474,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'name',
-      label: 'Cloud Title *',
+      label: 'Cloud Name *',
       type: 'text',
       value: '',
       defaultValue: '',

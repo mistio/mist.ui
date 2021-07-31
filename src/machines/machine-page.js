@@ -571,7 +571,7 @@ Polymer({
                     class="cloud icon"
                     src$="[[_computeCloudIcon(cloud.provider)]]"
                   ></iron-icon>
-                  <span>[[cloud.title]]</span>
+                  <span>[[cloud.name]]</span>
                 </div>
               </div>
               <div class="row" hidden$="[[!cloud.tenant]]">

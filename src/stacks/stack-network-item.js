@@ -2,6 +2,7 @@ import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -73,7 +74,7 @@ Polymer({
       >
         <div class="flexchild"><span class="name">[[network.name]]</span></div>
         <div class="flexchild">[[network.subnets.length]] subnets</div>
-        <div class="flexchild capitalize">[[network.cloud.title]]</div>
+        <div class="flexchild capitalize">[[network.cloud.name]]</div>
       </a>
     </paper-item>
   `,
