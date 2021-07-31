@@ -170,7 +170,7 @@ Polymer({
                     {
                       id: cloud.id,
                       provider: cloud.provider,
-                      title: cloud.title,
+                      name: cloud.name,
                       size: { ...size },
                     },
                   ];

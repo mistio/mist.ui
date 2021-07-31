@@ -4,14 +4,15 @@ import '@polymer/paper-styles/typography.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@mistio/mist-list/mist-list.js';
 import '../mist-rules/mist-rules.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import '../helpers/dialog-element.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import './volume-actions.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -165,9 +166,7 @@ Polymer({
         </span>
         <div class="title flex">
           <h2>[[_getVolumeNameOrExternalId(volume)]]</h2>
-          <div class="subtitle">
-            [[_computeVolumeSubtitle(volume)]]
-          </div>
+          <div class="subtitle">[[_computeVolumeSubtitle(volume)]]</div>
         </div>
         <volume-actions
           items="[[itemArray]]"
@@ -411,13 +410,12 @@ Polymer({
       const machinesArray = this._toArray(
         this.model.clouds[this.volume.cloud].machines
       );
-      return machinesArray.filter(m => {
-        return (
+      return machinesArray.filter(
+        m =>
           m.cloud === that.volume.cloud &&
           (!that.volume.location || m.location === that.volume.location) &&
           that.volume.attached_to.indexOf(m.id) === -1
-        );
-      });
+      );
     }
     return [];
   },
@@ -432,9 +430,14 @@ Polymer({
     return null;
   },
   _computeVolumeSubtitle() {
-    const title = this.volumeCloud.title;
-    const locationName = this._computeLocationsName(this.model,this.volumeCloud,this.volume,this.volume.location);
-    return locationName ? `${title}, ${locationName}` : title;
+    const { name } = this.volumeCloud;
+    const locationName = this._computeLocationsName(
+      this.model,
+      this.volumeCloud,
+      this.volume,
+      this.volume.location
+    );
+    return locationName ? `${name}, ${locationName}` : name;
   },
   _editVolume(e) {
     console.log(e);

@@ -535,7 +535,7 @@ Polymer({
     for (let i = 0; i < images.length; i++) {
       images[i].cloud = {
         id: e.detail.cloud.id,
-        title: e.detail.cloud.title,
+        name: e.detail.cloud.name,
         provider: e.detail.cloud.provider,
       };
       this.push('model.imagesArray', images[i]);
@@ -1366,9 +1366,8 @@ Polymer({
         // set counts to filtered model resources length
         this.set(
           `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).filter(r => {
-            return that._filterModel(r, q);
-          }).length
+          Object.values(this.model[prop]).filter(r => that._filterModel(r, q))
+            .length
         );
       }
     });
@@ -1391,9 +1390,9 @@ Polymer({
         const ownerObj =
           this.model &&
           this.model.membersArray &&
-          this.model.membersArray.find(m => {
-            return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
-          });
+          this.model.membersArray.find(
+            m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+          );
         if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
           return false;
       }
@@ -1409,7 +1408,7 @@ Polymer({
       this.model.clouds[item.cloud]
     ) {
       str += `${this.model.clouds[item.cloud].provider}${
-        this.model.clouds[item.cloud].title
+        this.model.clouds[item.cloud].name
       }`;
     }
 
@@ -1435,7 +1434,7 @@ Polymer({
 
 document.addEventListener(
   'iron-overlay-opened',
-  function moveBackdrop(event) {
+  event => {
     const dialog = dom(event).rootTarget;
     if (dialog.withBackdrop) {
       dialog.parentNode.insertBefore(dialog.backdropElement, dialog);

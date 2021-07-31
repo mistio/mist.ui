@@ -80,7 +80,7 @@ Polymer({
                 items="[[dnsCloudsArray]]"
                 as="dnsCloud"
               >
-                <paper-item value="[[dnsCloud]]">[[dnsCloud.title]]</paper-item>
+                <paper-item value="[[dnsCloud]]">[[dnsCloud.name]]</paper-item>
               </template>
             </paper-listbox>
           </paper-dropdown-menu>
@@ -534,8 +534,8 @@ Polymer({
   },
 
   _cloudsChanged() {
-    const dnsClouds = this.model.cloudsArray.filter(cloud => {
-      return (
+    const dnsClouds = this.model.cloudsArray.filter(
+      cloud =>
         [
           'ec2',
           'gce',
@@ -547,8 +547,7 @@ Polymer({
         ].indexOf(cloud.provider) > -1 &&
         cloud.enabled &&
         cloud.dns_enabled
-      );
-    });
+    );
     if (dnsClouds.length > 0) {
       this.set('hasdnsClouds', true);
       const dnsCloudsArray = [];
@@ -565,39 +564,39 @@ Polymer({
     if (selectedCloud) {
       if (selectedCloud.provider === 'gce') {
         this.set('fields', this.cloudSpecificFields.Google);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'ec2') {
         this.set('fields', this.cloudSpecificFields.Route53);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'digitalocean') {
         this.set('fields', this.cloudSpecificFields.DigitalOcean);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'linode') {
         this.set('fields', this.cloudSpecificFields.Linode);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'rackspace') {
         this.set('fields', this.cloudSpecificFields.RackSpace);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'softlayer') {
         this.set('fields', this.cloudSpecificFields.SoftLayer);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       } else if (selectedCloud.provider === 'vultr') {
         this.set('fields', this.cloudSpecificFields.Vultr);
-        [this.cloud] = this.model.cloudsArray.filter(clouda => {
-          return clouda.id === selectedCloud.id;
-        });
+        [this.cloud] = this.model.cloudsArray.filter(
+          clouda => clouda.id === selectedCloud.id
+        );
       }
     }
     // this.updatePayload();
@@ -611,9 +610,10 @@ Polymer({
   updateUrl(e) {
     // update url when cloud is selected
     if (e.target.id === 'cloud') {
-      const cloud = this.fields.findIndex(field => {
-        return field.name === 'cloud';
-      }, this);
+      const cloud = this.fields.findIndex(
+        field => field.name === 'cloud',
+        this
+      );
       this.set('cloud', this.fields[cloud].value);
     }
     this.updatePayload();
@@ -624,9 +624,10 @@ Polymer({
       // update payload
       const payload = {};
 
-      const domain = this.fields.findIndex(field => {
-        return field.name === 'domain';
-      }, this);
+      const domain = this.fields.findIndex(
+        field => field.name === 'domain',
+        this
+      );
       payload.domain = this.fields[domain].value;
       if (
         this.selectedCloud.provider === 'ec2' ||
@@ -636,9 +637,10 @@ Polymer({
         this.selectedCloud.provider === 'softlayer' ||
         this.selectedCloud.provider === 'vultr'
       ) {
-        const type = this.fields.findIndex(field => {
-          return field.name === 'type';
-        }, this);
+        const type = this.fields.findIndex(
+          field => field.name === 'type',
+          this
+        );
         payload.type = this.fields[type].value;
       }
       if (
@@ -649,9 +651,10 @@ Polymer({
         this.selectedCloud.provider === 'softlayer' ||
         this.selectedCloud.provider === 'vultr'
       ) {
-        const type = this.fields.findIndex(field => {
-          return field.name === 'type';
-        }, this);
+        const type = this.fields.findIndex(
+          field => field.name === 'type',
+          this
+        );
         payload.type = this.fields[type].value;
       }
       if (
@@ -660,38 +663,37 @@ Polymer({
         this.selectedCloud.provider === 'softlayer' ||
         this.selectedCloud.provider === 'vultr'
       ) {
-        const ttl = this.fields.findIndex(field => {
-          return field.name === 'ttl';
-        }, this);
+        const ttl = this.fields.findIndex(field => field.name === 'ttl', this);
         payload.ttl = this.fields[ttl].value;
       }
       if (this.selectedCloud.provider === 'linode') {
         if (payload.type === 'master') {
-          const soa = this.fields.findIndex(field => {
-            return field.name === 'SOA_email';
-          }, this);
+          const soa = this.fields.findIndex(
+            field => field.name === 'SOA_email',
+            this
+          );
           delete payload.master_ips;
           payload.SOA_Email = this.fields[soa].value;
         } else {
-          const masterIPs = this.fields.findIndex(field => {
-            return field.name === 'master_ips';
-          }, this);
+          const masterIPs = this.fields.findIndex(
+            field => field.name === 'master_ips',
+            this
+          );
           delete payload.SOA_Email;
           payload.masterIPs = this.fields[masterIPs].value;
         }
       }
       if (this.selectedCloud.provider === 'vultr') {
-        const ip = this.fields.findIndex(field => {
-          return field.name === 'ip';
-        }, this);
+        const ip = this.fields.findIndex(field => field.name === 'ip', this);
         if (this.fields[ip].value !== '') {
           payload.ip = this.fields[ip].value;
         }
       }
       if (this.selectedCloud.provider === 'rackspace') {
-        const email = this.fields.findIndex(field => {
-          return field.name === 'email';
-        }, this);
+        const email = this.fields.findIndex(
+          field => field.name === 'email',
+          this
+        );
         if (this.fields[email].value !== '') {
           payload.email = this.fields[email].value;
         }

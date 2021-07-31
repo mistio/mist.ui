@@ -16,6 +16,7 @@ import './cloud-actions.js';
 import './other-cloud-machines.js';
 import './other-cloud-add-machine.js';
 import { CSRFToken } from '../helpers/utils.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -277,7 +278,7 @@ Polymer({
         </span>
         <div class="title flex">
           <h2>
-            [[cloudTitle]]
+            [[cloudName]]
             <span class="capitalize" hidden$="[[!cloud.enabled]]"
               >[[cloud.state]]</span
             >
@@ -470,10 +471,16 @@ Polymer({
                     disabled="[[objectstorageloading]]"
                     hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
                   >
-                    <span hidden$="[[!cloud.object_storage_enabled]]">Object Storage enabled</span>
-                    <span hidden$="[[cloud.object_storage_enabled]]">Object Storage disabled</span>
+                    <span hidden$="[[!cloud.object_storage_enabled]]"
+                      >Object Storage enabled</span
+                    >
+                    <span hidden$="[[cloud.object_storage_enabled]]"
+                      >Object Storage disabled</span
+                    >
                   </paper-toggle-button>
-                  <br hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]" />
+                  <br
+                    hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
+                  />
                   <paper-toggle-button
                     id="OBS-enable-disable"
                     class="small"
@@ -613,9 +620,9 @@ Polymer({
     cloud: {
       type: Object,
     },
-    cloudTitle: {
+    cloudName: {
       type: String,
-      computed: '_computeCloudTitle(cloud)',
+      computed: '_computeCloudName(cloud)',
     },
     cloudTags: {
       type: String,
@@ -751,7 +758,7 @@ Polymer({
         composed: true,
         detail: {
           url: `/${page}`,
-          search: this.cloud.title + search,
+          search: this.cloud.name + search,
         },
       })
     );
@@ -780,8 +787,8 @@ Polymer({
       : 0;
   },
 
-  _computeCloudTitle(cloud) {
-    return cloud && cloud.title;
+  _computeCloudName(cloud) {
+    return cloud && cloud.name;
   },
 
   _computeCloudTags() {
@@ -833,12 +840,7 @@ Polymer({
 
   _isSupportedObjectStorageProvider(provider) {
     // FIXME: Don't hardcode this. Backend needs to pass this info to ui.
-    return (
-      [
-        'ec2',
-        'openstack',
-      ].indexOf(provider) > -1
-    );
+    return ['ec2', 'openstack'].indexOf(provider) > -1;
   },
 
   _isBareMetal(provider) {
@@ -857,7 +859,7 @@ Polymer({
   },
 
   _handleCloudStateAjaxResponse() {
-    const message = `Cloud ${this.cloud.title} was ${this.expectedState}!`;
+    const message = `Cloud ${this.cloud.name} was ${this.expectedState}!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -897,8 +899,8 @@ Polymer({
 
   _handleCloudEditOBSLOGSAjaxResponse() {
     const message = this.shadowRoot.querySelector('#OBS-enable-disable').checked
-      ? `Observation logs for ${this.cloud.title} enabled!`
-      : `Observation logs for ${this.cloud.title} disabled!`;
+      ? `Observation logs for ${this.cloud.name} enabled!`
+      : `Observation logs for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -933,8 +935,8 @@ Polymer({
 
   _handleCloudEditDNSAjaxResponse() {
     const message = this.shadowRoot.querySelector('#DNS-enable-disable').checked
-      ? `DNS support for ${this.cloud.title} enabled!`
-      : `DNS support for ${this.cloud.title} disabled!`;
+      ? `DNS support for ${this.cloud.name} enabled!`
+      : `DNS support for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -959,8 +961,10 @@ Polymer({
 
   _changeObjectStorageEnabled() {
     const objectStorageEnabled = this.cloud.object_storage_enabled ? 0 : 1;
-    this.$.cloudEditObjectStorageAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.cloudEditObjectStorageAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Content-Type'] =
+      'application/json';
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Csrf-Token'] =
+      CSRFToken.value;
     this.$.cloudEditObjectStorageAjaxRequest.body = {
       object_storage_enabled: objectStorageEnabled,
     };
@@ -968,9 +972,11 @@ Polymer({
   },
 
   _handleCloudEditObjectStorageAjaxResponse() {
-    const message = this.shadowRoot.querySelector('#ObjectStorage-enable-disable').checked
-      ? `Object Storage support for ${this.cloud.title} enabled!`
-      : `Object Storage support for ${this.cloud.title} disabled!`;
+    const message = this.shadowRoot.querySelector(
+      '#ObjectStorage-enable-disable'
+    ).checked
+      ? `Object Storage support for ${this.cloud.name} enabled!`
+      : `Object Storage support for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,

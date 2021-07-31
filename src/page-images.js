@@ -4,9 +4,9 @@ import '@polymer/paper-fab/paper-fab.js';
 import './images/image-page.js';
 import './images/image-actions.js';
 import './images/image-provider-search.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
 Polymer({
   _template: html`
@@ -100,10 +100,10 @@ Polymer({
     filteredItemsLength: {
       type: String,
     },
-    renderers:{
+    renderers: {
       type: Object,
-      computed: '_getRenderers(model.scripts)'
-    }
+      computed: '_getRenderers(model.scripts)',
+    },
   },
   listeners: {},
   _isDetailsPageActive(path) {
@@ -147,16 +147,13 @@ Polymer({
           if (row.star) return `<strong class="name starred">${name}</strong>`;
           return `<strong class="name unstarred">${name}</strong>`;
         },
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       cloud: {
-        body: (_item, row) => {
-          return row && row.cloud ? row.cloud.title : '';
-        },
+        body: (_item, row) => (row && row.cloud ? row.cloud.name : ''),
         cmp: (row1, row2) => {
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);
@@ -164,78 +161,69 @@ Polymer({
         },
       },
       starred: {
-        body: (item, _row) => {
-          return item
+        body: (item, _row) =>
+          item
             ? '<iron-icon icon="star" class="starred"></iron-icon>'
-            : '<iron-icon icon="star-border" class="unstarred"></iron-icon>';
-        },
+            : '<iron-icon icon="star-border" class="unstarred"></iron-icon>',
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         cmp: (row1, row2) => {
           const item1 = this.renderers.owned_by.body(row1.owned_by);
           const item2 = this.renderers.owned_by.body(row2.owned_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).sort().forEach(key => {
-            display += `<span class='tag'>${key}`;
-            if (tags[key] != null && tags[key] !== '')
-              display += `=${tags[key]}`;
-            display += '</span>';
-          });
+          Object.keys(tags || {})
+            .sort()
+            .forEach(key => {
+              display += `<span class='tag'>${key}`;
+              if (tags[key] != null && tags[key] !== '')
+                display += `=${tags[key]}`;
+              display += '</span>';
+            });
           return display;
         },
         // sort by number of tags, resources with more tags come first
         // if two resources have the same number of tags show them in alphabetic order
-        cmp: (row1, row2) =>{
+        cmp: (row1, row2) => {
           const keys1 = Object.keys(row1.tags).sort();
           const keys2 = Object.keys(row2.tags).sort();
-          if( keys1.length > keys2.length)
-            return -1;
-          if (keys1.length < keys2.length)
-            return 1;
-          const item1 = keys1.length > 0 ? keys1[0] : "";
-          const item2 = keys2.length > 0 ? keys2[0] : "";
+          if (keys1.length > keys2.length) return -1;
+          if (keys1.length < keys2.length) return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : '';
+          const item2 = keys2.length > 0 ? keys2[0] : '';
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
-        }
+        },
       },
     };
   },
   searchableClouds(clouds) {
-    return clouds.filter(c => {
-      return ['ec2', 'docker'].indexOf(c.provider) > -1;
-    });
+    return clouds.filter(c => ['ec2', 'docker'].indexOf(c.provider) > -1);
   },
   sortedImages(_images) {
     return this.model.imagesArray.sort((a, b) => {
