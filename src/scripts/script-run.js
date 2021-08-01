@@ -100,7 +100,9 @@ Polymer({
     },
     machinesOptions: {
       type: Array,
-      value: [],
+      value() {
+        return [];
+      },
     },
     hasMachines: {
       type: Boolean,
@@ -206,8 +208,8 @@ Polymer({
       : `Run Script "${name}"`;
   },
 
-  _fieldsChanged() {
-    const machine = this.fields.find(f => f.name.startsWith('machine'));
+  _fieldsChanged(event) {
+    const machine = event.detail.item;
     if (machine && machine.value) {
       const machineId = machine.value;
       this.set('machine', this.model.machines[machineId]);
@@ -216,7 +218,10 @@ Polymer({
   },
 
   _machineChanged(machine) {
-    return !!(machine.key_associations && machine.key_associations.length > 0);
+    return !!(
+      machine.key_associations &&
+      Object.keys(machine.key_associations).length > 0
+    );
   },
 
   _cloudsChanged(_fieldsLength, _clouds, _machines, _keys) {
