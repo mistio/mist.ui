@@ -56,8 +56,7 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Equinix Metal, LXD, Aliyun, Kubevirt, Linode and DigitalOcean
-          clouds
+          Equinix Metal, LXD, Aliyun, Kubevirt, Linode and DigitalOcean clouds
           <br />
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
             Add a cloud using the
@@ -79,15 +78,16 @@ Polymer({
               selected="{{selectedCloud::iron-select}}"
               class="dropdown-content"
             >
-              <template is="dom-repeat" items="[[providers]]" as="provider">
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
                 <paper-item
-                  value="[[provider.id]]"
-                  disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
                 >
                   <img
-                    src="[[_computeProviderLogo(provider.provider)]]"
+                    src="[[_computeCloudLogo(cloud.provider)]]"
                     width="24px"
-                  />[[provider.title]]</paper-item
+                    alt="[[cloud.provider]]"
+                  />[[cloud.title]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -147,7 +147,7 @@ Polymer({
     model: {
       type: Object,
     },
-    providers: Array,
+    clouds: Array,
     form: {
       type: Object,
       value() {
@@ -196,19 +196,18 @@ Polymer({
   _cloudsChanged() {
     const volumeClouds =
       this.model &&
-      this.model.cloudsArray.filter(cloud => {
-        return (
-          VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1
-        );
-      });
-    this.set('providers', volumeClouds);
+      this.model.cloudsArray.filter(
+        cloud =>
+          VOLUME_CREATE_FIELDS.map(i => i.cloud).indexOf(cloud.provider) > -1
+      );
+    this.set('clouds', volumeClouds);
     this.set(
       'hasCloudsWithVolumes',
       !!(volumeClouds && volumeClouds.length > 0)
     );
   },
 
-  _computeProviderLogo(className) {
+  _computeCloudLogo(className) {
     const identifier = className.replace('_', '');
     return `assets/providers/provider-${identifier}.png`;
   },
@@ -224,10 +223,8 @@ Polymer({
     this.set('fields', []);
     let volumeFields = [];
     if (this.selectedCloud) {
-      const { provider } = this.model.clouds[selectedCloud];
-      volumeFields = this.volumesFields.find(c => {
-        return c.provider === provider;
-      });
+      const { provider } = this.model.clouds[selectedCloud].provider;
+      volumeFields = this.volumesFields.find(c => c.provider === provider);
     }
     // add cloud fields
     if (volumeFields.fields)
@@ -235,14 +232,12 @@ Polymer({
         'fields',
         JSON.parse(
           JSON.stringify(
-            volumeFields.fields.filter(f => {
-              return f.onForm === 'volume_add' || !f.onForm;
-            })
+            volumeFields.fields.filter(
+              f => f.onForm === 'volume_add' || !f.onForm
+            )
           )
         )
       );
-
-    // set values by provider
     this._updateFields(selectedCloud);
   },
 
@@ -258,7 +253,10 @@ Polymer({
       if (this.model.clouds[cloudId].provider === 'azure_arm') {
         this._updateResourceGroups(cloudId);
       }
-      if (this.model.clouds[cloudId].provider === 'kubevirt' || this.model.clouds[cloudId].provider === 'openstack') {
+      if (
+        this.model.clouds[cloudId].provider === 'kubevirt' ||
+        this.model.clouds[cloudId].provider === 'openstack'
+      ) {
         this._updateStorageClasses(cloudId);
       }
 
@@ -290,9 +288,7 @@ Polymer({
               return false;
             });
           } else if (this.model.clouds[cloudId].provider === 'openstack') {
-            locations = locations.filter(l => {
-                return l.extra.storage === true;
-            });
+            locations = locations.filter(l => l.extra.storage === true);
           }
           f.options = locations;
         }
@@ -308,20 +304,17 @@ Polymer({
       !this.model.clouds[this.selectedCloud]
     )
       return;
-    const { provider } = this.model.clouds[this.selectedCloud];
+    const { provider } = this.model.clouds[this.selectedCloud].provider;
     const location = this.model.clouds[this.selectedCloud].locations[
       locationId
     ];
     if (provider === 'aliyun_ecs') {
       const diskCategoryOptions = this.volumesFields
-        .find(cloud => {
-          return cloud.provider === provider;
-        })
-        .fields[3].options.filter(option => {
-          return (
+        .find(cloud => cloud.provider === provider)
+        .fields[3].options.filter(
+          option =>
             location.extra.available_disk_categories.indexOf(option.val) > -1
-          );
-        });
+        );
       this.set('fields.3.options', diskCategoryOptions);
     }
   },
@@ -333,7 +326,7 @@ Polymer({
       !this.model.clouds[this.selectedCloud]
     )
       return;
-    const { provider } = this.model.clouds[this.selectedCloud];
+    const { provider } = this.model.clouds[this.selectedCloud].provider;
     let minSize = 1;
     if (provider === 'aliyun_ecs') {
       if (diskCategory !== 'cloud') {
@@ -503,9 +496,7 @@ Polymer({
   },
 
   _fieldIndexByName(name) {
-    const field = this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    const field = this.fields.findIndex(f => f.name === name);
     return field;
   },
 
