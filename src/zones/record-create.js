@@ -98,10 +98,6 @@ Polymer({
     model: {
       type: Object,
     },
-    zone_id: {
-      type: String,
-      value: '',
-    },
     zone: {
       type: Object,
     },
@@ -471,19 +467,16 @@ Polymer({
 
       payload.type = this.selectedRecordType;
 
-      const name = this.fields.findIndex(field => {
-        return field.name === 'name';
-      }, this);
+      const name = this.fields.findIndex(field => field.name === 'name', this);
       payload.name = `${this.fields[name].value + this.fields[name].suffix}.`;
 
-      const rdata = this.fields.findIndex(field => {
-        return field.name === 'rdata';
-      }, this);
+      const rdata = this.fields.findIndex(
+        field => field.name === 'rdata',
+        this
+      );
       payload.data = this.fields[rdata].value;
 
-      const ttl = this.fields.findIndex(field => {
-        return field.name === 'ttl';
-      }, this);
+      const ttl = this.fields.findIndex(field => field.name === 'ttl', this);
       payload.ttl = this.fields[ttl].value;
 
       this.set('record', payload);
