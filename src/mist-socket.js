@@ -803,7 +803,7 @@ Polymer({
 
   _updateNetworks(data) {
     this.set('model.onboarding.isLoadingNetworks', false);
-    this._updateCloudResources(data, 'networks', 'network_id');
+    this._updateCloudResources(data, 'networks', 'external_id');
   },
 
   _updateVolumes(data) {
@@ -817,7 +817,7 @@ Polymer({
 
   _updateZones(data) {
     this.set('model.onboarding.isLoadingNetworks', false);
-    this._updateCloudResources(data, 'zones', 'zone_id');
+    this._updateCloudResources(data, 'zones', 'external_id');
   },
 
   _updateCloudResources(data, section, externalId) {
@@ -1043,11 +1043,11 @@ Polymer({
     // machines
     this.cleanUpCloudResources(cloudId, 'machines', 'external_id');
     // networks
-    this.cleanUpCloudResources(cloudId, 'networks', 'network_id');
+    this.cleanUpCloudResources(cloudId, 'networks', 'external_id');
     // volumes
     this.cleanUpCloudResources(cloudId, 'volumes', 'external_id');
     // zones
-    this.cleanUpCloudResources(cloudId, 'zones', 'zone_id');
+    this.cleanUpCloudResources(cloudId, 'zones', 'external_id');
   },
 
   cleanUpCloudResources(cloudId, section, externalId) {

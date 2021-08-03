@@ -969,10 +969,10 @@ Polymer({
 
         if (f.name.endsWith('zone')) {
           f.options = this._toArray(this.model.zones);
-          // If zones share same domain but have differnt zone_id then display zone_id as suffix
+          // If zones share same domain but have differnt external_id then display external_id as suffix
           f.options.forEach(zone => {
-            if (zone.domain !== `${zone.zone_id}.`) {
-              zone.suffix = zone.zone_id;
+            if (zone.domain !== `${zone.external_id}.`) {
+              zone.suffix = zone.external_id;
             }
           });
         }
@@ -984,8 +984,8 @@ Polymer({
             if (sf.name && sf.name.endsWith('zone')) {
               sf.options = this._toArray(this.model.zones);
               sf.options.forEach(zone => {
-                if (`${zone.zone_id}.` !== zone.domain) {
-                  zone.suffix = zone.zone_id;
+                if (`${zone.external_id}.` !== zone.domain) {
+                  zone.suffix = zone.external_id;
                 }
               });
               if (sf.options.length)
