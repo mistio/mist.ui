@@ -134,7 +134,7 @@ export default class PageClouds extends mixinBehaviors(
   }
 
   _getFrozenLogColumn() {
-    return ['title'];
+    return ['name'];
   }
 
   _getVisibleColumns() {
@@ -156,7 +156,7 @@ export default class PageClouds extends mixinBehaviors(
   _getRenderers(_keys) {
     const _this = this;
     return {
-      title: {
+      name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
       },
       icon: {
