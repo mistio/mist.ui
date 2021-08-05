@@ -87,7 +87,7 @@ Polymer({
                     src="[[_computeCloudLogo(cloud.provider)]]"
                     width="24px"
                     alt="[[cloud.provider]]"
-                  />[[cloud.title]]</paper-item
+                  />[[cloud.name]]</paper-item
                 >
               </template>
             </paper-listbox>
