@@ -137,9 +137,6 @@ export class SecretAdd extends PolymerElement{
             formError: {
                 type: Boolean,
                 value: true
-            },
-            path:{
-                type: Array
             }
         }
     }
@@ -156,7 +153,7 @@ export class SecretAdd extends PolymerElement{
         this.$.secretCreateAjaxRequest.headers['Content-Type'] = 'application/json';
         this.$.secretCreateAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
         this.$.secretCreateAjaxRequest.body = {
-          name: this._getPath() + this.secret.name,
+          name: this.secret.name,
           secret: this.secret.secret,
         };
         this.$.secretCreateAjaxRequest.generateRequest();
@@ -174,15 +171,6 @@ export class SecretAdd extends PolymerElement{
         this.set('sendingData', false);
         this.set('formError', true);
         this.$.errormsg.textContent = e.detail.request.xhr.responseText;
-    }
-
-    _getPath() {
-        if(this.path[0].name === "/") this.path.shift();
-        let dirPath = "";
-        this.path.forEach(pItem => {
-            dirPath += `${pItem.name}/`;
-        });
-        return dirPath;
     }
 };
 

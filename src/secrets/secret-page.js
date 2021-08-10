@@ -142,7 +142,7 @@ Polymer({
 
     is: "secret-page",
 
-    behaviors: [mistLoadingBehavior],
+    // behaviors: [mistLoadingBehavior],
 
     properties: {
         hidden: {
