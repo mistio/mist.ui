@@ -82,15 +82,15 @@ Polymer({
         },
         secrets: {
             type: Array,
-            value: []
+            value: () => []
         },
         actions: {
             type: Array,
-            value: []
+            value: () => []
         },
         secretsMap: {
             type: Object,
-            value: {}
+            value: () => {}
         },
         depth: {
             type: Number,
@@ -98,18 +98,18 @@ Polymer({
         },
         depthMap: {
             type: Object,
-            value: {}
+            value: () => {}
         },
         clickedItem: {
             type: Object
         },
         itemMap: {
             type: Object,
-            value: {}
+            value: () => {}
         },
         pathItems:{
             type: Array,
-            value : []
+            value : () => []
         },
         isListActive: {
             type: Boolean,
@@ -127,7 +127,7 @@ Polymer({
         },
         activeSecret: {
             type: Object,
-            value: {}
+            value: () => {}
         },
         parentFolderId: {
             type: String,
@@ -157,7 +157,7 @@ Polymer({
             this.secretsMap[item.id] = item;
         });
         this.set('model.secrets', this.secretsMap);
-        this._createDepthMap();
+        // this._createDepthMap();
         const currentItemId = this.route.path.startsWith('/') ? this.route.path.slice(1) : this.route.path;
         if(currentItemId === "" || currentItemId === "+add"){
             this._setItemMap("");
@@ -255,46 +255,46 @@ _setItemMap(folder){
     const newMap = {};
     if(folder !== "")
         newMap['-1'] = {id: "-1", name: ".."}
-    const ids  = this.depthMap[folder];
-    ids.forEach(id => {
-        newMap[id] = this.secretsMap[id];
-    });
-    this.set("itemMap", newMap)
+    // const ids  = this.depthMap[folder];
+    // ids.forEach(id => {
+    //     newMap[id] = this.secretsMap[id];
+    // });
+    // this.set("itemMap", newMap)
 },
 
-_createDepthMap() {
-    this.depthMap={"":[]};
-    // folders first
-    const folderNameIdMap= {"":"0"};
-    this.secrets.forEach(secret => {
-        if(secret.is_dir){
-            const secretName = secret.name.split("/").slice(-2)[0];
-            this.depthMap[secretName] = [];
-            folderNameIdMap[secretName] = secret.id;
-        }
-    });
-    this.secrets.forEach((secret)=>{
-        let parentFolder = "";
-        if(secret.depth !== 0) {
-            if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
-            else parentFolder = secret.name.split("/").slice(-2)[0];
-        }
-        secret.parentFolderId = folderNameIdMap[parentFolder]
-        this.depthMap[parentFolder].push(secret.id)
-    });
-},
+// _createDepthMap() {
+//     this.depthMap={"":[]};
+//     // folders first
+//     const folderNameIdMap= {"":"0"};
+//     this.secrets.forEach(secret => {
+//         if(secret.is_dir){
+//             const secretName = secret.name.split("/").slice(-2)[0];
+//             this.depthMap[secretName] = [];
+//             folderNameIdMap[secretName] = secret.id;
+//         }
+//     });
+//     this.secrets.forEach((secret)=>{
+//         let parentFolder = "";
+//         if(secret.depth !== 0) {
+//             if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
+//             else parentFolder = secret.name.split("/").slice(-2)[0];
+//         }
+//         secret.parentFolderId = folderNameIdMap[parentFolder]
+//         this.depthMap[parentFolder].push(secret.id)
+//     });
+// },
 
-_makePathItems(fileId){
-    const ret = [];
-    let folder = this.secretsMap[fileId];
-    while(folder.parentFolderId !== "0"){
-        folder = this.secretsMap[folder.parentFolderId];
-        const folderName = folder.name.split("/").slice(-2)[0]
-        ret.unshift({id: folder.id, name: folderName});
-    }
-    ret.unshift({id:"0", name:"/"});
-    return ret
-},
+// _makePathItems(fileId){
+//     const ret = [];
+//     let folder = this.secretsMap[fileId];
+//     while(folder.parentFolderId !== "0"){
+//         folder = this.secretsMap[folder.parentFolderId];
+//         const folderName = folder.name.split("/").slice(-2)[0]
+//         ret.unshift({id: folder.id, name: folderName});
+//     }
+//     ret.unshift({id:"0", name:"/"});
+//     return ret
+// },
 
 _getRenderers(){
     return {
