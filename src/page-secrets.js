@@ -41,16 +41,17 @@ Polymer({
                 <button id=[[item.id]] class="pathButtons" on-tap="_clickedPath">[[item.name]]</button>
             </template>
         </div>
-        <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <template is="dom-if" if="[[_isListActive(route.path)]]">
             <mist-list selectable resizable column-menu multi-sort
                 id="secretsList"
-                apiurl="/api/v1/secrets"
-                item-map="[[itemMap]]"
+                apiurl="/api/v2/secrets"
+                data-provider="[[dataProvider]]"
                 name="Secrets"
                 visible=[[_getVisibleColumns()]]
                 frozen=[[_getFrozenColumn()]]
                 route={{route}}
-                primary-field-name="id"
+                tree-view
+                primary-field-name="name"
                 renderers=[[_getRenderers()]]
                 filter-method="[[_ownerFilter()]]"
                 actions="[[actions]]">
@@ -67,9 +68,11 @@ Polymer({
         section="[[model.sections.secrets]]"
         hidden$="[[!_isAddPageActive(route.path)]]"
         path="[[pathItems]]"></secret-add>
-        <secret-page secret="[[_getSecret(data.secret, model.secrets)]]" resource-id="[[data.secret]]" model="[[model]]"
-            section="[[model.sections.secrets]]" hidden$=[[!_isSecretPageActive(route.path)]]
-            parent-folder-id="[[parentFolderId]]"></secret-page>
+        <template is="dom-if" if="[[!_isListActive(route.path)]]" restamp>
+            <secret-page secret="[[_getSecret(data.secret, model.secrets)]]" resource-id="[[data.secret]]" model="[[model]]"
+                section="[[model.sections.secrets]]" hidden$=[[!_isSecretPageActive(route.path)]]
+                parent-folder-id="[[parentFolderId]]"></secret-page>
+        </template>
         <iron-ajax id="getSecrets" contenttype="application/json" handle-as="json" method="GET" on-request="_handleGetSecretsRequest" on-response="_handleGetSecretsResponse" on-error="_handleGetSecretsError"></iron-ajax>
     `,
     is: 'page-secrets',
@@ -81,46 +84,23 @@ Polymer({
             type: Object
         },
         secrets: {
-            type: Array,
-            value: () => []
+            type: Object
+        },
+        itemMap: {
+            type: Object
         },
         actions: {
             type: Array,
             value: () => []
         },
-        secretsMap: {
-            type: Object,
-            value: () => {}
-        },
-        depth: {
-            type: Number,
-            value: 0
-        },
-        depthMap: {
-            type: Object,
-            value: () => {}
-        },
-        clickedItem: {
-            type: Object
-        },
-        itemMap: {
-            type: Object,
-            value: () => {}
-        },
-        pathItems:{
-            type: Array,
-            value : () => []
-        },
         isListActive: {
             type: Boolean,
             value: true
         },
-
         issecretPageActive:{
             type: Boolean,
             value: false
         },
-
         isAddPageActive: {
             type: Boolean,
             value: false
@@ -132,87 +112,83 @@ Polymer({
         parentFolderId: {
             type: String,
             value: "0"
-        }
+        },
+        pathItems: {
+            type: Array,
+            value: []
+        },
     },
 
     ready() {
-        console.log('sec')
-        this._getSecrets();
+        // this._getSecrets();
+        this.dataProvider = function(params, callback) {
+            // If the data request concerns a tree sub-level, `params` has an additional
+            // `parentItem` property that refers to the sub-level's parent item
+            const parentName = params.parentItem ? params.parentItem.name : null;
+            let xhr = new XMLHttpRequest(), url = '/api/v2/secrets';
+            if (!parentName) {
+                url += '?search=' + encodeURIComponent('name=r"^[^/]*/{0,1}$"');
+            } else {
+                url += '?search=' + encodeURIComponent(`name=r"^${parentName}[^/]+/{0,1}$"`);
+            }
+            xhr.open('GET', url);
+            xhr.onreadystatechange = function () {
+                let items = [], count = 0;
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    //items = response.data.map((i) => {return {uid: i.id, name:i.name, has_children: i.is_dir}; });
+                    count = response.meta.total_returned;
+                    callback(response.data, count);
+                    window.dispatchEvent(new Event('resize'));
+                }
+            };;
+            xhr.send();
+
+            // // Demo helper API that fetches expenses categories
+            // Vaadin.GridDemo._getExpensesCategories(parentUuid, function(categories) {
+            //   // Here `categories` is an array consisting of items with the following structure:
+            //   // {
+            //   //   hasChildren: false
+            //   //   name: "Service fees",
+            //   //   uuid: "e78b"
+            //   //   parentUuid: "e789"
+            //   // }
+            //   // This demo uses the `hasChildren` flag as an indicator of the item having child items.
+            //   // The property is used internally by the `<vaadin-grid-tree-column>`.
+      
+            //   // Slice out only the requested items
+            //   const startIndex = params.page * params.pageSize;
+            //   const pageItems = categories.slice(startIndex, startIndex + params.pageSize);
+            //   // Inform grid of the requested tree level's full size
+            //   const treeLevelSize = categories.length;
+            //   callback(pageItems, treeLevelSize);
+            // });
+          };
     },
-
-    _getSecrets(){
-      this.$.getSecrets.headers["Content-Type"] = 'application/json';
-      this.$.getSecrets.headers["Csrf-Token"] = CSRFToken.value;
-      this.$.getSecrets.url = `/api/v2/secrets`;
-      this.$.getSecrets.generateRequest();
-    },
-
-  _handleGetSecretsRequest(_e){
-      console.log("requested secrets");
-  },
-
-  _handleGetSecretsResponse(e){
-        e.detail.response.data.forEach((item) => {
-            this.secrets.push(item);
-            this.secretsMap[item.id] = item;
-        });
-        this.set('model.secrets', this.secretsMap);
-        // this._createDepthMap();
-        const currentItemId = this.route.path.startsWith('/') ? this.route.path.slice(1) : this.route.path;
-        if(currentItemId === "" || currentItemId === "+add"){
-            this._setItemMap("");
-            this.set('pathItems', [{id:"0", name:"/"}]);
-        } else {
-            this.set('pathItems', this._makePathItems(currentItemId))
-            this._setItemMap(this.pathItems[this.pathItems.length-1].name);
-        }
-  },
-  _handleGetSecretsError(e) {
-      console.log("WE GOT ERROR", e);
-  },
 
   _getFrozenColumn() {
       return ['name'];
   },
 
   _getVisibleColumns() {
-      return ['id', 'created_by', 'owned_by']
+      return ['created_by', 'owned_by',]
   },
 
   _isListActive(path) {
-    const itemId = path.startsWith('/') ? path.slice(1) : path;
-    if(itemId === "-1"){
-        console.log("Should go back one level")
-        this.route.path = "";
-        this.pop("pathItems")
-        const parent = this.pathItems.slice(-1)[0];
-        const parentName = parent.name.split("/").slice(-2)[0]
-        this.parentFolderId = parent.id;
-        this._setItemMap(parentName);
+    if(path === "" || path.endsWith('/'))
         return true;
-    }
-    if(itemId === "")
-        return true;
-    if(this.secretsMap[itemId] && this.secretsMap[itemId].is_dir){
-        const itemName = this.secretsMap[itemId].name.split("/").slice(-2)[0]
-        this._setItemMap(itemName)
-        this.route.path = "";
-        this.push('pathItems', {id: itemId, name: itemName})
-        this.parentFolderId = itemId;
-        return true;
-    }
     return false;
 },
 
 _getSecret(id) {
-    if(this.secretsMap)
-        return this.secretsMap[id];
-    return {};
+    debugger;
+    let grid = this.shadowRoot && this.shadowRoot.querySelector('mist-list') && this.shadowRoot.querySelector('mist-list').$.grid;
+    return grid && grid.activeItem || {};
 },
 
 _isSecretPageActive(path) {
     const itemId = path.startsWith('/') ? path.slice(1) : path;
-    const ret = itemId && itemId !== "-1" && itemId!== '+add'//&& this.secretsMap[itemId] && !this.secretsMap[itemId].is_dir;
+    const ret = itemId && itemId !== "-1" && itemId!== '+add'//&& this.itemMap[itemId] && !this.itemMap[itemId].is_dir;
     if (ret) {
         //this.parentFolderId = this.pathItems[this.pathItems.length-1].id;
     }
@@ -237,6 +213,7 @@ _addResource(){
 
 _clickedPath(e){
     const itemId = e.target.id;
+    debugger;
     // if the current folder was clicked do nothing
     if(this.pathItems.slice(-1)[0].id === itemId && this.route.path === "") return;
     // if secret-page is showing go back  to list
@@ -257,52 +234,19 @@ _setItemMap(folder){
         newMap['-1'] = {id: "-1", name: ".."}
     // const ids  = this.depthMap[folder];
     // ids.forEach(id => {
-    //     newMap[id] = this.secretsMap[id];
+    //     newMap[id] = this.itemMap[id];
     // });
     // this.set("itemMap", newMap)
 },
 
-// _createDepthMap() {
-//     this.depthMap={"":[]};
-//     // folders first
-//     const folderNameIdMap= {"":"0"};
-//     this.secrets.forEach(secret => {
-//         if(secret.is_dir){
-//             const secretName = secret.name.split("/").slice(-2)[0];
-//             this.depthMap[secretName] = [];
-//             folderNameIdMap[secretName] = secret.id;
-//         }
-//     });
-//     this.secrets.forEach((secret)=>{
-//         let parentFolder = "";
-//         if(secret.depth !== 0) {
-//             if(secret.is_dir) parentFolder = secret.name.split("/").slice(-3)[0];
-//             else parentFolder = secret.name.split("/").slice(-2)[0];
-//         }
-//         secret.parentFolderId = folderNameIdMap[parentFolder]
-//         this.depthMap[parentFolder].push(secret.id)
-//     });
-// },
-
-// _makePathItems(fileId){
-//     const ret = [];
-//     let folder = this.secretsMap[fileId];
-//     while(folder.parentFolderId !== "0"){
-//         folder = this.secretsMap[folder.parentFolderId];
-//         const folderName = folder.name.split("/").slice(-2)[0]
-//         ret.unshift({id: folder.id, name: folderName});
-//     }
-//     ret.unshift({id:"0", name:"/"});
-//     return ret
-// },
 
 _getRenderers(){
     return {
         "name": {
             'body': (item, _row) => {
-                const path = item.split("/")
-                const name = path.slice(-1)[0] === "" ? path.slice(-2)[0] : path.slice(-1)[0];
-                return `<strong class="name">${  name  }</strong>`;
+                // const path = item.split("/")
+                // const name = path.slice(-1)[0] === "" ? path.slice(-2)[0] : path.slice(-1)[0];
+                return `<strong class="name">${  item  }</strong>`;
             },
             'cmp': (row1, row2) => {
                 if (row1.is_dir && !row2.is_dir) return -1;
@@ -319,8 +263,8 @@ _getRenderers(){
         'icon': {
             body: (item, _row) => {
                 if(item.id === '-1') return "";
-                if(item.is_dir) return "./assets/icons/secret-folder.svg";
-                return "./assets/icons/secret-file.svg";
+                if(item.is_dir) return ""; //"./assets/icons/secret-folder.svg";
+                return "./assets/icons/secret.svg";
             }
         },
         'owned_by': {
