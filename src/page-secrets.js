@@ -51,7 +51,7 @@ Polymer({
                 frozen=[[_getFrozenColumn()]]
                 route={{route}}
                 tree-view
-                primary-field-name="name"
+                primary-field-name="id"
                 renderers=[[_getRenderers()]]
                 filter-method="[[_ownerFilter()]]"
                 actions="[[actions]]">
@@ -87,7 +87,8 @@ Polymer({
             type: Object
         },
         itemMap: {
-            type: Object
+            type: Object,
+            value: {}
         },
         actions: {
             type: Array,
@@ -136,12 +137,18 @@ Polymer({
                 let items = [], count = 0;
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     var response = JSON.parse(xhr.responseText);
-                    //items = response.data.map((i) => {return {uid: i.id, name:i.name, has_children: i.is_dir}; });
+                    items = response.data
+                    items.forEach((i) => {
+                        i.is_dir = i.name.endsWith('/');
+                        this.itemMap[i.id] = i;
+                    });
                     count = response.meta.total_returned;
-                    callback(response.data, count);
+                    callback(items, count);
                     window.dispatchEvent(new Event('resize'));
+                    this.async(function () {window.dispatchEvent(new Event('resize'));
+                    }, 500);
                 }
-            };;
+            }.bind(this);
             xhr.send();
 
             // // Demo helper API that fetches expenses categories
@@ -163,7 +170,7 @@ Polymer({
             //   const treeLevelSize = categories.length;
             //   callback(pageItems, treeLevelSize);
             // });
-          };
+          }.bind(this);
     },
 
   _getFrozenColumn() {
@@ -181,7 +188,6 @@ Polymer({
 },
 
 _getSecret(id) {
-    debugger;
     let grid = this.shadowRoot && this.shadowRoot.querySelector('mist-list') && this.shadowRoot.querySelector('mist-list').$.grid;
     return grid && grid.activeItem || {};
 },
@@ -244,9 +250,9 @@ _getRenderers(){
     return {
         "name": {
             'body': (item, _row) => {
-                // const path = item.split("/")
-                // const name = path.slice(-1)[0] === "" ? path.slice(-2)[0] : path.slice(-1)[0];
-                return `<strong class="name">${  item  }</strong>`;
+                const path = item.split("/")
+                const name = path.slice(-1)[0] === "" ? path.slice(-2)[0] + '/' : path.slice(-1)[0];
+                return `<strong class="name">${  name  }</strong>`;
             },
             'cmp': (row1, row2) => {
                 if (row1.is_dir && !row2.is_dir) return -1;
@@ -263,8 +269,8 @@ _getRenderers(){
         'icon': {
             body: (item, _row) => {
                 if(item.id === '-1') return "";
-                if(item.is_dir) return ""; //"./assets/icons/secret-folder.svg";
-                return "./assets/icons/secret.svg";
+                if(item.is_dir) return "folder";
+                return "lock";
             }
         },
         'owned_by': {
