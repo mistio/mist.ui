@@ -1,0 +1,263 @@
+{
+  "type": "object",
+  "id": "constraints-form",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Create machine form",
+  "submitButtonLabel": "Launch",
+  "canClose": false,
+  "additionalProperties": false,
+  "properties": {
+    "cloud": {
+      "label": "Cloud",
+      "id": "cloud",
+      "type": "string",
+      "format": "dropdown",
+      "x-mist-enum": "clouds"
+    },
+    "setupMachineContainer": {
+      "name": "setupMachine",
+      "label": "Setup Machine",
+      "id": "setup_machine_container",
+      "type": "object",
+      "hasToggle": false,
+      "hidden": true,
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/setupMachineSubform"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "setupMachineSubform": {
+      "id": "setup_machine_subform",
+      "type": "object",
+      "properties": {
+        "name": {
+          "name": "name",
+          "label": "Machine Name *",
+          "type": "string",
+          "required": true,
+          "helptext": "Fill in the machine's name"
+        },
+        "location": {
+          "name": "location",
+          "label": "Location *",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getLocations",
+          "required": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showLocation",
+              "dependsOn": "clouds"
+            }
+          ]
+        },
+        "image": {
+          "name": "image",
+          "label": "Image *",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getImages",
+          "required": true,
+          "searchable": true
+        }
+      }
+    },
+    "azureSubform": {
+      "id": "azure_subform",
+      "type": "object",
+      "properties": {
+        "azure_port_bindings": {
+          "name": "azure_port_bindings",
+          "label": "Azure Port Bindings",
+          "type": "string",
+          "format": "textarea",
+          "helptext": "e.g. http tcp 80:80, smtp tcp 25:25, https tcp 443:443"
+        }
+      }
+    },
+    "azureArmSubform": {
+      "id": "setup_machine_subform",
+      "type": "object",
+      "properties": {
+        "create_resource_group": {
+          "name": "create_resource_group",
+          "label": "Resource group",
+          "type": "string",
+          "format": "radioGroup",
+          "value": true,
+          "helptext": "Create the machine in a new resource group",
+          "excludeFromPayload": true,
+          "enum": [
+            {
+              "title": "Create new",
+              "val": true
+            },
+            {
+              "title": "Use existing",
+              "val": false
+            }
+          ]
+        },
+        "resource_group": {
+          "name": "resource_group",
+          "type": "string",
+          "hidden": true,
+          "excludeFromPayload": false
+        },
+        "ex_resource_group": {
+          "name": "ex_resource_group",
+          "label": "Resource Group",
+          "type": "string",
+          "format": "dropdown",
+          "searchable": "true",
+          "hidden": true,
+          "excludeFromPayload": true,
+          "required": true,
+          "x-mist-enum": "getExistingResourceGroups",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showExistingResourceGroups",
+              "dependsOn": "create_resource_group"
+            }
+          ]
+        },
+        "new_resource_group": {
+          "name": "new_resource_group",
+          "label": "Resource Group name",
+          "type": "string",
+          "excludeFromPayload": true,
+          "x-mist-enum": "getExistingResourceGroups",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showNewResourceGroups",
+              "dependsOn": "create_resource_group"
+            }
+          ]
+        },
+        "create_storage_account": {
+          "name": "create_storage_account",
+          "label": "Create new storage account",
+          "type": "boolean",
+          "value": true,
+          "hidden": true,
+          "helptext":
+            "Create the machine in a new or existing storage account. Existing storage account options depend on location and resource group.",
+          "excludeFromPayload": true,
+          "enum": [
+            {
+              "title": "Create new",
+              "val": true
+            },
+            {
+              "title": "Use existing",
+              "val": false
+            }
+          ]
+        },
+        "storage_account": {
+          "name": "storage_account",
+          "type": "string",
+          "hidden": true
+        },
+        "new_storage_account": {
+          "name": "new_storage_account",
+          "label": "Storage Account name",
+          "type": "text",
+          "excludeFromPayload": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showNewStorageAccount",
+              "dependsOn": "create_storage_account"
+            }
+          ]
+        },
+        "ex_storage_account": {
+          "name": "ex_storage_account",
+          "label": "Storage Account",
+          "type": "string",
+          "format": "dropdown",
+          "searchable": true,
+          "excludeFromPayload": true,
+          "required": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showExistingStorageAccount",
+              "dependsOn": "create_storage_account"
+            }
+          ]
+        },
+        "storage_account_type": {
+          "name": "storage_account_type",
+          "label": "Storage account type for OS Disk",
+          "type": "string",
+          "format": "dropdown",
+          "value": "StandardSSD_LRS",
+          "helptext": "Specify the storage account type for the managed OS Disk.",
+          "required": true,
+          "enum": [
+            {
+              "title": "Standard HDD",
+              "id": "Standard_LRS",
+            },
+            {
+              "title": "Standard SSD",
+              "id": "StandardSSD_LRS",
+            },
+            {
+              "title": "Premium SSD",
+              "id": "Premium_LRS",
+            },
+          ],
+        },
+        "create_network": {
+          "name": "create_network",
+          "label": "Create new network",
+          "type": "string",
+          "format": "radioGroup",
+          "value": true,
+          "hidden": true,
+          "helptext":
+            "Create the machine in a new or existing network. Existing network options depend on location and resource group.",
+          "excludeFromPayload": true,
+          "enum": [
+            {
+              "title": "Create new",
+              "val": true
+            },
+            {
+              "title": "Use existing",
+              "val": false
+            }
+          ]
+        },
+        "networks": {
+          "name": "networks",
+          "type": "string",
+          "hidden": true
+        },
+        "new_network": {
+          "name": "new_network",
+          "label": "Network name",
+          "type": "string",
+          "hidden": true,
+          "excludeFromPayload": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showNewNetwork",
+              "dependsOn": "create_network"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
