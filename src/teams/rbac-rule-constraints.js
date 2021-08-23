@@ -123,53 +123,57 @@ Polymer({
             dynamicData: {
               clouds: {
                 func: new Promise(resolve => {
-                  resolve(() =>
-                    this.model.cloudsArray
-                      .flatMap(cloud => {
-                        const providerFields = MACHINE_CREATE_FIELDS.find(
-                          field => field.provider === cloud.provider
-                        );
+                  resolve(() => {
+                    const clouds = [
+                      { id: '', title: 'ALL' },
+                      ...this.model.cloudsArray
+                        .flatMap(cloud => {
+                          const providerFields = MACHINE_CREATE_FIELDS.find(
+                            field => field.provider === cloud.provider
+                          );
 
-                        if (!providerFields) {
-                          return [];
-                        }
+                          if (!providerFields) {
+                            return [];
+                          }
 
-                        const size = providerFields.fields.find(
-                          field => field.name === 'size'
-                        );
+                          const size = providerFields.fields.find(
+                            field => field.name === 'size'
+                          );
 
-                        if (
-                          Object.prototype.hasOwnProperty.call(
-                            cloud,
-                            'sizesArray'
-                          )
-                        ) {
-                          size.options = [...cloud.sizesArray];
-                        }
-                        // Allow minimum value of 'disk' field to be 0
-                        if (size.customSizeFields) {
-                          size.customSizeFields.map(field => {
-                            if (field.name.includes('disk')) {
-                              field.min = 0;
-                            }
-                            return field;
-                          });
-                        }
+                          if (
+                            Object.prototype.hasOwnProperty.call(
+                              cloud,
+                              'sizesArray'
+                            )
+                          ) {
+                            size.options = [...cloud.sizesArray];
+                          }
+                          // Allow minimum value of 'disk' field to be 0
+                          if (size.customSizeFields) {
+                            size.customSizeFields.map(field => {
+                              if (field.name.includes('disk')) {
+                                field.min = 0;
+                              }
+                              return field;
+                            });
+                          }
 
-                        return [
-                          {
-                            id: cloud.id,
-                            provider: cloud.provider,
-                            title: cloud.title,
-                            size: { ...size },
-                          },
-                        ];
-                      })
-                      .filter(
-                        cloud =>
-                          cloud.size.custom || cloud.size.options.length > 0
-                      )
-                  );
+                          return [
+                            {
+                              id: cloud.id,
+                              provider: cloud.provider,
+                              title: cloud.title,
+                              size: { ...size },
+                            },
+                          ];
+                        })
+                        .filter(
+                          cloud =>
+                            cloud.size.custom || cloud.size.options.length > 0
+                        ),
+                    ];
+                    return clouds;
+                  });
                 }),
               },
             },
