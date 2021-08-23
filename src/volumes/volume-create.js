@@ -198,7 +198,7 @@ Polymer({
       this.model &&
       this.model.cloudsArray.filter(
         cloud =>
-          VOLUME_CREATE_FIELDS.map(i => i.cloud).indexOf(cloud.provider) > -1
+          VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1
       );
     this.set('clouds', volumeClouds);
     this.set(
