@@ -125,7 +125,7 @@ Polymer({
                 func: new Promise(resolve => {
                   resolve(() => {
                     const clouds = [
-                      { id: '', title: 'ALL' },
+                      'ALL',
                       ...this.model.cloudsArray
                         .flatMap(cloud => {
                           const providerFields = MACHINE_CREATE_FIELDS.find(

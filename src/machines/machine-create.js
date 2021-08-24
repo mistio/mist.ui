@@ -1208,7 +1208,7 @@ Polymer({
             this.constraints.field.forEach(c => {
               if (
                 c.name === f.name &&
-                (c.cloud === '' || c.cloud === this.selectedCloud)
+                (c.cloud === 'ALL' || c.cloud === this.selectedCloud)
               ) {
                 this.set(`machineFields.${ind}.value`, c.value);
                 this.set(`machineFields.${ind}.show`, c.show);
@@ -2731,7 +2731,7 @@ Polymer({
         const datastoreConstraint = this.constraints.field.find(
           c =>
             c.name === 'datastore' &&
-            (c.cloud === this.selectedCloud || c.cloud === '')
+            (c.cloud === this.selectedCloud || c.cloud === 'ALL')
         );
         if (
           datastoreConstraint !== undefined &&
