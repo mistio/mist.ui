@@ -2096,13 +2096,13 @@ iron-dropdown paper-material {
                 background-color: rgba(0,0,0,0.6);
             }
             :host([theme~="mist-form-dialog"]) [part~="overlay"] {
-                width: 600px;
+                width: 800px;
                 border-radius: 0;
                 font-family: 'Roboto', 'Noto', 'Helvetica Neue', Helvetica, Arial, sans-serif;
             }
             :host([theme~="mist-form-dialog"]) [part~="content"] {
                 padding: 1px 25px;
-                max-width: 600px;
+                max-width: 800px;
                 height: 90vh;
             }
             :host([theme~="mist-form-dialog"]) --paper-dialog-scrollable {

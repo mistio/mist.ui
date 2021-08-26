@@ -20,14 +20,12 @@ Polymer({
 
       paper-dropdown-menu {
         width: 150px;
-
-        --paper-dropdown-menu-input: {
-          text-transform: uppercase;
-        }
-
         --paper-input-container-underline: {
           /*display: none;*/
           opacity: 0.32;
+        }
+        --paper-dropdown-menu-input: {
+          text-transform: uppercase;
         }
       }
 
@@ -69,10 +67,7 @@ Polymer({
       :host iron-icon {
         cursor: pointer;
       }
-      :host paper-checkbox {
-        float: left;
-        padding-top: 13px;
-        margin-right: 0;
+      mist-form-dialog::part(mist-form-checkbox) {
         --paper-checkbox-checked-color: var(--mist-blue) !important;
         --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
       }
@@ -92,6 +87,7 @@ Polymer({
         formid="editConstraints-[[index]]"
         mist-form-fields="[[mistFormFields]]"
         initial-values="[[rule.constraints]]"
+        exportparts="mist-form-text-field, mist-form-dropdown, mist-form-radio-group, mist-form-checkbox-group, mist-form-text-field, mist-form-text-area, mist-form-checkbox, mist-form-duration-field, mist-form-multi-row, mist-form-multi-row-row, mist-form-custom-field, mist-form-button"
       >
       </mist-form-dialog>
     </template>
@@ -121,59 +117,14 @@ Polymer({
           src: './assets/forms/constraints.json',
           formData: {
             dynamicData: {
+              cloudsWithALL: {
+                func: new Promise(resolve => {
+                  resolve(() => ['ALL', ...this._getClouds()]);
+                }),
+              },
               clouds: {
                 func: new Promise(resolve => {
-                  resolve(() => {
-                    const clouds = [
-                      'ALL',
-                      ...this.model.cloudsArray
-                        .flatMap(cloud => {
-                          const providerFields = MACHINE_CREATE_FIELDS.find(
-                            field => field.provider === cloud.provider
-                          );
-
-                          if (!providerFields) {
-                            return [];
-                          }
-
-                          const size = providerFields.fields.find(
-                            field => field.name === 'size'
-                          );
-
-                          if (
-                            Object.prototype.hasOwnProperty.call(
-                              cloud,
-                              'sizesArray'
-                            )
-                          ) {
-                            size.options = [...cloud.sizesArray];
-                          }
-                          // Allow minimum value of 'disk' field to be 0
-                          if (size.customSizeFields) {
-                            size.customSizeFields.map(field => {
-                              if (field.name.includes('disk')) {
-                                field.min = 0;
-                              }
-                              return field;
-                            });
-                          }
-
-                          return [
-                            {
-                              id: cloud.id,
-                              provider: cloud.provider,
-                              title: cloud.title,
-                              size: { ...size },
-                            },
-                          ];
-                        })
-                        .filter(
-                          cloud =>
-                            cloud.size.custom || cloud.size.options.length > 0
-                        ),
-                    ];
-                    return clouds;
-                  });
+                  resolve(() => this._getClouds());
                 }),
               },
             },
@@ -306,6 +257,43 @@ Polymer({
   _cloudHasCustomSize(cloudId) {
     const cloud = this._getCloud(cloudId);
     return cloud.size.custom;
+  },
+  _getClouds() {
+    return this.model.cloudsArray
+      .flatMap(cloud => {
+        const providerFields = MACHINE_CREATE_FIELDS.find(
+          field => field.provider === cloud.provider
+        );
+
+        if (!providerFields) {
+          return [];
+        }
+
+        const size = providerFields.fields.find(field => field.name === 'size');
+
+        if (Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')) {
+          size.options = [...cloud.sizesArray];
+        }
+        // Allow minimum value of 'disk' field to be 0
+        if (size.customSizeFields) {
+          size.customSizeFields.map(field => {
+            if (field.name.includes('disk')) {
+              field.min = 0;
+            }
+            return field;
+          });
+        }
+
+        return [
+          {
+            id: cloud.id,
+            provider: cloud.provider,
+            title: cloud.title,
+            size: { ...size },
+          },
+        ];
+      })
+      .filter(cloud => cloud.size.custom || cloud.size.options.length > 0);
   },
   _getCloud(cloudId) {
     const cloudSizes = this._getCloudSizes() || [];
