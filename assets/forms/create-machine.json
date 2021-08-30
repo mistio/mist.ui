@@ -38,7 +38,28 @@
             "label": "Machine Name *",
             "type": "string",
             "required": true,
-            "helptext": "Fill in the machine's name"
+            "helptext": "Fill in the machine's name",
+            "deps": [
+              {
+                "prop": "allowedPattern",
+                "func": "getNameRegex",
+                "dependsOn": "cloud"
+              }
+            ]
+          },
+          "quantity": {
+            "name": "quantity",
+            "label": "Quantity *",
+            "type": "string",
+            "format": "number",
+            "value": 1,
+            "deps": [
+              {
+                "prop": "hidden",
+                "func": "showQuantity",
+                "dependsOn": "cloud"
+              }
+            ]
           },
           "location": {
             "name": "location",
@@ -46,12 +67,11 @@
             "type": "string",
             "format": "dropdown",
             "x-mist-enum": "getLocations",
-            "required": true,
             "deps": [
               {
-                "prop": "hidden",
-                "func": "showLocation",
-                "dependsOn": "clouds"
+                "prop": "enum",
+                "func": "getLocationsFromCloud",
+                "dependsOn": "cloud"
               }
             ]
           },
@@ -62,667 +82,53 @@
             "format": "dropdown",
             "x-mist-enum": "getImages",
             "required": true,
-            "searchable": true
-          }
-        }
-      },
-      "azureSubform": {
-        "id": "azure_subform",
-        "type": "object",
-        "properties": {
-          "azure_port_bindings": {
-            "name": "azure_port_bindings",
-            "label": "Azure Port Bindings",
-            "type": "string",
-            "format": "textarea",
-            "helptext": "e.g. http tcp 80:80, smtp tcp 25:25, https tcp 443:443"
-          }
-        }
-      },
-      "azureArmSubform": {
-        "id": "azure_arm_subform",
-        "type": "object",
-        "properties": {
-          "create_resource_group": {
-            "name": "create_resource_group",
-            "label": "Resource group",
-            "type": "string",
-            "format": "radioGroup",
-            "value": true,
-            "helptext": "Create the machine in a new resource group",
-            "excludeFromPayload": true,
-            "enum": [
-              {
-                "title": "Create new",
-                "val": true
-              },
-              {
-                "title": "Use existing",
-                "val": false
-              }
-            ]
-          },
-          "resource_group": {
-            "name": "resource_group",
-            "type": "string",
-            "hidden": true,
-            "excludeFromPayload": false
-          },
-          "ex_resource_group": {
-            "name": "ex_resource_group",
-            "label": "Resource Group",
-            "type": "string",
-            "format": "dropdown",
-            "searchable": "true",
-            "hidden": true,
-            "excludeFromPayload": true,
-            "required": true,
-            "x-mist-enum": "getExistingResourceGroups",
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showExistingResourceGroups",
-                "dependsOn": "create_resource_group"
-              }
-            ]
-          },
-          "new_resource_group": {
-            "name": "new_resource_group",
-            "label": "Resource Group name",
-            "type": "string",
-            "excludeFromPayload": true,
-            "x-mist-enum": "getExistingResourceGroups",
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showNewResourceGroups",
-                "dependsOn": "create_resource_group"
-              }
-            ]
-          },
-          "create_storage_account": {
-            "name": "create_storage_account",
-            "label": "Create new storage account",
-            "type": "boolean",
-            "value": true,
-            "hidden": true,
-            "helptext":
-              "Create the machine in a new or existing storage account. Existing storage account options depend on location and resource group.",
-            "excludeFromPayload": true,
-            "enum": [
-              {
-                "title": "Create new",
-                "val": true
-              },
-              {
-                "title": "Use existing",
-                "val": false
-              }
-            ]
-          },
-          "storage_account": {
-            "name": "storage_account",
-            "type": "string",
-            "hidden": true
-          },
-          "new_storage_account": {
-            "name": "new_storage_account",
-            "label": "Storage Account name",
-            "type": "text",
-            "excludeFromPayload": true,
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showNewStorageAccount",
-                "dependsOn": "create_storage_account"
-              }
-            ]
-          },
-          "ex_storage_account": {
-            "name": "ex_storage_account",
-            "label": "Storage Account",
-            "type": "string",
-            "format": "dropdown",
             "searchable": true,
-            "excludeFromPayload": true,
-            "required": true,
             "deps": [
               {
-                "prop": "hidden",
-                "func": "showExistingStorageAccount",
-                "dependsOn": "create_storage_account"
+                "prop": "enum",
+                "func": "getImagesFromCloud",
+                "dependsOn": "cloud"
+              },
+              {
+                "prop": "enum",
+                "func": "getImagesFromLocation",
+                "dependsOn": ".location"
+              },
+              {
+                "prop": "enum",
+                "func": "getImagesFromSize",
+                "dependsOn": ".size"
               }
             ]
           },
-          "storage_account_type": {
-            "name": "storage_account_type",
-            "label": "Storage account type for OS Disk",
+          "size":{
+            "label":"Size",
+            "name": "size",
+            "id":"size",
             "type": "string",
-            "format": "dropdown",
-            "value": "StandardSSD_LRS",
-            "helptext": "Specify the storage account type for the managed OS Disk.",
-            "required": true,
-            "enum": [
+            "deps": [
               {
-                "title": "Standard HDD",
-                "id": "Standard_LRS",
+                "prop": "enum",
+                "func": "getSizesFromCloud",
+                "dependsOn": "cloud"
               },
               {
-                "title": "Standard SSD",
-                "id": "StandardSSD_LRS",
+                "prop": "enum",
+                "func": "getSizesFromLocation",
+                "dependsOn": ".location"
               },
               {
-                "title": "Premium SSD",
-                "id": "Premium_LRS",
-              },
+                "prop": "TODO: Find prop",
+                "func": "minSizeFromImage",
+                "dependsOn": ".image"
+              }
             ],
-          },
-          "create_network": {
-            "name": "create_network",
-            "label": "Create new network",
-            "type": "string",
-            "format": "radioGroup",
-            "value": true,
-            "hidden": true,
-            "helptext":
-              "Create the machine in a new or existing network. Existing network options depend on location and resource group.",
-            "excludeFromPayload": true,
-            "enum": [
-              {
-                "title": "Create new",
-                "val": true
-              },
-              {
-                "title": "Use existing",
-                "val": false
-              }
-            ]
-          },
-          "networks": {
-            "name": "networks",
-            "type": "string",
-            "hidden": true
-          },
-          "new_network": {
-            "name": "new_network",
-            "label": "Network name",
-            "type": "string",
-            "hidden": true,
-            "excludeFromPayload": true,
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showNewNetwork",
-                "dependsOn": "create_network"
-              }
-            ]
-          },
-          "ex_networks": {
-            "name": "ex_networks",
-            "label": "Network",
-            "type": "string",
-            "format": "dropdown",
-            "searchable": true,
-            "noPluralisation": true,
-            "excludeFromPayload": true,
-            "required": true,
-            "x-mist-enum": "ex_networks",
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showExNetworks",
-                "dependsOn": "create_network"
-              }
-            ]
-          },
-          "machine_username": {
-            "name": "machine_username",
-            "label": "Machine Username *",
-            "type": "string",
-            "required": true,
-            "helptext": "Machine username",
-          },
-          // Check out how to pass regex pattern. I think paper-input already supports this?
-          "machine_password": {
-            "name": "machine_password",
-            "label": "Machine Password *",
-            "type": "string",
-            "format": "password",
-            // http://regexlib.com/REDetails.aspx?regexp_id=887
-            "pattern":
-              "(?=^.{12,123}$)((?=.*d)(?=.*[A-Z])(?=.*[a-z])|(?=.*d)(?=.*[^A-Za-z0-9])(?=.*[a-z])|(?=.*[^A-Za-z0-9])(?=.*[A-Z])(?=.*[a-z])|(?=.*d)(?=.*[A-Z])(?=.*[^A-Za-z0-9]))^.*",
-            "errorMessage": "Invalid password!",
-            "helptext":
-              "Windows machine password is required. The password must be between 12-123 characters long and must contain an uppercase character, a lowercase character, a numeric digit and a special character.",
-          }
-        }
-      },
-      "dockerSubform": {
-        "id": "docker_subform",
-        "type": "object",
-        "properties": {
-          "docker_env": {
-            "name": "docker_env",
-            "label": "Docker Env",
-            "type": "string",
-            "format": "textarea"
-          },
-          "docker_command": {
-            "name": "docker_command",
-            "label": "Docker Command",
-            "type": "string"
-          },
-          "docker_port_bindings": {
-            "name": "docker_port_bindings",
-            "label": "Docker Port Bindings",
-            "type": "string",
-            "hidden": true
-          },
-          "docker_exposed_ports": {
-            "name": "docker_exposed_ports",
-            "label": "Docker Exposed Ports",
-            "type": "string",
-            "hidden": true
-          },
-          "ports": {
-            "name": "ports",
-            "label": "Ports",
-            "type": "string",
-            "format": "textarea",
-            "helptext": "e.g. 80:80"
-          },
-        }
-    },
-    "awsSubform": {
-      "id": "aws_subform",
-      "type": "object",
-      "properties": {
-        "security_group": {
-          "name": "security_group",
-          "label": "Security group *",
-          "type": "string",
-          "format": "dropdown",
-          "required": true,
-          "helptext": "Specify the security group for this machine"
-        },
-        "subnet_id": {
-          "name": "subnet_id",
-          "label": "Subnet",
-          "type": "string",
-          "format": "dropdown",
-          "searchable": true,
-          "hidden": true,
-          "helptext":
-            "Optional. If you leave subnet blank, the machine will be created in the location's (availability zone) default subnet.",
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showSubnetId",
-                "dependsOn": "location"
-              }
-            ]
+            "format":"mistSizeField",
+               "styles": {
+                  "outerSpan": {
+                     "marginTop": "-20px"
+                  }
         }
       }
-    },
-    "gceSubform": {
-      "id": "gce_subform",
-      "type": "object",
-      "properties": {
-        "image_extra": {
-          "name": "image_extra",
-          "label": "Image extra",
-          "type": "string",
-          "hidden": true
-        },
-        "location_name": {
-          "name": "location_name",
-          "label": "Location name",
-          "string": "string",
-          "hidden": true,
-        },
-        "networks": {
-          "name": "networks",
-          "label": "Network",
-          "type": "string",
-          "format": "dropdown"
-        },
-        "subnetwork": {
-          "name": "subnetwork",
-          "label": "Subnetwork",
-          "type": "string",
-          "format": "dropdown",
-          "hidden": true
-        },
-      }
-    },
-    //TODO libvirt: Has custom components
-    "libvirtSubform": {
-      "id": "libvirt_subform",
-      "type": "object",
-      "properties": {
-      }},
-      "linodeSubform": {
-        "id": "linode_subform",
-        "type": "object",
-        "properties": {
-          "image_extra": {
-            "name": "image_extra",
-            "label": "Image extra",
-            "type": "string",
-            "hidden": true,
-          },
-          "location_name": {
-            "name": "location_name",
-            "label": "Location name",
-            "type": "string",
-            "hidden": true,
-          }
-        }
-      },
-      "openstackSubform": {
-        "id": "openstack_subform",
-        "type": "object",
-        "properties": {
-          "security_group": {
-            "name": "security_group",
-            "label": "Security group *",
-            "type": "string",
-            "format": "checkboxGroup",
-            "required": true,
-          },
-          "networks": {
-            "name": "networks",
-            "label": "Networks *",
-            "type": "string",
-            "format": "checkboxGroup",
-            "required": true,
-          },
-          "associate_floating_ip": {
-            "name": "associate_floating_ip",
-            "label": "Associate Floating IP",
-            "type": "boolean",
-            "value": true,
-            "hidden": true,
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showAssociateFloatingIP",
-                "dependsOn": "networks"
-              }
-            ]
-          }
-        }},
-        "equinixSubform": {
-          "id": "equinix_subform",
-          "type": "object",
-          "properties": {
-            "ip_addresses": {
-              "name": "ip_addresses",
-              "type": "array",
-              "value": [
-                { "address_family": 4, "public:" true },
-                { "address_family": 4, "public:" false },
-                { "address_family": 6, "public:" false },
-              ],
-              "defaultValue": [
-                { "address_family": 4, "public:" false },
-                { "address_family": 6, "public:" false },
-              ],
-              "hidden": true,
-              "required": true,
-            },
-            "public_ipv4": {
-              "name": "public_ipv4",
-              "label": "Public IPv4",
-              "type": "boolean",
-              "value": false,
-              "defaultValue": false,
-              "excludeFromPayload": true,
-              "required": true,
-              "helptext": "Choose whether to assign Public IPv4 IPs.",
-            },
-            "public_ipv4_subnet_size": {
-              "name": "public_ipv4_subnet_size",
-              "label": "IPv4 Subnet Size",
-              "type": "string",
-              "format": "dropdown",
-              "value": "31",
-              "show": false,
-              "required": false,
-              "helptext":
-                "Choose the public IPv4 subnet sizes that you would like to allocate when provisioning this device. By default, Equinix Metal assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
-              "options": [
-                { "title": "/28", val: "28" },
-                { "title": "/29", val: "29" },
-                { "title": "/30", val: "30" },
-                { "title": "/31", val: "31" },
-              ],
-              "deps": [
-                {
-                  "prop": "hidden",
-                  "func": "showPublicIpv4SubnetSize",
-                  "dependsOn": "public_ipv4"
-                }
-              ]
-            },
-            "public_ipv6": {
-              "name": "public_ipv6",
-              "label": "Public IPv6",
-              "type": "boolean",
-              "value": false,
-              "defaultValue": false,
-              "excludeFromPayload": true,
-              "required": true,
-              "helptext": "Choose whether to assign Public IPv6 IPs.",
-            },
-            "public_ipv6_subnet_size": {
-              "name": "public_ipv6_subnet_size",
-              "label": "IPv6 Subnet Size",
-              "type": "dropdown",
-              "hidden": true,
-              "helptext":
-                "Choose the public IPv6 subnet size that you would like to allocate when provisioning this device. By default, Equinix Metal assigns a /31 to each host; however, Windows requires a /30 and ESXi requires a /29.",
-              "enum": [
-                { "title": "/64", val: "64" },
-                { "title": "/65", val: "65" },
-                { "title": "/66", val: "66" },
-                { "title": "/67", val: "67" },
-                { "title": "/68", val: "68" },
-                { "title": "/69", val: "69" },
-                { "title": "/70", val: "70" },
-                { "title": "/71", val: "71" },
-                { "title": "/72", val: "72" },
-                { "title": "/73", val: "73" },
-                { "title": "/74", val: "74" },
-                { "title": "/74", val: "74" },
-                { "title": "/74", val: "74" },
-                { "title": "/75", val: "75" },
-                { "title": "/76", val: "76" },
-                { "title": "/77", val: "77" },
-                { "title": "/78", val: "78" },
-                { "title": "/79", val: "79" },
-                { "title": "/80", val: "80" },
-                { "title": "/81", val: "81" },
-                { "title": "/82", val: "82" },
-                { "title": "/83", val: "83" },
-                { "title": "/84", val: "84" },
-                { "title": "/85", val: "85" },
-                { "title": "/86", val: "86" },
-                { "title": "/87", val: "87" },
-                { "title": "/88", val: "88" },
-                { "title": "/89", val: "89" },
-                { "title": "/90", val: "90" },
-                { "title": "/91", val: "91" },
-                { "title": "/92", val: "92" },
-                { "title": "/93", val: "93" },
-                { "title": "/94", val: "94" },
-                { "title": "/95", val: "95" },
-                { "title": "/96", val: "96" },
-                { "title": "/97", val: "97" },
-                { "title": "/98", val: "98" },
-                { "title": "/99", val: "99" },
-                { "title": "/100", val: "100" },
-                { "title": "/101", val: "101" },
-                { "title": "/102", val: "102" },
-                { "title": "/103", val: "103" },
-                { "title": "/104", val: "104" },
-                { "title": "/105", val: "105" },
-                { "title": "/106", val: "106" },
-                { "title": "/107", val: "107" },
-                { "title": "/108", val: "108" },
-                { "title": "/109", val: "109" },
-                { "title": "/110", val: "110" },
-                { "title": "/111", val: "111" },
-                { "title": "/112", val: "112" },
-                { "title": "/113", val: "113" },
-                { "title": "/114", val: "114" },
-                { "title": "/115", val: "115" },
-                { "title": "/116", val: "116" },
-                { "title": "/117", val: "117" },
-                { "title": "/118", val: "118" },
-                { "title": "/119", val: "119" },
-                { "title": "/120", val: "120" },
-                { "title": "/121", val: "121" },
-                { "title": "/122", val: "122" },
-                { "title": "/123", val: "123" },
-                { "title": "/124", val: "124" },
-                { "title": "/125", val: "125" },
-                { "title": "/126", val: "126" },
-                { "title": "/127", val: "127" },
-              ],
-              "deps": [
-                {
-                  "prop": "hidden",
-                  "func": "showPublicIpv6SubnetSize",
-                  "dependsOn": "public_ipv6"
-                }
-              ]
-            },
-            "private_ipv4_subnet_size": {
-              "name": "private_ipv4_subnet_size",
-              "label": "Private IPv4 Subnet Size",
-              "type": "dropdown",
-              value: "",
-              defaultValue: "31",
-              "helptext":
-                "Choose the private IPv4 subnet size that you would like to allocate when provisioning this device.",
-              "enum": [
-                { "title": "/28", val: "28" },
-                { "title": "/29", val: "29" },
-                { "title": "/30", val: "30" },
-                { "title": "/31", val: "31" },
-              ],
-            },
-          }},
-          "softlayerSubform": {
-            "id": "softlayer_subform",
-            "type": "object",
-            "properties": {
-              "softlayer_backend_vlan_id": {
-                "name": "softlayer_backend_vlan_id",
-                "label": "Backend VLAN ID",
-                "type": "string",
-                "helptext": "Optional.",
-              },
-              "hourly": {
-                "name": "hourly",
-                "label": "Hourly billing",
-                "type": "boolean",
-                "value": true,
-                "helptext":
-                  "If you don't select hourly billing, monthly billing will be applied",
-              },
-              "bare_metal": {
-                "name": "bare_metal",
-                "label": "Bare Metal",
-                "type": "boolean",
-                "value": false,
-                "defaultValue": false,
-                "helptext": "Whether the new server will be Cloud server, or Bare Metal",
-              },
-              "machine_password": {
-                "name": "machine_password",
-                "label": "Machine Password *",
-                "hidden": true,
-                "helptext": "Windows machine password is required.",
-              },
-            }
-          },
-          "vcloudSubform": {
-            "id": "vcloud_subform",
-            "type": "object",
-            "properties": {
-              "networks": {
-                "name": "networks",
-                "label": "Networks *",
-                "type": "string",
-                "format": "dropdown"
-              }
-            }
-          },
-          "vsphereSubform": {
-            "id": "vsphere_subform",
-            "type": "object",
-            "properties": {
-              "folders": {
-                "name": "folders",
-                "label": "VM Folder",
-                "type": "string",
-                "format": "dropdown",
-                "helptext":
-                  "VSphere 6.7 required, choose the folder to place the new VM in.",
-              },
-              "networks": {
-                "name": "networks",
-                "label": "Networks *",
-                "type": "string",
-                "format": "dropdown"
-              },
-              "datastore": {
-                "name": "datastore",
-                "label": "Datastore",
-                "type": "string",
-                "format": "dropdown",
-                "helptext": "Optional. Datastore for the VM disk."
-              },
-              "image_extra": {
-                "name": "image_extra",
-                "label": "Image extra",
-                "type": "string",
-                "show": false
-              },
-            }
-          },
-          "onappSubform": {
-            "id": "onapp_subform",
-            "type": "object",
-            "properties": {
-              "networks": {
-                "name": "networks",
-                "label": "Network",
-                "type": "string",
-                "format": "dropdown"
-              },
-            }
-          },
-          "lxdSubform": {
-            "id": "lxd_subform",
-            "type": "object",
-            "properties": {
-              "ephemeral": {
-                "name": "ephemeral",
-                "label": "Ephemeral *",
-                "type": "boolean",
-                "value": false,
-                "required": true,
-                "helptext": "An ephemeral container will be deleted when is stopped.",
-              },
-              "networks": {
-                "name": "networks",
-                "label": "Network",
-                "type": "string",
-                "format": "dropdown"
-              }
-            }
-          }
   }
+}
