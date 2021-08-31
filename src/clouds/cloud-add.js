@@ -341,6 +341,7 @@ Polymer({
           'vultr',
           'maxihost',
           'cloudsigma',
+          'vexxhost'
         ].indexOf(provider.val) > -1
       ) {
         categories[0].providers.push(provider);

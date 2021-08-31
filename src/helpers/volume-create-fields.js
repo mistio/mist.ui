@@ -200,6 +200,27 @@ VOLUME_CREATE_FIELDS.push({
   ],
 });
 
+// VEXXHOST
+VOLUME_CREATE_FIELDS.push({
+  provider: 'vexxhost',
+  fields: [
+    {
+      name: 'storage_class_name',
+      label: 'Volume Type',
+      type: 'dropdown',
+      class: 'margin-bottom',
+      value: '',
+      defaultValue: '',
+      options: [],
+      helptext: `Select a volume type. If not selected, Vexxhost's default volume type will be used.`,
+      errorMessage: 'Please select a volume type.',
+      show: true,
+      required: false,
+      excludeFromPayload: false,
+    }, 
+  ],
+});
+
 // EQUINIX METAL
 VOLUME_CREATE_FIELDS.push({
   provider: 'equinixmetal',
@@ -591,7 +612,8 @@ VOLUME_CREATE_FIELDS.forEach(p => {
 
   if (
     p.provider !== 'openstack' &&
-    p.provider !== 'cloudsigma'
+    p.provider !== 'cloudsigma' &&
+    p.provider !== 'vexxhost'
   ) {
     p.fields.splice(1, 0, {
       name: 'location',
@@ -605,7 +627,10 @@ VOLUME_CREATE_FIELDS.forEach(p => {
     });
   }
 
-  if (p.provider === 'openstack' ) {
+  if (
+    p.provider === 'openstack' ||
+    p.provider === 'vexxhost'
+  ) {
     p.fields.splice(1, 0, {
       name: 'location',
       label: 'Location',

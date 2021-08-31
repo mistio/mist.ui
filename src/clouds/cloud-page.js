@@ -837,6 +837,7 @@ Polymer({
       [
         'ec2',
         'openstack',
+        'vexxhost',
       ].indexOf(provider) > -1
     );
   },
