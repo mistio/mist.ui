@@ -162,7 +162,32 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[!_hasClouds(clouds)]]">
         <div class="grid-row">
-
+          <paper-dropdown-menu
+            class="dropdown-block l6 xs12 dropdown-with-logos"
+            label="Select Cloud"
+            horizontal-align="left"
+            no-animations=""
+          >
+            <paper-listbox
+              slot="dropdown-content"
+              attr-for-selected="value"
+              selected="{{selectedCloud::iron-select}}"
+              class="dropdown-content"
+            >
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
+                <paper-item
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
+                >
+                  <img
+                    src="[[_computeProviderLogo(cloud.provider)]]"
+                    width="24px"
+                    alt="[[cloud.title]]"
+                  />[[cloud.title]]</paper-item
+                >
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
         </div>
       </paper-material>
       <paper-material
@@ -171,7 +196,7 @@ Polymer({
       >
         <div hidden$="[[!selectedCloud]]">
           <h3 class="smallcaps">Machine Setup</h3>
-          <app-form
+          <mist-form
             id="createForm"
             format-payload=""
             fields="{{machineFields}}"
@@ -180,7 +205,7 @@ Polymer({
             on-response="_machineCreateResponse"
             on-error="_machineCreateError"
             btncontent="Launch"
-          ></app-form>
+          ></mist-form>
         </div>
       </paper-material>
     </div>

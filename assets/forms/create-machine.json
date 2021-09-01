@@ -1,134 +1,138 @@
 {
-    "type": "object",
-    "id": "constraints-form",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "description": "Create machine form",
-    "submitButtonLabel": "Launch",
-    "canClose": false,
-    "additionalProperties": false,
-    "properties": {
-      "cloud": {
-        "label": "Cloud",
-        "id": "cloud",
-        "type": "string",
-        "format": "dropdown",
-        "x-mist-enum": "clouds"
-      },
-      "setupMachineContainer": {
-        "name": "setupMachine",
-        "label": "Setup Machine",
-        "id": "setup_machine_container",
-        "type": "object",
-        "hasToggle": false,
-        "hidden": true,
-        "properties": {
-          "subform": {
-            "$ref": "#/definitions/setupMachineSubform"
+  "type": "object",
+  "id": "constraints-form",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Create machine form",
+  "submitButtonLabel": "Launch",
+  "canClose": false,
+  "additionalProperties": false,
+  "properties": {
+    "setupMachineContainer": {
+      "name": "setupMachine",
+      "label": "Setup Machine",
+      "id": "setup_machine_container",
+      "type": "object",
+      "format": "subformContainer",
+      "hasToggle": false,
+      "hidden": true,
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/setupMachineSubform"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "setupMachineSubform": {
+      "id": "setup_machine_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "cloud": {
+          "label": "Cloud",
+          "id": "cloud",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "clouds"
+        },
+        "name": {
+          "name": "name",
+          "label": "Machine Name *",
+          "type": "string",
+          "required": true,
+          "helptext": "Fill in the machine's name",
+          "deps": [
+            {
+              "prop": "allowedPattern",
+              "func": "getNameRegex",
+              "dependsOn": "cloud"
+            }
+          ]
+        },
+        "quantity": {
+          "name": "quantity",
+          "label": "Quantity *",
+          "type": "string",
+          "format": "number",
+          "value": 1,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showQuantity",
+              "dependsOn": "cloud"
+            }
+          ]
+        },
+        "location": {
+          "name": "location",
+          "label": "Location *",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getLocations",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getLocationsFromCloud",
+              "dependsOn": "cloud"
+            }
+          ]
+        },
+        "image": {
+          "name": "image",
+          "label": "Image *",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getImages",
+          "required": true,
+          "searchable": true,
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getImagesFromCloud",
+              "dependsOn": "cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getImagesFromLocation",
+              "dependsOn": ".location"
+            },
+            {
+              "prop": "enum",
+              "func": "getImagesFromSize",
+              "dependsOn": ".size"
+            }
+          ]
+        },
+        "size": {
+          "label": "Size",
+          "name": "size",
+          "id": "size",
+          "type": "string",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getSizesFromCloud",
+              "dependsOn": "cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getSizesFromLocation",
+              "dependsOn": ".location"
+            },
+            {
+              "prop": "TODO: Find prop",
+              "func": "minSizeFromImage",
+              "dependsOn": ".image"
+            }
+          ],
+          "format": "mistSizeField",
+          "styles": {
+            "outerSpan": {
+              "marginTop": "-20px"
+            }
           }
         }
       }
-    },
-    "definitions": {
-      "setupMachineSubform": {
-        "id": "setup_machine_subform",
-        "type": "object",
-        "properties": {
-          "name": {
-            "name": "name",
-            "label": "Machine Name *",
-            "type": "string",
-            "required": true,
-            "helptext": "Fill in the machine's name",
-            "deps": [
-              {
-                "prop": "allowedPattern",
-                "func": "getNameRegex",
-                "dependsOn": "cloud"
-              }
-            ]
-          },
-          "quantity": {
-            "name": "quantity",
-            "label": "Quantity *",
-            "type": "string",
-            "format": "number",
-            "value": 1,
-            "deps": [
-              {
-                "prop": "hidden",
-                "func": "showQuantity",
-                "dependsOn": "cloud"
-              }
-            ]
-          },
-          "location": {
-            "name": "location",
-            "label": "Location *",
-            "type": "string",
-            "format": "dropdown",
-            "x-mist-enum": "getLocations",
-            "deps": [
-              {
-                "prop": "enum",
-                "func": "getLocationsFromCloud",
-                "dependsOn": "cloud"
-              }
-            ]
-          },
-          "image": {
-            "name": "image",
-            "label": "Image *",
-            "type": "string",
-            "format": "dropdown",
-            "x-mist-enum": "getImages",
-            "required": true,
-            "searchable": true,
-            "deps": [
-              {
-                "prop": "enum",
-                "func": "getImagesFromCloud",
-                "dependsOn": "cloud"
-              },
-              {
-                "prop": "enum",
-                "func": "getImagesFromLocation",
-                "dependsOn": ".location"
-              },
-              {
-                "prop": "enum",
-                "func": "getImagesFromSize",
-                "dependsOn": ".size"
-              }
-            ]
-          },
-          "size":{
-            "label":"Size",
-            "name": "size",
-            "id":"size",
-            "type": "string",
-            "deps": [
-              {
-                "prop": "enum",
-                "func": "getSizesFromCloud",
-                "dependsOn": "cloud"
-              },
-              {
-                "prop": "enum",
-                "func": "getSizesFromLocation",
-                "dependsOn": ".location"
-              },
-              {
-                "prop": "TODO: Find prop",
-                "func": "minSizeFromImage",
-                "dependsOn": ".image"
-              }
-            ],
-            "format":"mistSizeField",
-               "styles": {
-                  "outerSpan": {
-                     "marginTop": "-20px"
-                  }
-        }
-      }
+    }
   }
 }

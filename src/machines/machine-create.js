@@ -5,13 +5,14 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-listbox/paper-listbox.js';
-import '../app-form/app-form.js';
+import '@mistio/mist-form/mist-form.js';
 import moment from 'moment/src/moment';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
+import { MACHINE_CREATE_FORM_DATA } from '../helpers/machine-create-form-data.js';
 
 const SCHEDULEACTIONS = {
   reboot: {
@@ -161,34 +162,7 @@ Polymer({
         </p>
       </paper-material>
       <paper-material hidden$="[[!_hasClouds(clouds)]]">
-        <div class="grid-row">
-          <paper-dropdown-menu
-            class="dropdown-block l6 xs12 dropdown-with-logos"
-            label="Select Cloud"
-            horizontal-align="left"
-            no-animations=""
-          >
-            <paper-listbox
-              slot="dropdown-content"
-              attr-for-selected="value"
-              selected="{{selectedCloud::iron-select}}"
-              class="dropdown-content"
-            >
-              <template is="dom-repeat" items="[[clouds]]" as="cloud">
-                <paper-item
-                  value="[[cloud.id]]"
-                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
-                >
-                  <img
-                    src="[[_computeProviderLogo(cloud.provider)]]"
-                    width="24px"
-                    alt="[[cloud.title]]"
-                  />[[cloud.title]]</paper-item
-                >
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
+        <div class="grid-row"></div>
       </paper-material>
       <paper-material
         class$="selected-[[!selectedCloud]]"
@@ -196,103 +170,18 @@ Polymer({
       >
         <div hidden$="[[!selectedCloud]]">
           <h3 class="smallcaps">Machine Setup</h3>
-          <app-form
-            id="createForm"
-            format-payload=""
-            fields="{{machineFields}}"
-            method="POST"
+          <mist-form
+            id="[[formId]]"
+            hidden$="[[showJSON]]"
+            src="[[machineCreateFormData.src]]"
+            dynamic-data-namespace="[[machineCreateFormData.formData]]"
             url="/api/v1/clouds/[[selectedCloud]]/machines"
-            on-response="_machineCreateResponse"
-            on-error="_machineCreateError"
-            btncontent="Launch"
-          ></app-form>
+            method="POST"
+          >
+          </mist-form>
         </div>
       </paper-material>
     </div>
-    <paper-dialog id="addKvmImage" with-backdrop="">
-      <h2>[[_computeAddImageTitle(selectedCloud)]]</h2>
-      <paper-input
-        id="kvmImageInput"
-        label="[[_computeAddImageLabel(selectedCloud)]]"
-        value="{{newImage}}"
-      ></paper-input>
-      <div class="btn-group">
-        <paper-button dialog-dismiss="">Cancel</paper-button>
-        <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
-      </div>
-    </paper-dialog>
-    <iron-ajax
-      id="getSecurityGroups"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetSecurityGroupsRequest"
-      on-response="_handleGetSecurityGroupsResponse"
-      on-error="_handleGetSecurityGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getResourceGroups"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetResourceGroupsRequest"
-      on-response="_handleGetResourceGroupsResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getStorageAccounts"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetStorageAccountsRequest"
-      on-response="_handleGetStorageAccountsResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getStorageClasses"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetStorageClassesRequest"
-      on-response="_handleGetStorageClassesResponse"
-      on-error="_handleGetStorageClassesError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getFolders"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetFoldersRequest"
-      on-response="_handleGetFoldersResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getDatastores"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetDatastoresRequest"
-      on-response="_handleGetDatastoresResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getLXDStoragePools"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetLXDStoragePoolsRequest"
-      on-response="_handleGetLXDStoragePoolsResponse"
-      on-error="_handleGetLXDStoragePoolsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getVirtualNetworkFunctions"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetVirtualNetworkFunctionsRequest"
-      on-response="_handleGetVirtualNetworkFunctionsResponse"
-      on-error="_handleGetVirtualNetworkFunctionsError"
-    ></iron-ajax>
   `,
 
   is: 'machine-create',
@@ -325,6 +214,12 @@ Polymer({
       type: Array,
       value() {
         return VOLUME_CREATE_FIELDS;
+      },
+    },
+    machineCreateFormData: {
+      type: Object,
+      value() {
+        return MACHINE_CREATE_FORM_DATA;
       },
     },
     clouds: {
@@ -374,26 +269,26 @@ Polymer({
     },
   },
 
-  observers: [
-    '_applyConstraints(machinesFields, constraints)',
-    '_teamsChanged(model.teams.*)',
-    '_cloudChanged(selectedCloud)',
-    '_machineFieldsChanged(machineFields.*)',
-    '_prefillOptions(route.*)',
-    '_locationChanged(machineFields.1.value)',
-    '_cloudsChanged(clouds)',
-    '_cloudLocationsUpdated(cloud.locationsArray)',
-    '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
-  ],
+  // observers: [
+  //   '_applyConstraints(machinesFields, constraints)',
+  //   '_teamsChanged(model.teams.*)',
+  //   '_cloudChanged(selectedCloud)',
+  //   '_machineFieldsChanged(machineFields.*)',
+  //   '_prefillOptions(route.*)',
+  //   '_locationChanged(machineFields.1.value)',
+  //   '_cloudsChanged(clouds)',
+  //   '_cloudLocationsUpdated(cloud.locationsArray)',
+  //   '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
+  // ],
 
-  listeners: {
-    keyup: 'hotkeys',
-    'add-input': 'addInput',
-    'format-payload': 'formatPayload',
-    'fields-changed': 'fieldsChanged',
-    'subfield-enabled': '_subfieldEnabled',
-    'dropdown-pressed': '_checkSizeLocationOptions',
-  },
+  // listeners: {
+  //   keyup: 'hotkeys',
+  //   'add-input': 'addInput',
+  //   'format-payload': 'formatPayload',
+  //   'fields-changed': 'fieldsChanged',
+  //   'subfield-enabled': '_subfieldEnabled',
+  //   'dropdown-pressed': '_checkSizeLocationOptions',
+  // },
 
   attached() {
     this.checkPermissions();
