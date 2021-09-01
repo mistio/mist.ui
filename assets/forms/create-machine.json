@@ -7,14 +7,33 @@
   "canClose": false,
   "additionalProperties": false,
   "properties": {
+    "cloudContainer": {
+      "name": "cloudContainer",
+      "label":"",
+      "id": "cloud_container",
+      "type": "object",
+      "format": "subformContainer",
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/cloudSubform"
+        }
+      }
+    },
     "setupMachineContainer": {
       "name": "setupMachine",
-      "label": "Setup Machine",
+      "label": "Machine Setup",
       "id": "setup_machine_container",
       "type": "object",
       "format": "subformContainer",
       "hasToggle": false,
       "hidden": true,
+      "deps": [
+        {
+          "prop": "hidden",
+          "func": "showSetupMachineContainer",
+          "dependsOn": "cloudContainer.cloud"
+        }
+      ],
       "properties": {
         "subform": {
           "$ref": "#/definitions/setupMachineSubform"
@@ -23,8 +42,8 @@
     }
   },
   "definitions": {
-    "setupMachineSubform": {
-      "id": "setup_machine_subform",
+    "cloudSubform": {
+      "id": "cloud_subform",
       "type": "object",
       "format": "subform",
       "properties": {
@@ -34,18 +53,30 @@
           "type": "string",
           "format": "dropdown",
           "x-mist-enum": "clouds"
-        },
+        }
+      }
+      },
+    "setupMachineSubform": {
+      "id": "setup_machine_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
         "name": {
           "name": "name",
           "label": "Machine Name *",
           "type": "string",
           "required": true,
           "helptext": "Fill in the machine's name",
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          },
           "deps": [
             {
               "prop": "allowedPattern",
               "func": "getNameRegex",
-              "dependsOn": "cloud"
+              "dependsOn": "cloudContainer.cloud"
             }
           ]
         },
@@ -55,11 +86,18 @@
           "type": "string",
           "format": "number",
           "value": 1,
+          "minimum": 1,
+          "maximum": 20,
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          },
           "deps": [
             {
               "prop": "hidden",
               "func": "showQuantity",
-              "dependsOn": "cloud"
+              "dependsOn": "cloudContainer.cloud"
             }
           ]
         },
@@ -68,12 +106,16 @@
           "label": "Location *",
           "type": "string",
           "format": "dropdown",
-          "x-mist-enum": "getLocations",
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          },
           "deps": [
             {
               "prop": "enum",
               "func": "getLocationsFromCloud",
-              "dependsOn": "cloud"
+              "dependsOn": "cloudContainer.cloud"
             }
           ]
         },
@@ -82,14 +124,19 @@
           "label": "Image *",
           "type": "string",
           "format": "dropdown",
-          "x-mist-enum": "getImages",
+          "enum": [],
           "required": true,
           "searchable": true,
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          },
           "deps": [
             {
               "prop": "enum",
               "func": "getImagesFromCloud",
-              "dependsOn": "cloud"
+              "dependsOn": "cloudContainer.cloud"
             },
             {
               "prop": "enum",
@@ -112,23 +159,18 @@
             {
               "prop": "enum",
               "func": "getSizesFromCloud",
-              "dependsOn": "cloud"
+              "dependsOn": "cloudContainer.cloud"
             },
             {
               "prop": "enum",
               "func": "getSizesFromLocation",
               "dependsOn": ".location"
-            },
-            {
-              "prop": "TODO: Find prop",
-              "func": "minSizeFromImage",
-              "dependsOn": ".image"
             }
           ],
           "format": "mistSizeField",
           "styles": {
-            "outerSpan": {
-              "marginTop": "-20px"
+            "outer": {
+              "flexBasis": "100%"
             }
           }
         }

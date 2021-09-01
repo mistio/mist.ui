@@ -166,20 +166,23 @@ Polymer({
       </paper-material>
       <paper-material
         class$="selected-[[!selectedCloud]]"
-        hidden$="[[!selectedCloud]]"
       >
-        <div hidden$="[[!selectedCloud]]">
-          <h3 class="smallcaps">Machine Setup</h3>
           <mist-form
             id="[[formId]]"
             hidden$="[[showJSON]]"
-            src="[[machineCreateFormData.src]]"
-            dynamic-data-namespace="[[machineCreateFormData.formData]]"
+            src="[[createMachineFields.src]]"
+            dynamic-data-namespace="[[createMachineFields.formData]]"
             url="/api/v1/clouds/[[selectedCloud]]/machines"
             method="POST"
           >
+          <div id="mist-form-custom">
+              <mist-size-field
+                mist-form-type="mistSizeField"
+                mist-form-value-change="value-changed"
+                mist-form-value-path="detail.value"
+              ></mist-size-field>
+            </div>
           </mist-form>
-        </div>
       </paper-material>
     </div>
   `,
@@ -209,6 +212,62 @@ Polymer({
       value() {
         return MACHINE_CREATE_FIELDS;
       },
+    },
+    createMachineFields: {
+      type: Object,
+      value() {
+        return {
+          src: './assets/forms/create-machine.json',
+          formData: {
+            dynamicData: {
+                clouds: {
+                  func: new Promise(resolve => {
+                    // Wait until clouds have loaded here
+                    resolve(() => this.clouds)
+                  }),
+                }
+              },
+              conditionals: {
+                showSetupMachineContainer: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => { return !cloudId},
+                },
+                getNameRegex: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => { return ''},
+                },
+                showQuantity: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => {return true;},
+                },
+                getLocationsFromCloud: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => {console.log("LOCATINS", Object.values(this._getCloudById(cloudId).locations)); return this._getCloudById(cloudId).locations},
+                },
+                getImagesFromCloud: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => { return []},
+                },
+                getImagesFromLocation: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => { return []},
+                },
+                getImagesFromSize: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => {return []},
+                },
+                getSizesFromCloud: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => {return []},
+                },
+                getSizesFromLocation: {
+                  // Hide the user friendly name field if the size is custom
+                  func: cloudId => { return []},
+                },
+              }
+          },
+        }
+      }
     },
     volumeFields: {
       type: Array,
@@ -290,6 +349,11 @@ Polymer({
   //   'dropdown-pressed': '_checkSizeLocationOptions',
   // },
 
+  _getCloudById(cloudId) {
+    console.log("this.clouds ", this.clouds);
+    console.log("cloudId ", cloudId)
+    return this.clouds.find(cloud => cloud.id === cloudId)
+  },
   attached() {
     this.checkPermissions();
   },
