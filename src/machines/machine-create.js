@@ -229,40 +229,59 @@ Polymer({
               },
               conditionals: {
                 showSetupMachineContainer: {
-                  // Hide the user friendly name field if the size is custom
                   func: cloudId => { return !cloudId},
                 },
                 getNameRegex: {
-                  // Hide the user friendly name field if the size is custom
                   func: cloudId => { return ''},
                 },
                 showQuantity: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => {return true;},
+                  func: cloudId => {return false;},
                 },
                 getLocationsFromCloud: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => {console.log("LOCATINS", Object.values(this._getCloudById(cloudId).locations)); return this._getCloudById(cloudId).locations},
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const locationsArray = this._getCloudById(cloudId).locationsArray || [];
+                    const locations =  locationsArray.map(
+                      location => (
+                        {...location, title:location.name}
+                      )
+                    );
+                    return locations;
+                  }
                 },
                 getImagesFromCloud: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => { return []},
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const imagesArray = this._getCloudById(cloudId).imagesArray || [];
+                    const images =  imagesArray.map(
+                      image => (
+                        {...image, title:image.name}
+                      )
+                    );
+                    return images;
+                  }
                 },
                 getImagesFromLocation: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => { return []},
+                  func: locationId => { return ["a", "b", "c"]},
                 },
                 getImagesFromSize: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => {return []},
+                  func: cloudId => {return ["a", "b", "c"]},
                 },
                 getSizesFromCloud: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => {return []},
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const sizesArray = this._getCloudById(cloudId).sizesArray || [];
+                    const sizes =  sizesArray.map(
+                      size => (
+                        {...size, title:size.name}
+                      )
+                    );
+                    console.log("sizes ", sizes)
+                    return sizes;
+                  }
                 },
                 getSizesFromLocation: {
-                  // Hide the user friendly name field if the size is custom
-                  func: cloudId => { return []},
+                  func: cloudId => { return ["a", "b", "c"]},
                 },
               }
           },
@@ -350,8 +369,6 @@ Polymer({
   // },
 
   _getCloudById(cloudId) {
-    console.log("this.clouds ", this.clouds);
-    console.log("cloudId ", cloudId)
     return this.clouds.find(cloud => cloud.id === cloudId)
   },
   attached() {
