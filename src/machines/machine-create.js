@@ -246,6 +246,7 @@ Polymer({
                         {...location, title:location.name}
                       )
                     );
+                    console.log("locations ", locations)
                     return locations;
                   }
                 },
@@ -270,14 +271,8 @@ Polymer({
                 getSizesFromCloud: {
                   func: cloudId => {
                     if (!cloudId) { return;}
-                    const sizesArray = this._getCloudById(cloudId).sizesArray || [];
-                    const sizes =  sizesArray.map(
-                      size => (
-                        {...size, title:size.name}
-                      )
-                    );
-                    console.log("sizes ", sizes)
-                    return sizes;
+                    const cloudSize = this._getCloud(cloudId) || {};
+                    return cloudSize.size;
                   }
                 },
                 getSizesFromLocation: {
@@ -367,7 +362,50 @@ Polymer({
   //   'subfield-enabled': '_subfieldEnabled',
   //   'dropdown-pressed': '_checkSizeLocationOptions',
   // },
+  _getCloud(cloudId) {
+    const cloudSizes = this._getCloudSizes() || [];
+    return JSON.parse(
+      JSON.stringify(
+        cloudSizes.find(cloudSize => cloudSize.id === cloudId) || {}
+      )
+    );
+  },
+  _getCloudSizes() {
+    return this.model.cloudsArray
+      .flatMap(cloud => {
+        const providerFields = MACHINE_CREATE_FIELDS.find(
+          field => field.provider === cloud.provider
+        );
 
+        if (!providerFields) {
+          return [];
+        }
+
+        const size = providerFields.fields.find(field => field.name === 'size');
+
+        if (Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')) {
+          size.options = [...cloud.sizesArray];
+        }
+        // Allow minimum value of 'disk' field to be 0
+        if (size.customSizeFields) {
+          size.customSizeFields.map(field => {
+            if (field.name.includes('disk')) {
+              field.min = 0;
+            }
+            return field;
+          });
+        }
+        return [
+          {
+            id: cloud.id,
+            provider: cloud.provider,
+            title: cloud.title,
+            size: { ...size },
+          },
+        ];
+      })
+      .filter(cloud => cloud.size.custom || cloud.size.options.length > 0);
+  },
   _getCloudById(cloudId) {
     return this.clouds.find(cloud => cloud.id === cloudId)
   },
