@@ -232,8 +232,13 @@ Polymer({
                   func: cloudId => { return !cloudId},
                 },
                 getNameRegex: {
-                  func: cloudId => { return ''},
-                },
+                  func: cloudId => {
+                    const provider =  this._getCloudById(cloudId) && this._getCloudById(cloudId).provider;
+                    const pattern = (provider && MACHINE_CREATE_FORM_DATA.patterns[provider]) || MACHINE_CREATE_FORM_DATA.patterns['default'];
+                console.log("pattern ", pattern);
+                return pattern;
+                  }
+              },
                 showQuantity: {
                   func: cloudId => {return false;},
                 },
