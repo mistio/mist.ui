@@ -5,13 +5,14 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-listbox/paper-listbox.js';
-import '../app-form/app-form.js';
+import '@mistio/mist-form/mist-form.js';
 import moment from 'moment/src/moment';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
+import { MACHINE_CREATE_FORM_DATA } from '../helpers/machine-create-form-data.js';
 
 const SCHEDULEACTIONS = {
   reboot: {
@@ -161,138 +162,29 @@ Polymer({
         </p>
       </paper-material>
       <paper-material hidden$="[[!_hasClouds(clouds)]]">
-        <div class="grid-row">
-          <paper-dropdown-menu
-            class="dropdown-block l6 xs12 dropdown-with-logos"
-            label="Select Cloud"
-            horizontal-align="left"
-            no-animations=""
-          >
-            <paper-listbox
-              slot="dropdown-content"
-              attr-for-selected="value"
-              selected="{{selectedCloud::iron-select}}"
-              class="dropdown-content"
-            >
-              <template is="dom-repeat" items="[[clouds]]" as="cloud">
-                <paper-item
-                  value="[[cloud.id]]"
-                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
-                >
-                  <img
-                    src="[[_computeProviderLogo(cloud.provider)]]"
-                    width="24px"
-                    alt="[[cloud.title]]"
-                  />[[cloud.title]]</paper-item
-                >
-              </template>
-            </paper-listbox>
-          </paper-dropdown-menu>
-        </div>
+        <div class="grid-row"></div>
       </paper-material>
       <paper-material
         class$="selected-[[!selectedCloud]]"
-        hidden$="[[!selectedCloud]]"
       >
-        <div hidden$="[[!selectedCloud]]">
-          <h3 class="smallcaps">Machine Setup</h3>
           <mist-form
-            id="createForm"
-            format-payload=""
-            fields="{{machineFields}}"
-            method="POST"
+            id="[[formId]]"
+            hidden$="[[showJSON]]"
+            src="[[createMachineFields.src]]"
+            dynamic-data-namespace="[[createMachineFields.formData]]"
             url="/api/v1/clouds/[[selectedCloud]]/machines"
-            on-response="_machineCreateResponse"
-            on-error="_machineCreateError"
-            btncontent="Launch"
-          ></mist-form>
-        </div>
+            method="POST"
+          >
+          <div id="mist-form-custom">
+              <mist-size-field
+                mist-form-type="mistSizeField"
+                mist-form-value-change="value-changed"
+                mist-form-value-path="detail.value"
+              ></mist-size-field>
+            </div>
+          </mist-form>
       </paper-material>
     </div>
-    <paper-dialog id="addKvmImage" with-backdrop="">
-      <h2>[[_computeAddImageTitle(selectedCloud)]]</h2>
-      <paper-input
-        id="kvmImageInput"
-        label="[[_computeAddImageLabel(selectedCloud)]]"
-        value="{{newImage}}"
-      ></paper-input>
-      <div class="btn-group">
-        <paper-button dialog-dismiss="">Cancel</paper-button>
-        <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
-      </div>
-    </paper-dialog>
-    <iron-ajax
-      id="getSecurityGroups"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetSecurityGroupsRequest"
-      on-response="_handleGetSecurityGroupsResponse"
-      on-error="_handleGetSecurityGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getResourceGroups"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetResourceGroupsRequest"
-      on-response="_handleGetResourceGroupsResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getStorageAccounts"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetStorageAccountsRequest"
-      on-response="_handleGetStorageAccountsResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getStorageClasses"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetStorageClassesRequest"
-      on-response="_handleGetStorageClassesResponse"
-      on-error="_handleGetStorageClassesError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getFolders"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetFoldersRequest"
-      on-response="_handleGetFoldersResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getDatastores"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetDatastoresRequest"
-      on-response="_handleGetDatastoresResponse"
-      on-error="_handleGetResourceGroupsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getLXDStoragePools"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetLXDStoragePoolsRequest"
-      on-response="_handleGetLXDStoragePoolsResponse"
-      on-error="_handleGetLXDStoragePoolsError"
-    ></iron-ajax>
-    <iron-ajax
-      id="getVirtualNetworkFunctions"
-      contenttype="application/json"
-      handle-as="json"
-      method="GET"
-      on-request="_handleGetVirtualNetworkFunctionsRequest"
-      on-response="_handleGetVirtualNetworkFunctionsResponse"
-      on-error="_handleGetVirtualNetworkFunctionsError"
-    ></iron-ajax>
   `,
 
   is: 'machine-create',
@@ -321,10 +213,91 @@ Polymer({
         return MACHINE_CREATE_FIELDS;
       },
     },
+    createMachineFields: {
+      type: Object,
+      value() {
+        return {
+          src: './assets/forms/create-machine.json',
+          formData: {
+            dynamicData: {
+                clouds: {
+                  func: new Promise(resolve => {
+                    // Wait until clouds have loaded here
+                    resolve(() => this.clouds)
+                  }),
+                }
+              },
+              conditionals: {
+                showSetupMachineContainer: {
+                  func: cloudId => { return !cloudId},
+                },
+                getNameRegex: {
+                  func: cloudId => {
+                    const provider =  this._getCloudById(cloudId) && this._getCloudById(cloudId).provider;
+                    const pattern = (provider && MACHINE_CREATE_FORM_DATA.patterns[provider]) || MACHINE_CREATE_FORM_DATA.patterns['default'];
+                console.log("pattern ", pattern);
+                return pattern;
+                  }
+              },
+                showQuantity: {
+                  func: cloudId => {return false;},
+                },
+                getLocationsFromCloud: {
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const locationsArray = this._getCloudById(cloudId).locationsArray || [];
+                    const locations =  locationsArray.map(
+                      location => (
+                        {...location, title:location.name}
+                      )
+                    );
+                    console.log("locations ", locations)
+                    return locations;
+                  }
+                },
+                getImagesFromCloud: {
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const imagesArray = this._getCloudById(cloudId).imagesArray || [];
+                    const images =  imagesArray.map(
+                      image => (
+                        {...image, title:image.name}
+                      )
+                    );
+                    return images;
+                  }
+                },
+                getImagesFromLocation: {
+                  func: locationId => { return ["a", "b", "c"]},
+                },
+                getImagesFromSize: {
+                  func: cloudId => {return ["a", "b", "c"]},
+                },
+                getSizesFromCloud: {
+                  func: cloudId => {
+                    if (!cloudId) { return;}
+                    const cloudSize = this._getCloud(cloudId) || {};
+                    return cloudSize.size;
+                  }
+                },
+                getSizesFromLocation: {
+                  func: cloudId => { return ["a", "b", "c"]},
+                },
+              }
+          },
+        }
+      }
+    },
     volumeFields: {
       type: Array,
       value() {
         return VOLUME_CREATE_FIELDS;
+      },
+    },
+    machineCreateFormData: {
+      type: Object,
+      value() {
+        return MACHINE_CREATE_FORM_DATA;
       },
     },
     clouds: {
@@ -374,27 +347,73 @@ Polymer({
     },
   },
 
-  observers: [
-    '_applyConstraints(machinesFields, constraints)',
-    '_teamsChanged(model.teams.*)',
-    '_cloudChanged(selectedCloud)',
-    '_machineFieldsChanged(machineFields.*)',
-    '_prefillOptions(route.*)',
-    '_locationChanged(machineFields.1.value)',
-    '_cloudsChanged(clouds)',
-    '_cloudLocationsUpdated(cloud.locationsArray)',
-    '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
-  ],
+  // observers: [
+  //   '_applyConstraints(machinesFields, constraints)',
+  //   '_teamsChanged(model.teams.*)',
+  //   '_cloudChanged(selectedCloud)',
+  //   '_machineFieldsChanged(machineFields.*)',
+  //   '_prefillOptions(route.*)',
+  //   '_locationChanged(machineFields.1.value)',
+  //   '_cloudsChanged(clouds)',
+  //   '_cloudLocationsUpdated(cloud.locationsArray)',
+  //   '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
+  // ],
 
-  listeners: {
-    keyup: 'hotkeys',
-    'add-input': 'addInput',
-    'format-payload': 'formatPayload',
-    'fields-changed': 'fieldsChanged',
-    'subfield-enabled': '_subfieldEnabled',
-    'dropdown-pressed': '_checkSizeLocationOptions',
+  // listeners: {
+  //   keyup: 'hotkeys',
+  //   'add-input': 'addInput',
+  //   'format-payload': 'formatPayload',
+  //   'fields-changed': 'fieldsChanged',
+  //   'subfield-enabled': '_subfieldEnabled',
+  //   'dropdown-pressed': '_checkSizeLocationOptions',
+  // },
+  _getCloud(cloudId) {
+    const cloudSizes = this._getCloudSizes() || [];
+    return JSON.parse(
+      JSON.stringify(
+        cloudSizes.find(cloudSize => cloudSize.id === cloudId) || {}
+      )
+    );
   },
+  _getCloudSizes() {
+    return this.model.cloudsArray
+      .flatMap(cloud => {
+        const providerFields = MACHINE_CREATE_FIELDS.find(
+          field => field.provider === cloud.provider
+        );
 
+        if (!providerFields) {
+          return [];
+        }
+
+        const size = providerFields.fields.find(field => field.name === 'size');
+
+        if (Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')) {
+          size.options = [...cloud.sizesArray];
+        }
+        // Allow minimum value of 'disk' field to be 0
+        if (size.customSizeFields) {
+          size.customSizeFields.map(field => {
+            if (field.name.includes('disk')) {
+              field.min = 0;
+            }
+            return field;
+          });
+        }
+        return [
+          {
+            id: cloud.id,
+            provider: cloud.provider,
+            title: cloud.title,
+            size: { ...size },
+          },
+        ];
+      })
+      .filter(cloud => cloud.size.custom || cloud.size.options.length > 0);
+  },
+  _getCloudById(cloudId) {
+    return this.clouds.find(cloud => cloud.id === cloudId)
+  },
   attached() {
     this.checkPermissions();
   },
@@ -814,7 +833,10 @@ Polymer({
         );
 
       // if is openstack do not require network/locations
-      if (this.model.clouds[this.selectedCloud].provider === 'openstack') {
+      if (
+        this.model.clouds[this.selectedCloud].provider === 'openstack' ||
+        this.model.clouds[this.selectedCloud].provider === 'vexxhost'
+        ) {
         this._updateFieldsForOpenstack();
         this._updateSecurityGroups(this.selectedCloud);
       }
@@ -863,7 +885,10 @@ Polymer({
               }
             });
           }
-          if (this.model.clouds[cloudId].provider === 'openstack') {
+          if (
+            this.model.clouds[cloudId].provider === 'openstack' ||
+            this.model.clouds[cloudId].provider === 'vexxhost'
+            ) {
             locations.forEach(l => {
               if (l.extra.compute === false) {
                 l.disabled = true;
@@ -1107,7 +1132,10 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (provider === 'openstack') {
+            if (
+              provider === 'openstack' ||
+              provider === 'vexxhost'
+              ) {
               const nameIndex = options.findIndex(
                 entry => entry.name === 'name'
               );
@@ -1208,7 +1236,7 @@ Polymer({
             this.constraints.field.forEach(c => {
               if (
                 c.name === f.name &&
-                (c.cloud === '' || c.cloud === this.selectedCloud)
+                (c.cloud === 'ALL' || c.cloud === this.selectedCloud)
               ) {
                 this.set(`machineFields.${ind}.value`, c.value);
                 this.set(`machineFields.${ind}.show`, c.show);
@@ -2540,7 +2568,10 @@ Polymer({
 
   _handleGetSecurityGroupsResponse(e) {
     const secGroups = [];
-    if (this.cloud.provider === 'openstack') {
+    if (
+      this.cloud.provider === 'openstack' ||
+      this.cloud.provider === 'vexxhost'
+    ) {
       for (let i = 0; i < e.detail.response.length; i++) {
         secGroups.push({
           name: e.detail.response[i].name,
@@ -2731,7 +2762,7 @@ Polymer({
         const datastoreConstraint = this.constraints.field.find(
           c =>
             c.name === 'datastore' &&
-            (c.cloud === this.selectedCloud || c.cloud === '')
+            (c.cloud === this.selectedCloud || c.cloud === 'ALL')
         );
         if (
           datastoreConstraint !== undefined &&
