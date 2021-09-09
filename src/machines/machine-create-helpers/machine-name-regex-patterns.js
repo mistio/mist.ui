@@ -1,15 +1,4 @@
-const MACHINE_CREATE_FORM_DATA = {
-  src: './assets/forms/create-machine.json',
-  formData: {
-    dynamicData: {
-        clouds: {
-          func: new Promise(resolve => {
-            resolve(() => ["test", "test2"])
-          }),
-        },
-      },
-  },
-  patterns: {
+const MACHINE_NAME_REGEX_PATTERNS = {
     'ec2':{
           'maximum': 255,
           'errorMessage': `machine name max chars allowed is 255`
@@ -74,6 +63,5 @@ const MACHINE_CREATE_FORM_DATA = {
           'maxlength': 999
         }
     }
-};
 
-export { MACHINE_CREATE_FORM_DATA };
+export { MACHINE_NAME_REGEX_PATTERNS };
