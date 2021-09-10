@@ -39,6 +39,25 @@
           "$ref": "#/definitions/setupMachineSubform"
         }
       }
+    },
+    "mistFieldsContainer": {
+      "name": "mist_fields_Container",
+      "label": "",
+      "id": "mist_fields_container",
+      "type": "object",
+      "format": "subformContainer",
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/mistFieldsSubform"
+        }
+      },
+      "deps": [
+        {
+          "prop": "hidden",
+          "func": "showSetupMachineContainer",
+          "dependsOn": "cloudContainer.cloud"
+        }
+      ]
     }
   },
   "definitions": {
@@ -179,6 +198,489 @@
         }
       }
     },
+    "attachVolumeSubform": {
+      "id": "attach_volume_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "attachVolume": {
+          "name": "attachVolume",
+          "id": "attach_volume",
+          "type": "object",
+          "format": "multiRow",
+          "hideHeader": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/attachVolumeMultiRow"
+            }
+          }
+        }
+      }
+    },
+    "attachExistingVolumeSubform": {
+      "id": "attach_existing_volume_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "volume": {
+          "id": "volume",
+          "type": "string",
+          "label": "Existing Volume",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getVolumesFromLocations",
+              "dependsOn": "setupMachine.location"
+            }
+          ]
+        },
+        "device": {
+          "type": "string",
+          "label": "Device name",
+          "value": "/dev/sdf",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "boot": {
+          "type": "boolean",
+          "label": "Boot drive",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeBoot",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "persist_across_boots": {
+          "type": "boolean",
+          "label": "Persist across boots",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfLinode",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "delete_on_termination": {
+          "type": "boolean",
+          "label": "Delete on termination",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfOpenstack",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "deleteVolumeWhenMachineDeleted": {
+          "type": "boolean",
+          "label": "Delete volume when machine is deleted",
+          "value": false
+        }
+      }
+    },
+    "createNewVolumeSubform": {
+      "id": "create_new_volume_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "name": {
+          "type": "string",
+          "label": "Device name",
+          "value": "/dev/sdf",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showDeviceNameInNewVolume",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "size": {
+          "type": "string",
+          "format": "number",
+          "label": "Size of the volume in GBs"
+        },
+        "volume_type": {
+          "type": "string",
+          "format": "dropdown",
+          "enum": [
+            "gp2",
+            "io1",
+            "st1",
+            "sc1",
+            "standard"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "iops": {
+          "type": "string",
+          "format": "number",
+          "label": "Number of I/O operations per second",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "delete_on_termination": {
+          "type": "boolean",
+          "label": "Delete on termination",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVDeleteTerminationInNewVolume",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "caching_type": {
+          "type": "string",
+          "label": "Caching type",
+          "format": "dropdown",
+          "enum": [
+            "None",
+            "ReadOnly",
+            "ReadWrite"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfAzure",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "storage_account_type": {
+          "type": "string",
+          "label": "Storage account type",
+          "format": "dropdown",
+          "enum": [
+            "Premium_LRS",
+            "Premium_ZRS",
+            "StandardSSD_LRS",
+            "StandardSSD_ZRS",
+            "Standard_LRS",
+            "UltraSSD_LRS"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfAzure",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "filesystem_type": {
+          "type": "string",
+          "label": "Filesystem type",
+          "format": "dropdown",
+          "enum": [
+            "ext4",
+            "xfs"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfDigitalOcean",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "plan": {
+          "type": "string",
+          "label": "Plan",
+          "format": "dropdown",
+          "enum": [
+            "standard",
+            "performance"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfEquinix",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "boot": {
+          "type": "boolean",
+          "label": "Boot drive",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeBoot",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "label": "Type",
+          "format": "dropdown",
+          "enum": [
+            "pd-standard",
+            "pd-ssd"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showIfGoogle",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        }
+      }
+    },
+    "attachVolumeMultiRow": {
+      "id": "attachVolume",
+      "type": "object",
+      "format": "rowDefinition",
+      "properties": {
+        "attachVolumeTabsContainer": {
+          "name": "attachVolumeTabsContainer",
+          "label": "Run post-deploy script",
+          "id": "attach_volume_tabs_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "tabs": {
+              "enum": [
+                {
+                  "label": "Create new volume",
+                  "$ref": "#/definitions/createNewVolumeSubform"
+                },
+                {
+                  "label": "Attach existing",
+                  "$ref": "#/definitions/attachExistingVolumeSubform"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "setExpirationSubform": {
+      "id": "set_expiration_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "action": {
+          "id": "action",
+          "type": "string",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getActions",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "in": {
+          "name": "in",
+          "id": "in",
+          "label": "in",
+          "type": "string",
+          "format": "durationField"
+        },
+        "notify": {
+          "label": "Notify me",
+          "name": "notify",
+          "id": "notify",
+          "value": true,
+          "type": "boolean",
+          "noLabelFloat": true
+        },
+        "before": {
+          "name": "before",
+          "id": "before",
+          "label": "before",
+          "type": "string",
+          "format": "durationField"
+        }
+      }
+    },
+    "postDeployInlineScript": {
+      "id": "post_deploy_inline_script",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "inlineScript": {
+          "label": "Inline Script",
+          "id": "inline_script",
+          "type": "string"
+        }
+      }
+    },
+    "postDeploySelectExisting": {
+      "id": "post_deploy_select_existing",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "script": {
+          "label": "Script",
+          "id": "post_deploy_script",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getScripts"
+        },
+        "optionalScriptParams": {
+          "label": "Optional Script Params",
+          "id": "optional_script_params",
+          "type": "string"
+        }
+      }
+    },
+    "scheduleTaskSubform": {
+      "id": "schedule_task_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "scheduleTask": {
+          "label": "Schedule Task",
+          "id": "schedule_task",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getTasks"
+        },
+        "scheduleTaskTabs": {
+          "name": "scheduleTaskTabs",
+          "id": "schedule_task_tabs",
+          "type": "object",
+          "format": "tabs",
+          "properties": {
+            "tabs": {
+              "enum": [
+                {
+                  "label": "Once",
+                  "$ref": "#/definitions/scheduleTaskOnce"
+                },
+                {
+                  "label": "Repeat",
+                  "$ref": "#/definitions/scheduleTaskRepeat"
+                },
+                {
+                  "label": "Crontab",
+                  "$ref": "#/definitions/scheduleTaskCrontab"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "scheduleTaskOnce": {
+      "id": "schedule_task_once",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "once": {
+          "label": "",
+          "id": "once",
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "scheduleTaskRepeat": {
+      "id": "schedule_task_repeat",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "repeat": {
+          "label": "Repeat",
+          "id": "repeat",
+          "type": "string",
+          "format": "durationField"
+        },
+        "extraTaskOptionsContainer": {
+          "id": "extra_task_options_container",
+          "type": "object",
+          "format": "subformContainer",
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/extraTaskOptions"
+            }
+          }
+        }
+      }
+    },
+    "scheduleTaskCrontab": {
+      "id": "schedule_task_crontab",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "repeat": {
+          "label": "Crontab",
+          "id": "crontab",
+          "type": "string"
+        }
+      }
+    },
+    "extraTaskOptions": {
+      "id": "extra_task_options",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "startsNow": {
+          "label": "Starts now",
+          "id": "starts_now",
+          "type": "string",
+          "format": "date"
+        },
+        "expiresNever": {
+          "label": "Expires never",
+          "id": "expires_never",
+          "type": "string",
+          "format": "date"
+        },
+        "maximumRunCount": {
+          "label": "Maximum Run Count",
+          "id": "maximum_run_count",
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "createDNSRecordSubform": {
+      "id": "create_dns_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "recordName": {
+          "label": "Record name",
+          "name": "recordName",
+          "id": "record_name",
+          "type": "string"
+        },
+        "dnsZone": {
+          "label": "DNS zone",
+          "name": "dnsZone",
+          "id": "dns_zone",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getZones"
+        }
+      }
+    },
     "mistFieldsSubform": {
       "id": "mist_fields_subform",
       "type": "object",
@@ -186,316 +688,69 @@
       "properties": {
         "attachVolumeContainer": {
           "name": "attachVolumeContainer",
-          "label": "",
+          "label": "Attach volume",
           "id": "attachVolume_container",
           "type": "object",
           "format": "subformContainer",
+          "hasToggle": true,
           "properties": {
             "subform": {
               "$ref": "#/definitions/attachVolumeSubform"
             }
-          }
-        },
-        "attachVolumeSubform": {
-          "id": "attach_volume_subform",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "attachVolume": {
-              "name": "attachVolume",
-              "id": "attach_volume",
-              "type": "object",
-              "format": "multiRow",
-              "inline": true,
-              "properties": {
-                "subform": {
-                  "$ref": "#/definitions/attachVolumeMultiRow"
-                }
-              }
+          },
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeContainer",
+              "dependsOn": "cloudContainer.cloud"
             }
-          }
-        },
-        "attachVolumeMultiRow": {
-          "id": "attachVolume",
-          "type": "object",
-          "format": "rowDefinition",
-          "properties": {
-            "createAttach": {
-              "id": "create_attach",
-              "type": "string",
-              "format": "checkboxGroup",
-              "enum": [
-                "Create new volume",
-                "Attach existing"
-              ]
-            },
-            "existing": {
-              "id": "existing",
-              "type": "string",
-              "format": "dropdown",
-              "enum": [
-                "Create new volume",
-                "Attach existing"
-              ],
-              "deps": [
-                {
-                  "prop": "hidden",
-                  "func": "showExistingVolume",
-                  "dependsOn": ".createAttach"
-                },
-                {
-                  "prop": "enum",
-                  "func": "getVolumes",
-                  "dependsOn": "setupMachineContainer.location"
-                }
-              ]
-            }
-          }
+          ]
         },
         "setExpirationContainer": {
           "name": "setExpirationContainer",
-          "label": "",
+          "label": "Set expiration",
           "id": "setExpiration_container",
           "type": "object",
           "format": "subformContainer",
+          "hasToggle": true,
           "properties": {
             "subform": {
               "$ref": "#/definitions/setExpirationSubform"
             }
           }
         },
-        "setExpirationSubform": {
-          "id": "set_expiration_subform",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "action": {
-              "id": "action",
-              "type": "string",
-              "format": "dropdown",
-              "deps": [
-                {
-                  "prop": "enum",
-                  "func": "getActions",
-                  "dependsOn": "cloudContainer.cloud"
-                }
-              ]
-            },
-            "in": {
-              "name": "in",
-              "id": "in",
-              "label": "in",
-              "type": "string",
-              "format": "durationField"
-            },
-            "notify": {
-              "label": "Notify me",
-              "name": "notify",
-              "id": "notify",
-              "value": true,
-              "type": "boolean",
-              "noLabelFloat": true
-            },
-            "before": {
-              "name": "before",
-              "id": "before",
-              "label": "before",
-              "type": "string",
-              "format": "durationField"
-            }
-          }
-        },
         "postDeployScriptContainer": {
           "name": "postDeployScriptContainer",
-          "label": "",
+          "label": "Run post-deploy script",
           "id": "postDeployScript_container",
           "type": "object",
           "format": "subformContainer",
+          "hasToggle": true,
           "properties": {
-            "subform": {
-              "$ref": "#/definitions/postDeployScriptSubform"
-            }
-          }
-        },
-        "postDeployScriptSubform": {
-          "id": "post_deploy_subform",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "attachVolume": {
-              "name": "postDeploy",
-              "id": "post_deploy",
-              "type": "object",
-              "format": "tabs",
-              "inline": true,
-              "properties": {
-                "tabs": {
-                  "enum": [
-                    {
-                    "label": "Inline Script",
-                    "$ref": "#/definitions/postDeployInlineScript"
-                    },
-                    {
-                    "label": "Select Existing",
-                    "$ref": "#/definitions/postDeploySelectExisting"
-                    }
-                  ]
-                  }
-              }
-            }
-          }
-        },
-        "postDeployInlineScript": {
-          "id": "post_deploy_inline_script",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "inlineScript": {
-              "label": "Inline Script",
-              "id": "inline_script",
-              "type": "string"
-            }
-          }
-        },
-        "postDeploySelectExisting": {
-          "id": "post_deploy_select_existing",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "script": {
-              "label": "Script",
-              "id": "post_deploy_script",
-              "type": "string",
-              "format": "dropdown",
-              "x-mist-enum": "getScripts"
-            },
-            "optionalScriptParams": {
-              "label": "Optional Script Params",
-              "id": "optional_script_params",
-              "type": "string"
+            "tabs": {
+              "enum": [
+                {
+                  "label": "Inline Script",
+                  "$ref": "#/definitions/postDeployInlineScript"
+                },
+                {
+                  "label": "Select Existing",
+                  "$ref": "#/definitions/postDeploySelectExisting"
+                }
+              ]
             }
           }
         },
         "scheduleTaskContainer": {
           "name": "scheduleTaskContainer",
-          "label": "",
+          "label": "Schedule a task",
           "id": "scheduleTask_container",
           "type": "object",
           "format": "subformContainer",
+          "hasToggle": true,
           "properties": {
             "subform": {
               "$ref": "#/definitions/scheduleTaskSubform"
-            }
-          }
-        },
-        "scheduleTaskSubform": {
-          "id": "schedule_task_subform",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "scheduleTask": {
-              "label": "Schedule Task",
-              "id": "schedule_task",
-              "type": "string",
-              "format": "dropdown",
-              "x-mist-enum": "getTasks"
-            },
-            "scheduleTaskTabs": {
-              "name": "scheduleTaskTabs",
-              "id": "schedule_task_tabs",
-              "type": "object",
-              "format": "tabs",
-              "properties": {
-                "tabs": {
-                  "enum": [
-                    {
-                    "label": "Once",
-                    "$ref": "#/definitions/scheduleTaskOnce"
-                    },
-                    {
-                    "label": "Repeat",
-                    "$ref": "#/definitions/scheduleTaskRepeat"
-                    },
-                    {
-                      "label": "Crontab",
-                      "$ref": "#/definitions/scheduleTaskCrontab"
-                      }
-                  ]
-                  }
-              }
-            }
-          }
-        },
-        "scheduleTaskOnce": {
-          "id": "schedule_task_once",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "once": {
-              "label": "",
-              "id": "once",
-              "type": "string",
-              "format": "date"
-            }
-          }
-        },
-        "scheduleTaskRepeat": {
-          "id": "schedule_task_repeat",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "repeat": {
-              "label": "Repeat",
-              "id": "repeat",
-              "type": "string",
-              "format": "durationField"
-            },
-            "extraTaskOptionsContainer": {
-              "id": "extra_task_options_container",
-              "type": "object",
-              "format": "subformContainer",
-              "properties": {
-                "subform": {
-                  "$ref": "#/definitions/extraTaskOptions"
-                }
-              }
-            }
-          }
-        },
-        "scheduleTaskCrontab": {
-          "id": "schedule_task_crontab",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "repeat": {
-              "label": "Crontab",
-              "id": "crontab",
-              "type": "string"
-            }
-          }
-        },
-        "extraTaskOptions": {
-          "id": "extra_task_options",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "startsNow": {
-              "label": "Starts now",
-              "id": "starts_now",
-              "type": "string",
-              "format": "date"
-            },
-            "expiresNever": {
-              "label": "Expires never",
-              "id": "expires_never",
-              "type": "string",
-              "format": "date"
-            },
-            "maximumRunCount": {
-              "label": "Maximum Run Count",
-              "id": "maximum_run_count",
-              "type": "string",
-              "format": "date"
             }
           }
         },
@@ -505,29 +760,10 @@
           "id": "createDNSRecord_container",
           "type": "object",
           "format": "subformContainer",
+          "hasToggle": true,
           "properties": {
             "subform": {
               "$ref": "#/definitions/createDNSRecordSubform"
-            }
-          }
-        },
-        "createDNSRecordSubform": {
-          "id": "create_dns_subform",
-          "type": "object",
-          "format": "subform",
-          "properties": {
-            "recordName": {
-              "label": "Record name",
-              "name": "recordName",
-              "id": "record_name",
-              "type": "string"
-            },
-            "dnsZone": {
-              "label": "DNS zone",
-              "name": "dnsZone",
-              "id": "dns_zone",
-              "type": "string",
-              "format": "dropdown"
             }
           }
         },
