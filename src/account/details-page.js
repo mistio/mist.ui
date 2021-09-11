@@ -15,6 +15,7 @@ import '@polymer/iron-image/iron-image.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -287,7 +288,7 @@ Polymer({
               ></paper-icon-button>
             </div>
           </div>
-          <div hidden$="[[org.avatar.length]]">
+          <div hidden$="[[org.avatar.length]]" class="xs12 margin-bottom">
             <!-- <div class="xs12 org-logo-field-title margin">Custom Logo</div> -->
             <paper-toggle-button checked="{{customLogo}}">
               Enable custom logo.
@@ -319,8 +320,80 @@ Polymer({
               </vaadin-upload>
             </div>
           </div>
+          <div class="xs12 margin-bottom">
+            <paper-toggle-button checked="{{customVault}}">
+              Use custom Hashicorp Vault instance.
+            </paper-toggle-button>
+            <div hidden$="[[!customVault]]">
+              <p class="xs12 l12">
+                We use Hashicorp Vault to store all secrets (e.g. Cloud
+                credentials and SSH keys). You can use your own Vault instance
+                instead for this organization. Existing secrets will not be
+                migrated automatically.
+              </p>
+              <paper-input
+                class="xs12 l6"
+                id="vaultAddress"
+                label="Vault Address"
+                required=""
+                error-message="Please enter the URI of your Hashicorp Vault instance"
+                value="{{vaultAddress}}"
+                auto-validate=""
+              ></paper-input>
+              <paper-input
+                class="xs12 l6"
+                id="vaultPath"
+                label="Path when org secrets should be stored"
+                required=""
+                error-message="Please enter the Vault path for your organization's secrets"
+                value="{{vaultPath}}"
+                auto-validate=""
+              ></paper-input>
+              <p></p>
+              <paper-radio-group
+                name="authMethod"
+                label="Authentication Method"
+              >
+                <paper-radio-button checked="{{appRoleAuth}}" class="field">
+                  AppRole Auth
+                </paper-radio-button>
+                <paper-radio-button checked="{{!appRoleAuth}}" class="field">
+                  Token Auth
+                </paper-radio-button>
+              </paper-radio-group>
+              <paper-input
+                class="xs12 l6"
+                id="roleId"
+                label="Role Id"
+                required
+                error-message="Please enter the Role Id for the AppRole Auth Method"
+                value="{{roleId}}"
+                auto-validate=""
+                hidden$="[[!appRoleAuth]]"
+              ></paper-input>
+              <paper-input
+                id="secretId"
+                class="xs12 l6"
+                label="Secret Id"
+                required
+                type="password"
+                error-message="Please enter the Secret Id for the AppRole Auth Method"
+                value="{{secretId::input}}"
+                hidden$="[[!appRoleAuth]]"
+              ></paper-input>
+              <paper-input
+                id="token"
+                class="xs12 l6"
+                label="Token"
+                required=""
+                type="password"
+                error-message="Please enter your Hashicorp Vault authentication token"
+                value="{{vaultToken::input}}"
+                hidden$="[[appRoleAuth]]"
+              ></paper-input>
+            </div>
+          </div>
         </div>
-
         <div class="xs12 margin-bottom" hidden$="[[!config.features.r12ns]]">
           <div hidden$="[[!org.is_owner]]">
             <paper-toggle-button checked="{{enableR12ns}}">
@@ -446,7 +519,7 @@ Polymer({
     orgFormReady: {
       type: Boolean,
       computed:
-        '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org, enableOwnership)',
+        '_computeOrgFormReady(orgName, orgAlertEmails, orgAvatar, enableR12ns, loadingOrg, org, enableOwnership, customVault, vaultAddress, appRoleAuth, vaultToken, roleId, secretId)',
     },
     loadingUser: {
       type: Boolean,
@@ -479,6 +552,34 @@ Polymer({
     enableOwnership: {
       type: Boolean,
       value: false,
+    },
+    customVault: {
+      type: Boolean,
+      value: false,
+    },
+    vaultAddress: {
+      type: String,
+      value: '',
+    },
+    vaultPath: {
+      type: String,
+      value: '/',
+    },
+    vaultToken: {
+      type: String,
+      value: '',
+    },
+    appRoleAuth: {
+      type: Boolean,
+      value: true,
+    },
+    roleId: {
+      type: String,
+      value: '',
+    },
+    secretId: {
+      type: String,
+      value: '',
     },
   },
 
@@ -519,6 +620,12 @@ Polymer({
     this.customLogo = !!this.org.avatar;
     this.enableR12ns = this.org.enable_r12ns;
     this.enableOwnership = this.org.ownership_enabled;
+    if (this.org.vault_address) {
+      this.customVault = true;
+      this.vaultAddress = this.org.vault_address;
+      this.vaultPath = this.org.vault_secret_engine_path;
+      this.roleId = this.org.vault_role_id;
+    }
   },
 
   _computeUploadHeaders() {
@@ -552,18 +659,30 @@ Polymer({
     enableR12ns,
     loading,
     org,
-    enableOwnership
+    enableOwnership,
+    customVault,
+    vaultAddress,
+    appRoleAuth,
+    vaultToken,
+    roleId,
+    secretId
   ) {
     if (
-      orgName &&
-      orgName.trim() !== '' &&
-      org.is_owner &&
-      !loading &&
-      (orgName !== org.name ||
-        enableR12ns !== org.enable_r12ns ||
-        enableOwnership !== org.ownership_enabled ||
-        (orgAlertEmails && orgAlertEmails !== org.alerts_email.join('\n')) ||
-        (orgAvatar && orgAvatar !== org.avatar))
+      (orgName &&
+        orgName.trim() !== '' &&
+        org.is_owner &&
+        !loading &&
+        (orgName !== org.name ||
+          enableR12ns !== org.enable_r12ns ||
+          enableOwnership !== org.ownership_enabled ||
+          (orgAlertEmails && orgAlertEmails !== org.alerts_email.join('\n')) ||
+          (orgAvatar && orgAvatar !== org.avatar))) ||
+      (!customVault && org.vault_address) || // Disable custom vault
+      (customVault &&
+        vaultAddress &&
+        (vaultAddress !== org.vault_address ||
+          (appRoleAuth && roleId && secretId) ||
+          (!appRoleAuth && vaultToken)))
     )
       return true;
     return false;
@@ -619,6 +738,11 @@ Polymer({
         new_name: this.orgName,
         alerts_email: this.orgAlertEmails,
         enable_r12ns: this.enableR12ns,
+        vault_address: this.customVault && this.vaultAddress,
+        vault_token: this.customVault && !this.appRoleAuth && this.vaultToken,
+        vault_role_id: this.customVault && this.appRoleAuth && this.roleId,
+        vault_secret_id: this.customVault && this.appRoleAuth && this.secretId,
+        vault_secret_engine_path: this.customVault && this.vaultPath,
       };
 
       if (this.orgAvatar) payload.avatar = this.orgAvatar;
