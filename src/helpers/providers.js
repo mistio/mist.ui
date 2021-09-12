@@ -1183,17 +1183,6 @@ PROVIDERS.push({
       show: true,
       required: false,
     },
-    // {
-    //   name: 'ca_cert_file',
-    //   label: 'CA Certificate',
-    //   type: 'textarea',
-    //   value: '',
-    //   defaultValue: '',
-    //   show: true,
-    //   required: false,
-    //   helptext:
-    //     'Openshift uses self signed certificates this is required for TLS authentication, adding it is considered good practice so communication can occur over HTTPS.',
-    // },
     {
       name: 'authentication',
       label: 'Authentication',
@@ -1205,14 +1194,6 @@ PROVIDERS.push({
           val: 'basic',
           title: 'Basic Auth',
         },
-        // {
-        //   val: 'tls',
-        //   title: 'TLS',
-        // },
-        // {
-        //   val: 'tokenbearer',
-        //   title: 'Token Bearer',
-        // },
       ],
       show: true,
       required: true,
@@ -1238,48 +1219,6 @@ PROVIDERS.push({
         fieldValues: ['basic'],
       },
     },
-    // {
-    //   name: 'cert_file',
-    //   label: 'User Certificate *',
-    //   helptext: 'Certificate file for TLS auth.',
-    //   type: 'textarea',
-    //   value: '',
-    //   defaultValue: '',
-    //   show: true,
-    //   required: false,
-    //   showIf: {
-    //     fieldName: 'authentication',
-    //     fieldValues: ['tls'],
-    //   },
-    // },
-    // {
-    //   name: 'key_file',
-    //   label: 'Private Key *',
-    //   type: 'textarea',
-    //   helptext: 'Private Key matching the above certificate',
-    //   value: '',
-    //   defaultValue: '',
-    //   show: true,
-    //   required: false,
-    //   showIf: {
-    //     fieldName: 'authentication',
-    //     fieldValues: ['tls'],
-    //   },
-    // },
-    // {
-    //   name: 'token',
-    //   label: 'Bearer Token *',
-    //   helptext: '',
-    //   type: 'textarea',
-    //   value: '',
-    //   defaultValue: '',
-    //   show: true,
-    //   required: false,
-    //   showIf: {
-    //     fieldName: 'authentication',
-    //     fieldValues: ['tokenbearer'],
-    //   },
-    // },
   ],
 });
 
