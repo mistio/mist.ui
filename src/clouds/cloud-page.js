@@ -1,3 +1,4 @@
+/* eslint-disable lit-a11y/anchor-is-valid */
 import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
@@ -470,10 +471,16 @@ Polymer({
                     disabled="[[objectstorageloading]]"
                     hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
                   >
-                    <span hidden$="[[!cloud.object_storage_enabled]]">Object Storage enabled</span>
-                    <span hidden$="[[cloud.object_storage_enabled]]">Object Storage disabled</span>
+                    <span hidden$="[[!cloud.object_storage_enabled]]"
+                      >Object Storage enabled</span
+                    >
+                    <span hidden$="[[cloud.object_storage_enabled]]"
+                      >Object Storage disabled</span
+                    >
                   </paper-toggle-button>
-                  <br hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]" />
+                  <br
+                    hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
+                  />
                   <paper-toggle-button
                     id="OBS-enable-disable"
                     class="small"
@@ -833,13 +840,7 @@ Polymer({
 
   _isSupportedObjectStorageProvider(provider) {
     // FIXME: Don't hardcode this. Backend needs to pass this info to ui.
-    return (
-      [
-        'ec2',
-        'openstack',
-        'vexxhost',
-      ].indexOf(provider) > -1
-    );
+    return ['ec2', 'openstack', 'vexxhost'].indexOf(provider) > -1;
   },
 
   _isBareMetal(provider) {
@@ -960,8 +961,10 @@ Polymer({
 
   _changeObjectStorageEnabled() {
     const objectStorageEnabled = this.cloud.object_storage_enabled ? 0 : 1;
-    this.$.cloudEditObjectStorageAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.cloudEditObjectStorageAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Content-Type'] =
+      'application/json';
+    this.$.cloudEditObjectStorageAjaxRequest.headers['Csrf-Token'] =
+      CSRFToken.value;
     this.$.cloudEditObjectStorageAjaxRequest.body = {
       object_storage_enabled: objectStorageEnabled,
     };
@@ -969,7 +972,9 @@ Polymer({
   },
 
   _handleCloudEditObjectStorageAjaxResponse() {
-    const message = this.shadowRoot.querySelector('#ObjectStorage-enable-disable').checked
+    const message = this.shadowRoot.querySelector(
+      '#ObjectStorage-enable-disable'
+    ).checked
       ? `Object Storage support for ${this.cloud.title} enabled!`
       : `Object Storage support for ${this.cloud.title} disabled!`;
     this.dispatchEvent(

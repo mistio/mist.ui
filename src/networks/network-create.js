@@ -541,6 +541,7 @@ Polymer({
                 >
                   <img
                     src="[[_computeProviderLogo(provider.provider)]]"
+                    alt="[[provider.provider]]"
                     width="24px"
                   />[[provider.title]]</paper-item
                 >
@@ -614,12 +615,12 @@ Polymer({
   _cloudsChanged(_clouds) {
     const networkClouds =
       this.model &&
-      this.model.cloudsArray.filter(cloud => {
-        return (
-          ['openstack', 'gce', 'ec2', 'lxd', 'aliyun_ecs'].indexOf(cloud.provider) >
-          -1
-        );
-      });
+      this.model.cloudsArray.filter(
+        cloud =>
+          ['openstack', 'gce', 'ec2', 'lxd', 'aliyun_ecs'].indexOf(
+            cloud.provider
+          ) > -1
+      );
     this.set('providers', networkClouds);
     this.set(
       'hasCloudsWithNetworks',
@@ -645,9 +646,7 @@ Polymer({
     let cloudName = '';
     if (this.selectedCloud) {
       cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => {
-        return c.provider === cloudName;
-      });
+      networkFields = this.networksFields.find(c => c.provider === cloudName);
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
@@ -743,9 +742,7 @@ Polymer({
   },
 
   fieldIndexByName(name) {
-    const field = this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    const field = this.fields.findIndex(f => f.name === name);
     return field;
   },
 

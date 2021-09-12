@@ -817,7 +817,7 @@ Polymer({
       if (
         this.model.clouds[this.selectedCloud].provider === 'openstack' ||
         this.model.clouds[this.selectedCloud].provider === 'vexxhost'
-        ) {
+      ) {
         this._updateFieldsForOpenstack();
         this._updateSecurityGroups(this.selectedCloud);
       }
@@ -869,7 +869,7 @@ Polymer({
           if (
             this.model.clouds[cloudId].provider === 'openstack' ||
             this.model.clouds[cloudId].provider === 'vexxhost'
-            ) {
+          ) {
             locations.forEach(l => {
               if (l.extra.compute === false) {
                 l.disabled = true;
@@ -1113,10 +1113,7 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (
-              provider === 'openstack' ||
-              provider === 'vexxhost'
-              ) {
+            if (provider === 'openstack' || provider === 'vexxhost') {
               const nameIndex = options.findIndex(
                 entry => entry.name === 'name'
               );

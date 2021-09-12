@@ -106,6 +106,7 @@ Polymer({
           resizable
           column-menu
           multi-sort
+          tree-view="[[_getTreeView()]]"
           sorters="[[sorters]]"
           item-map="[[model.machines]]"
           name="Machines"
@@ -237,6 +238,12 @@ Polymer({
     renderers: {
       type: Object,
       computed: '_getRenderers(model.schedules)',
+    },
+    itemMap: {
+      type: Object,
+      value() {
+        return {};
+      },
     },
   },
 
@@ -469,6 +476,24 @@ Polymer({
             row.parent
           ) {
             return './assets/providers/kvm.png';
+          }
+          if (_this.model.clouds[row.cloud].provider === 'kubernetes') {
+            if (row.machine_type === 'node')
+              return './assets/providers/k8s-node.png';
+
+            if (row.machine_type === 'pod')
+              return './assets/providers/k8s-pod.png';
+
+            if (row.machine_type === 'container')
+              return './assets/providers/k8s-container.png';
+          }
+          if (_this.model.clouds[row.cloud].provider === 'openshift') {
+            if (row.machine_type === 'node')
+              return './assets/providers/openshift-node.png';
+            if (row.machine_type === 'pod')
+              return './assets/providers/openshift-pod.png';
+            if (row.machine_type === 'container')
+              return './assets/providers/openshift-container.png';
           }
           return `./assets/providers/provider-${_this.model.clouds[
             row.cloud
@@ -957,5 +982,12 @@ Polymer({
     return {
       apply: (action, rid) => this.checkPerm('machine', action, rid),
     };
+  },
+  _getTreeView() {
+    const isTreeView = JSON.parse(
+      localStorage.getItem(`mist-list#machinesList/treeView`)
+    );
+    if (typeof isTreeView === 'boolean') return isTreeView;
+    return true;
   },
 });

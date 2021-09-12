@@ -196,7 +196,7 @@ VOLUME_CREATE_FIELDS.push({
       show: true,
       required: false,
       excludeFromPayload: false,
-    }, 
+    },
   ],
 });
 
@@ -217,7 +217,7 @@ VOLUME_CREATE_FIELDS.push({
       show: true,
       required: false,
       excludeFromPayload: false,
-    }, 
+    },
   ],
 });
 
@@ -627,10 +627,7 @@ VOLUME_CREATE_FIELDS.forEach(p => {
     });
   }
 
-  if (
-    p.provider === 'openstack' ||
-    p.provider === 'vexxhost'
-  ) {
+  if (p.provider === 'openstack' || p.provider === 'vexxhost') {
     p.fields.splice(1, 0, {
       name: 'location',
       label: 'Location',

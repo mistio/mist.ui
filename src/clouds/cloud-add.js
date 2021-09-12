@@ -169,6 +169,7 @@ Polymer({
                       <paper-item value="[[provider.val]]">
                         <img
                           src="[[_computeProviderLogo(provider.className)]]"
+                          alt="[[provider.title]]"
                           width="24px"
                         />
                         <span>[[provider.title]]</span>
@@ -341,22 +342,24 @@ Polymer({
           'vultr',
           'maxihost',
           'cloudsigma',
-          'vexxhost'
+          'vexxhost',
         ].indexOf(provider.val) > -1
       ) {
         categories[0].providers.push(provider);
       }
       if (
-        ['openstack', 'onapp', 'vsphere', 'vcloud'].indexOf(
-          provider.val
-        ) > -1
+        ['openstack', 'onapp', 'vsphere', 'vcloud'].indexOf(provider.val) > -1
       ) {
         categories[1].providers.push(provider);
       }
       if (['libvirt'].indexOf(provider.val) > -1) {
         categories[2].providers.push(provider);
       }
-      if (['docker', 'kubevirt', 'lxd'].indexOf(provider.val) > -1) {
+      if (
+        ['docker', 'kubevirt', 'lxd', 'kubernetes', 'openshift'].indexOf(
+          provider.val
+        ) > -1
+      ) {
         categories[3].providers.push(provider);
       }
       if (['bare_metal'].indexOf(provider.val) > -1) {
@@ -428,9 +431,7 @@ Polymer({
 
   _computeTitle(selectedProvider) {
     if (this.providers) {
-      const p = this.providers.find(f => {
-        return f.val === selectedProvider;
-      });
+      const p = this.providers.find(f => f.val === selectedProvider);
 
       return p ? p.title : '';
     }
@@ -448,9 +449,9 @@ Polymer({
       );
 
     this._resetForm();
-    const selectedProviderDetails = providers.filter(fields => {
-      return fields.val === selectedProvider;
-    });
+    const selectedProviderDetails = providers.filter(
+      fields => fields.val === selectedProvider
+    );
     const providerFields = selectedProviderDetails.length
       ? selectedProviderDetails.shift().options
       : [];
@@ -497,9 +498,10 @@ Polymer({
 
   _keysChanged(_keys, _providerFields) {
     // Set list of keys in providerFields when model keys change
-    const indexSshKey = this.providerFields.findIndex(field => {
-      return field.type === 'ssh_key';
-    }, this);
+    const indexSshKey = this.providerFields.findIndex(
+      field => field.type === 'ssh_key',
+      this
+    );
 
     if (indexSshKey)
       this.set(`providerFields.${indexSshKey}.options`, this.keys);
@@ -568,9 +570,9 @@ Polymer({
 
   fillInKnownData(provider, _clouds) {
     if (provider) {
-      const cloudInSameProvider = this.clouds.find(c => {
-        return c.provider === provider;
-      });
+      const cloudInSameProvider = this.clouds.find(
+        c => c.provider === provider
+      );
       if (cloudInSameProvider) {
         // if there is an apikey we can fill in
         const { apikey } = cloudInSameProvider;
@@ -595,9 +597,7 @@ Polymer({
   },
 
   fieldIndexByName(name) {
-    const passField = this.providerFields.findIndex(f => {
-      return f.name === name;
-    });
+    const passField = this.providerFields.findIndex(f => f.name === name);
     return passField;
   },
 

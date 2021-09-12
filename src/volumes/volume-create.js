@@ -56,7 +56,8 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Equinix Metal, LXD, Aliyun, Kubevirt, Linode, Vexxhost and DigitalOcean clouds
+          Equinix Metal, LXD, Aliyun, Kubevirt, Linode, Vexxhost and
+          DigitalOcean clouds
           <br />
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
             Add a cloud using the
@@ -196,11 +197,10 @@ Polymer({
   _cloudsChanged() {
     const volumeClouds =
       this.model &&
-      this.model.cloudsArray.filter(cloud => {
-        return (
+      this.model.cloudsArray.filter(
+        cloud =>
           VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1
-        );
-      });
+      );
     this.set('providers', volumeClouds);
     this.set(
       'hasCloudsWithVolumes',
@@ -289,9 +289,10 @@ Polymer({
               }
               return false;
             });
-          } else if (this.model.clouds[cloudId].provider === 'openstack' ||
-                     this.model.clouds[cloudId].provider === 'vexxhost'
-            ) {
+          } else if (
+            this.model.clouds[cloudId].provider === 'openstack' ||
+            this.model.clouds[cloudId].provider === 'vexxhost'
+          ) {
             locations = locations.filter(l => l.extra.storage === true);
           }
           f.options = locations;
