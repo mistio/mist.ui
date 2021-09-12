@@ -381,6 +381,92 @@ NETWORK_CREATE_FIELDS.push({
     },
   ],
 });
+
+// ALIYUN
+NETWORK_CREATE_FIELDS.push({
+  provider: 'aliyun_ecs',
+  fields: [
+    {
+      name: 'name',
+      label: 'Name *',
+      type: 'text',
+      value: '',
+      defaultValue: '',
+      placeholder: '',
+      errorMessage: "Please enter network's name",
+      show: true,
+      required: true,
+      inPayloadGroup: 'network',
+    },
+    {
+      name: 'cidr',
+      label: 'Network CIDR',
+      type: 'ip_textarea',
+      value: '',
+      defaultValue: '',
+      placeholder: '172.16.0.0/12',
+      show: true,
+      required: true,
+      inPayloadGroup: 'network',
+    },
+    {
+      name: 'createSubnet',
+      label: 'Create Subnet',
+      type: 'toggle',
+      value: false,
+      defaultValue: false,
+      placeholder: '',
+      show: true,
+      required: false,
+      excludeFromPayload: true,
+    },
+    {
+      name: 'name',
+      label: 'Subnet Name',
+      type: 'text',
+      value: '',
+      defaultValue: '',
+      placeholder: '',
+      show: false,
+      required: false,
+      showIf: {
+        fieldName: 'createSubnet',
+        fieldValues: [true],
+      },
+      inPayloadGroup: 'subnet',
+    },
+    {
+      name: 'cidr',
+      label: 'Subnet CIDR',
+      type: 'ip_textarea',
+      value: '',
+      defaultValue: '',
+      placeholder: '172.16.0.0/29',
+      show: false,
+      required: false,
+      showIf: {
+        fieldName: 'createSubnet',
+        fieldValues: [true],
+      },
+      inPayloadGroup: 'subnet',
+    },
+    {
+      name: 'availability_zone',
+      label: 'Availability Zone *',
+      type: 'mist_dropdown',
+      value: '',
+      defaultValue: '',
+      show: false,
+      required: false,
+      options: [],
+      showIf: {
+        fieldName: 'createSubnet',
+        fieldValues: [true],
+      },
+      inPayloadGroup: 'subnet',
+    },
+  ],
+});
 Polymer({
   _template: html`
     <style include="shared-styles forms single-page">
@@ -426,8 +512,8 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[hasCloudsWithNetworks]]">
         <p>
-          To add a network you need to have an enabled Openstack, GCE or
-          EC2 cloud in your account. <br />
+          To add a network you need to have an enabled Openstack, GCE, EC2 or
+          Alibaba cloud in your account. <br />
           Add a cloud using the
           <a href="/clouds/+add" class="blue-link regular">add cloud form</a>
           or enable your Openstack or GCE clouds available in
@@ -455,6 +541,7 @@ Polymer({
                 >
                   <img
                     src="[[_computeProviderLogo(provider.provider)]]"
+                    alt="[[provider.provider]]"
                     width="24px"
                   />[[provider.title]]</paper-item
                 >
@@ -528,12 +615,12 @@ Polymer({
   _cloudsChanged(_clouds) {
     const networkClouds =
       this.model &&
-      this.model.cloudsArray.filter(cloud => {
-        return (
-          ['openstack', 'gce', 'ec2', 'lxd'].indexOf(cloud.provider) >
-          -1
-        );
-      });
+      this.model.cloudsArray.filter(
+        cloud =>
+          ['openstack', 'gce', 'ec2', 'lxd', 'aliyun_ecs'].indexOf(
+            cloud.provider
+          ) > -1
+      );
     this.set('providers', networkClouds);
     this.set(
       'hasCloudsWithNetworks',
@@ -559,9 +646,7 @@ Polymer({
     let cloudName = '';
     if (this.selectedCloud) {
       cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => {
-        return c.provider === cloudName;
-      });
+      networkFields = this.networksFields.find(c => c.provider === cloudName);
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
@@ -575,7 +660,7 @@ Polymer({
       fieldName =
         this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
     }
-    if (cloudName === 'ec2')
+    if (cloudName === 'ec2' || cloudName === 'aliyun_ecs')
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
         this.model.clouds[selectedCloud].locationsArray
@@ -657,9 +742,7 @@ Polymer({
   },
 
   fieldIndexByName(name) {
-    const field = this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    const field = this.fields.findIndex(f => f.name === name);
     return field;
   },
 

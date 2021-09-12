@@ -48,6 +48,15 @@ Polymer({
           color: #424242;
           margin-left: -8px;
         }
+        mist-form::part(mist-form-checkbox) {
+          --paper-checkbox-checked-color: var(--mist-blue) !important;
+          --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
+
+        mist-form::part(mist-form-checkbox-group) {
+          --paper-checkbox-checked-color: var(--mist-blue) !important;
+          --paper-checkbox-checked-ink-color: var(--mist-blue) !important;
+        }
       </style>
       <template>
         <div class="title">
@@ -88,7 +97,15 @@ Polymer({
             on-mist-form-request="_closeDialog"
             on-mist-form-cancel="_dismissDialog"
             on-mist-form-value-changed="_updateFormValue"
+            exportparts="mist-form-text-field, mist-form-dropdown, mist-form-radio-group, mist-form-checkbox-group, mist-form-text-field, mist-form-text-area, mist-form-checkbox, mist-form-duration-field, mist-form-multi-row, mist-form-multi-row-row, mist-form-custom-field, mist-form-button"
           >
+            <div id="mist-form-custom">
+              <mist-size-field
+                mist-form-type="mistSizeField"
+                mist-form-value-change="value-changed"
+                mist-form-value-path="detail.value"
+              ></mist-size-field>
+            </div>
           </mist-form>
           <template is="dom-if" if="[[showJSON]]" restamp="">
             <code-viewer
