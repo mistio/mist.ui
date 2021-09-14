@@ -75,11 +75,19 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           func: cloudId => {
             if (!cloudId) { return;}
             const cloudSize = data._getCloud(cloudId) || {};
-            return cloudSize.size;
+            console.log("cloudSize ", cloudSize)
+            return cloudSize.size || {};
           }
         },
         getSizesFromLocation: {
           func: cloudId => { return ["a", "b", "c"]},
+        },
+        showNetworkContainer: {
+          func: cloudId => {
+            const provider = data._getProviderById(cloudId);
+            const cloudsWithNetworks = ['ec2', 'azure','digitalocean', 'equinixmetal','gce','linode','openstack']
+            return !cloudsWithNetworks.includes(provider);
+          }
         },
         showVolumeContainer: {
           func: cloudId => {
@@ -88,36 +96,78 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             return !cloudsWithVolumes.includes(provider);
           },
         },
+        hideAttachExistingVolumeContainer: {
+          func: tab => { console.log("tab ", tab); return tab !== "Attach existing volume"}
+        },
+        hideAttachNewVolumeContainer: {
+          func: tab => tab !== "Create new volume"
+        },
         showDeviceNameInNewVolume: {
           func: cloudId => ['equinixmetal', 'openstack'].includes(data._getProviderById(cloudId))
         },
         showVolumeBoot: {
           func: cloudId => !['gce', 'openstack'].includes(data._getProviderById(cloudId))
         },
-        showVDeleteTerminationInNewVolume: {
-          func: cloudId => !['ec2', 'openstack'].includes(data._getProviderById(cloudId))
+        showDeleteTerminationInNewVolume: {
+          func: cloudId => {
+            console.log("!['ec2', 'openstack'].includes(data._getProviderById(cloudId)) ", !['ec2', 'openstack'].includes(data._getProviderById(cloudId)));
+            return !['ec2', 'openstack'].includes(data._getProviderById(cloudId));
+          }
         },
-        showIfAmazon: {
-          func: cloudId => !data._getProviderById(cloudId) === 'ec2'
+        hideIfNotAmazon: {
+          func: cloudId => {console.log("data._getProviderById(cloudId) !== 'ec2' ", data._getProviderById(cloudId) !== 'ec2');
+        return data._getProviderById(cloudId) !== 'ec2';
+        }
         },
-        showIfAzure: {
-          func: cloudId => !data._getProviderById(cloudId) === 'azure'
+        hideIfNotAzure: {
+          func: cloudId => {
+            console.log("hideIfNotAzure ", data._getProviderById(cloudId) !== 'azure');
+            return data._getProviderById(cloudId) !== 'azure';
+          }
         },
-        showIfDigitalOcean: {
-          func: cloudId => !data._getProviderById(cloudId) === 'digitalocean'
+        hideIfNotDigitalOcean: {
+          func: cloudId => data._getProviderById(cloudId) !== 'digitalocean'
         },
-        showIfEquinix: {
-          func: cloudId => !data._getProviderById(cloudId) === 'equinixmetal'
+        hideIfNotEquinix: {
+          func: cloudId => data._getProviderById(cloudId) !== 'equinixmetal'
         },
         // One volume should set this
-        showIfGoogle: {
-          func: cloudId => !data._getProviderById(cloudId) === 'gce'
+        hideIfNotGoogle: {
+          func: cloudId => data._getProviderById(cloudId) !== 'gce'
         },
-        showIfLinode: {
-          func: cloudId => !data._getProviderById(cloudId) === 'linode'
+        hideIfNotLinode: {
+          func: cloudId =>  data._getProviderById(cloudId) !== 'linode'
         },
-        showIfOpenstack: {
-          func: cloudId => !data._getProviderById(cloudId) === 'openstack'
+        hideIfNotOpenstack: {
+          func: cloudId =>  {
+            console.log("data._getProviderById(cloudId) !== 'openstack' ", data._getProviderById(cloudId) !== 'openstack');
+            return data._getProviderById(cloudId) !== 'openstack';
+          }
+        },
+        getAmazonSecurityGroups: {
+          func: cloudId => {
+            return [];
+          }
+        },
+        getAmazonSubnets: {
+          func: cloudId => {
+            return [];
+          }
+        },
+        getAzureNetworks: {
+          func: cloudId => {
+            return [];
+          }
+        },
+        getGoogleNetworks: {
+          func: cloudId => {
+            return [];
+          }
+        },
+        getGoogleSubnetworks: {
+          func: cloudId => {
+            return [];
+          }
         },
         showExistingVolume: {
           func: choice => { console.log("choice ", choice); return choice === 'Create new volume'}

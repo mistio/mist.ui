@@ -13,7 +13,7 @@ import { CSRFToken } from '../helpers/utils.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
 import { MACHINE_CREATE_FORM_DATA } from './machine-create-helpers/machine-create-form-data.js';
-
+import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 const SCHEDULEACTIONS = {
   reboot: {
     name: 'reboot',
@@ -181,6 +181,11 @@ Polymer({
                 mist-form-value-change="value-changed"
                 mist-form-value-path="detail.value"
               ></mist-size-field>
+              <datetime-picker
+                  mist-form-type="datetimePicker"
+                mist-form-value-change="value-changed"
+                mist-form-value-path="detail.value"
+                    ></datetime-picker>
             </div>
           </mist-form>
       </paper-material>

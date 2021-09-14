@@ -46,6 +46,7 @@
       "id": "mist_fields_container",
       "type": "object",
       "format": "subformContainer",
+      "classes": "stacked",
       "properties": {
         "subform": {
           "$ref": "#/definitions/mistFieldsSubform"
@@ -146,7 +147,6 @@
           "label": "Image",
           "type": "string",
           "format": "dropdown",
-          "enum": [],
           "required": true,
           "searchable": true,
           "styles": {
@@ -195,6 +195,126 @@
               "flexBasis": "100%"
             }
           }
+        },
+        "networkContainer": {
+          "name": "net",
+          "label": "Network",
+          "id": "network_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": false,
+          "hidden": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showNetworkContainer",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ],
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/networkSubform"
+            }
+          }
+        },
+      }
+    },
+    "networkSubform": {
+      "id": "network_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "security_group": {
+          "type": "string",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getAmazonSecurityGroups",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "network": {
+          "type": "string",
+          "name": "network",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAzure",
+              "dependsOn": "cloudContainer.cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getAzureNetworks",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "subnet": {
+          "type": "string",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getAmazonSubnets",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "googleNetwork": {
+          "type": "string",
+          "name": "network",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotGoogle",
+              "dependsOn": "cloudContainer.cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getGoogleNetworks",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "subnetwork": {
+          "type": "string",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotGoogle",
+              "dependsOn": "cloudContainer.cloud"
+            },
+            {
+              "prop": "enum",
+              "func": "getGoogleSubnetworks",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "private_ip": {
+          "type": "boolean",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotLinode",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
         }
       }
     },
@@ -203,24 +323,68 @@
       "type": "object",
       "format": "subform",
       "properties": {
-        "attachVolume": {
-          "name": "attachVolume",
+        "tabs": {
+          "name": "tabs",
           "id": "attach_volume",
+          "type": "string",
+          "format": "radioGroup",
+          "hideHeader": true,
+          "value": "Create new volume",
+          "enum": [
+            "Create new volume",
+            "Attach existing volume"
+          ]
+        },
+        "attachNewVolumeContainer": {
+          "name": "attachNewVolumeContainer",
+          "id": "attach_new_volume_container",
           "type": "object",
           "format": "multiRow",
+          "hidden": true,
           "hideHeader": true,
+          "hasToggle": false,
+          "numbered": true,
           "properties": {
             "subform": {
-              "$ref": "#/definitions/attachVolumeMultiRow"
+              "$ref": "#/definitions/attachNewVolumeRow"
             }
-          }
+          },
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideAttachNewVolumeContainer",
+              "dependsOn": ".tabs"
+            }
+          ]
+        },
+        "attachExistingVolumeContainer": {
+          "name": "attachExistingVolumeContainer",
+          "id": "attach_existing_volume_container",
+          "type": "object",
+          "format": "multiRow",
+          "hidden": true,
+          "hideHeader": true,
+          "hasToggle": false,
+          "numbered": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/attachExistingVolumeRow"
+            }
+          },
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideAttachExistingVolumeContainer",
+              "dependsOn": ".tabs"
+            }
+          ]
         }
       }
     },
-    "attachExistingVolumeSubform": {
+    "attachExistingVolumeRow": {
       "id": "attach_existing_volume_subform",
       "type": "object",
-      "format": "subform",
+      "format": "rowDefinition",
       "properties": {
         "volume": {
           "id": "volume",
@@ -242,7 +406,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfAmazon",
+              "func": "hideIfNotAmazon",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -264,33 +428,29 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfLinode",
+              "func": "hideIfNotLinode",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
         },
-        "delete_on_termination": {
+        "delete_on_termination_2": {
           "type": "boolean",
-          "label": "Delete on termination",
+          "label": "Delete on termination in existing",
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfOpenstack",
+              "func": "hideIfNotOpenstack",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
-        },
-        "deleteVolumeWhenMachineDeleted": {
-          "type": "boolean",
-          "label": "Delete volume when machine is deleted",
-          "value": false
         }
       }
     },
-    "createNewVolumeSubform": {
+
+    "attachNewVolumeRow": {
       "id": "create_new_volume_subform",
       "type": "object",
-      "format": "subform",
+      "format": "rowDefinition",
       "properties": {
         "name": {
           "type": "string",
@@ -312,6 +472,7 @@
         "volume_type": {
           "type": "string",
           "format": "dropdown",
+          "label": "Volume type",
           "enum": [
             "gp2",
             "io1",
@@ -322,7 +483,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfAmazon",
+              "func": "hideIfNotAmazon",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -334,18 +495,18 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfAmazon",
+              "func": "hideIfNotAmazon",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
         },
         "delete_on_termination": {
           "type": "boolean",
-          "label": "Delete on termination",
+          "label": "Delete on termination in new",
           "deps": [
             {
               "prop": "hidden",
-              "func": "showVDeleteTerminationInNewVolume",
+              "func": "showDeleteTerminationInNewVolume",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -362,7 +523,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfAzure",
+              "func": "hideIfNotAzure",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -382,7 +543,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfAzure",
+              "func": "hideIfNotAzure",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -398,7 +559,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfDigitalOcean",
+              "func": "hideIfNotDigitalOcean",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -414,7 +575,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfEquinix",
+              "func": "hideIfNotEquinix",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -441,42 +602,14 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "showIfGoogle",
+              "func": "hideIfNotGoogle",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
         }
       }
     },
-    "attachVolumeMultiRow": {
-      "id": "attachVolume",
-      "type": "object",
-      "format": "rowDefinition",
-      "properties": {
-        "attachVolumeTabsContainer": {
-          "name": "attachVolumeTabsContainer",
-          "label": "Run post-deploy script",
-          "id": "attach_volume_tabs_container",
-          "type": "object",
-          "format": "subformContainer",
-          "hasToggle": true,
-          "properties": {
-            "tabs": {
-              "enum": [
-                {
-                  "label": "Create new volume",
-                  "$ref": "#/definitions/createNewVolumeSubform"
-                },
-                {
-                  "label": "Attach existing",
-                  "$ref": "#/definitions/attachExistingVolumeSubform"
-                }
-              ]
-            }
-          }
-        }
-      }
-    },
+
     "setExpirationSubform": {
       "id": "set_expiration_subform",
       "type": "object",
@@ -596,7 +729,7 @@
           "label": "",
           "id": "once",
           "type": "string",
-          "format": "date"
+          "format": "datetimePicker"
         }
       }
     },
@@ -644,19 +777,19 @@
           "label": "Starts now",
           "id": "starts_now",
           "type": "string",
-          "format": "date"
+          "format": "datetimePicker"
         },
         "expiresNever": {
           "label": "Expires never",
           "id": "expires_never",
           "type": "string",
-          "format": "date"
+          "format": "datetimePicker"
         },
         "maximumRunCount": {
           "label": "Maximum Run Count",
           "id": "maximum_run_count",
           "type": "string",
-          "format": "date"
+          "format": "datetimePicker"
         }
       }
     },
@@ -754,7 +887,7 @@
             }
           }
         },
-        "createDNSRecordContainer": {
+        "fqdn": {
           "name": "createDNSRecordContainer",
           "label": "Create DNS record",
           "id": "createDNSRecord_container",
@@ -767,10 +900,20 @@
             }
           }
         },
+        "cloudInit": {
+          "label": "Run this Cloud Init script on first boot",
+          "type": "string"
+        },
         "enableMonitoring": {
           "label": "Enable Monitoring",
           "name": "enableMonitoring",
           "id": "enable_monitoring",
+          "value": false,
+          "type": "boolean"
+        },
+        "save": {
+          "label": "Save provisioning plan as template",
+          "id": "save_plan",
           "value": false,
           "type": "boolean"
         }
