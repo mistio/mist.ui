@@ -201,7 +201,7 @@ Polymer({
         cloud =>
           VOLUME_CREATE_FIELDS.map(i => i.provider).indexOf(cloud.provider) > -1
       );
-    this.set('providers', volumeClouds);
+    this.set('clouds', volumeClouds);
     this.set(
       'hasCloudsWithVolumes',
       !!(volumeClouds && volumeClouds.length > 0)
@@ -222,9 +222,9 @@ Polymer({
   _cloudChanged(selectedCloud) {
     // clear to reset
     this.set('fields', []);
-    let volumeFields = [];
+    let volumeFields = {};
     if (this.selectedCloud) {
-      const { provider } = this.model.clouds[selectedCloud].provider;
+      const { provider } = this.model.clouds[selectedCloud];
       volumeFields = this.volumesFields.find(c => c.provider === provider);
     }
     // add cloud fields
