@@ -233,6 +233,12 @@ VOLUME_CREATE_FIELDS.push({
   fields: [],
 });
 
+// VULTR
+VOLUME_CREATE_FIELDS.push({
+  provider: 'vultr',
+  fields: [],
+});
+
 // CLOUDSIGMA
 VOLUME_CREATE_FIELDS.push({
   provider: 'cloudsigma',
@@ -580,6 +586,7 @@ VOLUME_CREATE_FIELDS.forEach(p => {
     (p.provider === 'equinixmetal' && 100) ||
     (p.provider === 'aliyun_ecs' && 5) ||
     (p.provider === 'linode' && 10) ||
+    (p.provider === 'vultr' && 10) ||
     1;
   p.fields.splice(0, 0, {
     name: 'size',
