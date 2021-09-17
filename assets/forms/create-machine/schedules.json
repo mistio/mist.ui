@@ -1,0 +1,110 @@
+{
+    "type": "object",
+    "id": "schedules",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "scheduleSubform": {
+            "scheduleType": {
+                "type": "string",
+                "format": "radioGroup",
+                "enum":["one_off", "crontab", "interval"]
+            },
+            "action": {
+                "type": "string",
+                "format": "dropdown",
+                "enum": ["start", "stop", "reboot", "destroy", "run script"]
+            },
+            "taskScriptContainer": {
+                "name": "script",
+                "type": "object",
+                "format": "subformContainer",
+                "hasToggle": false,
+                "hidden": true,
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "showTaskScriptContainer",
+                    "dependsOn": ".action"
+                  }
+                ],
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/taskScriptSubform"
+                  }
+                }
+              },
+              "taskScriptSubform": {
+                "type": "object",
+                "format": "subform",
+                "properties": {
+                    "script": {
+                        "type": "string",
+                        "format": "script-dropdown",
+                        "required": true
+                    },
+                    "params": {
+                        "type": "string",
+                        "label": "Parameters"
+                    }
+                }
+              },
+              "oneOffContainer": {
+                "name": "script",
+                "type": "object",
+                "format": "subformContainer",
+                "hasToggle": false,
+                "hidden": true,
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "showOneOffContainer",
+                    "dependsOn": ".scheduleType"
+                  }
+                ],
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/oneOffSubform"
+                  }
+                }
+              },
+              "crontabContainer": {
+                "name": "script",
+                "type": "object",
+                "format": "subformContainer",
+                "hasToggle": false,
+                "hidden": true,
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "showCrontabContainer",
+                    "dependsOn": ".scheduleType"
+                  }
+                ],
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/crontabSubform"
+                  }
+                }
+              },
+              "intervalContainer": {
+                "name": "script",
+                "type": "object",
+                "format": "subformContainer",
+                "hasToggle": false,
+                "hidden": true,
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "showIntervalContainer",
+                    "dependsOn": ".scheduleType"
+                  }
+                ],
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/intervalSubform"
+                  }
+                }
+              }
+        }
+    }
+}

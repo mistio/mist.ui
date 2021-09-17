@@ -1,0 +1,269 @@
+{
+    "type": "object",
+    "id": "networks",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "networkSubform": {
+            "id": "network_subform",
+            "type": "object",
+            "format": "subform",
+            "properties": {
+              "security_group": {
+                "type": "string",
+                "format": "dropdown",
+                "label": "Security group",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotAmazon",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getAmazonSecurityGroups",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "azureNetwork": {
+                "type": "string",
+                "name": "network",
+                "label": "Network",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotAzure",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "network": {
+                "type": "string",
+                "name": "network",
+                "format": "dropdown",
+                "label": "Network",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideNetwork",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getNetworks",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "equinixNetworks": {
+                "name": "ip_addresses",
+                "type": "object",
+                "format": "multiRow",
+                "label": "Ip Adresses",
+                "hideHeader": true,
+                "hasToggle": false,
+                "numbered": true,
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/equinixNetworkRow"
+                  }
+                },
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotEquinix",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+
+              "KVMNetworks": {
+                "name": "networks",
+                "type": "object",
+                "format": "multiRow",
+                "label": "Networks",
+                "hideHeader": true,
+                "hasToggle": false,
+                "numbered": true,
+                "properties": {
+                  "subform": {
+                    "$ref": "#/definitions/KVMNetworkRow"
+                  }
+                },
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotKVM",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "vnfs": {
+                "type": "array",
+                "label": "VNFS",
+                "format": "checkboxGroup",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotKVM",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "subnet": {
+                "type": "string",
+                "format": "dropdown",
+                "label": "subnet",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotAmazon",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getSubnets",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "subnetwork": {
+                "type": "string",
+                "format": "dropdown",
+                "label": "Subnetwork",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotGoogle",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getSubnets",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "private_ip": {
+                "type": "boolean",
+                "label": "Private Ip",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotLinode",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "security_groups": {
+                "type": "string",
+                "format": "dropdown",
+                "label": "Security groups",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotOpenstack",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getAmazonSecurityGroups",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "openStackNetworks": {
+                "type": "string",
+                "name": "networks",
+                "format": "dropdown",
+                "label": "networks",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotOpenstack",
+                    "dependsOn": "cloudContainer.cloud"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getNetworks",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "associate_floating_ip": {
+                "type": "boolean",
+                "label": "Associate floating ip",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideIfNotOpenstack",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              }
+            }
+          },
+          "equinixNetworkRow": {
+            "type": "object",
+            "format": "rowDefinition",
+            "properties": {
+              "address_family": {
+                "type": "number",
+                "format": "radioGroup",
+                "required": true,
+                "enum": [
+                  {
+                    "id": 4,
+                    "title": "IPv4"
+                  },
+                  {
+                    "id": 6,
+                    "title": "IPv6"
+                  }
+                ]
+              },
+              "public": {
+                "type": "boolean",
+                "required": true
+              },
+              "cidr": {
+                "type": "string",
+                "required": true,
+                "deps": [
+                  {
+                    "func": "getCidrRestrictions",
+                    "dependsOn": "address_family"
+                  }
+                ]
+              }
+            }
+          },
+          "KVMNetworkRow": {
+            "type": "object",
+            "format": "rowDefinition",
+            "properties": {
+              "network": {
+                "type": "string",
+                "format": "dropdown",
+                "required": true,
+                "deps": [
+                  {
+                    "prop": "enum",
+                    "func": "getKVMNetworks",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "ip": {
+                "type": "string"
+              },
+              "gateway": {
+                "type": "string"
+              },
+              "primary": {
+                "type": "string"
+              }
+            }
+          }
+    }
+}

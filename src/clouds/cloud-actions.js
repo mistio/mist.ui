@@ -280,6 +280,7 @@ Polymer({
       const removeExplanation = `Removing clouds will not affect your resources, but you will no longer be able to manage them with ${this.portalName}.`;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
+      console.log("action.name ", action.name)
       if (
         action.confirm &&
         action.name === 'remove' &&

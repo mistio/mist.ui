@@ -1,7 +1,7 @@
 import { MACHINE_NAME_REGEX_PATTERNS } from './machine-name-regex-patterns.js';
 
 const MACHINE_CREATE_FORM_DATA = data => ({
-  src: './assets/forms/create-machine.json',
+  src: './assets/forms/create-machine/create-machine.json',
   formData: {
     dynamicData: {
         clouds: {
@@ -85,14 +85,47 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         showNetworkContainer: {
           func: cloudId => {
             const provider = data._getProviderById(cloudId);
-            const cloudsWithNetworks = ['ec2', 'azure','digitalocean', 'equinixmetal','gce','linode','openstack']
+            console.log("provider ", provider)
+            const cloudsWithNetworks = ['ec2', 'azure_arm','equinixmetal','gce', 'libvirt', 'linode','openstack'];
             return !cloudsWithNetworks.includes(provider);
           }
         },
+        // Add min max limits here
+        getCidrRestrictions: {
+          func: address_type => {
+            if (address_type === 4){
+              return;
+          } else {
+            return;
+          }
+        }
+      },
+      hideNetwork: {
+        func: cloudId => !['gce', 'azure_arm'].includes(data._getProviderById(cloudId))
+      },
+      getNetworks: {
+        // This field is for multiple providers
+        func: cloudId => {
+          const cloud = data._getCloudById(cloudId);
+          const networks = [];
+          const provider = data._getProviderById(cloudId);
+          if (provider === 'gce') {
+            if (cloud.networks.length ) {
+              for (const [key, network] of Object.entries(cloud.networks)) {
+                networks.push({
+                  title: network.name,
+                  id: network.id
+                })
+            }
+          }
+          }
+          return networks;
+        }
+      },
         showVolumeContainer: {
           func: cloudId => {
             const provider = data._getProviderById(cloudId);
-            const cloudsWithVolumes = ['ec2', 'azure','digitalocean', 'equinixmetal','gce','linode','openstack']
+            const cloudsWithVolumes = ['ec2', 'azure_arm','digitalocean', 'equinixmetal','gce','linode','openstack']
             return !cloudsWithVolumes.includes(provider);
           },
         },
@@ -120,10 +153,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         }
         },
         hideIfNotAzure: {
-          func: cloudId => {
-            console.log("hideIfNotAzure ", data._getProviderById(cloudId) !== 'azure');
-            return data._getProviderById(cloudId) !== 'azure';
-          }
+          func: cloudId => data._getProviderById(cloudId) !== 'azure_arm'
         },
         hideIfNotDigitalOcean: {
           func: cloudId => data._getProviderById(cloudId) !== 'digitalocean'
@@ -138,6 +168,9 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         hideIfNotLinode: {
           func: cloudId =>  data._getProviderById(cloudId) !== 'linode'
         },
+        hideIfNotKVM: {
+          func: cloudId =>  data._getProviderById(cloudId) !== 'libvirt'
+        },
         hideIfNotOpenstack: {
           func: cloudId =>  {
             console.log("data._getProviderById(cloudId) !== 'openstack' ", data._getProviderById(cloudId) !== 'openstack');
@@ -146,13 +179,28 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         },
         getAmazonSecurityGroups: {
           func: cloudId => {
-            return [];
-          }
+            return cloudId ? data._getAmazonSecurityGroups(cloudId) : [];
+          },
+          type: 'promise'
         },
-        getAmazonSubnets: {
+        getSubnets: {
           func: cloudId => {
-            return [];
+            const cloud = data._getCloudById(cloudId);
+            const subnets = [];
+            if (cloud.networks.length ) {
+              for (const [key, network] of Object.entries(cloud.networks)) {
+                if (network.subnets) {
+                  for (const [key, subnet] of Object.entries(network.subnets)) {
+                    // There's also an availability zone property in subnets containing location names, does it mean subnets are based on location too?
+                    subnets.push({
+                      title: subnet.name,
+                      id: subnet.id
+                    })
+                }
+              }
+            }
           }
+          return subnets;
         },
         getAzureNetworks: {
           func: cloudId => {
@@ -161,7 +209,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         },
         getGoogleNetworks: {
           func: cloudId => {
-            return [];
+            return ["a", "b", "c"];
           }
         },
         getGoogleSubnetworks: {

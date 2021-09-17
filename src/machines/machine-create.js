@@ -189,6 +189,15 @@ Polymer({
             </div>
           </mist-form>
       </paper-material>
+      <iron-ajax
+      id="getSecurityGroups"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetSecurityGroupsRequest"
+      on-response="_handleGetSecurityGroupsResponse"
+      on-error="_handleGetSecurityGroupsError"
+    ></iron-ajax>
     </div>
   `,
 
@@ -2496,12 +2505,17 @@ Polymer({
     }
   },
 
-  _getSecurityGroups(cloudId, index) {
-    this.set('securityGroupsFieldIndex', index);
+  async _getAmazonSecurityGroups(cloudId) {
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';
     this.$.getSecurityGroups.headers['Csrf-Token'] = CSRFToken.value;
     this.$.getSecurityGroups.url = `/api/v1/clouds/${cloudId}/security-groups`;
-    this.$.getSecurityGroups.generateRequest();
+    const promise = await this.$.getSecurityGroups.generateRequest().completes;
+    const secGroups = promise.response.map(secGroup => ({
+      title: secGroup.name,
+      id: secGroup.id
+    }));
+
+    return secGroups || [];
   },
 
   _handleGetSecurityGroupsRequest(_e) {
@@ -2509,6 +2523,7 @@ Polymer({
   },
 
   _handleGetSecurityGroupsResponse(e) {
+    return;
     const secGroups = [];
     if (
       this.cloud.provider === 'openstack' ||

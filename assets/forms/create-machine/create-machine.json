@@ -1,0 +1,300 @@
+{
+  "type": "object",
+  "id": "create-machine-form",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Create machine form",
+  "submitButtonLabel": "Launch",
+  "canClose": false,
+  "additionalProperties": false,
+  "properties": {
+    "cloudContainer": {
+      "name": "cloudContainer",
+      "label": "",
+      "id": "cloud_container",
+      "type": "object",
+      "format": "subformContainer",
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/cloudSubform"
+        }
+      }
+    },
+    "setupMachineContainer": {
+      "name": "setupMachine",
+      "label": "Machine Setup",
+      "id": "setup_machine_container",
+      "type": "object",
+      "format": "subformContainer",
+      "hasToggle": false,
+      "hidden": true,
+      "deps": [
+        {
+          "prop": "hidden",
+          "func": "showSetupMachineContainer",
+          "dependsOn": "cloudContainer.cloud"
+        }
+      ],
+      "properties": {
+        "subform": {
+          "$ref": "./assets/forms/create-machine/setup-machine.json#/definitions/setupMachineSubform"
+        }
+      }
+    },
+    "mistFieldsContainer": {
+      "name": "mist_fields_Container",
+      "label": "",
+      "id": "mist_fields_container",
+      "type": "object",
+      "format": "subformContainer",
+      "classes": "stacked",
+      "properties": {
+        "subform": {
+          "$ref": "#/definitions/mistFieldsSubform"
+        }
+      },
+      "deps": [
+        {
+          "prop": "hidden",
+          "func": "showSetupMachineContainer",
+          "dependsOn": "cloudContainer.cloud"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "cloudSubform": {
+      "id": "cloud_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "name": {
+          "name": "name",
+          "label": "Machine Name",
+          "type": "string",
+          "required": true,
+          "charCounter": true,
+          "helptext": "Fill in the machine's name",
+          "minlength": 1,
+          "maxlength": 9,
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          },
+          "deps": [
+            {
+              "func": "getNameRegex",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "cloud": {
+          "label": "Cloud",
+          "id": "cloud",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "clouds"
+        }
+      }
+    },
+    "setExpirationSubform": {
+      "id": "set_expiration_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "action": {
+          "id": "action",
+          "type": "string",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getActions",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "in": {
+          "name": "in",
+          "id": "in",
+          "label": "in",
+          "type": "string",
+          "format": "durationField"
+        },
+        "notify": {
+          "label": "Notify me",
+          "name": "notify",
+          "id": "notify",
+          "value": true,
+          "type": "boolean",
+          "noLabelFloat": true
+        },
+        "before": {
+          "name": "before",
+          "id": "before",
+          "label": "before",
+          "type": "string",
+          "format": "durationField"
+        }
+      }
+    },
+    "postDeployInlineScript": {
+      "id": "post_deploy_inline_script",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "inlineScript": {
+          "label": "Inline Script",
+          "id": "inline_script",
+          "type": "string"
+        }
+      }
+    },
+    "postDeploySelectExisting": {
+      "id": "post_deploy_select_existing",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "script": {
+          "label": "Script",
+          "id": "post_deploy_script",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getScripts"
+        },
+        "optionalScriptParams": {
+          "label": "Optional Script Params",
+          "id": "optional_script_params",
+          "type": "string"
+        }
+      }
+    },
+
+    "createDNSRecordSubform": {
+      "id": "create_dns_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "recordName": {
+          "label": "Record name",
+          "name": "recordName",
+          "id": "record_name",
+          "type": "string"
+        },
+        "dnsZone": {
+          "label": "DNS zone",
+          "name": "dnsZone",
+          "id": "dns_zone",
+          "type": "string",
+          "format": "dropdown",
+          "x-mist-enum": "getZones"
+        }
+      }
+    },
+    "mistFieldsSubform": {
+      "id": "mist_fields_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "attachVolumeContainer": {
+          "name": "attachVolumeContainer",
+          "label": "Attach volume",
+          "id": "attachVolume_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "subform": {
+              "$ref": "./assets/forms/create-machine/volumes.json#/definitions/attachVolumeSubform"
+            }
+          },
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeContainer",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "setExpirationContainer": {
+          "name": "setExpirationContainer",
+          "label": "Set expiration",
+          "id": "setExpiration_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/setExpirationSubform"
+            }
+          }
+        },
+        "postDeployScriptContainer": {
+          "name": "postDeployScriptContainer",
+          "label": "Run post-deploy script",
+          "id": "postDeployScript_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "tabs": {
+              "enum": [
+                {
+                  "label": "Inline Script",
+                  "$ref": "#/definitions/postDeployInlineScript"
+                },
+                {
+                  "label": "Select Existing",
+                  "$ref": "#/definitions/postDeploySelectExisting"
+                }
+              ]
+            }
+          }
+        },
+        "scheduleTaskContainer": {
+          "name": "scheduleTaskContainer",
+          "label": "Schedule a task",
+          "id": "scheduleTask_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "subform": {
+              "$ref": "./assets/forms/create-machine/schedule-tasks.json#/definitions/scheduleTaskSubform"
+            }
+          }
+        },
+        "fqdn": {
+          "name": "createDNSRecordContainer",
+          "label": "Create DNS record",
+          "id": "createDNSRecord_container",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/createDNSRecordSubform"
+            }
+          }
+        },
+        "cloudInit": {
+          "label": "Run this Cloud Init script on first boot",
+          "type": "string"
+        },
+        "enableMonitoring": {
+          "label": "Enable Monitoring",
+          "name": "enableMonitoring",
+          "id": "enable_monitoring",
+          "value": false,
+          "type": "boolean"
+        },
+        "save": {
+          "label": "Save provisioning plan as template",
+          "id": "save_plan",
+          "value": false,
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
