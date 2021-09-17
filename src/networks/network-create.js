@@ -467,6 +467,47 @@ NETWORK_CREATE_FIELDS.push({
     },
   ],
 });
+
+// VULTR
+NETWORK_CREATE_FIELDS.push({
+  provider: 'vultr',
+  fields: [
+    {
+      name: 'name',
+      label: 'Name *',
+      type: 'text',
+      value: '',
+      defaultValue: '',
+      placeholder: '',
+      errorMessage: "Please enter network's name",
+      show: true,
+      required: true,
+      inPayloadGroup: 'network',
+    },
+    {
+      name: 'cidr',
+      label: 'Network CIDR',
+      type: 'ip_textarea',
+      value: '',
+      defaultValue: '',
+      placeholder: '172.16.0.0/12',
+      show: true,
+      required: true,
+      inPayloadGroup: 'network',
+    },
+    {
+      name: 'location',
+      label: 'Location *',
+      type: 'mist_dropdown',
+      value: '',
+      defaultValue: '',
+      show: true,
+      required: true,
+      options: [],
+      inPayloadGroup: 'network',
+    },
+  ],
+});
 Polymer({
   _template: html`
     <style include="shared-styles forms single-page">
@@ -617,7 +658,7 @@ Polymer({
       this.model &&
       this.model.cloudsArray.filter(
         cloud =>
-          ['openstack', 'gce', 'ec2', 'lxd', 'aliyun_ecs'].indexOf(
+          ['openstack', 'gce', 'ec2', 'lxd', 'aliyun_ecs', 'vultr'].indexOf(
             cloud.provider
           ) > -1
       );
@@ -655,10 +696,11 @@ Polymer({
     let fieldName;
     if (
       this.fieldIndexByName('region') > -1 ||
-      this.fieldIndexByName('availability_zone') > -1
+      this.fieldIndexByName('availability_zone') > -1 ||
+      this.fieldIndexByName('location') > -1
     ) {
       fieldName =
-        this.fieldIndexByName('region') > -1 ? 'region' : 'availability_zone';
+        this.fieldIndexByName('region') > -1 ? 'region' : this.fieldIndexByName('availability_zone') > -1 ? 'availability_zone' : 'location';
     }
     if (cloudName === 'ec2' || cloudName === 'aliyun_ecs')
       this.set(
@@ -676,6 +718,12 @@ Polymer({
           }
         });
       this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, regions);
+    }
+    if (cloudName === 'vultr') {
+      this.set(
+        `fields.${this.fieldIndexByName(fieldName)}.options`,
+        this.model.clouds[selectedCloud].locationsArray
+      );
     }
   },
 
