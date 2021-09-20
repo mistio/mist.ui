@@ -42,9 +42,9 @@ const CLOUD_ACTIONS = {
     confirm: false,
     multi: false,
   },
-  delete: {
-    name: 'delete',
-    icon: 'delete',
+  remove: {
+    name: 'remove',
+    icon: 'remove',
     confirm: true,
     multi: true,
   },
@@ -82,11 +82,11 @@ Polymer({
       on-error="_handleCloudEditAjaxError"
     ></iron-ajax>
     <iron-ajax
-      id="cloudDeleteAjaxRequest"
+      id="cloudRemoveAjaxRequest"
       url="/api/v1/clouds/[[cloud.id]]"
       method="DELETE"
-      on-response="_handleCloudDeletionAjaxResponse"
-      on-error="_handleCloudDeletionAjaxError"
+      on-response="_handleCloudRemovalAjaxResponse"
+      on-error="_handleCloudRemovalAjaxError"
     ></iron-ajax>
 
     <vaadin-dialog id="renameDialog" theme="mist-dialog" with-backdrop="">
@@ -141,11 +141,11 @@ Polymer({
     </vaadin-dialog>
 
     <iron-ajax
-      id="cloudDeleteAjaxRequest"
+      id="cloudRemoveAjaxRequest"
       url="/api/v1/clouds/[[cloud.id]]"
       method="DELETE"
-      on-response="_handleCloudDeletionAjaxResponse"
-      on-error="_handleCloudDeletionAjaxError"
+      on-response="_handleCloudRemovalAjaxResponse"
+      on-error="_handleCloudRemovalAjaxError"
     ></iron-ajax>
     <dialog-element id="confirm"></dialog-element>
     <tags-form
@@ -249,7 +249,7 @@ Polymer({
       )
         arr.push('add_hosts');
       if (!this._isBareMetal(cloud.provider)) arr.push('edit_credentials');
-      arr.push('delete');
+      arr.push('remove');
     }
     return arr;
   },
@@ -277,21 +277,21 @@ Polymer({
   selectAction(e) {
     if (this.items.length) {
       const { action } = e.detail;
-      const deleteExplanation = `Deleting clouds will not affect your resources, but you will no longer be able to manage them with ${this.portalName}.`;
+      const removeExplanation = `Removing clouds will not affect your resources, but you will no longer be able to manage them with ${this.portalName}.`;
       this.set('action', action);
       // console.log('perform action mist-action', this.items);
       if (
         action.confirm &&
-        action.name === 'delete' &&
+        action.name === 'remove' &&
         this.items.length === 1
       ) {
         this._showDialog({
-          title: 'Delete cloud?',
-          body: 'Deleting a cloud can not be undone.',
-          subscript: deleteExplanation,
+          title: 'Remove cloud?',
+          body: 'Removing a cloud can not be undone.',
+          subscript: removeExplanation,
           danger: true,
           list: this._makeList(this.items, 'title'),
-          reason: 'cloud.delete',
+          reason: 'cloud.remove',
         });
       } else if (action.confirm && action.name !== 'tag') {
         const plural = this.items.length === 1 ? '' : 's';
@@ -301,7 +301,7 @@ Polymer({
           title: `${this.action.name} ${count}${this.resourceType}${plural}?`,
           body: `You are about to ${this.action.name} ${this.items.length} ${this.resourceType}${plural}:`,
           subscript: `${
-            this.action.name === 'delete' ? deleteExplanation : null
+            this.action.name === 'remove' ? removeExplanation : null
           }`,
           list: this._makeList(this.items, 'title'),
           action: action.name,
@@ -333,7 +333,7 @@ Polymer({
     this.$.renameDialog.opened = false;
     this.$.credentialsDialog.opened = false;
     this.$.addhostsDialog.opened = false;
-    this.$.cloudDeleteAjaxRequest.opened = false;
+    this.$.cloudRemoveAjaxRequest.opened = false;
   },
 
   _showDialog(info) {
@@ -349,19 +349,19 @@ Polymer({
   performAction(action, items) {
     if (action.name === 'rename') {
       this.$.renameDialog.opened = true;
-    } else if (action.name === 'delete') {
+    } else if (action.name === 'remove') {
       const l = items.length;
       for (let i = 0; i < l; i++) {
-        this._deleteCloud();
+        this._removeCloud();
         this.set('items', this.splice('items', 1));
       }
     }
   },
 
-  _deleteCloud() {
+  _removeCloud() {
     const cid = this.cloud.id;
     this.dispatchEvent(
-      new CustomEvent('cloud-delete', {
+      new CustomEvent('cloud-remove', {
         bubbles: true,
         composed: true,
         detail: {
@@ -369,9 +369,9 @@ Polymer({
         },
       })
     );
-    this.$.cloudDeleteAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.cloudDeleteAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
-    this.$.cloudDeleteAjaxRequest.generateRequest();
+    this.$.cloudRemoveAjaxRequest.headers['Content-Type'] = 'application/json';
+    this.$.cloudRemoveAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.cloudRemoveAjaxRequest.generateRequest();
   },
 
   handleResponse() {
@@ -398,7 +398,7 @@ Polymer({
       );
   },
 
-  _handleCloudDeletionAjaxResponse() {
+  _handleCloudRemovalAjaxResponse() {
     let title = '';
     if (this.cloud && this.cloud.title) title = this.cloud.title;
 
@@ -418,20 +418,20 @@ Polymer({
         bubbles: true,
         composed: true,
         detail: {
-          msg: `Cloud ${title} was deleted`,
+          msg: `Cloud ${title} was removed`,
           duration: 3000,
         },
       })
     );
   },
 
-  _handleCloudDeletionAjaxError() {
+  _handleCloudRemovalAjaxError() {
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
         composed: true,
         detail: {
-          msg: `There was an error deleting ${this.cloud.title}.`,
+          msg: `There was an error removing ${this.cloud.title}.`,
           duration: 3000,
         },
       })
