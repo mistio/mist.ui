@@ -3016,7 +3016,6 @@ Polymer({
         }
       }
     })
-    console.log("tralaal volumes ", volumes)
     return volumes;
   },
   addInput(e) {

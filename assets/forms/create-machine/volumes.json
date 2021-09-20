@@ -1,298 +1,297 @@
-
- {
-    "type": "object",
-    "id": "volumes",
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "definitions": {
-        "attachVolumeSubform": {
-            "id": "attach_volume_subform",
-            "type": "object",
-            "format": "subform",
-            "properties": {
-              "tabs": {
-                "name": "tabs",
-                "id": "attach_volume",
-                "type": "string",
-                "format": "radioGroup",
-                "hideHeader": true,
-                "value": "Create new volume",
-                "enum": [
-                  "Create new volume",
-                  "Attach existing volume"
-                ]
-              },
-              "attachNewVolumeContainer": {
-                "name": "attachNewVolumeContainer",
-                "id": "attach_new_volume_container",
-                "type": "object",
-                "format": "multiRow",
-                "hidden": true,
-                "hideHeader": true,
-                "hasToggle": false,
-                "numbered": true,
-                "properties": {
-                  "subform": {
-                    "$ref": "#/definitions/attachNewVolumeRow"
-                  }
-                },
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideAttachNewVolumeContainer",
-                    "dependsOn": ".tabs"
-                  }
-                ]
-              },
-              "attachExistingVolumeContainer": {
-                "name": "attachExistingVolumeContainer",
-                "id": "attach_existing_volume_container",
-                "type": "object",
-                "format": "multiRow",
-                "hidden": true,
-                "hideHeader": true,
-                "hasToggle": false,
-                "numbered": true,
-                "properties": {
-                  "subform": {
-                    "$ref": "#/definitions/attachExistingVolumeRow"
-                  }
-                },
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideAttachExistingVolumeContainer",
-                    "dependsOn": ".tabs"
-                  }
-                ]
-              }
+{
+  "type": "object",
+  "id": "volumes",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "attachVolumeSubform": {
+      "id": "attach_volume_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "tabs": {
+          "name": "tabs",
+          "id": "attach_volume",
+          "type": "string",
+          "format": "radioGroup",
+          "hideHeader": true,
+          "value": "Create new volume",
+          "enum": [
+            "Create new volume",
+            "Attach existing volume"
+          ]
+        },
+        "attachNewVolumeContainer": {
+          "name": "attachNewVolumeContainer",
+          "id": "attach_new_volume_container",
+          "type": "object",
+          "format": "multiRow",
+          "hidden": true,
+          "hideHeader": true,
+          "hasToggle": false,
+          "numbered": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/attachNewVolumeRow"
             }
           },
-          "attachExistingVolumeRow": {
-            "id": "attach_existing_volume_subform",
-            "type": "object",
-            "format": "rowDefinition",
-            "properties": {
-              "volume": {
-                "id": "volume",
-                "type": "string",
-                "label": "Existing Volume",
-                "format": "dropdown",
-                "deps": [
-                  {
-                    "prop": "enum",
-                    "func": "getVolumesFromLocations",
-                    "dependsOn": "setupMachine.location"
-                  }
-                ]
-              },
-              "device": {
-                "type": "string",
-                "label": "Device name",
-                "value": "/dev/sdf",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotAmazon",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "boot": {
-                "type": "boolean",
-                "label": "Boot drive",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "showVolumeBoot",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "persist_across_boots": {
-                "type": "boolean",
-                "label": "Persist across boots",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotLinode",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "delete_on_termination_2": {
-                "type": "boolean",
-                "label": "Delete on termination in existing",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotOpenstack",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              }
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideAttachNewVolumeContainer",
+              "dependsOn": ".tabs"
+            }
+          ]
+        },
+        "attachExistingVolumeContainer": {
+          "name": "attachExistingVolumeContainer",
+          "id": "attach_existing_volume_container",
+          "type": "object",
+          "format": "multiRow",
+          "hidden": true,
+          "hideHeader": true,
+          "hasToggle": false,
+          "numbered": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/attachExistingVolumeRow"
             }
           },
-          "attachNewVolumeRow": {
-            "id": "create_new_volume_subform",
-            "type": "object",
-            "format": "rowDefinition",
-            "properties": {
-              "name": {
-                "type": "string",
-                "label": "Device name",
-                "value": "/dev/sdf",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "showDeviceNameInNewVolume",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "size": {
-                "type": "string",
-                "format": "number",
-                "label": "Size of the volume in GBs"
-              },
-              "volume_type": {
-                "type": "string",
-                "format": "dropdown",
-                "label": "Volume type",
-                "enum": [
-                  "gp2",
-                  "io1",
-                  "st1",
-                  "sc1",
-                  "standard"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotAmazon",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "iops": {
-                "type": "string",
-                "format": "number",
-                "label": "Number of I/O operations per second",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotAmazon",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "delete_on_termination": {
-                "type": "boolean",
-                "label": "Delete on termination in new",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "showDeleteTerminationInNewVolume",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "caching_type": {
-                "type": "string",
-                "label": "Caching type",
-                "format": "dropdown",
-                "enum": [
-                  "None",
-                  "ReadOnly",
-                  "ReadWrite"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotAzure",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "storage_account_type": {
-                "type": "string",
-                "label": "Storage account type",
-                "format": "dropdown",
-                "enum": [
-                  "Premium_LRS",
-                  "Premium_ZRS",
-                  "StandardSSD_LRS",
-                  "StandardSSD_ZRS",
-                  "Standard_LRS",
-                  "UltraSSD_LRS"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotAzure",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "filesystem_type": {
-                "type": "string",
-                "label": "Filesystem type",
-                "format": "dropdown",
-                "enum": [
-                  "ext4",
-                  "xfs"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotDigitalOcean",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "plan": {
-                "type": "string",
-                "label": "Plan",
-                "format": "dropdown",
-                "enum": [
-                  "standard",
-                  "performance"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotEquinix",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "boot": {
-                "type": "boolean",
-                "label": "Boot drive",
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "showVolumeBoot",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              },
-              "type": {
-                "type": "string",
-                "label": "Type",
-                "format": "dropdown",
-                "enum": [
-                  "pd-standard",
-                  "pd-ssd"
-                ],
-                "deps": [
-                  {
-                    "prop": "hidden",
-                    "func": "hideIfNotGoogle",
-                    "dependsOn": "cloudContainer.cloud"
-                  }
-                ]
-              }
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideAttachExistingVolumeContainer",
+              "dependsOn": ".tabs"
             }
-          }
+          ]
+        }
+      }
+    },
+    "attachExistingVolumeRow": {
+      "id": "attach_existing_volume_subform",
+      "type": "object",
+      "format": "rowDefinition",
+      "properties": {
+        "volume": {
+          "id": "volume",
+          "type": "string",
+          "label": "Existing Volume",
+          "format": "dropdown",
+          "deps": [
+            {
+              "prop": "enum",
+              "func": "getVolumesFromLocations",
+              "dependsOn": "setupMachine.location"
+            }
+          ]
+        },
+        "device": {
+          "type": "string",
+          "label": "Device name",
+          "value": "/dev/sdf",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "boot": {
+          "type": "boolean",
+          "label": "Boot drive",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeBoot",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "persist_across_boots": {
+          "type": "boolean",
+          "label": "Persist across boots",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotLinode",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "delete_on_termination_2": {
+          "type": "boolean",
+          "label": "Delete on termination in existing",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotOpenstack",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        }
+      }
+    },
+    "attachNewVolumeRow": {
+      "id": "create_new_volume_subform",
+      "type": "object",
+      "format": "rowDefinition",
+      "properties": {
+        "name": {
+          "type": "string",
+          "label": "Device name",
+          "value": "/dev/sdf",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showDeviceNameInNewVolume",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "size": {
+          "type": "string",
+          "format": "number",
+          "label": "Size of the volume in GBs"
+        },
+        "volume_type": {
+          "type": "string",
+          "format": "dropdown",
+          "label": "Volume type",
+          "enum": [
+            "gp2",
+            "io1",
+            "st1",
+            "sc1",
+            "standard"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "iops": {
+          "type": "string",
+          "format": "number",
+          "label": "Number of I/O operations per second",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAmazon",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "delete_on_termination": {
+          "type": "boolean",
+          "label": "Delete on termination in new",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showDeleteTerminationInNewVolume",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "caching_type": {
+          "type": "string",
+          "label": "Caching type",
+          "format": "dropdown",
+          "enum": [
+            "None",
+            "ReadOnly",
+            "ReadWrite"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAzure",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "storage_account_type": {
+          "type": "string",
+          "label": "Storage account type",
+          "format": "dropdown",
+          "enum": [
+            "Premium_LRS",
+            "Premium_ZRS",
+            "StandardSSD_LRS",
+            "StandardSSD_ZRS",
+            "Standard_LRS",
+            "UltraSSD_LRS"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotAzure",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "filesystem_type": {
+          "type": "string",
+          "label": "Filesystem type",
+          "format": "dropdown",
+          "enum": [
+            "ext4",
+            "xfs"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotDigitalOcean",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "plan": {
+          "type": "string",
+          "label": "Plan",
+          "format": "dropdown",
+          "enum": [
+            "standard",
+            "performance"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotEquinix",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "boot": {
+          "type": "boolean",
+          "label": "Boot drive",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "showVolumeBoot",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        },
+        "type": {
+          "type": "string",
+          "label": "Type",
+          "format": "dropdown",
+          "enum": [
+            "pd-standard",
+            "pd-ssd"
+          ],
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIfNotGoogle",
+              "dependsOn": "cloudContainer.cloud"
+            }
+          ]
+        }
+      }
     }
+  }
 }

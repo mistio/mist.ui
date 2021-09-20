@@ -187,7 +187,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           func: cloudId => {
             const cloud = data._getCloudById(cloudId);
             const subnets = [];
-            if (cloud.networks.length ) {
+            if (cloud && cloud.networks.length ) {
               for (const [key, network] of Object.entries(cloud.networks)) {
                 if (network.subnets) {
                   for (const [key, subnet] of Object.entries(network.subnets)) {
@@ -201,6 +201,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             }
           }
           return subnets;
+        }
         },
         getAzureNetworks: {
           func: cloudId => {
