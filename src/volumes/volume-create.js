@@ -56,7 +56,7 @@ Polymer({
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
           Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          Equinix Metal, LXD, Aliyun, Kubevirt, Linode, Vexxhost and
+          Equinix Metal, LXD, Aliyun, Kubevirt, Linode, Vexxhost, Vultr and
           DigitalOcean clouds
           <br />
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
@@ -294,6 +294,8 @@ Polymer({
             this.model.clouds[cloudId].provider === 'vexxhost'
           ) {
             locations = locations.filter(l => l.extra.storage === true);
+          } else if (this.model.clouds[cloudId].provider === 'vultr') {
+            locations = locations.filter(l => l.extra.option.includes('block_storage') === true);
           }
           f.options = locations;
         }
