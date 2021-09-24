@@ -44,7 +44,7 @@ const CLOUD_ACTIONS = {
   },
   remove: {
     name: 'remove',
-    icon: 'remove',
+    icon: 'delete',
     confirm: true,
     multi: true,
   },
