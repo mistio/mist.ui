@@ -467,41 +467,6 @@ Polymer({
             required: true,
           },
           {
-            name: 'type',
-            label: 'Type',
-            type: 'dropdown',
-            value: 'master',
-            defaultValue: 'master',
-            placeholder: '',
-            helptext:
-              'Select whether this zone will be used as a master DNS Zone or a Slave DNS zone.',
-            show: true,
-            required: false,
-            options: [
-              {
-                title: 'master',
-                val: 'master',
-              },
-              {
-                title: 'slave',
-                val: 'slave',
-              },
-            ],
-          },
-          {
-            name: 'ttl',
-            label: 'TTL',
-            type: 'text',
-            value: 0,
-            defaultValue: 0,
-            placeholder: '',
-            pattern: '[0-9]*',
-            helptext:
-              'Please provide the Time-To-Live value for this DNS Zone in seconds. This is often the DNS zone information will be refreshed in the DNS servers.',
-            show: true,
-            required: false,
-          },
-          {
             name: 'ip',
             label: 'IP',
             type: 'text',
