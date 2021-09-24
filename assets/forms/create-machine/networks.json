@@ -15,12 +15,12 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "hideIfNotAmazon",
+              "func": "hideSecurityGroup",
               "dependsOn": "cloudContainer.cloud"
             },
             {
               "prop": "enum",
-              "func": "getAmazonSecurityGroups",
+              "func": "getSecurityGroups",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -55,17 +55,15 @@
             }
           ]
         },
-        "equinixNetworks": {
-          "name": "ip_addresses",
+        "equinixNetworksContainer": {
+          "name": "equinixNetworksContainer",
+          "label": "",
+          "id": "equinix_networks_container",
           "type": "object",
-          "format": "multiRow",
-          "label": "Ip Adresses",
-          "hideHeader": true,
-          "hasToggle": false,
-          "numbered": true,
+          "format": "subformContainer",
           "properties": {
             "subform": {
-              "$ref": "#/definitions/equinixNetworkRow"
+              "$ref": "#/definitions/equnixNetworksSubform"
             }
           },
           "deps": [
@@ -100,7 +98,7 @@
         "vnfs": {
           "type": "array",
           "label": "VNFS",
-          "format": "checkboxGroup",
+          "format": "dropdown",
           "deps": [
             {
               "prop": "hidden",
@@ -116,7 +114,7 @@
           "deps": [
             {
               "prop": "hidden",
-              "func": "hideIfNotAmazon",
+              "func": "hideSecurityGroup",
               "dependsOn": "cloudContainer.cloud"
             },
             {
@@ -156,17 +154,13 @@
         },
         "security_groups": {
           "type": "string",
-          "format": "dropdown",
+          "format": "checkboxGroup",
           "label": "Security groups",
+          "enum": ["Default security group", "HTTP(S)", "SSH"],
           "deps": [
             {
               "prop": "hidden",
               "func": "hideIfNotOpenstack",
-              "dependsOn": "cloudContainer.cloud"
-            },
-            {
-              "prop": "enum",
-              "func": "getAmazonSecurityGroups",
               "dependsOn": "cloudContainer.cloud"
             }
           ]
@@ -202,38 +196,49 @@
         }
       }
     },
-    "equinixNetworkRow": {
+    "equnixNetworksSubform": {
       "type": "object",
-      "format": "rowDefinition",
+      "format": "subform",
       "properties": {
-        "address_family": {
-          "type": "number",
-          "format": "radioGroup",
-          "required": true,
-          "enum": [
-            {
-              "id": 4,
-              "title": "IPv4"
-            },
-            {
-              "id": 6,
-              "title": "IPv6"
-            }
-          ]
-        },
-        "public": {
+        "publicIPv4":{
           "type": "boolean",
-          "required": true
+          "label": "Public IPv4"
         },
-        "cidr": {
+        "ipv4SubnetSize": {
           "type": "string",
-          "required": true,
+          "format": "dropdown",
+          "label": "IPv4 Subnet Size",
+          "enum": ["/28", "/29", "/30", "/31"],
           "deps": [
             {
-              "func": "getCidrRestrictions",
-              "dependsOn": "address_family"
+              "prop": "hidden",
+              "func": "hideipv4SubnetSize",
+              "dependsOn": ".publicIPv4"
             }
           ]
+        },
+        "publicIPv6":{
+          "type": "boolean",
+          "label": "Public IPv4"
+        },
+        "ipv6SubnetSize": {
+          "type": "string",
+          "format": "dropdown",
+          "label": "IPv6 Subnet Size",
+          "x-mist-enum": "getipv6Subnets",
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideipv6SubnetSize",
+              "dependsOn": ".publicIPv6"
+            }
+          ]
+        },
+        "privateIpv4SubnetSize": {
+          "type": "string",
+          "format": "dropdown",
+          "label": "Private IPv4 Subnet Size",
+          "enum": ["/28", "/29", "/30", "/31"]
         }
       }
     },

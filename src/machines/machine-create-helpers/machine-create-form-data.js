@@ -23,6 +23,18 @@ const MACHINE_CREATE_FORM_DATA = data => ({
 
             )
           }),
+        },
+        getipv6Subnets: {
+          func: new Promise(resolve => {
+            // Wait until clouds have loaded here
+            resolve(() => {
+              const arr = [];
+              for(let i = 64; i < 128; i++) {
+                arr.push(`\${i}`)
+              }
+              return arr;
+            })
+          }),
         }
       },
       conditionals: {
@@ -37,9 +49,6 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         return pattern;
           }
       },
-        showQuantity: {
-          func: cloudId => {return false;},
-        },
         getLocationsFromCloud: {
           func: cloudId => {
             if (!cloudId) { return;}
@@ -49,7 +58,6 @@ const MACHINE_CREATE_FORM_DATA = data => ({
                 {...location, title:location.name}
               )
             );
-            console.log("locations ", locations)
             return locations;
           }
         },
@@ -82,18 +90,18 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         getSizesFromLocation: {
           func: cloudId => { return ["a", "b", "c"]},
         },
-        showNetworkContainer: {
+        hideNetworkContainer: {
           func: cloudId => {
             const provider = data._getProviderById(cloudId);
             console.log("provider ", provider)
-            const cloudsWithNetworks = ['ec2', 'azure_arm','equinixmetal','gce', 'libvirt', 'linode','openstack'];
+            const cloudsWithNetworks = ['ec2', 'azure_arm','equinixmetal','gce', 'libvirt', 'linode','openstack', 'aliyun_ecs'];
             return !cloudsWithNetworks.includes(provider);
           }
         },
         // Add min max limits here
         getCidrRestrictions: {
-          func: address_type => {
-            if (address_type === 4){
+          func: addressType => {
+            if (addressType === 4){
               return;
           } else {
             return;
@@ -101,7 +109,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         }
       },
       hideNetwork: {
-        func: cloudId => !['gce', 'azure_arm'].includes(data._getProviderById(cloudId))
+        func: cloudId => !['gce', 'aliyun_ecs'].includes(data._getProviderById(cloudId))
       },
       getNetworks: {
         // This field is for multiple providers
@@ -125,7 +133,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         showVolumeContainer: {
           func: cloudId => {
             const provider = data._getProviderById(cloudId);
-            const cloudsWithVolumes = ['ec2', 'azure_arm','digitalocean', 'equinixmetal','gce','linode','openstack']
+            const cloudsWithVolumes = ['ec2', 'azure_arm','digitalocean', 'equinixmetal','gce','linode','openstack', 'aliyun_ecs']
             return !cloudsWithVolumes.includes(provider);
           },
         },
@@ -136,15 +144,14 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           func: tab => tab !== "Create new volume"
         },
         showDeviceNameInNewVolume: {
-          func: cloudId => ['equinixmetal', 'openstack'].includes(data._getProviderById(cloudId))
+          func: cloudId => ['equinixmetal', 'openstack', 'aliyun_ecs'].includes(data._getProviderById(cloudId))
         },
         showVolumeBoot: {
           func: cloudId => !['gce', 'openstack'].includes(data._getProviderById(cloudId))
         },
-        showDeleteTerminationInNewVolume: {
+        hideDeleteTerminationInNewVolume: {
           func: cloudId => {
-            console.log("!['ec2', 'openstack'].includes(data._getProviderById(cloudId)) ", !['ec2', 'openstack'].includes(data._getProviderById(cloudId)));
-            return !['ec2', 'openstack'].includes(data._getProviderById(cloudId));
+            return !['ec2', 'openstack', 'aliyun_ecs'].includes(data._getProviderById(cloudId));
           }
         },
         hideIfNotAmazon: {
@@ -173,15 +180,43 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         },
         hideIfNotOpenstack: {
           func: cloudId =>  {
-            console.log("data._getProviderById(cloudId) !== 'openstack' ", data._getProviderById(cloudId) !== 'openstack');
             return data._getProviderById(cloudId) !== 'openstack';
           }
         },
-        getAmazonSecurityGroups: {
+        hideDeleteOnTerminationExisting: {
+          func: cloudId => {
+            return !['aliyun_ecs', 'openstack'].includes(data._getProviderById(cloudId));
+          }
+        },
+        hideSecurityGroup: {
+          func: cloudId => {
+            return !['ec2', 'aliyun_ecs'].includes(data._getProviderById(cloudId));
+          }
+        },
+        getSecurityGroups: {
           func: cloudId => {
             return cloudId ? data._getAmazonSecurityGroups(cloudId) : [];
           },
           type: 'promise'
+        },
+        hideipv4SubnetSize: {
+          func: toggle => toggle
+        },
+        hideipv6SubnetSize: {
+          func: toggle => toggle
+        },
+        getVolumeTypes: {
+          func: cloudId => {
+            const provider = data._getProviderById(cloudId);
+            switch(provider) {
+              case 'aliyun_ecs':
+                return [ "cloud", "cloud_efficiency", "cloud_ssd", "cloud_essd"];
+              case 'gce':
+                return ["pd-standard","pd-ssd"];
+              default:
+                return [];
+            }
+          }
         },
         getSubnets: {
           func: cloudId => {
@@ -235,6 +270,15 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             return volumes;
 
           }
+        },
+        hideOneOffContainer: {
+          func: type=> type !== 'one_off'
+        },
+        hideCrontabContainer: {
+          func: type=> type !== 'crontab'
+        },
+        hideIntervalContainer: {
+          func: type=> type !== 'interval'
         }
       }
   },

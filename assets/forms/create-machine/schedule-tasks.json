@@ -1,145 +1,196 @@
-"scheduleTaskContainer": {
-  "name": "scheduleTaskContainer",
-  "label": "Schedule a task",
-  "id": "scheduleTask_container",
-  "type": "object",
-  "format": "subformContainer",
-  "hasToggle": true,
-  "properties": {
-    "subform": {
-      "$ref": "./assets/forms/create-machine/schedule-tasks.json#/definitions/scheduleTaskSubform"
-    }
-  }
-},
-
-
 {
   "type": "object",
   "id": "schedules",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
     "scheduleTaskSubform": {
-      "scheduleType": {
-        "type": "string",
-        "format": "radioGroup",
-        "enum": [
-          "one_off",
-          "crontab",
-          "interval"
-        ]
-      },
-      "action": {
-        "type": "string",
-        "format": "dropdown",
-        "enum": [
-          "start",
-          "stop",
-          "reboot",
-          "destroy",
-          "run script"
-        ]
-      },
-      "taskScriptContainer": {
-        "name": "script",
-        "type": "object",
-        "format": "subformContainer",
-        "hasToggle": false,
-        "hidden": true,
-        "deps": [
-          {
-            "prop": "hidden",
-            "func": "showTaskScriptContainer",
-            "dependsOn": ".action"
+      "id": "schedule_task_subform",
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "scheduleType": {
+          "type": "string",
+          "format": "radioGroup",
+          "value": "one_off",
+          "enum": [
+            "one_off",
+            "crontab",
+            "interval"
+          ]
+        },
+        "action": {
+          "type": "string",
+          "format": "dropdown",
+          "label": "Schedule Task",
+          "helpText": "Choose one from the available tasks to schedule.",
+          "enum": [
+            "start",
+            "stop",
+            "reboot",
+            "destroy",
+            "run script"
+          ]
+        },
+        "taskScriptContainer": {
+          "name": "script",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": false,
+          "hidden": true,
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/taskScriptSubform"
+            }
           }
-        ],
-        "properties": {
-          "subform": {
-            "$ref": "#/definitions/taskScriptSubform"
+        },
+        "oneOffContainer": {
+          "name": "script",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": false,
+          "hidden": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideOneOffContainer",
+              "dependsOn": ".scheduleType"
+            }
+          ],
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/oneOffSubform"
+            }
           }
-        }
-      },
-      "taskScriptSubform": {
-        "type": "object",
-        "format": "subform",
-        "properties": {
-          "script": {
-            "type": "string",
-            "format": "script-dropdown",
-            "required": true
-          },
-          "params": {
-            "type": "string",
-            "label": "Parameters"
+        },
+        "crontabContainer": {
+          "name": "script",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": false,
+          "hidden": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideCrontabContainer",
+              "dependsOn": ".scheduleType"
+            }
+          ],
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/crontabSubform"
+            }
           }
-        }
-      },
-      "oneOffContainer": {
-        "name": "script",
-        "type": "object",
-        "format": "subformContainer",
-        "hasToggle": false,
-        "hidden": true,
-        "deps": [
-          {
-            "prop": "hidden",
-            "func": "showOneOffContainer",
-            "dependsOn": ".scheduleType"
-          }
-        ],
-        "properties": {
-          "subform": {
-            "$ref": "#/definitions/oneOffSubform"
-          }
-        }
-      },
-      "crontabContainer": {
-        "name": "script",
-        "type": "object",
-        "format": "subformContainer",
-        "hasToggle": false,
-        "hidden": true,
-        "deps": [
-          {
-            "prop": "hidden",
-            "func": "showCrontabContainer",
-            "dependsOn": ".scheduleType"
-          }
-        ],
-        "properties": {
-          "subform": {
-            "$ref": "#/definitions/crontabSubform"
-          }
-        }
-      },
-      "crontabSubform": {
-        "type": "object",
-        "format": "subform",
-        "properties": {
-        }
-      },
-      "intervalContainer": {
-        "name": "script",
-        "type": "object",
-        "format": "subformContainer",
-        "hasToggle": false,
-        "hidden": true,
-        "deps": [
-          {
-            "prop": "hidden",
-            "func": "showIntervalContainer",
-            "dependsOn": ".scheduleType"
-          }
-        ],
-        "properties": {
-          "subform": {
-            "$ref": "#/definitions/intervalSubform"
+        },
+        "intervalContainer": {
+          "name": "script",
+          "type": "object",
+          "format": "subformContainer",
+          "hasToggle": false,
+          "hidden": true,
+          "deps": [
+            {
+              "prop": "hidden",
+              "func": "hideIntervalContainer",
+              "dependsOn": ".scheduleType"
+            }
+          ],
+          "properties": {
+            "subform": {
+              "$ref": "#/definitions/intervalSubform"
+            }
           }
         }
-      },
-      "intervalSubform": {
-        "type": "object",
-        "format": "subform",
-        "properties": {
+      }
+    },
+    "taskScriptSubform": {
+      "type": "object",
+      "format": "subform",
+      "properties": {
+        "script": {
+          "type": "string",
+          "format": "script-dropdown",
+          "required": true
+        },
+        "params": {
+          "type": "string",
+          "label": "Parameters"
+        }
+      }
+    },
+    "oneOffSubform": {
+      "type": "object",
+      "format": "subform",
+      "helpText": "The scheduler type. Visit the docs ",
+      "properties": {
+        "datetime": {
+          "type": "string",
+          "format": "datetimePicker",
+          "label": "Select Date"
+        }
+      }
+    },
+    "intervalSubform": {
+      "type": "object",
+      "format": "subform",
+      "helpText": "The scheduler type. Visit the docs ",
+      "properties": {
+        "every": {
+          "type": "string",
+          "format": "number"
+        },
+        "period": {
+          "type": "string",
+          "format": "dropdown",
+          "enum": [
+            "days",
+            "hours",
+            "minutes"
+          ]
+        },
+        "startAfter": {
+          "type": "string",
+          "format": "datetimePicker",
+          "label": "Starts now"
+        },
+        "expires": {
+          "type": "string",
+          "format": "datetimePicker",
+          "label": "Expires never"
+        },
+        "max_run_count": {
+          "type": "string",
+          "format": "number",
+          "label": "Maximum Run Count",
+          "helpText": "Optional. Integers only. Define a maximum run count."
+        }
+      }
+    },
+    "crontabSubform": {
+      "type": "object",
+      "format": "subform",
+      "helpText": "The scheduler type. Visit the docs",
+      "properties": {
+        "crontab": {
+          "type": "string",
+          "label": "Crontab",
+          "helpText": "Example: */10 * * 1 *, is every 10 minutes on the 1st of each month. Relative periods: Minute, Hour, Day of the Month, Month of the Year, Day of the Week.",
+          "value": "*/10 * * * *"
+        },
+        "startAfter": {
+          "type": "string",
+          "format": "datetimePicker",
+          "label": "Starts now"
+        },
+        "expires": {
+          "type": "string",
+          "format": "datetimePicker",
+          "label": "Expires never"
+        },
+        "max_run_count": {
+          "type": "string",
+          "format": "number",
+          "label": "Maximum Run Count",
+          "helpText": "Optional. Integers only. Define a maximum run count."
         }
       }
     }

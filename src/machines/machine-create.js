@@ -109,18 +109,8 @@ Polymer({
         max-height: 400px !important;
       }
 
-      :host app-form::slotted(paper-radio-group) {
-        margin-top: 24px;
-      }
-
-      app-form::slotted(paper-radio-group) {
-        margin-top: 36px !important;
-        margin-bottom: 0;
-      }
-
-      app-form::slotted(.helptext-radio) {
-        margin-top: 36px !important;
-        margin-bottom: 0;
+      mist-form {
+        --mist-subform-background-color: white;
       }
 
       paper-dialog#addKvmImage {

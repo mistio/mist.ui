@@ -9,7 +9,7 @@
   "properties": {
     "cloudContainer": {
       "name": "cloudContainer",
-      "label": "",
+      "label": "Select Cloud",
       "id": "cloud_container",
       "type": "object",
       "format": "subformContainer",
@@ -26,14 +26,6 @@
       "type": "object",
       "format": "subformContainer",
       "hasToggle": false,
-      "hidden": true,
-      "deps": [
-        {
-          "prop": "hidden",
-          "func": "showSetupMachineContainer",
-          "dependsOn": "cloudContainer.cloud"
-        }
-      ],
       "properties": {
         "subform": {
           "$ref": "./assets/forms/create-machine/setup-machine.json#/definitions/setupMachineSubform"
@@ -94,6 +86,20 @@
           "type": "string",
           "format": "dropdown",
           "x-mist-enum": "clouds"
+        },
+        "quantity": {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "string",
+          "format": "number",
+          "value": 1,
+          "minimum": 1,
+          "maximum": 100,
+          "styles": {
+            "outer": {
+              "flexBasis": "100%"
+            }
+          }
         }
       }
     },
@@ -106,13 +112,7 @@
           "id": "action",
           "type": "string",
           "format": "dropdown",
-          "deps": [
-            {
-              "prop": "enum",
-              "func": "getActions",
-              "dependsOn": "cloudContainer.cloud"
-            }
-          ]
+          "deps": ["stop", "destroy"]
         },
         "in": {
           "name": "in",
@@ -146,6 +146,7 @@
         "inlineScript": {
           "label": "Inline Script",
           "id": "inline_script",
+          "helpText": "The inline script will run after provisioning",
           "type": "string"
         }
       }
@@ -160,6 +161,7 @@
           "id": "post_deploy_script",
           "type": "string",
           "format": "dropdown",
+          "helpText": "The selected script will run after provisioning",
           "x-mist-enum": "getScripts"
         },
         "optionalScriptParams": {
@@ -199,6 +201,7 @@
         "attachVolumeContainer": {
           "name": "attachVolumeContainer",
           "label": "Attach volume",
+          "helpText": "Attach a volume to the machine.",
           "id": "attachVolume_container",
           "type": "object",
           "format": "subformContainer",
@@ -222,6 +225,7 @@
           "id": "setExpiration_container",
           "type": "object",
           "format": "subformContainer",
+          "helpText": "Set an expiration date when the machine will stop or be destroyed",
           "hasToggle": true,
           "properties": {
             "subform": {
@@ -235,6 +239,7 @@
           "id": "postDeployScript_container",
           "type": "object",
           "format": "subformContainer",
+          "helpText": "Open options to run a script immediately after provisioning",
           "hasToggle": true,
           "properties": {
             "tabs": {
@@ -251,12 +256,27 @@
             }
           }
         },
+        "scheduleTaskContainer": {
+          "name": "scheduleTaskContainer",
+          "label": "Schedule a task",
+          "id": "scheduleTask_container",
+          "type": "object",
+          "format": "subformContainer",
+          "helpText": "Enable a scheduled action on this machine",
+          "hasToggle": true,
+          "properties": {
+            "subform": {
+              "$ref": "./assets/forms/create-machine/schedule-tasks.json#/definitions/scheduleTaskSubform"
+            }
+          }
+        },
         "fqdn": {
           "name": "createDNSRecordContainer",
           "label": "Create DNS record",
           "id": "createDNSRecord_container",
           "type": "object",
           "format": "subformContainer",
+          "helpText": "Create an A record on an existing DNS zone that will point to the public ip address of the machine.",
           "hasToggle": true,
           "properties": {
             "subform": {
@@ -265,8 +285,9 @@
           }
         },
         "cloudInit": {
-          "label": "Run this Cloud Init script on first boot",
-          "type": "string"
+          "label": "Cloud Init",
+          "type": "string",
+          "helpText": "Start your Cloud Init script with #!/bin/bash or use a valid yaml configuration file starting with #cloud-config"
         },
         "enableMonitoring": {
           "label": "Enable Monitoring",

@@ -1,0 +1,206 @@
+{
+    "type": "object",
+    "id": "extra",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "networkSubform": {
+        "id": "extra_subform",
+        "type": "object",
+        "format": "subform",
+        "properties": {
+          "resourceGroupContainer": {
+            "name": "resourceGroupContainer",
+            "label": "Resource group",
+            "id": "resource_group_container",
+            "type": "object",
+            "format": "subformContainer",
+            "hasToggle": true,
+            "properties": {
+              "subform": {
+                "$ref": "#/definitions/resourceGroupSubform"
+              }
+            },
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotAzure",
+                  "dependsOn": "cloudContainer.cloud"
+                }
+              ]
+          },
+          "storageAccountContainer": {
+            "name": "storageAccountContainer",
+            "label": "Storage Account",
+            "id": "storage_account_container",
+            "type": "object",
+            "format": "subformContainer",
+            "hasToggle": true,
+            "properties": {
+              "subform": {
+                "$ref": "#/definitions/storageAccountSubform"
+              }
+            },
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotAzure",
+                  "dependsOn": "cloudContainer.cloud"
+                }
+              ]
+          },
+          "user": {
+            "type": "string",
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotAzure",
+                  "dependsOn": "cloudContainer.cloud"
+                }
+              ]
+          },
+          "password": {
+            "type": "string",
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotAzure",
+                  "dependsOn": "cloudContainer.cloud"
+                }
+              ]
+          },
+          "project_id":{
+            "type": "string",
+            "format": "dropdown",
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotEquinix",
+                  "dependsOn": "cloudContainer.cloud"
+                },
+                {
+                    "prop": "enum",
+                    "func": "getProjects",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+              ]
+          },
+          "root_pass": {
+            "type": "string",
+            "format": "dropdown",
+            "deps": [
+                {
+                  "prop": "hidden",
+                  "func": "hideIfNotLinode",
+                  "dependsOn": "cloudContainer.cloud"
+                }
+              ]
+          },
+          "resourceGroupSubform": {
+            "id": "resource_group_subform",
+            "type": "object",
+            "format": "subform",
+            "properties": {
+              "resourceGroupsChoice": {
+                "name": "resourceGroupsChoice",
+                "id": "resource_groups_choice",
+                "type": "string",
+                "format": "radioGroup",
+                "hideHeader": true,
+                "value": "Create new",
+                "enum": [
+                  "Create new",
+                  "Use existing"
+                ]
+              },
+              "resourceGroupNew": {
+                "name": "resource_group",
+                "type": "string",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideNewResourceGroup",
+                    "dependsOn": ".resourceGroupsChoice"
+                  }
+                ]
+              },
+              "resourceGroupExisting": {
+                "name": "resource_group",
+                "type": "string",
+                "format": "dropdown",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideExistingResourceGroup",
+                    "dependsOn": ".resourceGroupsChoice"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getResourceGroups",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              }
+            }
+          },
+          "storageAccountSubform": {
+            "id": "storage_account_subform",
+            "type": "object",
+            "format": "subform",
+            "properties": {
+              "storageAccountChoice": {
+                "name": "storageAccountChoice",
+                "id": "storage_account_choice",
+                "type": "string",
+                "format": "radioGroup",
+                "hideHeader": true,
+                "value": "Create new",
+                "enum": [
+                  "Create new",
+                  "Use existing"
+                ]
+              },
+              "storageAccountNew": {
+                "name": "storage_account",
+                "type": "string",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideNewStorageAccount",
+                    "dependsOn": ".storageAccountChoice"
+                  }
+                ]
+              },
+              "storageAccountExisting": {
+                "name": "storage_account",
+                "type": "string",
+                "format": "dropdown",
+                "deps": [
+                  {
+                    "prop": "hidden",
+                    "func": "hideExistingStorageAccount",
+                    "dependsOn": ".storageAccountChoice"
+                  },
+                  {
+                    "prop": "enum",
+                    "func": "getStorageAccounts",
+                    "dependsOn": "cloudContainer.cloud"
+                  }
+                ]
+              },
+              "storage_account_type": {
+                "type": "string",
+                "format": "dropdown",
+                "enum": [
+                  "Premium_LRS",
+                  "Premium_ZRS",
+                  "StandardSSD_LRS",
+                  "StandardSSD_ZRS",
+                  "Standard_LRS"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
