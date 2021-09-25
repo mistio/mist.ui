@@ -6,7 +6,7 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-dialog/paper-dialog.js';
 import '@polymer/paper-dialog-scrollable/paper-dialog-scrollable.js';
 import '@mistio/mist-form/mist-form.js';
-import './code-viewer.js';
+import '@mistio/mist-list/code-viewer.js';
 import '../element-for-in/element-for-in.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';

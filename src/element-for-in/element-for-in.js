@@ -1,5 +1,5 @@
 import '@polymer/polymer/polymer-legacy.js';
-import '../helpers/code-viewer.js';
+import '@mistio/mist-list/code-viewer.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 

@@ -1,4 +1,3 @@
-import './app-form.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';

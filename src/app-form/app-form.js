@@ -1,11 +1,5 @@
-/* needed for the forms' inputs */
-/*
-  FIXME(polymer-modulizer): the above comments were extracted
-  from HTML and may be out of place here. Review them and
-  then delete this comment!
-*/
+/* eslint-disable lit-a11y/anchor-is-valid */
 import '@polymer/polymer/polymer-legacy.js';
-
 import '@polymer/paper-styles/typography.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
@@ -25,6 +19,7 @@ import '@polymer/paper-input/paper-input-addon-behavior.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/iron-form/iron-form.js';
+import '@mistio/mist-list/code-viewer.js';
 import './sub-fieldgroup.js';
 import './sub-form.js';
 import './mist-size-field.js';
@@ -32,7 +27,6 @@ import './mist-networks-field.js';
 import './mist-machine-field.js';
 import './mist-tags-field.js';
 import './duration-field.js';
-import '../helpers/code-viewer.js';
 import moment from 'moment/src/moment.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -744,6 +738,7 @@ Polymer({
                           class="item-img"
                           src="[[option.img]]"
                           width="24px"
+                          alt="[[option.tooltip]]"
                         />
                       </template>
                       <span
@@ -818,7 +813,7 @@ Polymer({
                 id$="app-form-[[id]]-[[field.name]]"
                 class="xs12 m6"
                 field="{{field}}"
-                on-tap=_dropdownPressed
+                on-tap="_dropdownPressed"
               ></mist-size-field>
             </template>
             <template
@@ -879,7 +874,7 @@ Polymer({
                 required="[[field.required]]"
                 always-float-label="[[field.alwaysFloatLabel]]"
                 no-animations=""
-                on-tap=_dropdownPressed
+                on-tap="_dropdownPressed"
               >
                 <paper-listbox
                   slot="dropdown-content"
@@ -916,7 +911,11 @@ Polymer({
                         ></iron-icon>
                       </template>
                       <template is="dom-if" if="[[option.img]]">
-                        <img src="[[option.img]]" width="24px" />
+                        <img
+                          src="[[option.img]]"
+                          width="24px"
+                          alt="[[_getPayloadValue(field,option)]]"
+                        />
                       </template>
                       <span
                         class="flex item-desc"
@@ -1412,13 +1411,11 @@ Polymer({
     const { name, value } = e.detail;
     const index = this.fields.findIndex(field => field.name === name);
     this.set(`fields.${index}.value`, value);
-   },
+  },
   _clearDateTimeInput(e) {
     if (e && e.model && e.model.field) {
       const fieldName = e.model.field.name;
-      const ind = this.fields.findIndex(f => {
-        return f.name === fieldName;
-      });
+      const ind = this.fields.findIndex(f => f.name === fieldName);
       if (ind > -1) {
         this.set(`fields.${ind}.value`, '');
       }
@@ -1508,9 +1505,7 @@ Polymer({
 
   _updateScheme(fieldname, value) {
     if (value) {
-      const fieldIndex = this.fields.findIndex(f => {
-        return f.name === fieldname;
-      });
+      const fieldIndex = this.fields.findIndex(f => f.name === fieldname);
       if (fieldIndex > -1) {
         this.set('fieldIndex', fieldIndex);
         const field = this.fields[fieldIndex];
@@ -1570,10 +1565,12 @@ Polymer({
       if (!this.noAutoUpdate) this._updateForm();
       // construct fieldVisibility
       const fv = {};
-      this.fields.forEach((field, index)=>{
+      this.fields.forEach((field, index) => {
         // Preserve visibility of toggled sub elements
-        fv[index] = field.showIf ? this.fieldVisibility && this.fieldVisibility[index] : field.show;
-      })
+        fv[index] = field.showIf
+          ? this.fieldVisibility && this.fieldVisibility[index]
+          : field.show;
+      });
       this.set('fieldVisibility', fv);
     }
     // a consumer changed show values
@@ -1636,9 +1633,9 @@ Polymer({
               }
 
               // check for second level dependency
-              const parent = that.fields.find(f => {
-                return f.name === el.showIf.fieldName;
-              });
+              const parent = that.fields.find(
+                f => f.name === el.showIf.fieldName
+              );
 
               if (parent && parent.showIf) {
                 let parentShow;
@@ -1761,9 +1758,7 @@ Polymer({
       'ip-validator': this._validateIp,
     };
     return fieldsToValidate.every((el, _index) => {
-      const fieldIndex = this.fields.findIndex(f => {
-        return f.name === el.name;
-      });
+      const fieldIndex = this.fields.findIndex(f => f.name === el.name);
 
       // If field is not required or not visible then all is well // TODO: a non-required field should also be validated
       if (!el.required || !this.fieldVisibility[fieldIndex]) return true;
@@ -1913,9 +1908,7 @@ Polymer({
     if (this.workflow) {
       const inps = YAML.parse(this.form.stackinputs) || {};
       for (const p of Object.keys(inps)) {
-        const field = this.fields.find(f => {
-          return f.name === p;
-        });
+        const field = this.fields.find(f => f.name === p);
         if (field.excludeFromPayload === true) {
           delete inps[p];
         } else {
@@ -1955,13 +1948,16 @@ Polymer({
       });
 
       // clean up form for payload
-      const excludeFields = this.fields.filter(el => {
-        return el.excludeFromPayload === true;
-      });
+      const excludeFields = this.fields.filter(
+        el => el.excludeFromPayload === true
+      );
 
       // if there's a list field add it as a nested object under the subform title.
       this.fields.forEach(field => {
-        if (field.type === 'mist_size' && (field.value === 'custom' || field.value.includes('customSize'))) {
+        if (
+          field.type === 'mist_size' &&
+          (field.value === 'custom' || field.value.includes('customSize'))
+        ) {
           payload[field.name] = field.customValue;
         }
         if (field.type === 'fieldgroup') {
@@ -2042,14 +2038,10 @@ Polymer({
     if (field.excludeFromPayload) return false;
     if (field.show && !field.showIf) return true;
     if (field.showIf && (field.showIf.fieldExists || field.showIf.fieldName)) {
-      let d = list.find(f => {
-        return f.name === field.showIf.fieldName;
-      });
+      let d = list.find(f => f.name === field.showIf.fieldName);
       // try in fields
       if (!d) {
-        d = this.fields.find(l => {
-          return l.name === field.showIf.fieldName;
-        });
+        d = this.fields.find(l => l.name === field.showIf.fieldName);
       }
       if (
         (d && field.showIf.fieldExists && d.value) ||
@@ -2232,9 +2224,7 @@ Polymer({
 
   _updateCheckboxesField(e) {
     // console.log('_updateCheckboxesField', e, e.model);
-    const fieldInd = this.fields.findIndex(f => {
-      return f.name === e.model.field.name;
-    });
+    const fieldInd = this.fields.findIndex(f => f.name === e.model.field.name);
     const arr = this.get(`fields.${fieldInd}.value`) || [];
     if (fieldInd > -1) {
       if (e.target.checked && arr.indexOf(e.model.option.id) === -1)
@@ -2283,11 +2273,9 @@ Polymer({
 
   _filter(options, search) {
     if (!search) return options;
-    return options.filter(op => {
-      return (
-        op.name && op.name.toLowerCase().indexOf(search.toLowerCase()) > -1
-      );
-    });
+    return options.filter(
+      op => op.name && op.name.toLowerCase().indexOf(search.toLowerCase()) > -1
+    );
   },
 
   _hasHelptext(changeField) {
@@ -2307,11 +2295,17 @@ Polymer({
     }
     return true;
   },
-  _dropdownPressed(e){
+  _dropdownPressed(e) {
     let field;
-    if(e.target.tagName === "MIST-SIZE-FIELD"){
+    if (e.target.tagName === 'MIST-SIZE-FIELD') {
       field = 'size';
     } else field = 'location';
-    this.dispatchEvent(new CustomEvent('dropdown-pressed', {detail:{field: field, component: e.target}, bubbles: true, composed: true}));
-  }
+    this.dispatchEvent(
+      new CustomEvent('dropdown-pressed', {
+        detail: { field, component: e.target },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  },
 });

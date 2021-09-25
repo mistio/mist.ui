@@ -1,4 +1,3 @@
-import './app-form.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -156,9 +155,7 @@ Polymer({
 
   _setActiveItem(e) {
     // set changing item
-    const parent = e.path.find(p => {
-      return p.tagName === 'APP-FORM';
-    });
+    const parent = e.path.find(p => p.tagName === 'APP-FORM');
     if (parent && parent.id)
       this.set('activeItem', parent.id.split('sub-form-')[1]);
     else this.set('activeItem', null);

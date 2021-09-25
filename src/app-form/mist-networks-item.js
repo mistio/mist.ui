@@ -6,7 +6,6 @@ import '@polymer/paper-item/paper-item.js';
 import '@polymer/paper-radio-group/paper-radio-group.js';
 import '@polymer/paper-radio-button/paper-radio-button.js';
 import '@polymer/iron-icons/iron-icons.js';
-import './app-form.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
@@ -94,7 +93,12 @@ Polymer({
       checked="{{checked}}"
     >
       <template is="dom-if" if="[[network.img]]">
-        <img class="item-img" src="[[network.img]]" width="24px" />
+        <img
+          class="item-img"
+          src="[[network.img]]"
+          width="24px"
+          alt="[[network.name]]"
+        />
       </template>
       <span
         class$="item-desc noimg-[[!network.img]]"
@@ -184,12 +188,10 @@ Polymer({
         }
         // make sure required fields have values, fixes initial formValid issue
         const requiredFieldsHaveValues = this.fields
-          .filter(f => {
-            return f.required;
-          })
-          .every(el => {
-            return this.form && this.form[el.name] && this.form[el.name].length;
-          });
+          .filter(f => f.required)
+          .every(
+            el => this.form && this.form[el.name] && this.form[el.name].length
+          );
         this.set(
           'network.fieldValue',
           this.type && this.fields ? this.form : this.network.id
