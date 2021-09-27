@@ -862,23 +862,6 @@ MACHINE_CREATE_FIELDS.push({
   ],
 });
 
-// VCLOUD
-MACHINE_CREATE_FIELDS.push({
-  provider: 'vcloud',
-  fields: [
-    {
-      name: 'networks',
-      label: 'Networks *',
-      type: 'mist_dropdown',
-      value: '',
-      defaultValue: '',
-      show: true,
-      required: false,
-      options: [],
-    },
-  ],
-});
-
 // VSPHERE
 MACHINE_CREATE_FIELDS.push({
   provider: 'vsphere',

@@ -347,9 +347,7 @@ Polymer({
       ) {
         categories[0].providers.push(provider);
       }
-      if (
-        ['openstack', 'onapp', 'vsphere', 'vcloud'].indexOf(provider.val) > -1
-      ) {
+      if (['openstack', 'onapp', 'vsphere'].indexOf(provider.val) > -1) {
         categories[1].providers.push(provider);
       }
       if (['libvirt'].indexOf(provider.val) > -1) {
