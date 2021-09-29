@@ -290,6 +290,7 @@ Polymer({
           body: 'Removing a cloud can not be undone.',
           subscript: removeExplanation,
           danger: true,
+          action: 'REMOVE',
           list: this._makeList(this.items, 'title'),
           reason: 'cloud.remove',
         });
