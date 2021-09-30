@@ -18,7 +18,6 @@ import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
-import '@mistio/polyana-dashboard/polyana-dashboard.js';
 import moment from 'moment/src/moment.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -534,16 +533,16 @@ Polymer({
     );
   },
   _importPolyana(resourceCount) {
-    // if (resourceCount) {
-    //   import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
-    //     () => {
-    //       console.log('imported polyana-dashboard');
-    //     },
-    //     reason => {
-    //       console.error('Failed to import polyana-dashboard:', reason);
-    //     }
-    //   );
-    // }
+    if (resourceCount) {
+      import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
+        () => {
+          console.log('imported polyana-dashboard');
+        },
+        reason => {
+          console.error('Failed to import polyana-dashboard:', reason);
+        }
+      );
+    }
   },
   isOnline(cloud) {
     return cloud.state === 'online' && 'online';
