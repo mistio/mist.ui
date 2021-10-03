@@ -15,6 +15,7 @@ import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-input/paper-input-behavior.js';
 import '@polymer/paper-input/paper-input-addon-behavior.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@mistio/polyana-dashboard/polyana-dashboard.js';
 import '@mistio/mist-list/mist-list.js';
 import './onb-element/onb-element.js';
 import './clouds/cloud-chip.js';
@@ -534,14 +535,24 @@ Polymer({
   },
   _importPolyana(resourceCount) {
     if (resourceCount) {
-      import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
-        () => {
-          console.log('imported polyana-dashboard');
-        },
-        reason => {
-          console.error('Failed to import polyana-dashboard:', reason);
+      // import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
+      //   () => {
+      //     console.log('imported polyana-dashboard');
+      //   },
+      //   reason => {
+      //     console.error('Failed to import polyana-dashboard:', reason);
+      //   }
+      // );
+      const that = this;
+      setTimeout(() => {
+        const panel = that.shadowRoot
+          .querySelector('.graphs')
+          .querySelector('#dashboard')
+          .shadowRoot.querySelector('#panel-0');
+        if (panel.loading) {
+          panel._generateDataRequest();
         }
-      );
+      }, 10000);
     }
   },
   isOnline(cloud) {
