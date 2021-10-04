@@ -1,5 +1,6 @@
 import { MACHINE_NAME_REGEX_PATTERNS } from './machine-name-regex-patterns.js';
-
+// I should get image id from image name before submitting to the API
+// I should get size if from size name before submitting to the API
 const MACHINE_CREATE_FORM_DATA = data => ({
   src: './assets/forms/create-machine/create-machine.json',
   formData: {
@@ -7,7 +8,11 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         clouds: {
           func: new Promise(resolve => {
             // Wait until clouds have loaded here
-            resolve(() => data.clouds)
+            resolve(() => data.clouds.map(cloud=> ({
+              ...cloud,
+              image: `assets/providers/provider-${cloud.provider}.png`,
+              alt: ""
+            })))
           }),
         },
         getZones: {
@@ -35,7 +40,18 @@ const MACHINE_CREATE_FORM_DATA = data => ({
               return arr;
             })
           }),
-        }
+        },
+        getScripts: {
+          func: new Promise(resolve => {
+            // Wait until clouds have loaded here
+            resolve(() => {
+              return data.model.scriptsArray.map(script=>({
+                id: script.id,
+                title: script.name
+              }))
+            })
+          }),
+        },
       },
       conditionals: {
         showSetupMachineContainer: {
@@ -51,7 +67,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
       },
         getLocationsFromCloud: {
           func: cloudId => {
-            if (!cloudId) { return;}
+            if (!cloudId) { return undefined;}
             const locationsArray = data._getCloudById(cloudId).locationsArray || [];
             const locations =  locationsArray.map(
               location => (
@@ -61,39 +77,77 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             return locations;
           }
         },
+        getLocationsFromImage: {
+          func: (imageName, path, formValues) => {
+            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
+            if (!cloudId) { return undefined;}
+            const locationsArray = data._getCloudById(cloudId).locationsArray || [];
+            const locations =  locationsArray.filter( location =>
+              !location.available_images || location.available_images.includes(imageName)
+              )
+            .map(location => (
+              {...location, title:location.name}
+            ));
+              return locations;
+          },
+        },
+        getLocationsFromSize: {
+          func: (sizeName, path, formValues) => {
+            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
+            if (!cloudId) { return undefined;}
+            const sizesArray = data._getCloudById(cloudId).sizesArray || [];
+            const sizes =  sizesArray.filter(size=>
+              !size.available_images || size.available_images.includes(sizeName)
+              )
+            .map(size => (
+              {...size, title:size.name}
+            ));
+              return sizes;
+          },
+        },
         getImagesFromCloud: {
           func: cloudId => {
-            if (!cloudId) { return;}
+            if (!cloudId) { return undefined;}
             const imagesArray = data._getCloudById(cloudId).imagesArray || [];
             const images =  imagesArray.map(
               image => (
-                {...image, title:image.name}
+                image.name
               )
             );
             return images;
           }
         },
         getImagesFromLocation: {
-          func: locationId => { return ["a", "b", "c"]},
+          func: (locationId, path, formValues) => {
+            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
+            if (!cloudId) { return undefined;}
+            const cloud = data._getCloudById(cloudId);
+            const location = cloud.locations[locationId];
+            return location.available_images || undefined;
+          },
         },
         getImagesFromSize: {
           func: cloudId => {return ["a", "b", "c"]},
         },
         getSizesFromCloud: {
           func: cloudId => {
-            if (!cloudId) { return;}
-            const cloudSize = data._getCloud(cloudId) || {};
-            console.log("cloudSize ", cloudSize)
-            return cloudSize.size || {};
+            if (!cloudId) { return undefined;}
+            const cloud = data._getCloud(cloudId) || {};
+            return cloud.size || {};
           }
         },
         getSizesFromLocation: {
-          func: cloudId => { return ["a", "b", "c"]},
+          func: (locationId, path, formValues) => {
+            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
+            if (!cloudId) { return undefined;}
+            const cloud = data._getCloudById(cloudId);
+            const location = cloud.locations[locationId];
+            return location.available_sizes || undefined;
+          },
         },
         hideNetworkContainer: {
           func: cloudId => {
             const provider = data._getProviderById(cloudId);
-            console.log("provider ", provider)
             const cloudsWithNetworks = ['ec2', 'azure_arm','equinixmetal','gce', 'libvirt', 'linode','openstack', 'aliyun_ecs'];
             return !cloudsWithNetworks.includes(provider);
           }
@@ -102,9 +156,9 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         getCidrRestrictions: {
           func: addressType => {
             if (addressType === 4){
-              return;
+              return undefined;
           } else {
-            return;
+            return undefined;
           }
         }
       },
@@ -138,7 +192,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           },
         },
         hideAttachExistingVolumeContainer: {
-          func: tab => { console.log("tab ", tab); return tab !== "Attach existing volume"}
+          func: tab => tab !== "Attach existing volume"
         },
         hideAttachNewVolumeContainer: {
           func: tab => tab !== "Create new volume"
@@ -155,9 +209,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           }
         },
         hideIfNotAmazon: {
-          func: cloudId => {console.log("data._getProviderById(cloudId) !== 'ec2' ", data._getProviderById(cloudId) !== 'ec2');
-        return data._getProviderById(cloudId) !== 'ec2';
-        }
+          func: cloudId => data._getProviderById(cloudId) !== 'ec2'
         },
         hideIfNotAzure: {
           func: cloudId => data._getProviderById(cloudId) !== 'azure_arm'
@@ -219,18 +271,21 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           }
         },
         getSubnets: {
-          func: cloudId => {
+          func: (locationId, fieldpath, formValues) => {
+            const cloudId =formValues.cloudContainer &&  formValues.cloudContainer.cloud;
             const cloud = data._getCloudById(cloudId);
             const subnets = [];
-            if (cloud && cloud.networks && cloud.networks.length ) {
+            if (cloud && cloud.networks) {
               for (const [key, network] of Object.entries(cloud.networks)) {
                 if (network.subnets) {
                   for (const [key, subnet] of Object.entries(network.subnets)) {
                     // There's also an availability zone property in subnets containing location names, does it mean subnets are based on location too?
-                    subnets.push({
-                      title: subnet.name,
-                      id: subnet.id
-                    })
+                    if (cloud.locations[locationId].name === subnet.availability_zone) {
+                      subnets.push({
+                        title: subnet.name,
+                        id: subnet.id
+                      })
+                    }
                 }
               }
             }
@@ -238,23 +293,8 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           return subnets;
         }
         },
-        getAzureNetworks: {
-          func: cloudId => {
-            return [];
-          }
-        },
-        getGoogleNetworks: {
-          func: cloudId => {
-            return ["a", "b", "c"];
-          }
-        },
-        getGoogleSubnetworks: {
-          func: cloudId => {
-            return [];
-          }
-        },
         showExistingVolume: {
-          func: choice => { console.log("choice ", choice); return choice === 'Create new volume'}
+          func: choice => choice === 'Create new volume'
         },
         getVolumesFromLocations: {
           func: location => {
@@ -271,8 +311,11 @@ const MACHINE_CREATE_FORM_DATA = data => ({
 
           }
         },
+        hideTaskScriptContainer: {
+          func: type=> type !== 'run script'
+        },
         hideOneOffContainer: {
-          func: type=> type !== 'one_off'
+          func: type =>  type !== 'one_off'
         },
         hideCrontabContainer: {
           func: type=> type !== 'crontab'

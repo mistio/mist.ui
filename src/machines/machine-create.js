@@ -172,11 +172,19 @@ Polymer({
                 mist-form-value-path="detail.value"
               ></mist-size-field>
               <datetime-picker
-                  mist-form-type="datetimePicker"
+                mist-form-type="datetimePicker"
                 mist-form-value-change="value-changed"
                 mist-form-value-path="detail.value"
+                mist-form-validate="validate"
                     ></datetime-picker>
             </div>
+            <iron-ajax
+            slot="formRequest"
+            id="formAjax"
+            url="/api/v1/clouds/[[selectedCloud]]/machines"
+            contentType="application/json"
+            on-mist-form-request="_mistFormRequest"
+          ></iron-ajax>
           </mist-form>
       </paper-material>
       <iron-ajax
@@ -309,6 +317,13 @@ Polymer({
   //   'subfield-enabled': '_subfieldEnabled',
   //   'dropdown-pressed': '_checkSizeLocationOptions',
   // },
+  _mistFormRequest(e) {
+    const params = e.detail.params;
+    console.log("params ", params)
+    params.provider = this._getProviderById(params.cloud);
+    this.$.formAjax.params = JSON.stringify(e.detail.params);
+    this.$.formAjax.generateRequest();
+  },
   _getCloud(cloudId) {
     const cloudSizes = this._getCloudSizes() || [];
     return JSON.parse(
