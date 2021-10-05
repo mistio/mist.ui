@@ -10,6 +10,7 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { ratedCost } from './helpers/utils.js';
+import treeViewDataProvider from './helpers/tree-view-data-provider.js';
 
 Polymer({
   _template: html`
@@ -123,6 +124,8 @@ Polymer({
           filter-method="[[_ownerFilter()]]"
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
+          custom-provider="[[dataProvider]]"
+          item-has-children="[[machineHasChildren]]"
         >
           <p slot="no-items-found">
             <span hidden$="[[loadingMachines]]">No machines found.</span>
@@ -243,6 +246,27 @@ Polymer({
       type: Object,
       value() {
         return {};
+      },
+    },
+    dataProvider: {
+      type: Object,
+      value() {
+        return treeViewDataProvider;
+      },
+    },
+    machineHasChildren: {
+      type: Object,
+      value() {
+        return item => {
+          if (
+            item.machine_type === 'hypervisor' ||
+            item.machine_type === 'container-host' ||
+            item.machine_type === 'node' ||
+            item.machine_type === 'pod'
+          )
+            return true;
+          return false;
+        };
       },
     },
   },
