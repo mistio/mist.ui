@@ -219,12 +219,6 @@ Polymer({
                 <div class="flexchild">Type</div>
                 <div class="flexchild">[[script.exec_type]]</div>
               </div>
-              <template is="dom-if" if="[[script.entrypoint]]">
-                <div class="info-item flex-horizontal-with-ratios">
-                  <div class="flexchild">Status</div>
-                  <div class="flexchild">[[script.entrypoint]]</div>
-                </div>
-              </template>
               <template is="dom-if" if="[[!isInline]]">
                 <div class="info-item flex-horizontal-with-ratios">
                   <div class="flexchild">Url</div>
@@ -237,6 +231,12 @@ Polymer({
                       [[_computeLink(script.location)]]</a
                     >
                   </div>
+                </div>
+              </template>
+              <template is="dom-if" if="[[script.location.entrypoint]]">
+                <div class="info-item flex-horizontal-with-ratios">
+                  <div class="flexchild">Entrypoint</div>
+                  <div class="flexchild">[[script.location.entrypoint]]</div>
                 </div>
               </template>
             </div>
@@ -358,6 +358,7 @@ Polymer({
       : '';
   },
   _getScriptLanguage(script) {
+    if (!script) return '';
     const scriptLanguages = [
       { name: 'bash', type: 'shell' },
       { name: 'sh', type: 'shell' },

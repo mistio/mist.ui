@@ -280,9 +280,10 @@ Polymer({
   },
   _editorLanguageChanged(e) {
     const { language } = e.detail;
+    if (language.name === 'yaml') return;
     const index = this._fieldIndexByName('script_inline');
     const strArray = this.fields[index].value.split('\n');
-    strArray[0] = `#!/usr/bin/env ${language.name}`;
+    if (strArray[0]) strArray[0] = `#!/usr/bin/env ${language.name}`;
     this.set(`fields.${index}.value`, strArray.join('\n'));
   },
   _execTypeChanged(type) {
@@ -294,7 +295,7 @@ Polymer({
     } else if (type === 'ansible') {
       language = 'yaml';
       placeholder =
-        "- name: Dummy ansible playbook\n  hosts: localhost\n  tasks:\n    - name: Dummy task\n      debug:\n        msg: 'Hello World'\n";
+        "- name: Hello world playbook\n  hosts: localhost\n  tasks:\n    - name: Dummy task\n      debug:\n        msg: 'Hello World'\n";
     }
     const index = this._fieldIndexByName('script_inline');
     this.set(`fields.${index}.value`, placeholder);
