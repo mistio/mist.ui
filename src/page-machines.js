@@ -124,7 +124,7 @@ Polymer({
           filter-method="[[_ownerFilter()]]"
           apiurl="/api/v1/machines"
           csrfToken="[[CSRFToken.value]]"
-          custom-provider="[[dataProvider]]"
+          data-provider="[[dataProvider]]"
           item-has-children="[[machineHasChildren]]"
         >
           <p slot="no-items-found">
@@ -251,7 +251,7 @@ Polymer({
     dataProvider: {
       type: Object,
       value() {
-        return treeViewDataProvider;
+        return treeViewDataProvider.bind(this);
       },
     },
     machineHasChildren: {
