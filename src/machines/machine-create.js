@@ -5,15 +5,14 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-listbox/paper-listbox.js';
-import '@mistio/mist-form/mist-form.js';
+import '../app-form/app-form.js';
 import moment from 'moment/src/moment';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { VOLUME_CREATE_FIELDS } from '../helpers/volume-create-fields.js';
-import { MACHINE_CREATE_FORM_DATA } from './machine-create-helpers/machine-create-form-data.js';
-import '@fooloomanzoo/datetime-picker/datetime-picker.js';
+
 const SCHEDULEACTIONS = {
   reboot: {
     name: 'reboot',
@@ -109,8 +108,18 @@ Polymer({
         max-height: 400px !important;
       }
 
-      mist-form {
-        --mist-subform-background-color: white;
+      :host app-form::slotted(paper-radio-group) {
+        margin-top: 24px;
+      }
+
+      app-form::slotted(paper-radio-group) {
+        margin-top: 36px !important;
+        margin-bottom: 0;
+      }
+
+      app-form::slotted(.helptext-radio) {
+        margin-top: 36px !important;
+        margin-bottom: 0;
       }
 
       paper-dialog#addKvmImage {
@@ -152,42 +161,67 @@ Polymer({
         </p>
       </paper-material>
       <paper-material hidden$="[[!_hasClouds(clouds)]]">
-        <div class="grid-row"></div>
+        <div class="grid-row">
+          <paper-dropdown-menu
+            class="dropdown-block l6 xs12 dropdown-with-logos"
+            label="Select Cloud"
+            horizontal-align="left"
+            no-animations=""
+          >
+            <paper-listbox
+              slot="dropdown-content"
+              attr-for-selected="value"
+              selected="{{selectedCloud::iron-select}}"
+              class="dropdown-content"
+            >
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
+                <paper-item
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
+                >
+                  <img
+                    src="[[_computeProviderLogo(cloud.provider)]]"
+                    width="24px"
+                    alt="[[cloud.title]]"
+                  />[[cloud.title]]</paper-item
+                >
+              </template>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        </div>
       </paper-material>
       <paper-material
         class$="selected-[[!selectedCloud]]"
+        hidden$="[[!selectedCloud]]"
       >
-          <mist-form
-            id="[[formId]]"
-            hidden$="[[showJSON]]"
-            src="[[createMachineFields.src]]"
-            dynamic-data-namespace="[[createMachineFields.formData]]"
-            url="/api/v1/clouds/[[selectedCloud]]/machines"
+        <div hidden$="[[!selectedCloud]]">
+          <h3 class="smallcaps">Machine Setup</h3>
+          <app-form
+            id="createForm"
+            format-payload=""
+            fields="{{machineFields}}"
             method="POST"
-          >
-          <div id="mist-form-custom">
-              <mist-size-field
-                mist-form-type="mistSizeField"
-                mist-form-value-change="value-changed"
-                mist-form-value-path="detail.value"
-              ></mist-size-field>
-              <datetime-picker
-                mist-form-type="datetimePicker"
-                mist-form-value-change="value-changed"
-                mist-form-value-path="detail.value"
-                mist-form-validate="validate"
-                    ></datetime-picker>
-            </div>
-            <iron-ajax
-            slot="formRequest"
-            id="formAjax"
             url="/api/v1/clouds/[[selectedCloud]]/machines"
-            contentType="application/json"
-            on-mist-form-request="_mistFormRequest"
-          ></iron-ajax>
-          </mist-form>
+            on-response="_machineCreateResponse"
+            on-error="_machineCreateError"
+            btncontent="Launch"
+          ></app-form>
+        </div>
       </paper-material>
-      <iron-ajax
+    </div>
+    <paper-dialog id="addKvmImage" with-backdrop="">
+      <h2>[[_computeAddImageTitle(selectedCloud)]]</h2>
+      <paper-input
+        id="kvmImageInput"
+        label="[[_computeAddImageLabel(selectedCloud)]]"
+        value="{{newImage}}"
+      ></paper-input>
+      <div class="btn-group">
+        <paper-button dialog-dismiss="">Cancel</paper-button>
+        <paper-button class="blue" on-tap="saveNewImage">Save</paper-button>
+      </div>
+    </paper-dialog>
+    <iron-ajax
       id="getSecurityGroups"
       contenttype="application/json"
       handle-as="json"
@@ -196,7 +230,69 @@ Polymer({
       on-response="_handleGetSecurityGroupsResponse"
       on-error="_handleGetSecurityGroupsError"
     ></iron-ajax>
-    </div>
+    <iron-ajax
+      id="getResourceGroups"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetResourceGroupsRequest"
+      on-response="_handleGetResourceGroupsResponse"
+      on-error="_handleGetResourceGroupsError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getStorageAccounts"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetStorageAccountsRequest"
+      on-response="_handleGetStorageAccountsResponse"
+      on-error="_handleGetResourceGroupsError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getStorageClasses"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetStorageClassesRequest"
+      on-response="_handleGetStorageClassesResponse"
+      on-error="_handleGetStorageClassesError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getFolders"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetFoldersRequest"
+      on-response="_handleGetFoldersResponse"
+      on-error="_handleGetResourceGroupsError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getDatastores"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetDatastoresRequest"
+      on-response="_handleGetDatastoresResponse"
+      on-error="_handleGetResourceGroupsError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getLXDStoragePools"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetLXDStoragePoolsRequest"
+      on-response="_handleGetLXDStoragePoolsResponse"
+      on-error="_handleGetLXDStoragePoolsError"
+    ></iron-ajax>
+    <iron-ajax
+      id="getVirtualNetworkFunctions"
+      contenttype="application/json"
+      handle-as="json"
+      method="GET"
+      on-request="_handleGetVirtualNetworkFunctionsRequest"
+      on-response="_handleGetVirtualNetworkFunctionsResponse"
+      on-error="_handleGetVirtualNetworkFunctionsError"
+    ></iron-ajax>
   `,
 
   is: 'machine-create',
@@ -225,22 +321,10 @@ Polymer({
         return MACHINE_CREATE_FIELDS;
       },
     },
-    createMachineFields: {
-      type: Object,
-      value() {
-        return MACHINE_CREATE_FORM_DATA(this);
-      }
-    },
     volumeFields: {
       type: Array,
       value() {
         return VOLUME_CREATE_FIELDS;
-      },
-    },
-    machineCreateFormData: {
-      type: Object,
-      value() {
-        return MACHINE_CREATE_FORM_DATA;
       },
     },
     clouds: {
@@ -249,13 +333,6 @@ Polymer({
         return [];
       },
       computed: '_computeClouds(model, model.clouds, model.teams.*)',
-    },
-    volumes: {
-      type: Array,
-      value() {
-        return [];
-      },
-      computed: '_computeVolumes(model, model.clouds)',
     },
     newImage: {
       type: String,
@@ -297,86 +374,31 @@ Polymer({
     },
   },
 
-  // observers: [
-  //   '_applyConstraints(machinesFields, constraints)',
-  //   '_teamsChanged(model.teams.*)',
-  //   '_cloudChanged(selectedCloud)',
-  //   '_machineFieldsChanged(machineFields.*)',
-  //   '_prefillOptions(route.*)',
-  //   '_locationChanged(machineFields.1.value)',
-  //   '_cloudsChanged(clouds)',
-  //   '_cloudLocationsUpdated(cloud.locationsArray)',
-  //   '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
-  // ],
+  observers: [
+    '_applyConstraints(machinesFields, constraints)',
+    '_teamsChanged(model.teams.*)',
+    '_cloudChanged(selectedCloud)',
+    '_machineFieldsChanged(machineFields.*)',
+    '_prefillOptions(route.*)',
+    '_locationChanged(machineFields.1.value)',
+    '_cloudsChanged(clouds)',
+    '_cloudLocationsUpdated(cloud.locationsArray)',
+    '_cloudImagesUpdated(cloud.imagesArray, model.imagesArray.length)',
+  ],
 
-  // listeners: {
-  //   keyup: 'hotkeys',
-  //   'add-input': 'addInput',
-  //   'format-payload': 'formatPayload',
-  //   'fields-changed': 'fieldsChanged',
-  //   'subfield-enabled': '_subfieldEnabled',
-  //   'dropdown-pressed': '_checkSizeLocationOptions',
-  // },
-  _mistFormRequest(e) {
-    const params = e.detail.params;
-    console.log("params ", params)
-    params.provider = this._getProviderById(params.cloud);
-    this.$.formAjax.params = JSON.stringify(e.detail.params);
-    this.$.formAjax.generateRequest();
+  listeners: {
+    keyup: 'hotkeys',
+    'add-input': 'addInput',
+    'format-payload': 'formatPayload',
+    'fields-changed': 'fieldsChanged',
+    'subfield-enabled': '_subfieldEnabled',
+    'dropdown-pressed': '_checkSizeLocationOptions',
   },
-  _getCloud(cloudId) {
-    const cloudSizes = this._getCloudSizes() || [];
-    return JSON.parse(
-      JSON.stringify(
-        cloudSizes.find(cloudSize => cloudSize.id === cloudId) || {}
-      )
-    );
-  },
-  _getCloudSizes() {
-    return this.model.cloudsArray
-      .flatMap(cloud => {
-        const providerFields = MACHINE_CREATE_FIELDS.find(
-          field => field.provider === cloud.provider
-        );
 
-        if (!providerFields) {
-          return [];
-        }
-
-        const size = providerFields.fields.find(field => field.name === 'size');
-
-        if (Object.prototype.hasOwnProperty.call(cloud, 'sizesArray')) {
-          size.options = [...cloud.sizesArray];
-        }
-        // Allow minimum value of 'disk' field to be 0
-        if (size.customSizeFields) {
-          size.customSizeFields.map(field => {
-            if (field.name.includes('disk')) {
-              field.min = 0;
-            }
-            return field;
-          });
-        }
-        return [
-          {
-            id: cloud.id,
-            provider: cloud.provider,
-            title: cloud.title,
-            size: { ...size },
-          },
-        ];
-      })
-      .filter(cloud => cloud.size.custom || cloud.size.options.length > 0);
-  },
-  _getCloudById(cloudId) {
-    return this.clouds.find(cloud => cloud.id === cloudId)
-  },
-  _getProviderById(cloudId) {
-    return this._getCloudById(cloudId) && this._getCloudById(cloudId).provider;
-  },
   attached() {
     this.checkPermissions();
   },
+
   _teamsChanged() {
     console.log('_teamsChanged CALL checkPermissions');
     this.checkPermissions();
@@ -795,7 +817,7 @@ Polymer({
       if (
         this.model.clouds[this.selectedCloud].provider === 'openstack' ||
         this.model.clouds[this.selectedCloud].provider === 'vexxhost'
-      ) {
+        ) {
         this._updateFieldsForOpenstack();
         this._updateSecurityGroups(this.selectedCloud);
       }
@@ -847,7 +869,7 @@ Polymer({
           if (
             this.model.clouds[cloudId].provider === 'openstack' ||
             this.model.clouds[cloudId].provider === 'vexxhost'
-          ) {
+            ) {
             locations.forEach(l => {
               if (l.extra.compute === false) {
                 l.disabled = true;
@@ -1091,7 +1113,10 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (provider === 'openstack' || provider === 'vexxhost') {
+            if (
+              provider === 'openstack' ||
+              provider === 'vexxhost'
+              ) {
               const nameIndex = options.findIndex(
                 entry => entry.name === 'name'
               );
@@ -2510,17 +2535,15 @@ Polymer({
     }
   },
 
-  async _getAmazonSecurityGroups(cloudId) {
+  async _getSecurityGroups(cloudId, index) {
+    this.set('securityGroupsFieldIndex', index);
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';
     this.$.getSecurityGroups.headers['Csrf-Token'] = CSRFToken.value;
     this.$.getSecurityGroups.url = `/api/v1/clouds/${cloudId}/security-groups`;
-    const promise = await this.$.getSecurityGroups.generateRequest().completes;
-    const secGroups = promise.response.map(secGroup => ({
-      title: secGroup.name,
-      id: secGroup.id
-    }));
+    const test = await this.$.getSecurityGroups.generateRequest().completes;
+    console.log("test ", test)
+    console.log("test.response ", test.response)
 
-    return secGroups || [];
   },
 
   _handleGetSecurityGroupsRequest(_e) {
@@ -2528,7 +2551,6 @@ Polymer({
   },
 
   _handleGetSecurityGroupsResponse(e) {
-    return;
     const secGroups = [];
     if (
       this.cloud.provider === 'openstack' ||
@@ -3009,20 +3031,6 @@ Polymer({
     );
   },
 
-  _computeVolumes(_model, _clouds) {
-    const volumes = {};
-    console.log("this.clouds in compute", this.clouds)
-    this.clouds.forEach(cloud => {
-      console.log("cloud.volumes ", cloud.volumes)
-      if (cloud.volumes) {
-        for (const volume in cloud.volumes) {
-          console.log("volume in compute ", volume)
-          volumes[volume] = cloud.volumes[volume];
-        }
-      }
-    })
-    return volumes;
-  },
   addInput(e) {
     if (
       e.detail.fieldname === 'schedule_script_id' ||

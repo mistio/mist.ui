@@ -2,6 +2,7 @@ import '@polymer/app-route/app-route.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-fab/paper-fab.js';
+import './machines/machine-create-new.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
@@ -150,6 +151,12 @@ Polymer({
       monitoring="[[monitoring]]"
       docs="[[docs]]"
     ></machine-create>
+    <machine-create-new
+      model="[[model]]"
+      hidden$="[[!_isNewAddPageActive(route.path)]]"
+      monitoring="[[monitoring]]"
+      docs="[[docs]]"
+    ></machine-create-new>
     <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
       <machine-page
         path="[[route.path]]"
@@ -301,7 +308,10 @@ Polymer({
   _isAddPageActive(path) {
     return path === '/+create';
   },
-
+  // DELETE THIS WHEN NEW MACHINE FORM IS FINISHED
+  _isNewAddPageActive(path) {
+    return path === '/+create-new';
+  },
   _isDetailsPageActive(path) {
     // console.log('load _isDetailsPageActive', path);
     if (path && path !== '/+create') {

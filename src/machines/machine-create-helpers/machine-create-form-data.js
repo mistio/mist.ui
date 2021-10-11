@@ -65,45 +65,40 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         return pattern;
           }
       },
-        getLocationsFromCloud: {
-          func: cloudId => {
-            if (!cloudId) { return undefined;}
+        getLocations: {
+          func: (id, path, formValues) => {
+            console.log("id, path ", id, path)
+            if (!id) { return undefined;}
+            const cloudId = path == 'cloudContainer.cloud' ? id : formValues.cloudContainer &&  formValues.cloudContainer.cloud;
             const locationsArray = data._getCloudById(cloudId).locationsArray || [];
-            const locations =  locationsArray.map(
-              location => (
-                {...location, title:location.name}
-              )
-            );
-            return locations;
+            switch (path) {
+              case 'cloudContainer.cloud':
+                const locations =  locationsArray.map(
+                  location => (
+                    {...location, title:location.name}
+                  )
+                );
+                return locations;
+              case 'setupMachine.image':
+                const locationsFromImage =  locationsArray.filter( location =>
+                  !location.available_images || location.available_images.includes(imageName)
+                  )
+                .map(location => (
+                  {...location, title:location.name}
+                ));
+                  return locationsFromImage;
+              case 'setupMachine.size':
+                const locationsFromSize =  locationsArray.filter(size=>
+                  !size.available_images || size.available_images.includes(sizeName)
+                  )
+                .map(size => (
+                  {...size, title:size.name}
+                ));
+                  return locationsFromSize;
+              default:
+                return undefined;
+            }
           }
-        },
-        getLocationsFromImage: {
-          func: (imageName, path, formValues) => {
-            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
-            if (!cloudId) { return undefined;}
-            const locationsArray = data._getCloudById(cloudId).locationsArray || [];
-            const locations =  locationsArray.filter( location =>
-              !location.available_images || location.available_images.includes(imageName)
-              )
-            .map(location => (
-              {...location, title:location.name}
-            ));
-              return locations;
-          },
-        },
-        getLocationsFromSize: {
-          func: (sizeName, path, formValues) => {
-            const cloudId = formValues.cloudContainer &&  formValues.cloudContainer.cloud;
-            if (!cloudId) { return undefined;}
-            const sizesArray = data._getCloudById(cloudId).sizesArray || [];
-            const sizes =  sizesArray.filter(size=>
-              !size.available_images || size.available_images.includes(sizeName)
-              )
-            .map(size => (
-              {...size, title:size.name}
-            ));
-              return sizes;
-          },
         },
         getImagesFromCloud: {
           func: cloudId => {
