@@ -6,16 +6,6 @@ export default function treeViewDataProvider(opts, callback) {
   const { grid } = mistList.$;
   if (!grid) return [];
   items = (Array.isArray(grid.items) ? grid.items : []).slice(0);
-  if (grid._filters && grid._checkPaths(grid._filters, 'filtering', items))
-    items = grid._filter(items);
-
-  grid.size = items.length;
-  if (
-    opts.sortOrders.length &&
-    grid._checkPaths(grid._sorters, 'sorting', items)
-  )
-    items = items.sort(grid._multiSort.bind(grid));
-
   if (
     mistList.filteredItems &&
     mistList.combinedFilter &&
@@ -31,6 +21,17 @@ export default function treeViewDataProvider(opts, callback) {
     });
     items = Object.values(filterMap);
   }
+
+  if (grid._filters && grid._checkPaths(grid._filters, 'filtering', items))
+    items = grid._filter(items);
+
+  grid.size = items.length;
+  if (
+    opts.sortOrders.length &&
+    grid._checkPaths(grid._sorters, 'sorting', items)
+  )
+    items = items.sort(grid._multiSort.bind(grid));
+
   let data = [];
   if (!mistList.treeView) {
     data = items;
