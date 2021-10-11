@@ -268,7 +268,9 @@ Polymer({
       /* eslint-disable no-param-reassign */
       this.fields.forEach(f => {
         if (f.name.endsWith('location')) {
-          let locations = this.model.clouds[cloudId].locationsArray.slice();
+          let locations = this.model.clouds[cloudId].locationsArray
+            ? this.model.clouds[cloudId].locationsArray.slice()
+            : [];
           if (locations.length === 1 && locations[0].name === '') {
             // If there's a single location preselect it and hide the field
             f.value = locations[0].id;
@@ -295,7 +297,9 @@ Polymer({
           ) {
             locations = locations.filter(l => l.extra.storage === true);
           } else if (this.model.clouds[cloudId].provider === 'vultr') {
-            locations = locations.filter(l => l.extra.option.includes('block_storage') === true);
+            locations = locations.filter(
+              l => l.extra.option.includes('block_storage') === true
+            );
           }
           f.options = locations;
         }
