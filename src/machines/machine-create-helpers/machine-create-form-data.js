@@ -240,6 +240,11 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             return !['ec2', 'aliyun_ecs'].includes(data._getProviderById(cloudId));
           }
         },
+        hideLocations: {
+          func: cloudId => {
+            return !['lxd', 'docker', 'kubevirt'].includes(data._getProviderById(cloudId));
+          }
+        },
         getSecurityGroups: {
           func: cloudId => {
             return cloudId ? data._getAmazonSecurityGroups(cloudId) : [];
