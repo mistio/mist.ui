@@ -1153,16 +1153,21 @@ Polymer({
       // will result in a single metric in the output, the one that gets
       // read last. This bug should be fixed if multiple monitoring gets
       // popular.
+      const transformMetricName = x => {
+        const x1 = x.replace('{', '.{');
+        const prefix = x1.match(/[^.{]*/i)[0];
+        return x1.replace(prefix, prefix.replace(/_/g, '.'));
+      };
       Object.keys(data.detail.response).forEach(metricName => {
         if (
           data.detail.response[metricName].method === 'telegraf-victoriametrics'
         ) {
-          let metric = metricName.split('{')[0].replace('}', '');
-          metric = metric.replace('{', '_');
-          metric = metric.replaceAll('_', '.');
           if (metricName.indexOf('metering') > -1)
-            meteringMetrics[metric] = data.detail.response[metricName];
-          else monitoringMetrics[metric] = data.detail.response[metricName];
+            meteringMetrics[transformMetricName(metricName)] =
+              data.detail.response[metricName];
+          else
+            monitoringMetrics[transformMetricName(metricName)] =
+              data.detail.response[metricName];
         } else {
           monitoringMetrics[metricName] = data.detail.response[metricName];
         }
@@ -1231,6 +1236,9 @@ Polymer({
   },
 
   _getMetricsLayering(metrics) {
+    // Return an Object that has nested properties given a transformed metric name
+    // example input {"cpu.total.free.{cpu=1}": metric}
+    // example output {"cpu": "total": "free": "cpu_total_free{cpu=1}": metric.id}
     const output = {};
     Object.keys(metrics).forEach(metric => {
       let res = output;
