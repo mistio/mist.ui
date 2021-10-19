@@ -41,6 +41,9 @@ Polymer({
       <paper-item value="[[metric.name]]" on-tap="chooseMetric"
         >[[metric.name]]</paper-item
       >
+      <template is="dom-if" if="[[metric.header]]">
+        --------------------------------------
+      </template>
     </template>
   `,
   is: 'rule-metrics',
@@ -67,6 +70,10 @@ Polymer({
   chooseMetric(e) {
     console.log('choose metric', e);
     e.preventDefault();
+    if (this.metric.header) {
+      e.stopPropagation();
+      return;
+    }
     this.dispatchEvent(
       new CustomEvent('choose-metric', {
         bubbles: true,

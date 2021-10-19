@@ -203,7 +203,6 @@ Polymer({
         padding: 8px 8px 8px 0;
         transform: scale(0.9);
       }
-
       paper-dropdown-menu,
       paper-input {
         vertical-align: bottom;
@@ -897,7 +896,7 @@ Polymer({
       on-response="_close"
       on-error="_handleFormError"
       loading="{{sendingData}}"
-      handle-as="json"
+      handle-as="text"
     ></iron-ajax>
     <iron-ajax
       id="metrics"
@@ -1174,17 +1173,17 @@ Polymer({
       });
       const outputMetering = this._getMetricsLayering(meteringMetrics);
       const outputMonitoring = this._getMetricsLayering(monitoringMetrics);
-      const metricsArray = [
-        {
-          name: 'monitoring',
-          options: this._computeMetricsArray(outputMonitoring),
-        },
-      ];
+      let metricsArray = this._computeMetricsArray(outputMonitoring);
+      metricsArray.unshift({ name: 'monitoring', header: true });
       if (Object.keys(outputMetering).length > 0)
         metricsArray.push({
           name: 'metering',
-          options: this._computeMetricsArray(outputMetering),
+          header: true,
         });
+      metricsArray = [
+        ...metricsArray,
+        ...this._computeMetricsArray(outputMetering),
+      ];
       this.set('availableMetrics', metricsArray);
       // Store metrics in resource if available, ie we are in a single page, so as to improve performance
       if (!this.model.metrics) {
@@ -1324,16 +1323,18 @@ Polymer({
       const selectedMetric = e.detail.metric;
       const { queryIndex } = e.detail;
       this.set(`rule.queries.${queryIndex}.target`, selectedMetric);
-      this.shadowRoot
-        .querySelector(`paper-dropdown-menu#target-metrics-${queryIndex}`)
-        .shadowRoot.querySelector('paper-input')
+      const dropdown = this.shadowRoot.querySelector(
+        `paper-dropdown-menu#target-metrics-${queryIndex}`
+      );
+      dropdown.shadowRoot
+        .querySelector('paper-input')
         .shadowRoot.querySelector('paper-input-container')
         .querySelector('iron-input')
         .querySelector('input').value = selectedMetric;
       this.shadowRoot.querySelector(
         `paper-dropdown-menu#target-metrics-${queryIndex}`
       ).selected = selectedMetric;
-
+      dropdown.style.width = `${selectedMetric.length * 11}px`;
       this._focusOnOperator(e, queryIndex);
     }
   },
