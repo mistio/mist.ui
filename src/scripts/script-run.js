@@ -167,7 +167,17 @@ Polymer({
         defaultValue: '',
         placeholder: '',
         helptext: 'Optional. Fill in the script parameters.',
-        errorMessage: "Please enter network's name",
+        show: true,
+        required: false,
+      },
+      {
+        name: 'env',
+        label: 'Enviroment variables',
+        type: 'textarea',
+        value: '',
+        defaultValue: '',
+        placeholder: '',
+        helptext: 'Optional. Fill in env vars, one per line',
         show: true,
         required: false,
       },
@@ -176,9 +186,7 @@ Polymer({
   },
 
   _computeMachinesOptions(_clouds) {
-    return Object.values(this.model.machines).filter(cloud => {
-      return cloud.enabled;
-    });
+    return Object.values(this.model.machines).filter(cloud => cloud.enabled);
   },
 
   _computeHasMachines(machinesOptions) {
@@ -199,9 +207,7 @@ Polymer({
   },
 
   _fieldsChanged() {
-    const machine = this.fields.find(f => {
-      return f.name.startsWith('machine');
-    });
+    const machine = this.fields.find(f => f.name.startsWith('machine'));
     if (machine && machine.value) {
       const machineId = machine.value;
       this.set('machine', this.model.machines[machineId]);
