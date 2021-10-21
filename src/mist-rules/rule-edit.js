@@ -203,7 +203,6 @@ Polymer({
         padding: 8px 8px 8px 0;
         transform: scale(0.9);
       }
-
       paper-dropdown-menu,
       paper-input {
         vertical-align: bottom;
@@ -897,7 +896,7 @@ Polymer({
       on-response="_close"
       on-error="_handleFormError"
       loading="{{sendingData}}"
-      handle-as="json"
+      handle-as="text"
     ></iron-ajax>
     <iron-ajax
       id="metrics"
@@ -1144,66 +1143,66 @@ Polymer({
       : '';
   },
   _handleMetricResponse(data) {
-    const output = {};
     if (data.detail.response) {
       // console.log('_handleMetricResponse response data', data.detail.response);
-      const allMetrics = {};
+      const meteringMetrics = {};
+      const monitoringMetrics = {};
       // By doing the below two metrics with similar name eg.
       // mem.active and mem_active (influx & victoria)
       // will result in a single metric in the output, the one that gets
       // read last. This bug should be fixed if multiple monitoring gets
       // popular.
+      const transformMetricName = x => {
+        const x1 = x.replace('{', '.{');
+        const prefix = x1.match(/[^.{]*/i)[0];
+        return x1.replace(prefix, prefix.replace(/_/g, '.'));
+      };
       Object.keys(data.detail.response).forEach(metricName => {
         if (
           data.detail.response[metricName].method === 'telegraf-victoriametrics'
         ) {
-          let metric = metricName.replace('}', '');
-          metric = metric.replace('{', '_');
-          metric = metric.replaceAll('_', '.');
-          allMetrics[metric] = data.detail.response[metricName];
+          if (metricName.indexOf('metering') > -1)
+            meteringMetrics[transformMetricName(metricName)] =
+              data.detail.response[metricName];
+          else
+            monitoringMetrics[transformMetricName(metricName)] =
+              data.detail.response[metricName];
         } else {
-          allMetrics[metricName] = data.detail.response[metricName];
+          monitoringMetrics[metricName] = data.detail.response[metricName];
         }
       });
-      Object.keys(allMetrics).forEach(metric => {
-        let res = output;
-        const chunks = metric.split('.');
-        try {
-          for (let i = 0; i < chunks.length; i++) {
-            if (!res[chunks[i]]) {
-              res[chunks[i]] = {};
-            }
-            if (i === chunks.length - 1) {
-              res[chunks[i]] = allMetrics[metric].id;
-            }
-            res = res[chunks[i]];
-          }
-        } catch (e) {
-          console.warn(
-            `Metric ${metric} encountered a problem during listing.`
-          );
-          output[chunks[0]][metric] = allMetrics[metric].id;
-        }
-      });
-    }
-    this.set('availableMetrics', this._computeMetricsArray(output));
-    // Store metrics in resource if available, ie we are in a single page, so as to improve performance
-    if (!this.model.metrics) {
-      this.model.metrics = {};
-    }
-    this.model.metrics[this.metricsUri] = this.availableMetrics;
-    // handle empty response
-    if (!output) {
-      this.dispatchEvent(
-        new CustomEvent('toast', {
-          bubbles: true,
-          composed: true,
-          detail: {
-            msg: 'No metrics available for this resource(s)',
-            duration: 3000,
-          },
-        })
-      );
+      const outputMetering = this._getMetricsLayering(meteringMetrics);
+      const outputMonitoring = this._getMetricsLayering(monitoringMetrics);
+      let metricsArray = this._computeMetricsArray(outputMonitoring);
+      metricsArray.unshift({ name: 'monitoring', header: true });
+      if (Object.keys(outputMetering).length > 0)
+        metricsArray.push({
+          name: 'metering',
+          header: true,
+        });
+      metricsArray = [
+        ...metricsArray,
+        ...this._computeMetricsArray(outputMetering),
+      ];
+      this.set('availableMetrics', metricsArray);
+      // Store metrics in resource if available, ie we are in a single page, so as to improve performance
+      if (!this.model.metrics) {
+        this.model.metrics = {};
+      }
+      this.model.metrics[this.metricsUri] = this.availableMetrics;
+      // handle empty response
+      if (!outputMonitoring || !outputMetering) {
+        this.dispatchEvent(
+          new CustomEvent('toast', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              msg: 'No metrics available for this resource(s)',
+              duration: 3000,
+            },
+          })
+        );
+      }
     }
   },
   _computeMetricsArray(output) {
@@ -1233,6 +1232,32 @@ Polymer({
         elem.options.splice(0, 0, elem.options.splice(totalIndex, 1)[0]);
     });
     return arr.sort((a, b) => a.name.localeCompare(b.name));
+  },
+
+  _getMetricsLayering(metrics) {
+    // Return an Object that has nested properties given a transformed metric name
+    // example input {"cpu.total.free.{cpu=1}": metric}
+    // example output {"cpu": "total": "free": "cpu_total_free{cpu=1}": metric.id}
+    const output = {};
+    Object.keys(metrics).forEach(metric => {
+      let res = output;
+      const chunks = metric.split('.');
+      try {
+        for (let i = 0; i < chunks.length; i++) {
+          if (!res[chunks[i]]) {
+            res[chunks[i]] = {};
+          }
+          if (i === chunks.length - 1) {
+            res[chunks[i]] = metrics[metric].id;
+          }
+          res = res[chunks[i]];
+        }
+      } catch (e) {
+        console.warn(`Metric ${metric} encountered a problem during listing.`);
+        output[chunks[0]][metric] = metrics[metric].id;
+      }
+    });
+    return output;
   },
 
   _handleMetricError(error) {
@@ -1298,16 +1323,18 @@ Polymer({
       const selectedMetric = e.detail.metric;
       const { queryIndex } = e.detail;
       this.set(`rule.queries.${queryIndex}.target`, selectedMetric);
-      this.shadowRoot
-        .querySelector(`paper-dropdown-menu#target-metrics-${queryIndex}`)
-        .shadowRoot.querySelector('paper-input')
+      const dropdown = this.shadowRoot.querySelector(
+        `paper-dropdown-menu#target-metrics-${queryIndex}`
+      );
+      dropdown.shadowRoot
+        .querySelector('paper-input')
         .shadowRoot.querySelector('paper-input-container')
         .querySelector('iron-input')
         .querySelector('input').value = selectedMetric;
       this.shadowRoot.querySelector(
         `paper-dropdown-menu#target-metrics-${queryIndex}`
       ).selected = selectedMetric;
-
+      dropdown.style.width = `${selectedMetric.length * 11}px`;
       this._focusOnOperator(e, queryIndex);
     }
   },

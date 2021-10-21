@@ -19,6 +19,15 @@ Polymer({
       iron-collapse {
         margin-left: 16px;
       }
+      div.header {
+        font-weight: bold;
+        text-align: center;
+        color: #333;
+        text-transform: uppercase;
+        background-color: #fafafa;
+        margin-top: -8px;
+        padding: 8px;
+      }
     </style>
 
     <template is="dom-if" if="[[metric.options.length]]">
@@ -38,9 +47,14 @@ Polymer({
     </template>
 
     <template is="dom-if" if="[[!metric.options.length]]">
-      <paper-item value="[[metric.name]]" on-tap="chooseMetric"
-        >[[metric.name]]</paper-item
-      >
+      <template is="dom-if" if="[[!metric.header]]">
+        <paper-item value="[[metric.name]]" on-tap="chooseMetric"
+          >[[metric.name]]</paper-item
+        >
+      </template>
+      <template is="dom-if" if="[[metric.header]]">
+        <div class="header">[[metric.name]]</div>
+      </template>
     </template>
   `,
   is: 'rule-metrics',
@@ -67,6 +81,10 @@ Polymer({
   chooseMetric(e) {
     console.log('choose metric', e);
     e.preventDefault();
+    if (this.metric.header) {
+      e.stopPropagation();
+      return;
+    }
     this.dispatchEvent(
       new CustomEvent('choose-metric', {
         bubbles: true,
