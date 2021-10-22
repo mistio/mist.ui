@@ -349,7 +349,6 @@ Polymer({
   observers: ['_changed(zone.*)'],
 
   listeners: {
-    confirmation: '_deleteZoneEventResponse',
     'action-finished': 'clearListSelection',
   },
 
@@ -449,18 +448,6 @@ Polymer({
           detail: { url: `zones/${this.zone.id}/+create` },
         })
       );
-    }
-  },
-
-  _deleteZoneEventResponse(e) {
-    const { reason } = e.detail;
-    const { response } = e.detail;
-
-    if (response === 'confirm' && reason === 'zone.delete') {
-      this.$.zoneDeleteAjaxRequest.body = {};
-      this.$.zoneDeleteAjaxRequest.headers['Content-Type'] = 'application/json';
-      this.$.zoneDeleteAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
-      this.$.zoneDeleteAjaxRequest.generateRequest();
     }
   },
 
