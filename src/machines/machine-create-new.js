@@ -164,6 +164,12 @@ Polymer({
         return MACHINE_CREATE_FORM_DATA;
       },
     },
+    createMachineFields: {
+      type: Object,
+      value() {
+        return MACHINE_CREATE_FORM_DATA(this);
+      },
+    },
     clouds: {
       type: Array,
       value() {
@@ -183,11 +189,11 @@ Polymer({
     },
   },
   _mistFormRequest(e) {
-    const params = e.detail.params;
+    const { params } = e.detail;
     console.log('params ', params);
     params.provider = this._getProviderById(params.cloud);
     this.$.formAjax.params = JSON.stringify(e.detail.params);
-    //this.$.formAjax.generateRequest();
+    // this.$.formAjax.generateRequest();
   },
   _getCloud(cloudId) {
     const cloudSizes = this._getCloudSizes() || [];
@@ -195,6 +201,14 @@ Polymer({
       JSON.stringify(
         cloudSizes.find(cloudSize => cloudSize.id === cloudId) || {}
       )
+    );
+  },
+  _computeClouds(_model, _clouds) {
+    // exclude bare metals and not allowed clouds from provider dropdown list
+    return this._toArray(this.model.clouds).filter(
+      c =>
+        ['bare_metal'].indexOf(c.provider) === -1 &&
+        this.checkPerm('cloud', 'create_resources', c.id)
     );
   },
   _toArray(x, _z) {
@@ -221,12 +235,10 @@ Polymer({
         }
         // Allow minimum value of 'disk' field to be 0
         if (size.customSizeFields) {
-          size.customSizeFields.map(field => {
-            return {
-              ...field,
-              min: field.name.includes('disk') ? 0 : field.min,
-            };
-          });
+          size.customSizeFields.map(field => ({
+            ...field,
+            min: field.name.includes('disk') ? 0 : field.min,
+          }));
         }
         return [
           {
@@ -245,7 +257,10 @@ Polymer({
   _getProviderById(cloudId) {
     return this._getCloudById(cloudId) && this._getCloudById(cloudId).provider;
   },
-
+  _hasClouds(clouds) {
+    if (clouds && clouds.length) return true;
+    return false;
+  },
   async _getAmazonSecurityGroups(cloudId) {
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';
     this.$.getSecurityGroups.headers['Csrf-Token'] = CSRFToken.value;
