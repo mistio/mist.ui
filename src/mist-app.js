@@ -21,12 +21,10 @@ import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-toast/paper-toast.js';
-// import '../../../app-notifications/app-notifications.js';
 import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
 import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@vaadin/vaadin-icons/vaadin-icons.js';
 import '@mistio/mist-list/mist-list.js';
-// import '../../../web-animations-js/web-animations-next.min.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';
 import './mist-sidebar.js';
@@ -180,7 +178,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
         <app-header-layout mode="standard" class="fit" fullbleed="">
             <mist-notice model="[[model]]" class="paper-header"></mist-notice>
             <app-header slot="header" fixed="" shadow="" hidden$="[[fullscreen]]">
-                <mist-header sticky="" model="[[model]]" title="[[page]]" query="{{q}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened="{{userMenuOpened}}" ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
+                <mist-header sticky="" model="[[model]]" title="[[page]]" query="{{searchQuery}}" class="paper-header" count="[[count]]" viewing-list="[[viewingList]]" user-menu-opened="{{userMenuOpened}}" ownership="[[model.org.ownership_enabled]]" visible-suggestions="{{visibleSuggestions}}"></mist-header>
             </app-header>
             <mist-sidebar id="sidebar" model="[[model]]" tag="[[tag]]" current="{{page}}" drawer="" smallscreen="[[smallscreen]]" xsmallscreen="[[xsmallscreen]]" isclosed="{{sidebarIsClosed}}"></mist-sidebar>
             <div id="main-loader" class$="is-loading-html active-[[loading]]">
@@ -265,7 +263,7 @@ Polymer({
       type: String,
       value: '',
     },
-    q: {
+    searchQuery: {
       // search query
       type: String,
       value: '',
@@ -337,7 +335,6 @@ Polymer({
     'user-action': '_onUserAction',
     'add-new-images': 'addImages',
     'go-to': 'setLocationPath',
-    // 'mist-list-filtered-items-length-changed': 'setHeaderCount', // disable header count and sections count updates
     'export-list-csv': '_exportCsvMessage',
     'add-org': '_addOrg',
     tap: 'closeIfClickedElsewhere',
@@ -362,7 +359,6 @@ Polymer({
     '_sizeChanged(smallscreen)',
     '_configUpdated(config)',
     '_ccRequiredChanged(ccRequired)',
-    // '_qChanged(q)' // disable sections count updates
   ],
 
   _cleanUpModelFromCloudResources(e) {
@@ -374,23 +370,24 @@ Polymer({
 
   _listAttached(e) {
     if (e.detail && e.detail.id) {
-      const key = e.detail.id.replace('List', '');
-      if (this.model.sections[key]) {
-        let local = localStorage.getItem(
-          `mist-filter#topFilter/all-${key}/userFilter`
+      const section = e.detail.id.replace('List', '');
+      if (this.model.sections[section]) {
+        let userFilter = localStorage.getItem(
+          `mist-filter#topFilter/all-${section}/userFilter`
         );
-        if (!local) {
-          local = localStorage.getItem(
+        if (!userFilter) {
+          userFilter = localStorage.getItem(
             'mist-filter#topFilter/all-resources/userFilter'
           );
         }
-        if (!local) {
-          local = this.model.sections[key].q;
+        if (!userFilter) {
+          userFilter = this.model.sections[section].q;
         }
-        if (!local) {
-          local = '';
+        if (!userFilter) {
+          userFilter = '';
         }
-        this.set(`model.sections.${key}.q`, `${local} `);
+        this.set(`model.sections.${section}.q`, userFilter);
+        this.set('searchQuery', userFilter);
       }
     }
   },
@@ -673,40 +670,6 @@ Polymer({
     this.page = page || 'dashboard';
     this.set('visibleSuggestions', false);
   },
-  /* eslint-enable no-param-reassign */
-  clearSearch() {
-    document.querySelector('top-search').clearSearch();
-    this.set('q', '');
-    if (this.model && this.model.sections) {
-      Object.keys(this.model.sections || {}).forEach(sec => {
-        this.set(`model.sections.${sec}.q`, '');
-      });
-    }
-  },
-
-  clearSearchPreservingFilters(_e) {
-    let q = this.q || '';
-    const filterOwner = q.indexOf('owner:') > -1;
-    const ownerRegex = /owner:(\S*)\s?/;
-    const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-
-    if (filterOwner && owner && owner.length) {
-      q = q.replace('owner:', '').replace(`${owner}`, '');
-    }
-    this.set('q', this.q.replace(q, ''));
-    if (this.model && this.model.sections) {
-      Object.keys(this.model.sections || {}).forEach(sec => {
-        this.set(`model.sections.${sec}.q`, this.q.replace(q, ''));
-      });
-    }
-    this.dispatchEvent(
-      new CustomEvent('search', {
-        bubbles: true,
-        composed: true,
-        detail: this.q.replace(q, ''),
-      })
-    );
-  },
 
   _pageChanged(page) {
     this.set('count', '');
@@ -742,7 +705,7 @@ Polymer({
       if (e.detail.page && this.page === e.detail.page) {
         this.set(`model.sections.${this.page}.q`, e.detail.q || '');
       }
-      this.set('q', e.detail.q);
+      this.set('searchQuery', e.detail.q);
     }
   },
 
@@ -940,9 +903,6 @@ Polymer({
       this.config && this.config.features && this.config.features.currency
         ? this.config.features.currency
         : { sign: '$', rate: 1 };
-    // currency =  {sign: '$', rate: 1};
-    // test {sign: '₹', rate:0.014}
-    // currency = {sign:'Rp', rate: 68.73};
 
     const cloudsCount = this.model.clouds
       ? Object.keys(this.model.clouds).length
@@ -1334,99 +1294,7 @@ Polymer({
     script.onload = e.detail.cb;
     document.body.appendChild(script);
   },
-  _qChanged(q) {
-    if (this._isPage('dashboard')) {
-      if (!q || !q.trim || !q.trim()) {
-        // restore section counts
-        this._restoreSectionsCounts();
-      } else {
-        // update section counts according to q
-        this._updateSectionsCounts(q);
-      }
-    } else {
-      // update section counts according to stored default
-      // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
-    }
-  },
-  _restoreSectionsCounts() {
-    Object.keys(this.model || {}).forEach(prop => {
-      if (this.model.sections[prop] && this.model[prop]) {
-        // set counts to full model resources length
-        this.set(
-          `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).length
-        );
-      }
-    });
-  },
-  _updateSectionsCounts(q) {
-    const that = this;
-    Object.keys(this.model || {}).forEach(prop => {
-      if (this.model.sections[prop] && this.model[prop]) {
-        // set counts to filtered model resources length
-        this.set(
-          `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).filter(r => {
-            return that._filterModel(r, q);
-          }).length
-        );
-      }
-    });
-  },
-  /* eslint-disable no-param-reassign */
-  _filterModel(item, q) {
-    q = q || '';
-    const filterOwner = q.indexOf('owner:') > -1;
-    const ownerRegex = /owner:(\S*)\s?/;
-    const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
-    let str;
 
-    if (filterOwner && owner && owner.length) {
-      q = q.replace('owner:', '').replace(`${owner}`, '');
-
-      if (owner === '$me') {
-        if (!item.owned_by || item.owned_by !== this.model.user.id)
-          return false;
-      } else {
-        const ownerObj =
-          this.model &&
-          this.model.membersArray &&
-          this.model.membersArray.find(m => {
-            return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
-          });
-        if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
-          return false;
-      }
-    }
-
-    const queryTerms = q.split(' ');
-    str = JSON.stringify(item);
-    if (
-      this.model &&
-      this.model.clouds &&
-      item &&
-      item.cloud &&
-      this.model.clouds[item.cloud]
-    ) {
-      str += `${this.model.clouds[item.cloud].provider}${
-        this.model.clouds[item.cloud].title
-      }`;
-    }
-
-    if (q && q.trim().length > 0) {
-      // Check if all terms exist in stringified item
-      for (let i = 0; i < queryTerms.length; i++) {
-        if (
-          queryTerms[i] &&
-          queryTerms[i].length &&
-          str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0
-        ) {
-          return false;
-        }
-      }
-    }
-    return true;
-  },
   /* eslint-enable no-param-reassign */
   _stopPropagation(e) {
     e.stopPropagation();
@@ -1435,7 +1303,7 @@ Polymer({
 
 document.addEventListener(
   'iron-overlay-opened',
-  function moveBackdrop(event) {
+  event => {
     const dialog = dom(event).rootTarget;
     if (dialog.withBackdrop) {
       dialog.parentNode.insertBefore(dialog.backdropElement, dialog);
