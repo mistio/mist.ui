@@ -188,7 +188,6 @@ Polymer({
     },
     userFilter: {
       type: String,
-      notify: true,
     },
     model: {
       type: Object,

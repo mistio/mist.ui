@@ -10,7 +10,7 @@ import '../notifications/notifications-indicator.js';
 import './top-search.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-
+/* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
     <style include="shared-styles">
@@ -307,7 +307,7 @@ Polymer({
         icon="menu"
         paper-drawer-toggle=""
         on-tap="toggleSidebar"
-        tabindex="0"
+        tabindex="-1"
       ></paper-icon-button>
       <div class="logo-and-title layout horizontal">
         <a
@@ -322,7 +322,7 @@ Polymer({
             sizing="contain"
             fade=""
             alt$="[[portal_name]] Logo"
-            tabindex="0"
+            tabindex="-1"
             hidden$="[[!_computeLogo(model.org)]]"
           ></iron-image>
         </a>
@@ -335,7 +335,7 @@ Polymer({
       <div class="search layout horizontal">
         <top-search
           model="[[model]]"
-          tabindex="3"
+          tabindex="-1"
           viewing-list="[[viewingList]]"
           user-filter="{{query}}"
           ownership="[[ownership]]"
@@ -347,13 +347,13 @@ Polymer({
       <notifications-indicator
         id="mist-notifications"
         notifications="[[model.notificationsArray]]"
-        tabindex="5"
+        tabindex="-1"
       ></notifications-indicator>
       <app-user-menu
         user="[[model.user]]"
         org="[[model.org]]"
         teams="[[_computeUserTeams(model.user, model.teamsArray)]]"
-        tabindex="6"
+        tabindex="-1"
         opened="{{userMenuOpened}}"
       ></app-user-menu>
     </app-toolbar>
@@ -380,9 +380,6 @@ Polymer({
       type: String,
       value: 'dashboard',
       reflectToAttribute: true,
-    },
-    query: {
-      type: String,
     },
     viewingList: {
       type: Boolean,
