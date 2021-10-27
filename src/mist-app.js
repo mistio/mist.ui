@@ -347,7 +347,6 @@ Polymer({
     'panel-added': 'panelAdded',
     'update-dashboard': '_forwardEvent',
     'import-script': '_importScript',
-    'list-attached': '_listAttached',
     resize: '_stopPropagation',
     'cloud-delete': '_cleanUpModelFromCloudResources',
   },
@@ -366,30 +365,6 @@ Polymer({
       this.shadowRoot
         .querySelector('mist-socket')
         .cleanUpResources(e.detail.cloud);
-  },
-
-  _listAttached(e) {
-    if (e.detail && e.detail.id) {
-      const section = e.detail.id.replace('List', '');
-      if (this.model.sections[section]) {
-        let userFilter = localStorage.getItem(
-          `mist-filter#topFilter/all-${section}/userFilter`
-        );
-        if (!userFilter) {
-          userFilter = localStorage.getItem(
-            'mist-filter#topFilter/all-resources/userFilter'
-          );
-        }
-        if (!userFilter) {
-          userFilter = this.model.sections[section].q;
-        }
-        if (!userFilter) {
-          userFilter = '';
-        }
-        this.set(`model.sections.${section}.q`, userFilter);
-        this.set('searchQuery', userFilter);
-      }
-    }
   },
 
   attached() {
@@ -674,6 +649,25 @@ Polymer({
   _pageChanged(page) {
     this.set('count', '');
     this.set('loading', true);
+    if (page && this.model.sections[page]) {
+      let userFilter = localStorage.getItem(
+        `mist-filter#topFilter/all-${page}/userFilter`
+      );
+      if (!userFilter) {
+        userFilter = localStorage.getItem(
+          'mist-filter#topFilter/all-resources/userFilter'
+        );
+      }
+      if (!userFilter) {
+        userFilter = this.model.sections[page].q;
+      }
+      if (!userFilter) {
+        userFilter = '';
+      }
+      this.set(`model.sections.${page}.q`, userFilter);
+      this.set('searchQuery', userFilter);
+    }
+
     // Load page import on demand. Show 404 page if fails
 
     import(`./page-${page}.js`).then(this._hideLoader.bind(this), reason => {
