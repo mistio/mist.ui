@@ -328,7 +328,14 @@ const MACHINE_CREATE_FORM_DATA = data => ({
       },
       hideLocations: {
         func: cloudId => {
-          return ['lxd', 'docker', 'kubevirt'].includes(
+          return ['lxd', 'docker', 'kubevirt', 'linode'].includes(
+            data._getProviderById(cloudId)
+          );
+        },
+      },
+      locationRequired: {
+        func: cloudId => {
+          return !['lxd', 'docker', 'kubevirt', 'linode'].includes(
             data._getProviderById(cloudId)
           );
         },
@@ -418,6 +425,11 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: saveAsTemplate => !saveAsTemplate,
       },
     },
+    dataFormatting:{
+      formatCloudContainerPayload: (values) => {
+        return values;
+      }
+    }
   },
 });
 

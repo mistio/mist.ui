@@ -108,7 +108,7 @@ Polymer({
           hidden$="[[showJSON]]"
           src="[[createMachineFields.src]]"
           dynamic-data-namespace="[[createMachineFields.formData]]"
-          url="/api/v1/clouds/[[selectedCloud]]/machines"
+          url="/api/v2/machines"
           method="POST"
         >
           <div id="mist-form-custom">
@@ -133,9 +133,13 @@ Polymer({
           <iron-ajax
             slot="formRequest"
             id="formAjax"
-            url="/api/v1/clouds/[[selectedCloud]]/machines"
+            url="/api/v2/machines"
+            method="POST"
+            handle-as="json"
             contentType="application/json"
             on-mist-form-request="_mistFormRequest"
+            on-response="_mistFormResponse"
+            on-error="_mistFormError"
           ></iron-ajax>
         </mist-form>
       </paper-material>
@@ -192,8 +196,18 @@ Polymer({
     const { params } = e.detail;
     console.log('params ', params);
     params.provider = this._getProviderById(params.cloud);
-    this.$.formAjax.params = JSON.stringify(e.detail.params);
-    // this.$.formAjax.generateRequest();
+    params.dry = false;
+  //  this.$.formAjax.params = JSON.stringify(params);
+    this.$.formAjax.headers['Content-Type'] = 'application/json';
+   // this.$.formAjax.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.formAjax.body = params;
+    this.$.formAjax.generateRequest();
+  },
+  _mistFormError(e) {
+    console.error(e);
+  },
+  _mistFormResponse(e) {
+    console.log("response mist form  ", e);
   },
   _getCloud(cloudId) {
     const cloudSizes = this._getCloudSizes() || [];
