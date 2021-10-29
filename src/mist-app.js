@@ -668,12 +668,9 @@ Polymer({
 
     // save current filter
     if (this.page && this.model.sections[this.page]) {
-      const currentFilter = this.shadowRoot
-        .querySelector('mist-header')
-        .shadowRoot.querySelector('top-search').userFilter;
       localStorage.setItem(
         `mist-filter#topFilter/all-${this.page}/userFilter`,
-        currentFilter
+        this.searchQuery
       );
     }
 
@@ -742,6 +739,7 @@ Polymer({
       if (
         e.detail.page &&
         this.page === e.detail.page &&
+        this.shadowRoot.querySelector(`page-${this.page}`) &&
         this.shadowRoot.querySelector(`page-${this.page}`).shadowRoot
       ) {
         this.set(`model.sections.${this.page}.q`, e.detail.q || '');
