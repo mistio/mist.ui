@@ -243,8 +243,6 @@ Polymer({
     'iron-resize': 'updateWidth',
   },
 
-  attached() {},
-
   updateWidth() {
     this.debounce(
       'windowResize',
