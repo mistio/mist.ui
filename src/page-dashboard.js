@@ -542,6 +542,16 @@ Polymer({
           console.error('Failed to import polyana-dashboard:', reason);
         }
       );
+      const that = this;
+      setTimeout(() => {
+        const panel = that.shadowRoot
+          .querySelector('.graphs')
+          .querySelector('#dashboard')
+          .shadowRoot.querySelector('#panel-0');
+        if (panel.loading) {
+          panel._generateDataRequest();
+        }
+      }, 10000);
     }
   },
   isOnline(cloud) {
