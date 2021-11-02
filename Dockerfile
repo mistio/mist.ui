@@ -1,4 +1,4 @@
-FROM node:12.16.3-alpine
+FROM node:16-alpine
 LABEL maintainer="support@mist.io"
 
 RUN apk add --update --no-cache git nginx && npm update && npm install -g -U --no-optional polymer-cli prpl-server es-dev-server rollup --unsafe-perm
