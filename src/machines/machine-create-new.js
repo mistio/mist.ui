@@ -13,6 +13,23 @@ import { MACHINE_CREATE_FIELDS } from '../helpers/machine-create-fields.js';
 import { MACHINE_CREATE_FORM_DATA } from './machine-create-helpers/machine-create-form-data.js';
 import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 
+function defer() {
+	var res, rej;
+
+	var promise = new Promise((resolve, reject) => {
+    console.log("in promise")
+
+		res = resolve;
+		rej = reject;
+	});
+
+	promise.resolve = res;
+	promise.reject = rej;
+
+	return promise;
+}
+
+
 Polymer({
   _template: html`
     <style include="shared-styles forms single-page">
@@ -196,7 +213,7 @@ Polymer({
     const { params } = e.detail;
     console.log('params ', params);
     params.provider = this._getProviderById(params.cloud);
-    params.dry = false;
+    //params.dry = true;
   //  this.$.formAjax.params = JSON.stringify(params);
     this.$.formAjax.headers['Content-Type'] = 'application/json';
    // this.$.formAjax.headers['Csrf-Token'] = CSRFToken.value;
@@ -219,11 +236,22 @@ Polymer({
   },
   _computeClouds(_model, _clouds) {
     // exclude bare metals and not allowed clouds from provider dropdown list
-    return this._toArray(this.model.clouds).filter(
+    const clouds = this._toArray(this.model.clouds).filter(
       c =>
         ['bare_metal'].indexOf(c.provider) === -1 &&
         this.checkPerm('cloud', 'create_resources', c.id)
     );
+
+    if(clouds.length) {
+      this._getClouds.resolve(() =>{
+        return this.clouds.map(cloud => ({
+          ...cloud,
+          image: `assets/providers/provider-${cloud.provider}.png`,
+          alt: '',
+        }))
+      })
+    }
+    return clouds;
   },
   _toArray(x, _z) {
     if (x) {
@@ -287,4 +315,5 @@ Polymer({
 
     return secGroups || [];
   },
+   _getClouds: defer()
 });

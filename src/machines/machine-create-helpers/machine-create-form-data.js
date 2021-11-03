@@ -6,16 +6,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
   formData: {
     dynamicData: {
       clouds: {
-        func: new Promise(resolve => {
-          // Wait until clouds have loaded here
-          resolve(() =>
-            data.clouds.map(cloud => ({
-              ...cloud,
-              image: `assets/providers/provider-${cloud.provider}.png`,
-              alt: '',
-            }))
-          );
-        }),
+        func: data._getClouds,
       },
       getZones: {
         func: new Promise(resolve => {
@@ -65,7 +56,6 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           const pattern =
             (provider && MACHINE_NAME_REGEX_PATTERNS[provider]) ||
             MACHINE_NAME_REGEX_PATTERNS['default'];
-          console.log('pattern ', pattern);
           return pattern;
         },
       },
@@ -121,6 +111,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
               return undefined;
             }
           }
+          return false;
         },
       },
       getImages: {
@@ -342,7 +333,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
       },
       getSecurityGroups: {
         func: cloudId => {
-          return cloudId ? data._getAmazonSecurityGroups(cloudId) : [];
+          return cloudId && data._getProviderById(cloudId) === 'ec2' ?  data._getAmazonSecurityGroups(cloudId) : [];
         },
         type: 'promise',
       },

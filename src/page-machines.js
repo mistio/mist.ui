@@ -314,7 +314,7 @@ Polymer({
   },
   _isDetailsPageActive(path) {
     // console.log('load _isDetailsPageActive', path);
-    if (path && path !== '/+create') {
+    if (path && path !== '/+create' && path !== '/+create-new') {
       if (this.shadowRoot && this.shadowRoot.querySelector('machine-page')) {
         this.shadowRoot.querySelector('machine-page').updateState();
       }
