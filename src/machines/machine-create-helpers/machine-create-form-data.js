@@ -111,7 +111,6 @@ const MACHINE_CREATE_FORM_DATA = data => ({
               return undefined;
             }
           }
-          return false;
         },
       },
       getImages: {
