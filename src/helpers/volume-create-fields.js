@@ -221,12 +221,6 @@ VOLUME_CREATE_FIELDS.push({
   ],
 });
 
-// EQUINIX METAL
-VOLUME_CREATE_FIELDS.push({
-  provider: 'equinixmetal',
-  fields: [],
-});
-
 // LINODE
 VOLUME_CREATE_FIELDS.push({
   provider: 'linode',
@@ -583,7 +577,6 @@ VOLUME_CREATE_FIELDS.push({
 VOLUME_CREATE_FIELDS.forEach(p => {
   // add common machine properties fields
   const minimumSize =
-    (p.provider === 'equinixmetal' && 100) ||
     (p.provider === 'aliyun_ecs' && 5) ||
     (p.provider === 'linode' && 10) ||
     (p.provider === 'vultr' && 10) ||
@@ -602,20 +595,6 @@ VOLUME_CREATE_FIELDS.forEach(p => {
     options: [],
     custom: false,
   });
-
-  if (p.provider !== 'equinixmetal') {
-    p.fields.splice(0, 0, {
-      name: 'name',
-      label: 'Name *',
-      type: 'text',
-      value: '',
-      defaultValue: '',
-      placeholder: '',
-      errorMessage: "Please enter volume's name",
-      show: true,
-      required: true,
-    });
-  }
 
   if (
     p.provider !== 'openstack' &&

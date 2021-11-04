@@ -40,7 +40,7 @@ export default function treeViewDataProvider(opts, callback) {
     data = items.filter(item => item.parent === opts.parentItem.id);
     mistList.count += data.length;
   } else {
-    data = items.filter(item => !item.parent);
+    data = items.filter(item => item && !item.parent);
     mistList.count = data.length;
   }
   const start = opts.page * opts.pageSize;
