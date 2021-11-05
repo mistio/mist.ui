@@ -125,6 +125,7 @@ Polymer({
           hidden$="[[showJSON]]"
           src="[[createMachineFields.src]]"
           dynamic-data-namespace="[[createMachineFields.formData]]"
+          initial-values="[[_getInitialValues]]"
           url="/api/v2/machines"
           method="POST"
         >
@@ -302,6 +303,11 @@ Polymer({
   _hasClouds(clouds) {
     if (clouds && clouds.length) return true;
     return false;
+  },
+  _getInitialValues() {
+    return {
+      "cloud": localStorage.getItem('createMachine#cloud')
+    }
   },
   async _getAmazonSecurityGroups(cloudId) {
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';

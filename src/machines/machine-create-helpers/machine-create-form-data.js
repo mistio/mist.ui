@@ -47,7 +47,11 @@ const MACHINE_CREATE_FORM_DATA = data => ({
     },
     conditionals: {
       showSetupMachineContainer: {
-        func: cloudId => !cloudId,
+        func: cloudId => {
+          // This changes every time a different cloud is selected so I save the cloud to localstorage here
+          localStorage.setItem('createMachine#cloud', cloudId);
+          return !cloudId
+        },
       },
       getNameRegex: {
         func: cloudId => {
@@ -152,7 +156,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
       getSizes: {
         func: (id, path, formValues) => {
           if (!id) {
-            return undefined;
+            return {name: "size", label: "Size*"};
           }
           const cloudId =
             path === 'cloudContainer.cloud'
