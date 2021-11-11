@@ -596,6 +596,19 @@ VOLUME_CREATE_FIELDS.forEach(p => {
     custom: false,
   });
 
+  p.fields.splice(0, 0, {
+    name: 'name',
+    label: 'Name *',
+    type: 'text',
+    value: '',
+    defaultValue: '',
+    placeholder: '',
+    errorMessage: "Please enter volume's name",
+    show: true,
+    required: true,
+  });
+
+
   if (
     p.provider !== 'openstack' &&
     p.provider !== 'cloudsigma' &&

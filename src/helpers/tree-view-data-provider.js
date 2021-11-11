@@ -43,9 +43,10 @@ export default function treeViewDataProvider(opts, callback) {
     data = items.filter(item => item && !item.parent);
     mistList.count = data.length;
   }
-  const start = opts.page * opts.pageSize;
-  const end = start + opts.pageSize;
-  const slice = data.slice(start, end);
-  callback(slice, slice.length);
+  // keep the code for reference when pagination will be introduced
+  // const start = opts.page * opts.pageSize;
+  // const end = start + opts.pageSize;
+  // const slice = data.slice(start, end);
+  callback(data, data.length);
 }
 /* eslint-enable no-param-reassign, consistent-return */
