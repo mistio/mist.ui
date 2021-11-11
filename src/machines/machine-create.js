@@ -3295,7 +3295,21 @@ Polymer({
           this.machineFields[locInd].options.length === 0 &&
           locationsLen > 0)
       ) {
+        const existingValues = [];
+        const maxInd = Math.max(sizeInd, locInd);
+        let counter = 0;
+        while (counter < maxInd) {
+          if (counter !== sizeInd || counter !== locInd)
+            existingValues.push(this.machineFields[counter].value);
+          counter++;
+        }
         this._cloudChanged(this.selectedCloud);
+        counter = 0;
+        while (counter < maxInd) {
+          if (counter !== sizeInd || counter !== locInd)
+            this.machineFields[counter].value = existingValues[counter];
+          counter++;
+        }
       }
     }
   },
