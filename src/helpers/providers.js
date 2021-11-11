@@ -6,6 +6,7 @@ PROVIDERS.push({
   title: 'Amazon Web Services',
   val: 'ec2',
   className: 'provider-ec2',
+  helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2',
   options: [
     {
       name: 'region',
@@ -47,7 +48,7 @@ PROVIDERS.push({
     },
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'EC2',
       defaultValue: 'EC2',
@@ -63,8 +64,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: true,
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2',
+      helptext: ''
     },
     {
       name: 'apisecret',
@@ -74,8 +74,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: true,
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/17-adding-amazon-ec2',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -106,10 +105,11 @@ PROVIDERS.push({
   title: 'Azure',
   val: 'azure',
   className: 'provider-azure',
+  helpHref: 'http://docs.mist.io/article/18-adding-microsoft-azure',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Azure',
       defaultValue: 'Azure',
@@ -126,8 +126,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter subscription id',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/18-adding-microsoft-azure',
+      helptext: ''
     },
     {
       name: 'certificate',
@@ -139,8 +138,7 @@ PROVIDERS.push({
       required: true,
       buttonText: 'Add Certificate',
       buttonFilledText: 'Certificate',
-      helptext: 'Your Azure certificate PEM file',
-      helpHref: 'http://docs.mist.io/article/18-adding-microsoft-azure',
+      helptext: 'Your Azure certificate PEM file'
     },
   ],
 });
@@ -150,10 +148,11 @@ PROVIDERS.push({
   title: 'Microsoft Azure',
   val: 'azure_arm',
   className: 'provider-azure',
+  helpHref: 'http://docs.mist.io/article/110-adding-azure-arm',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Azure ARM',
       defaultValue: 'Azure ARM',
@@ -170,8 +169,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter tenant id',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/110-adding-azure-arm',
+      helptext: ''
     },
     {
       name: 'subscription_id',
@@ -182,8 +180,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter subscription id',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/110-adding-azure-arm',
+      helptext: ''
     },
     {
       name: 'key',
@@ -194,8 +191,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter client key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/110-adding-azure-arm',
+      helptext: ''
     },
     {
       name: 'secret',
@@ -206,8 +202,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter client secret',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/110-adding-azure-arm',
+      helptext: ''
     },
   ],
 });
@@ -217,10 +212,11 @@ PROVIDERS.push({
   title: 'Google Cloud',
   val: 'gce',
   className: 'provider-gce',
+  helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'GCE',
       defaultValue: 'GCE',
@@ -237,8 +233,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: "Please enter project's ID",
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine',
+      helptext: ''
     },
     {
       name: 'private_key',
@@ -249,8 +244,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter private key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/21-adding-google-compute-engine',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -303,7 +297,7 @@ PROVIDERS.push({
     },
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Aliyun ECS',
       defaultValue: 'Aliyun ECS',
@@ -339,10 +333,11 @@ PROVIDERS.push({
   title: 'IBM Cloud',
   val: 'softlayer',
   className: 'provider-softlayer',
+  helpHref: 'http://docs.mist.io/article/30-adding-softlayer',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'IBM Cloud',
       defaultValue: 'IBM Cloud',
@@ -370,8 +365,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter API Key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/30-adding-softlayer',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -391,10 +385,11 @@ PROVIDERS.push({
   title: 'DigitalOcean',
   val: 'digitalocean',
   className: 'provider-digitalocean',
+  helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'DigitalOcean',
       defaultValue: 'DigitalOcean',
@@ -411,8 +406,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter token',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/19-adding-digital-ocean',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -432,10 +426,11 @@ PROVIDERS.push({
   title: 'Equinix Metal',
   val: 'equinixmetal',
   className: 'provider-equinixmetal',
+  helpHref: 'http://docs.mist.io/article/100-adding-equinixmetal',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Equinix Metal',
       defaultValue: 'Equinix Metal',
@@ -452,8 +447,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter API Key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/100-adding-equinixmetal',
+      helptext: ''
     },
   ],
 });
@@ -466,7 +460,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Kubernetes',
       defaultValue: 'Kubernetes',
@@ -606,10 +600,11 @@ PROVIDERS.push({
   title: 'Linode',
   val: 'linode',
   className: 'provider-linode',
+  helpHref: 'http://docs.mist.io/article/25-adding-linode',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Linode',
       defaultValue: 'Linode',
@@ -626,8 +621,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter API Key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/25-adding-linode',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -647,6 +641,7 @@ PROVIDERS.push({
   title: 'Rackspace',
   val: 'rackspace',
   className: 'provider-rackspace',
+  helpHref: 'http://docs.mist.io/article/29-adding-rackspace',
   options: [
     {
       name: 'region',
@@ -694,7 +689,7 @@ PROVIDERS.push({
     },
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Rackspace',
       defaultValue: 'Rackspace',
@@ -722,8 +717,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter your API Key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/29-adding-rackspace',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -743,10 +737,11 @@ PROVIDERS.push({
   title: 'Vultr',
   val: 'vultr',
   className: 'provider-vultr',
+  helpHref: 'http://docs.mist.io/article/72-adding-vultr',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Vultr',
       defaultValue: 'Vultr',
@@ -763,8 +758,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter API Key',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/72-adding-vultr',
+      helptext: ''
     },
     {
       name: 'dns_enabled',
@@ -784,18 +778,18 @@ PROVIDERS.push({
   title: 'Docker',
   val: 'docker',
   className: 'provider-docker',
+  helpHref: 'http://docs.mist.io/article/20-adding-docker',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Docker',
       defaultValue: 'Docker',
       show: true,
       required: true,
       errorMessage: 'Please enter title',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/20-adding-docker',
+      helptext: ''
     },
     {
       name: 'docker_host',
@@ -809,7 +803,7 @@ PROVIDERS.push({
     },
     {
       name: 'docker_port',
-      label: 'port',
+      label: 'Port',
       type: 'text',
       value: 2375,
       defaultValue: 2375,
@@ -927,7 +921,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Maxihost',
       defaultValue: 'Maxihost',
@@ -937,7 +931,7 @@ PROVIDERS.push({
     },
     {
       name: 'token',
-      label: 'API token *',
+      label: 'API Token *',
       type: 'text',
       value: '',
       defaultValue: '',
@@ -954,10 +948,11 @@ PROVIDERS.push({
   title: 'KVM',
   val: 'libvirt',
   className: 'provider-libvirt',
+  helpHref: 'http://docs.mist.io/article/24-adding-kvm',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'KVM',
       defaultValue: 'KVM',
@@ -978,19 +973,18 @@ PROVIDERS.push({
       options: [
         {
           name: 'machine_hostname',
-          label: 'KVM hostname or IP *',
+          label: 'KVM Hostname or IP *',
           type: 'text',
           value: '',
           defaultValue: '',
           show: true,
           required: true,
           errorMessage: 'Please enter the hostname or IP address',
-          helptext: '',
-          helpHref: 'http://docs.mist.io/article/24-adding-kvm',
+          helptext: ''
         },
         {
           name: 'machine_name',
-          label: 'Alias (optional)',
+          label: 'Alias',
           type: 'text',
           placeholder: '',
           show: true,
@@ -1007,8 +1001,7 @@ PROVIDERS.push({
           show: true,
           required: true,
           options: [],
-          helptext: '',
-          helpHref: 'http://docs.mist.io/article/24-adding-kvm',
+          helptext: ''
         },
         {
           name: 'machine_user',
@@ -1022,7 +1015,7 @@ PROVIDERS.push({
         },
         {
           name: 'ssh_port',
-          label: 'SSH port',
+          label: 'SSH Port',
           type: 'text',
           value: 22,
           defaultValue: 22,
@@ -1049,10 +1042,11 @@ PROVIDERS.push({
   title: 'OpenStack',
   val: 'openstack',
   className: 'provider-openstack',
+  helpHref: 'http://docs.mist.io/article/27-adding-openstack',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'OpenStack',
       defaultValue: 'OpenStack',
@@ -1089,8 +1083,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter url',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/27-adding-openstack',
+      helptext: ''
     },
     {
       name: 'tenant_name',
@@ -1110,8 +1103,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: false,
-      helptext: 'In most cases you can leave this blank',
-      helpHref: 'http://docs.mist.io/article/27-adding-openstack',
+      helptext: 'In most cases you can leave this blank'
     },
     {
       name: 'region',
@@ -1121,8 +1113,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: false,
-      helptext: 'Specify only if you have changed the default region',
-      helpHref: 'http://docs.mist.io/article/27-adding-openstack',
+      helptext: 'Specify only if you have changed the default region'
     },
     {
       name: 'compute_endpoint',
@@ -1132,8 +1123,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: false,
-      helptext: 'In most cases you will not have to specify this',
-      helpHref: 'http://docs.mist.io/article/27-adding-openstack',
+      helptext: 'In most cases you will not have to specify this'
     },
     {
       name: 'object_storage_enabled',
@@ -1156,7 +1146,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Vexxhost',
       defaultValue: 'Vexxhost',
@@ -1256,7 +1246,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'Openshift',
       defaultValue: 'Openshift',
@@ -1327,10 +1317,11 @@ PROVIDERS.push({
   title: 'OnApp',
   val: 'onapp',
   className: 'provider-onapp',
+  helpHref: 'http://docs.mist.io/article/155-onapp',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'OnApp',
       defaultValue: 'OnApp',
@@ -1358,8 +1349,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter password',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/155-onapp',
+      helptext: ''
     },
     {
       name: 'host',
@@ -1370,8 +1360,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter OnApp host',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/155-onapp',
+      helptext: ''
     },
     {
       name: 'verify',
@@ -1390,10 +1379,11 @@ PROVIDERS.push({
   title: 'VMWare vSphere',
   val: 'vsphere',
   className: 'provider-vsphere',
+  helpHref: 'http://docs.mist.io/article/73-adding-vsphere',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'VMware vSphere',
       defaultValue: 'VMware vSphere',
@@ -1410,8 +1400,7 @@ PROVIDERS.push({
       show: true,
       required: true,
       errorMessage: 'Please enter hostname',
-      helptext: '',
-      helpHref: 'http://docs.mist.io/article/73-adding-vsphere',
+      helptext: ''
     },
     {
       name: 'username',
@@ -1451,6 +1440,7 @@ PROVIDERS.push({
   title: 'Other Server',
   val: 'bare_metal',
   className: 'provider-baremetal',
+  helpHref: 'http://docs.mist.io/article/28-adding-other-servers',
   options: [
     {
       name: 'title',
@@ -1460,8 +1450,7 @@ PROVIDERS.push({
       defaultValue: '',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
-      helpHref: 'http://docs.mist.io/article/28-adding-other-servers',
+      errorMessage: 'Please enter title'
     },
     {
       name: 'machines',
@@ -1487,7 +1476,7 @@ PROVIDERS.push({
         },
         {
           name: 'machine_name',
-          label: 'Alias (optional)',
+          label: 'Alias',
           type: 'text',
           placeholder: '',
           show: true,
@@ -1592,7 +1581,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'KubeVirt',
       defaultValue: 'KubeVirt',
@@ -1732,18 +1721,18 @@ PROVIDERS.push({
   title: 'LXD',
   val: 'lxd',
   className: 'provider-lxd',
+  helpHref: 'https://docs.mist.io/article/174-lxd',
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'LXD',
       defaultValue: 'LXD',
       show: true,
       required: true,
       errorMessage: 'Please enter title',
-      helptext: '',
-      helpHref: 'https://docs.mist.io/article/174-lxd',
+      helptext: ''
     },
     {
       name: 'host',
@@ -1805,7 +1794,7 @@ PROVIDERS.push({
   options: [
     {
       name: 'title',
-      label: 'Title *',
+      label: 'Name *',
       type: 'text',
       value: 'CloudSigma',
       defaultValue: 'CloudSigma',

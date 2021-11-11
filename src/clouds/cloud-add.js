@@ -125,8 +125,15 @@ Polymer({
       .category {
         border-bottom: 1px solid #ddd;
       }
-    </style>
 
+      .docs {
+        align-content: flex-end;
+        position: absolute;
+        margin-top: -9px;
+        width: 36px;
+        height: 36px;
+      }
+    </style>
     <div id="content">
       <paper-material class="single-head cloud-page-head layout horizontal">
         <span class="icon">
@@ -201,6 +208,21 @@ Polymer({
         <div id="cloudFields" hidden$="[[!selectedProvider]]">
           <h3 class="smallcaps">
             Adding [[_computeTitle(selectedProvider)]] cloud
+            <a
+                hidden$="[[!_computeHelpHref(selectedProvider)]]"
+                href$="[[_computeHelpHref(selectedProvider)]]"
+                target="new"
+                class="helpHref"
+                on-tap="_helpTap"
+              >
+                <paper-icon-button
+                  icon="icons:help"
+                  alt="Open docs"
+                  title="Open docs"
+                  class="docs"
+                >
+                </paper-icon-button>
+              </a>
           </h3>
           <app-form
             fields="[[providerFields]]"
@@ -395,7 +417,15 @@ Polymer({
   _closeCcRequired() {
     this.$.ccRequired.close();
   },
-
+  _helpTap(e) {
+    this.dispatchEvent(
+      new CustomEvent('user-action', {
+        bubbles: true,
+        composed: true,
+        detail: `open help ${this.selectedProvider.helpHref}`,
+      })
+    );
+  },
   _cloudAddAjaxResponse(_response) {
     this._unsetProvider();
     this.dispatchEvent(
@@ -435,7 +465,13 @@ Polymer({
     }
     return '';
   },
-
+  _computeHelpHref(selectedProvider) {
+    if (this.providers) {
+      const p = this.providers.find(f => f.val === selectedProvider);
+      return p ? p.helpHref : '';
+    }
+    return '';
+  },
   _providerChanged(selectedProvider, providers) {
     if (selectedProvider)
       this.dispatchEvent(
