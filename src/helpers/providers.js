@@ -347,12 +347,11 @@ PROVIDERS.push({
     },
     {
       name: 'username',
-      label: 'Username *',
+      label: 'Username',
       type: 'text',
       value: '',
       defaultValue: '',
       show: true,
-      required: true,
       errorMessage: 'Please enter username',
       helptext: '',
     },
@@ -485,7 +484,7 @@ PROVIDERS.push({
       value: 6443,
       defaultValue: 6443,
       show: true,
-      required: false,
+      required: true,
     },
     {
       name: 'ca_cert_file',
@@ -519,12 +518,11 @@ PROVIDERS.push({
         },
       ],
       show: true,
-      required: true,
       errorMessage: 'Please choose authentication method',
     },
     {
       name: 'username',
-      label: 'Username *',
+      label: 'Username',
       type: 'text',
       value: '',
       defaultValue: '',
@@ -538,7 +536,7 @@ PROVIDERS.push({
     },
     {
       name: 'password',
-      label: 'Password *',
+      label: 'Password',
       type: 'password',
       value: '',
       defaultValue: '',
@@ -552,7 +550,7 @@ PROVIDERS.push({
     },
     {
       name: 'cert_file',
-      label: 'User Certificate *',
+      label: 'User Certificate',
       helptext: 'Certificate file for TLS auth.',
       type: 'textarea',
       value: '',
@@ -566,7 +564,7 @@ PROVIDERS.push({
     },
     {
       name: 'key_file',
-      label: 'Private Key *',
+      label: 'Private Key',
       type: 'textarea',
       helptext: 'Private Key matching the above certificate',
       value: '',
@@ -580,7 +578,7 @@ PROVIDERS.push({
     },
     {
       name: 'token',
-      label: 'Bearer Token *',
+      label: 'Bearer Token',
       helptext: '',
       type: 'textarea',
       value: '',
@@ -793,7 +791,7 @@ PROVIDERS.push({
     },
     {
       name: 'docker_host',
-      label: 'Host',
+      label: 'Host *',
       type: 'text',
       value: '',
       defaultValue: '',
@@ -803,12 +801,12 @@ PROVIDERS.push({
     },
     {
       name: 'docker_port',
-      label: 'Port',
+      label: 'Port *',
       type: 'text',
       value: 2375,
       defaultValue: 2375,
       show: true,
-      required: false,
+      required: true,
     },
     {
       name: 'authentication',
@@ -1087,12 +1085,11 @@ PROVIDERS.push({
     },
     {
       name: 'tenant_name',
-      label: 'Tenant Name *',
+      label: 'Tenant Name',
       type: 'text',
       value: '',
       defaultValue: '',
       show: true,
-      required: true,
       errorMessage: 'Please enter tenant name',
     },
     {
@@ -1606,7 +1603,7 @@ PROVIDERS.push({
       value: 6443,
       defaultValue: 6443,
       show: true,
-      required: false,
+      required: true,
     },
     {
       name: 'ca_cert_file',
@@ -1640,12 +1637,12 @@ PROVIDERS.push({
         },
       ],
       show: true,
-      required: true,
+      required: false,
       errorMessage: 'Please choose authentication method',
     },
     {
       name: 'username',
-      label: 'Username *',
+      label: 'Username',
       type: 'text',
       value: '',
       defaultValue: '',
@@ -1659,7 +1656,7 @@ PROVIDERS.push({
     },
     {
       name: 'password',
-      label: 'Password *',
+      label: 'Password',
       type: 'password',
       value: '',
       defaultValue: '',
@@ -1673,7 +1670,7 @@ PROVIDERS.push({
     },
     {
       name: 'cert_file',
-      label: 'User Certificate *',
+      label: 'User Certificate',
       helptext: 'Certificate file for TLS auth.',
       type: 'textarea',
       value: '',
@@ -1687,7 +1684,7 @@ PROVIDERS.push({
     },
     {
       name: 'key_file',
-      label: 'Private Key *',
+      label: 'Private Key',
       type: 'textarea',
       helptext: 'Private Key matching the above certificate',
       value: '',
@@ -1701,7 +1698,7 @@ PROVIDERS.push({
     },
     {
       name: 'token',
-      label: 'Bearer Token *',
+      label: 'Bearer Token',
       helptext: '',
       type: 'textarea',
       value: '',

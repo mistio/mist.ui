@@ -417,7 +417,7 @@ Polymer({
   _closeCcRequired() {
     this.$.ccRequired.close();
   },
-  _helpTap(e) {
+  _helpTap() {
     this.dispatchEvent(
       new CustomEvent('user-action', {
         bubbles: true,
