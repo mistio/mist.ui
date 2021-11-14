@@ -1656,7 +1656,7 @@ Polymer({
           }
         }
 
-        // initial values in shedule entry
+        // initial values in schedule entry
         if (
           this.get(changeRecord.path.replace('.value', '')).name ===
           'schedule_type'
@@ -1700,7 +1700,7 @@ Polymer({
           this.set(`machineFields.${entryInd}.value`, entry);
         }
 
-        // date in shedule entry
+        // date in schedule entry
         if (
           this.get(changeRecord.path.replace('.value', '')).name ===
           'schedule_entry_one_off'
