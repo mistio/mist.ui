@@ -729,7 +729,7 @@ Polymer({
         }
       }
       let entryInd;
-      // initial values in shedule entry
+      // initial values in schedule entry
       if (
         this.get(changeRecord.path.replace('.value', '')).name ===
         'schedule_type'
@@ -769,7 +769,7 @@ Polymer({
         this.set(`fields.${entryInd}.value`, entry);
       }
 
-      // date in shedule entry
+      // date in schedule entry
       if (
         this.get(changeRecord.path.replace('.value', '')).name ===
         'schedule_entry_one_off'
@@ -860,11 +860,11 @@ Polymer({
     const selectors = this.get(
       `fields.${this._fieldIndexByName('selectors')}.value`
     );
-    const selectorsField = selectors.find(con => {
-      return ['age', 'machines', 'tags'].indexOf(field) === -1
+    const selectorsField = selectors.find(con =>
+      ['age', 'machines', 'tags'].indexOf(field) === -1
         ? con.field === field
-        : con.type === field;
-    });
+        : con.type === field
+    );
     const index = selectors.indexOf(selectorsField);
     // console.log('index', index);
     if (index > -1) {
@@ -912,11 +912,11 @@ Polymer({
     const selectors = this.get(
       `fields.${this._fieldIndexByName('selectors')}.value`
     );
-    const field_ = selectors.find(con => {
-      return ['age', 'machines', 'tags'].indexOf(field) === -1
+    const field_ = selectors.find(con =>
+      ['age', 'machines', 'tags'].indexOf(field) === -1
         ? con.field === field
-        : con.type === field;
-    });
+        : con.type === field
+    );
     const index = selectors.indexOf(field_);
 
     if (index > -1)
@@ -995,9 +995,7 @@ Polymer({
   },
 
   _fieldIndexByName(name) {
-    return this.fields.findIndex(f => {
-      return f.name === name;
-    });
+    return this.fields.findIndex(f => f.name === name);
   },
 
   _goBack() {
