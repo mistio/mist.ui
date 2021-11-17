@@ -6,9 +6,9 @@ import '@polymer/paper-spinner/paper-spinner-lite.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '../helpers/dialog-element.js';
 import moment from 'moment/src/moment.js';
-import { CSRFToken, formatMoney } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, formatMoney } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -349,7 +349,9 @@ Polymer({
             <!-- regular plans -->
             <div>
               <br />
-              <h2 class="price"><sup>$</sup>[[plan.price]]<sub>/mo.</sub></h2>
+              <h2 class="price">
+                <sup>$</sup>[[plan.price]]<sub>/[[plan.interval]].</sub>
+              </h2>
             </div>
             <div hidden$="[[enterprise]]">
               <p>
@@ -412,7 +414,9 @@ Polymer({
             <div class="plan-body-item">
               <div class="valign">
                 <h2 class="price">
-                  <sup>$</sup>[[_formatMoney(plan.price)]]<sub>/mo.</sub>
+                  <sup>$</sup>[[_formatMoney(plan.price)]]<sub
+                    >/[[plan.interval]]</sub
+                  >
                 </h2>
                 <template
                   is="dom-if"
