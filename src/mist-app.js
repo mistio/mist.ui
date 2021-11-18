@@ -680,6 +680,8 @@ Polymer({
       console.log('FAILURE!! ', reason);
       this._showPage404();
     });
+    // resize the polyana panel, otherwise it might show zoomed out
+    if (page === 'dashboard') this.fire('resize');
   },
 
   _hideLoader() {
