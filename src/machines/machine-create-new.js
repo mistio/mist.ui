@@ -14,21 +14,21 @@ import { MACHINE_CREATE_FORM_DATA } from './machine-create-helpers/machine-creat
 import '@fooloomanzoo/datetime-picker/datetime-picker.js';
 
 function defer() {
-	var res, rej;
+  let res;
+  let rej;
 
-	var promise = new Promise((resolve, reject) => {
-    console.log("in promise")
+  const promise = new Promise((resolve, reject) => {
+    console.log('in promise');
 
-		res = resolve;
-		rej = reject;
-	});
+    res = resolve;
+    rej = reject;
+  });
 
-	promise.resolve = res;
-	promise.reject = rej;
+  promise.resolve = res;
+  promise.reject = rej;
 
-	return promise;
+  return promise;
 }
-
 
 Polymer({
   _template: html`
@@ -213,11 +213,11 @@ Polymer({
   _mistFormRequest(e) {
     const { params } = e.detail;
     console.log('params ', params);
-    params.provider = this._getProviderById(params.cloud);
-    //params.dry = true;
-  //  this.$.formAjax.params = JSON.stringify(params);
+    // params.provider = this._getProviderById(params.cloud);
+    params.dry = false;
+    //  this.$.formAjax.params = JSON.stringify(params);
     this.$.formAjax.headers['Content-Type'] = 'application/json';
-   // this.$.formAjax.headers['Csrf-Token'] = CSRFToken.value;
+    // this.$.formAjax.headers['Csrf-Token'] = CSRFToken.value;
     this.$.formAjax.body = params;
     this.$.formAjax.generateRequest();
   },
@@ -225,7 +225,7 @@ Polymer({
     console.error(e);
   },
   _mistFormResponse(e) {
-    console.log("response mist form  ", e);
+    console.log('response mist form  ', e);
   },
   _getCloud(cloudId) {
     const cloudSizes = this._getCloudSizes() || [];
@@ -243,14 +243,14 @@ Polymer({
         this.checkPerm('cloud', 'create_resources', c.id)
     );
 
-    if(clouds.length) {
-      this._getClouds.resolve(() =>{
-        return this.clouds.map(cloud => ({
+    if (clouds.length) {
+      this._getClouds.resolve(() =>
+        this.clouds.map(cloud => ({
           ...cloud,
           image: `assets/providers/provider-${cloud.provider}.png`,
           alt: '',
         }))
-      })
+      );
     }
     return clouds;
   },
@@ -306,8 +306,8 @@ Polymer({
   },
   _getInitialValues() {
     return {
-      "cloud": localStorage.getItem('createMachine#cloud')
-    }
+      cloud: localStorage.getItem('createMachine#cloud'),
+    };
   },
   async _getAmazonSecurityGroups(cloudId) {
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';
@@ -321,5 +321,5 @@ Polymer({
 
     return secGroups || [];
   },
-   _getClouds: defer()
+  _getClouds: defer(),
 });

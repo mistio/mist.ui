@@ -12,12 +12,10 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: new Promise(resolve => {
           // Wait until clouds have loaded here
           resolve(() =>
-            data._toArray(data.model.zones).map(zone => {
-              return {
-                id: zone.id,
-                title: zone.zone_id,
-              };
-            })
+            data._toArray(data.model.zones).map(zone => ({
+              id: zone.id,
+              title: zone.zone_id,
+            }))
           );
         }),
       },
@@ -36,12 +34,12 @@ const MACHINE_CREATE_FORM_DATA = data => ({
       getScripts: {
         func: new Promise(resolve => {
           // Wait until clouds have loaded here
-          resolve(() => {
-            return data.model.scriptsArray.map(script => ({
+          resolve(() =>
+            data.model.scriptsArray.map(script => ({
               id: script.id,
               title: script.name,
-            }));
-          });
+            }))
+          );
         }),
       },
     },
@@ -50,7 +48,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: cloudId => {
           // This changes every time a different cloud is selected so I save the cloud to localstorage here
           localStorage.setItem('createMachine#cloud', cloudId);
-          return !cloudId
+          return !cloudId;
         },
       },
       getNameRegex: {
@@ -59,12 +57,18 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             data._getCloudById(cloudId) && data._getCloudById(cloudId).provider;
           const pattern =
             (provider && MACHINE_NAME_REGEX_PATTERNS[provider]) ||
-            MACHINE_NAME_REGEX_PATTERNS['default'];
+            MACHINE_NAME_REGEX_PATTERNS.default;
           return pattern;
         },
       },
       getLocations: {
         func: (id, path, formValues) => {
+          let locationsFromImage = [];
+          let locationsFromCloud = [];
+          let locationsFromSize = [];
+          const image =
+            formValues.setupMachine && formValues.setupMachine.image;
+          const size = formValues.setupMachine && formValues.setupMachine.size;
           if (!id) {
             return undefined;
           }
@@ -72,53 +76,55 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             path === 'cloudContainer.cloud'
               ? id
               : formValues.cloudContainer && formValues.cloudContainer.cloud;
-          const locationsArray =
-            data._getCloudById(cloudId).locationsArray || [];
-          switch (path) {
-            case 'cloudContainer.cloud': {
-              const locations = locationsArray.map(location => ({
-                ...location,
-                title: location.name,
-              }));
-              return locations;
-            }
-            case 'setupMachine.image': {
-              const locationsFromImage = locationsArray
-                .filter(location => {
-                  // Find correct imageName
-                  console.log('location ', location);
-                  console.log(
-                    'location.available_images ',
-                    location.available_images
-                  );
-                  return (
-                    !location.available_images ||
-                    location.available_images.includes(id)
-                  );
-                })
-                .map(location => ({ ...location, title: location.name }));
-              console.log('locationsFromImage ', locationsFromImage);
-              return locationsFromImage;
-            }
-            case 'setupMachine.size': {
-              // Find the correct sizeName
-              const locationsFromSize = locationsArray
-                .filter(
-                  location =>
-                    !location.available_sizes ||
-                    location.available_sizes.includes(id)
-                )
-                .map(location => ({ ...location, title: location.name }));
-              return locationsFromSize;
-            }
-            default: {
-              return undefined;
-            }
+
+          locationsFromCloud = (
+            data._getCloudById(cloudId).locationsArray || []
+          ).map(location => ({
+            ...location,
+            title: location.name,
+          }));
+
+          if (image) {
+            locationsFromImage = locationsFromCloud.filter(
+              location =>
+                // Find correct imageName
+                location.available_images &&
+                location.available_images.includes(image)
+            );
           }
+          if (size) {
+            locationsFromSize = locationsFromCloud.filter(
+              location =>
+                location.available_sizes &&
+                location.available_sizes.includes(id)
+            );
+          }
+
+          if (
+            locationsFromImage.length === 0 &&
+            locationsFromSize.length === 0
+          ) {
+            return locationsFromCloud;
+          }
+          if (locationsFromImage.length > 0 && locationsFromSize.length === 0) {
+            return locationsFromImage;
+          }
+          if (locationsFromImage.length === 0 && locationsFromSize.length > 0) {
+            return locationsFromSize;
+          }
+          return [locationsFromImage, locationsFromSize].reduce((a, b) =>
+            a.filter(c => b.includes(c))
+          );
         },
       },
       getImages: {
         func: (id, path, formValues) => {
+          let imagesFromCloud = [];
+          let imagesFromLocation = [];
+          let imagesFromSize = [];
+          const location =
+            formValues.setupMachine && formValues.setupMachine.location;
+          const size = formValues.setupMachine && formValues.setupMachine.size;
           if (!id) {
             return undefined;
           }
@@ -126,69 +132,133 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             path === 'cloudContainer.cloud'
               ? id
               : formValues.cloudContainer && formValues.cloudContainer.cloud;
-          const cloud = data._getCloudById(cloudId);
-          const imagesArray = data._getCloudById(cloudId).imagesArray || [];
-          switch (path) {
-            case 'cloudContainer.cloud': {
-              const images = imagesArray.map(image => image.name);
-              return images;
-            }
-            case 'setupMachine.location': {
-              const location = cloud.locations[id];
-              return location.available_images || undefined;
-            }
-            case 'setupMachine.size': {
-              // const imagesFromSize =  imagesArray.filter(size=>
-              //   !size.available_images || size.available_images.includes(sizeName)
-              //   )
-              // .map(size => (
-              //   {...size, title:size.name}
-              // ));
-              //   return locationsFromSize;
-              break;
-            }
-            default: {
-              return undefined;
-            }
+
+          imagesFromCloud = (data._getCloudById(cloudId).imagesArray || []).map(
+            image => image.name
+          );
+
+          if (location && location.available_images) {
+            imagesFromLocation = location.available_images;
           }
+
+          if (size) {
+            // Check if size objhect is coming through properly or I have to find it
+            const images = imagesFromLocation.length
+              ? imagesFromLocation
+              : imagesFromCloud;
+            imagesFromSize = images.filter(
+              image =>
+                (image.architecture
+                  ? image.architecture.includes(size.architecture)
+                  : true) &&
+                (image.min_memory ? size.ram > image.min_memory_size : true) &&
+                (image.min_disk_size ? size.disk > image.min_disk_size : true)
+            );
+          }
+
+          if (imagesFromLocation.length === 0 && imagesFromSize.length === 0) {
+            return imagesFromCloud;
+          }
+          if (imagesFromLocation.length > 0 && imagesFromSize.length === 0) {
+            return imagesFromLocation;
+          }
+          if (imagesFromLocation.length === 0 && imagesFromSize.length > 0) {
+            return imagesFromSize;
+          }
+          return [imagesFromLocation, imagesFromSize].reduce((a, b) =>
+            a.filter(c => b.includes(c))
+          );
         },
       },
+
       getSizes: {
         func: (id, path, formValues) => {
+          let sizesFromCloud = null;
+          let sizesFromLocation = null;
+          let sizesFromImage = null;
+          const location =
+            formValues.setupMachine && formValues.setupMachine.location;
+          const imageName =
+            formValues.setupMachine && formValues.setupMachine.image;
+          const sizeId =
+            formValues.setupMachine && formValues.setupMachine.size;
           if (!id) {
-            return {name: "size", label: "Size*"};
+            return undefined;
           }
           const cloudId =
             path === 'cloudContainer.cloud'
               ? id
               : formValues.cloudContainer && formValues.cloudContainer.cloud;
-          let cloud;
-          switch (path) {
-            case 'cloudContainer.cloud': {
-              cloud = data._getCloud(cloudId) || {};
-              return cloud.size || {};
-            }
-            case 'setupMachine.location': {
-              cloud = data._getCloudById(cloudId);
+          const cloud = data._getCloud(cloudId) || {};
 
-              const location = cloud.locations[id];
-
-              return location.available_sizes || undefined;
-            }
-            case 'setupMachine.image': {
-              // const imagesFromSize =  imagesArray.filter(size=>
-              //   !size.available_images || size.available_images.includes(id)
-              //   )
-              // .map(size => (
-              //   {...size, title:size.name}
-              // ));
-              //   return locationsFromSize;
-              break;
-            }
-            default: {
-              return undefined;
-            }
+          sizesFromCloud = cloud.size || {};
+          if (location && location.available_sizes) {
+            sizesFromLocation = {
+              ...sizesFromCloud,
+              options: sizesFromCloud.options.filter(size =>
+                location.available_sizes.includes(size.name)
+              ),
+            };
           }
+
+          if (imageName) {
+            const image = (data._getCloudById(cloudId).imagesArray || []).find(
+              img => img.name === imageName
+            );
+            const sizes = sizesFromLocation || sizesFromCloud;
+            sizesFromImage = {
+              ...sizes,
+              options: sizes.options.filter(
+                size =>
+                  (image.architecture
+                    ? image.architecture.includes(size.architecture)
+                    : true) &&
+                  (image.min_memory
+                    ? size.ram > image.min_memory_size
+                    : true) &&
+                  (image.min_disk_size ? size.disk > image.min_disk_size : true)
+              ),
+            };
+          }
+
+          if (!sizesFromLocation && !sizesFromImage) {
+            if (sizeId) {
+              sizesFromCloud.value = sizeId;
+            }
+            return sizesFromCloud;
+          }
+          if (sizesFromLocation && !sizesFromImage) {
+            if (
+              sizeId &&
+              sizesFromLocation.options.find(size => size.id === sizeId)
+            ) {
+              sizesFromLocation.value = sizeId;
+            }
+            return sizesFromLocation;
+          }
+          if (!sizesFromLocation && sizesFromImage) {
+            if (
+              sizeId &&
+              sizesFromImage.options.find(size => size.id === sizeId)
+            ) {
+              sizesFromImage.value = sizeId;
+            }
+            return sizesFromImage;
+          }
+          const sizeIntersection = {
+            ...sizesFromLocation,
+            options: [
+              sizesFromLocation.options,
+              sizesFromImage.options,
+            ].reduce((a, b) => a.filter(c => b.includes(c))),
+          };
+          if (
+            sizeId &&
+            sizeIntersection.options.find(size => size.id === sizeId)
+          ) {
+            sizeIntersection.value = sizeId;
+          }
+          return sizeIntersection;
         },
       },
       hideNetworkContainer: {
@@ -212,9 +282,8 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: addressType => {
           if (addressType === 4) {
             return undefined;
-          } else {
-            return undefined;
           }
+          return undefined;
         },
       },
       hideNetwork: {
@@ -273,11 +342,10 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           !['gce', 'openstack'].includes(data._getProviderById(cloudId)),
       },
       hideDeleteTerminationInNewVolume: {
-        func: cloudId => {
-          return !['ec2', 'openstack', 'aliyun_ecs'].includes(
+        func: cloudId =>
+          !['ec2', 'openstack', 'aliyun_ecs'].includes(
             data._getProviderById(cloudId)
-          );
-        },
+          ),
       },
       hideIfNotAmazon: {
         func: cloudId => data._getProviderById(cloudId) !== 'ec2',
@@ -302,42 +370,33 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: cloudId => data._getProviderById(cloudId) !== 'libvirt',
       },
       hideIfNotOpenstack: {
-        func: cloudId => {
-          return data._getProviderById(cloudId) !== 'openstack';
-        },
+        func: cloudId => data._getProviderById(cloudId) !== 'openstack',
       },
       hideDeleteOnTerminationExisting: {
-        func: cloudId => {
-          return !['aliyun_ecs', 'openstack'].includes(
-            data._getProviderById(cloudId)
-          );
-        },
+        func: cloudId =>
+          !['aliyun_ecs', 'openstack'].includes(data._getProviderById(cloudId)),
       },
       hideSecurityGroup: {
-        func: cloudId => {
-          return !['ec2', 'aliyun_ecs'].includes(
-            data._getProviderById(cloudId)
-          );
-        },
+        func: cloudId =>
+          !['ec2', 'aliyun_ecs'].includes(data._getProviderById(cloudId)),
       },
       hideLocations: {
-        func: cloudId => {
-          return ['lxd', 'docker', 'kubevirt', 'linode'].includes(
+        func: cloudId =>
+          ['lxd', 'docker', 'kubevirt'].includes(
             data._getProviderById(cloudId)
-          );
-        },
+          ),
       },
       locationRequired: {
-        func: cloudId => {
-          return !['lxd', 'docker', 'kubevirt', 'linode'].includes(
+        func: cloudId =>
+          !['lxd', 'docker', 'kubevirt', 'linode'].includes(
             data._getProviderById(cloudId)
-          );
-        },
+          ),
       },
       getSecurityGroups: {
-        func: cloudId => {
-          return cloudId && data._getProviderById(cloudId) === 'ec2' ?  data._getAmazonSecurityGroups(cloudId) : [];
-        },
+        func: cloudId =>
+          cloudId && data._getProviderById(cloudId) === 'ec2'
+            ? data._getAmazonSecurityGroups(cloudId)
+            : [],
         type: 'promise',
       },
       hideipv4SubnetSize: {
@@ -419,11 +478,9 @@ const MACHINE_CREATE_FORM_DATA = data => ({
         func: saveAsTemplate => !saveAsTemplate,
       },
     },
-    dataFormatting:{
-      formatCloudContainerPayload: (values) => {
-        return values;
-      }
-    }
+    dataFormatting: {
+      formatCloudContainerPayload: values => values,
+    },
   },
 });
 
