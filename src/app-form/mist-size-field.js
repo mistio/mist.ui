@@ -186,7 +186,7 @@ Polymer({
     );
   },
   _updateCustomValue(_e) {
-    if (this.field.value.includes('customSize')) {
+    if (this.field.value && this.field.value.includes('customSize')) {
       this.field.custom = true;
       const option = this.field.options.find(
         opt => opt.id === this.field.value
