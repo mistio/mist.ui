@@ -61,6 +61,9 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           return pattern;
         },
       },
+      clearOnCloudChange: {
+        func: () => '',
+      },
       getLocations: {
         func: (id, path, formValues) => {
           let locationsFromImage = [];
@@ -200,11 +203,12 @@ const MACHINE_CREATE_FORM_DATA = data => ({
               ),
             };
           }
-
-          if (imageName) {
-            const image = (data._getCloudById(cloudId).imagesArray || []).find(
+          const image =
+            imageName &&
+            (data._getCloudById(cloudId).imagesArray || []).find(
               img => img.name === imageName
             );
+          if (image) {
             const sizes = sizesFromLocation || sizesFromCloud;
             sizesFromImage = {
               ...sizes,
