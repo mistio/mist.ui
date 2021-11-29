@@ -144,7 +144,9 @@ Polymer({
                     sizeFieldPath,
                     this.rule.constraints
                   );
-
+                  if (!cloudSize || !cloudSize.size) {
+                    return undefined;
+                  }
                   if (cloudSize.size.value === 'custom') {
                     cloudSize.size.customValue = value;
                     cloudSize.size.customSizeFields.forEach(field => {
