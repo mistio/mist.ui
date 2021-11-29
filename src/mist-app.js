@@ -37,8 +37,12 @@ import './account/plan-purchase.js';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
+import { connectRouter } from 'lit-redux-router/lit-redux-router.js';
 import { _generateMap } from './helpers/utils.js';
 import PROVIDERS from './helpers/providers.js';
+import { store } from './helpers/redux-store.js';
+
+connectRouter(store);
 
 const documentContainer = document.createElement('template');
 documentContainer.innerHTML = `<dom-module id="mist-app">
