@@ -171,7 +171,7 @@ Polymer({
                 func: defaultActions => defaultActions || [],
               },
               clearOnCloudChange: {
-                func: () => '',
+                func: () => ({}),
               },
             },
           },
@@ -267,7 +267,7 @@ Polymer({
       return undefined;
     }
     const cloud = this._getCloud(cloudId);
-    return cloud.size.custom;
+    return cloud.size && cloud.size.custom;
   },
   _getClouds() {
     return this.model.cloudsArray

@@ -197,7 +197,7 @@ Polymer({
         opt => opt.id === this.field.value
       );
       this.set('field.customValue', option);
-    } else if (!this.field.custom) {
+    } else if (!this.field.custom && typeof this.field === 'object') {
       this.set('field.customValue', false);
     } else if (this.field.custom && this.field.customSizeFields) {
       const cv = {};
