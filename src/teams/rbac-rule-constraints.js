@@ -139,7 +139,7 @@ Polymer({
                     return undefined;
                   }
                   const cloudSize = this._getCloud(cloudId);
-                  if (!cloudSize.size) {
+                  if (!cloudSize || !cloudSize.size) {
                     return undefined;
                   }
                   const sizeFieldPath = `${fieldPath
