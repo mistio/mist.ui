@@ -170,9 +170,6 @@ Polymer({
               getDefaultActions: {
                 func: defaultActions => defaultActions || [],
               },
-              clearOnCloudChange: {
-                func: () => ({}),
-              },
             },
           },
         };
