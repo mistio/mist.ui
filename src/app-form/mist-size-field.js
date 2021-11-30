@@ -186,13 +186,18 @@ Polymer({
     );
   },
   _updateCustomValue(_e) {
-    if (this.field.value && this.field.value.includes('customSize')) {
+    if (
+      this.field &&
+      this.field.value &&
+      typeof this.field.value === 'string' &&
+      this.field.value.includes('customSize')
+    ) {
       this.field.custom = true;
       const option = this.field.options.find(
         opt => opt.id === this.field.value
       );
       this.set('field.customValue', option);
-    } else if (!this.field.custom) {
+    } else if (!this.field.custom && typeof this.field === 'object') {
       this.set('field.customValue', false);
     } else if (this.field.custom && this.field.customSizeFields) {
       const cv = {};
