@@ -135,7 +135,13 @@ Polymer({
               },
               getField: {
                 func: (cloudId, fieldPath) => {
+                  if (!cloudId) {
+                    return undefined;
+                  }
                   const cloudSize = this._getCloud(cloudId);
+                  if (!cloudSize || !cloudSize.size) {
+                    return undefined;
+                  }
                   const sizeFieldPath = `${fieldPath
                     .split('.')
                     .slice(0, -1)
@@ -144,7 +150,6 @@ Polymer({
                     sizeFieldPath,
                     this.rule.constraints
                   );
-
                   if (cloudSize.size.value === 'custom') {
                     cloudSize.size.customValue = value;
                     cloudSize.size.customSizeFields.forEach(field => {
@@ -255,8 +260,11 @@ Polymer({
     this.set('fields.0.value', constraints || '{}');
   },
   _cloudHasCustomSize(cloudId) {
+    if (!cloudId) {
+      return undefined;
+    }
     const cloud = this._getCloud(cloudId);
-    return cloud.size.custom;
+    return cloud.size && cloud.size.custom;
   },
   _getClouds() {
     return this.model.cloudsArray
