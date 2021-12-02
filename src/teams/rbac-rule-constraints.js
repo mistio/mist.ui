@@ -153,7 +153,10 @@ Polymer({
                   if (cloudSize.size.value === 'custom') {
                     cloudSize.size.customValue = value;
                     cloudSize.size.customSizeFields.forEach(field => {
-                      if (value[field.name] !== undefined) {
+                      if (
+                        typeof value === 'object' &&
+                        value[field.name] !== undefined
+                      ) {
                         field.value = value[field.name];
                       }
                     });
