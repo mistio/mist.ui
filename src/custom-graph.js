@@ -252,7 +252,7 @@ Polymer({
   _generateCustomgraphrequest() {
     this.set('formError', false);
     this._computeUrl(this.machine.id, this.metric.pluginId);
-    this.metric.script = this.shadowRoot.querySelector('#juicyScript').value;
+    // this.metric.script = this.shadowRoot.querySelector('#juicyScript').value;
     if (this.$.derivative.checked) {
       this.metric.type = 'derive';
     } else {
