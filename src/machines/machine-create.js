@@ -2535,15 +2535,12 @@ Polymer({
     }
   },
 
-  async _getSecurityGroups(cloudId, index) {
+  _getSecurityGroups(cloudId, index) {
     this.set('securityGroupsFieldIndex', index);
     this.$.getSecurityGroups.headers['Content-Type'] = 'application/json';
     this.$.getSecurityGroups.headers['Csrf-Token'] = CSRFToken.value;
     this.$.getSecurityGroups.url = `/api/v1/clouds/${cloudId}/security-groups`;
-    const test = await this.$.getSecurityGroups.generateRequest().completes;
-    console.log("test ", test)
-    console.log("test.response ", test.response)
-
+    this.$.getSecurityGroups.generateRequest();
   },
 
   _handleGetSecurityGroupsRequest(_e) {

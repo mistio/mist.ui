@@ -74,7 +74,6 @@ Polymer({
   ready() {},
 
   _addTag() {
-    console.log("this.field ", this.field)
     const newTag = {
       key: '',
       value: '',
