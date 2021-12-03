@@ -5,123 +5,133 @@ import './schedules/schedule-add.js';
 import './schedules/schedule-page.js';
 import './schedules/schedule-actions.js';
 import moment from 'moment/src/moment.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
-Polymer({
-  _template: html`
-    <style include="shared-styles">
-      [hidden] {
-        display: none !important;
-      }
-    </style>
-    <app-route
-      route="{{route}}"
-      pattern="/:schedule"
-      data="{{data}}"
-    ></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <schedule-actions
-        id="actions"
-        items="[[selectedItems]]"
-        actions="{{actions}}"
-        user="[[model.user.id]]"
-        org="[[model.org]]"
-        members="[[model.membersArray]]"
-      >
-        <mist-list
-          selectable
-          resizable
-          column-menu
-          multi-sort
-          apiurl="/api/v1/schedules"
-          id="schedulesList"
-          name="Schedules"
-          primary-field-name="id"
-          frozen="[[_getFrozenColumn()]]"
-          visible="[[_getVisibleColumns()]]"
-          selected-items="{{selectedItems}}"
-          sort-order="[[sortOrder]]"
-          renderers="[[_getRenderers()]]"
-          route="{{route}}"
-          item-map="[[model.schedules]]"
-          actions="[[actions]]"
-          user-filter="[[model.sections.schedules.q]]"
-          filter-method="[[_ownerFilter()]]"
-          filtered-items-length="{{filteredItemsLength}}"
+/* eslint-disable class-methods-use-this */
+export default class PageSchedules extends mixinBehaviors(
+  [mistListsBehavior, ownerFilterBehavior, window.rbac],
+  PolymerElement
+) {
+  static get template() {
+    return html`
+      <style include="shared-styles">
+        [hidden] {
+          display: none !important;
+        }
+      </style>
+      <app-route
+        route="{{route}}"
+        pattern="/:schedule"
+        data="{{data}}"
+      ></app-route>
+      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <schedule-actions
+          id="actions"
+          items="[[selectedItems]]"
+          actions="{{actions}}"
+          user="[[model.user.id]]"
+          org="[[model.org]]"
+          members="[[model.membersArray]]"
         >
-          <p slot="no-items-found">No schedules found.</p>
-        </mist-list>
-      </schedule-actions>
+          <mist-list
+            selectable
+            resizable
+            column-menu
+            multi-sort
+            apiurl="/api/v1/schedules"
+            id="schedulesList"
+            name="Schedules"
+            primary-field-name="id"
+            frozen="[[_getFrozenColumn()]]"
+            visible="[[_getVisibleColumns()]]"
+            selected-items="{{selectedItems}}"
+            sort-order="[[sortOrder]]"
+            renderers="[[_getRenderers()]]"
+            route="{{route}}"
+            item-map="[[model.schedules]]"
+            actions="[[actions]]"
+            user-filter="[[model.sections.schedules.q]]"
+            filter-method="[[_ownerFilter()]]"
+            filtered-items-length="{{filteredItemsLength}}"
+          >
+            <p slot="no-items-found">No schedules found.</p>
+          </mist-list>
+        </schedule-actions>
 
-      <div
-        class="absolute-bottom-right"
-        hidden$="[[!checkPerm('schedule', 'add', null, model.org, model.user)]]"
-      >
-        <paper-fab
-          id="scheduleAdd"
-          icon="add"
-          on-tap="_addResource"
-        ></paper-fab>
-      </div>
-    </template>
-    <schedule-add
-      model="[[model]]"
-      section="[[model.sections.schedules]]"
-      hidden$="[[!_isAddPageActive(route.path)]]"
-      docs="[[docs]]"
-      currency="[[currency]]"
-    ></schedule-add>
-    <schedule-page
-      model="[[model]]"
-      schedule="[[_getSchedule(data.schedule, model.schedules, model.schedules.*)]]"
-      resource-id="[[data.schedule]]"
-      section="[[model.sections.schedules]]"
-      hidden$="[[!_isDetailsPageActive(route.path)]]"
-      currency="[[currency]]"
-    ></schedule-page>
-  `,
-  is: 'page-schedules',
+        <div
+          class="absolute-bottom-right"
+          hidden$="[[!checkPerm('schedule', 'add', null, model.org, model.user)]]"
+        >
+          <paper-fab
+            id="scheduleAdd"
+            icon="add"
+            on-tap="_addResource"
+          ></paper-fab>
+        </div>
+      </template>
+      <schedule-add
+        model="[[model]]"
+        section="[[model.sections.schedules]]"
+        hidden$="[[!_isAddPageActive(route.path)]]"
+        docs="[[docs]]"
+        currency="[[currency]]"
+      ></schedule-add>
+      <schedule-page
+        model="[[model]]"
+        schedule="[[_getSchedule(data.schedule, model.schedules, model.schedules.*)]]"
+        resource-id="[[data.schedule]]"
+        section="[[model.sections.schedules]]"
+        hidden$="[[!_isDetailsPageActive(route.path)]]"
+        currency="[[currency]]"
+      ></schedule-page>
+    `;
+  }
 
-  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
+  static get is() {
+    return 'page-schedules';
+  }
 
-  properties: {
-    model: {
-      type: Object,
-    },
-    actions: {
-      type: Array,
-    },
-    selectedItems: {
-      type: Array,
-    },
-    currency: {
-      type: Object,
-    },
-    renderers:{
-      type: Object,
-      computed: '_getRenderers(model.schedules)'
-    }
-  },
+  static get properties() {
+    return {
+      model: {
+        type: Object,
+      },
+      actions: {
+        type: Array,
+      },
+      selectedItems: {
+        type: Array,
+      },
+      currency: {
+        type: Object,
+      },
+      renderers: {
+        type: Object,
+        computed: '_getRenderers(model.schedules)',
+      },
+    };
+  }
 
-  _isAddPageActive(path) {
-    return path === '/+add';
-  },
+  _isAddPageActive(_path) {
+    return this.route.path === '/+add';
+  }
 
-  _isDetailsPageActive(path) {
-    return path && path !== '/+add';
-  },
+  _isDetailsPageActive(_path) {
+    return this.route.path && this.route.path !== '/+add';
+  }
 
-  _isListActive(path) {
-    return !path;
-  },
+  _isListActive(_path) {
+    return !this.route.path;
+  }
 
   _getSchedule(id) {
     if (this.model.schedules) return this.model.schedules[id];
     return '';
-  },
+  }
 
   _addResource(_e) {
     this.dispatchEvent(
@@ -133,11 +143,11 @@ Polymer({
         },
       })
     );
-  },
+  }
 
   _getFrozenColumn() {
     return ['name'];
-  },
+  }
 
   _getVisibleColumns() {
     const ret = [
@@ -151,26 +161,21 @@ Polymer({
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
-  },
+  }
 
   _getRenderers(_schedules) {
     const _this = this;
     return {
       name: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
         // sort by alphabetical order
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       task_type: {
-        title: (_item, _row) => {
-          return 'task';
-        },
+        title: (_item, _row) => 'task',
         body: (item, _row) => {
           if (item.action) return item && item.action.toUpperCase();
           if (item.script_id) {
@@ -184,70 +189,64 @@ Polymer({
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).sort().forEach(key => {
-            display += `<span class='tag'>${key}`;
-            if (tags[key] != null && tags[key] !== '')
-              display += `=${tags[key]}`;
-            display += '</span>';
-          });
+          Object.keys(tags || {})
+            .sort()
+            .forEach(key => {
+              display += `<span class='tag'>${key}`;
+              if (tags[key] != null && tags[key] !== '')
+                display += `=${tags[key]}`;
+              display += '</span>';
+            });
           return display;
         },
         // sort by number of tags, resources with more tags come first
         // if two resources have the same number of tags show them in alphabetic order
-        cmp: (row1, row2) =>{
+        cmp: (row1, row2) => {
           const keys1 = Object.keys(row1.tags).sort();
           const keys2 = Object.keys(row2.tags).sort();
-          if( keys1.length > keys2.length)
-            return -1;
-          if (keys1.length < keys2.length)
-            return 1;
-          const item1 = keys1.length > 0 ? keys1[0] : "";
-          const item2 = keys2.length > 0 ? keys2[0] : "";
+          if (keys1.length > keys2.length) return -1;
+          if (keys1.length < keys2.length) return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : '';
+          const item2 = keys2.length > 0 ? keys2[0] : '';
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
-        }
+        },
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         // sort alphabetically by the rendered string
         cmp: (row1, row2) => {
           const item1 = this.renderers.owned_by.body(row1.owned_by);
           const item2 = this.renderers.owned_by.body(row2.owned_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         // sort alphabetically by the rendered string value
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       schedule: {
         body: (item, _row) => {
@@ -337,9 +336,11 @@ Polymer({
         cmp: (row1, row2) => {
           const item1 = this.renderers.selectors.body(row1.selectors);
           const item2 = this.renderers.selectors.body(row2.selectors);
-          return item1.localeCompare(item2, 'en', {sensitivity: 'base'});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
     };
-  },
-});
+  }
+}
+
+customElements.define('page-schedules', PageSchedules);

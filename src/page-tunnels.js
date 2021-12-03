@@ -4,13 +4,19 @@ import '@polymer/paper-fab/paper-fab.js';
 import './tunnels/tunnel-add.js';
 import './tunnels/tunnel-actions.js';
 import './tunnels/tunnel-page.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
-Polymer({
-  _template: html`
+/* eslint-disable class-methods-use-this */
+export default class PageTunnels extends mixinBehaviors(
+  [mistListsBehavior, ownerFilterBehavior, window.rbac],
+  PolymerElement
+) {
+  static get template() {
+    return html`
         <style include="shared-styles">
             [hidden] {
                 display: none !important;
@@ -44,37 +50,45 @@ Polymer({
         <tunnel-add model="[[model]]" section="[[model.sections.tunnels]]" hidden$=[[!_isAddPageActive(route.path)]]></tunnel-add>
         <tunnel-page model="[[model]]" tunnel$="[[_getTunnel(data.tunnel, model.tunnels, model.tunnels.*)]]" resource-id="[[data.tunnel]]" section="[[model.sections.tunnels]]" hidden$=[[!_isDetailsPageActive(route.path)]]></tunnel-page>
             </key-page>
-    `,
-  is: 'page-tunnels',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
+    `;
+  }
 
-  properties: {
-    model: {
-      type: Object,
-    },
-    ownership: {
-      type: Boolean,
-    },
-    actions: {
-      type: Array,
-      notify: true,
-    },
-    selectedItems: {
-      type: Array,
-      notify: true,
-    },
-    renderers:{
-      type: Object,
-      computed: '_getRenderers(model.tunnels)'
-    }
-  },
+  static get is() {
+    return 'page-tunnels';
+  }
 
-  listeners: {
-    'select-action': 'selectAction',
-  },
-  _isAddPageActive(path) {
-    return path === '/+add';
-  },
+  static get properties() {
+    return {
+      model: {
+        type: Object,
+      },
+      ownership: {
+        type: Boolean,
+      },
+      actions: {
+        type: Array,
+        notify: true,
+      },
+      selectedItems: {
+        type: Array,
+        notify: true,
+      },
+      renderers: {
+        type: Object,
+        computed: '_getRenderers(model.tunnels)',
+      },
+    };
+  }
+
+  ready() {
+    super.ready();
+    this.addEventListener('select-action', this.selectAction);
+  }
+
+  _isAddPageActive(_path) {
+    return this.route.path === '/+add';
+  }
+
   _isDetailsPageActive(path) {
     if (
       path &&
@@ -84,14 +98,17 @@ Polymer({
     )
       this.shadowRoot.querySelector('tunnel-page').updateState();
     return path && path !== '/+add';
-  },
-  _isListActive(path) {
-    return !path;
-  },
+  }
+
+  _isListActive(_path) {
+    return !this.route.path;
+  }
+
   _getTunnel(id) {
     if (this.model.tunnels) return this.model.tunnels[id];
     return '';
-  },
+  }
+
   _addResource(_e) {
     this.dispatchEvent(
       new CustomEvent('go-to', {
@@ -102,29 +119,28 @@ Polymer({
         },
       })
     );
-  },
+  }
+
   _getFrozenLogColumn() {
     return ['name'];
-  },
+  }
 
   _getVisibleColumns() {
     const ret = ['cidrs', 'created_by', 'id', 'tags'];
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.push('owned_by');
     return ret;
-  },
+  }
+
   _getRenderers(_tunnels) {
     const _this = this;
     return {
       name: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
-        cmp: (row1, row2) => {
-          return row1.name.localeCompare(row2.name, 'en', {
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
+        cmp: (row1, row2) =>
+          row1.name.localeCompare(row2.name, 'en', {
             sensitivity: 'base',
-          });
-        },
+          }),
       },
       cidrs: {
         body: (item, _row) => {
@@ -133,69 +149,63 @@ Polymer({
         },
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         // sort alphabetically by the rendered string value
         cmp: (row1, row2) => {
           const item1 = this.renderers.owned_by.body(row1.owned_by);
           const item2 = this.renderers.owned_by.body(row2.owned_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         // sort alphabetically by the rendered string value
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).sort().forEach(key => {
-            display += `<span class='tag'>${key}`;
-            if (tags[key] != null && tags[key] !== '')
-              display += `=${tags[key]}`;
-            display += '</span>';
-          });
+          Object.keys(tags || {})
+            .sort()
+            .forEach(key => {
+              display += `<span class='tag'>${key}`;
+              if (tags[key] != null && tags[key] !== '')
+                display += `=${tags[key]}`;
+              display += '</span>';
+            });
           return display;
         },
         // sort by number of tags, resources with more tags come first
         // if two resources have the same number of tags show them in alphabetic order
-        cmp: (row1, row2) =>{
+        cmp: (row1, row2) => {
           const keys1 = Object.keys(row1.tags).sort();
           const keys2 = Object.keys(row2.tags).sort();
-          if( keys1.length > keys2.length)
-            return -1;
-          if (keys1.length < keys2.length)
-            return 1;
-          const item1 = keys1.length > 0 ? keys1[0] : "";
-          const item2 = keys2.length > 0 ? keys2[0] : "";
+          if (keys1.length > keys2.length) return -1;
+          if (keys1.length < keys2.length) return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : '';
+          const item2 = keys2.length > 0 ? keys2[0] : '';
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
-        }
+        },
       },
     };
-  },
+  }
 
   selectAction(e) {
     e.stopImmediatePropagation();
@@ -205,5 +215,7 @@ Polymer({
         .shadowRoot.querySelector('#actions')
         .selectAction(e);
     }
-  },
-});
+  }
+}
+
+customElements.define('page-tunnels', PageTunnels);

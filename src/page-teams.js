@@ -7,139 +7,153 @@ import './teams/member-page.js';
 import './teams/members-add.js';
 import './teams/member-add-in-teams.js';
 import './teams/team-add.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
-Polymer({
-  _template: html`
-    <style include="shared-styles">
-      [hidden] {
-        display: none !important;
-      }
-      mist-list {
-        font-size: 14px;
-      }
-      mist-list[selectable] ::slotted(vaadin-grid-table-row) {
-        cursor: pointer;
-      }
-    </style>
-    <app-route route="{{route}}" pattern="/:team" data="{{data}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <team-actions
-        id="actions"
-        items="[[selectedItems]]"
-        org="[[model.org.id]]"
-        actions="{{actions}}"
+/* eslint-disable class-methods-use-this */
+export default class PageTeams extends mixinBehaviors(
+  [mistListsBehavior, window.rbac],
+  PolymerElement
+) {
+  static get template() {
+    return html`
+      <style include="shared-styles">
+        [hidden] {
+          display: none !important;
+        }
+        mist-list {
+          font-size: 14px;
+        }
+        mist-list[selectable] ::slotted(vaadin-grid-table-row) {
+          cursor: pointer;
+        }
+      </style>
+      <app-route route="{{route}}" pattern="/:team" data="{{data}}"></app-route>
+      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <team-actions
+          id="actions"
+          items="[[selectedItems]]"
+          org="[[model.org.id]]"
+          actions="{{actions}}"
+        >
+          <mist-list
+            selectable
+            resizable
+            column-menu
+            multi-sort
+            apiurl="/api/v1/teams"
+            id="teamsList"
+            name="Teams"
+            primary-field-name="id"
+            frozen="[[_getFrozenColumn()]]"
+            visible="[[_getVisibleColumns()]]"
+            selected-items="{{selectedItems}}"
+            sort-order="[[sortOrder]]"
+            renderers="[[_getRenderers()]]"
+            route="{{route}}"
+            item-map="[[model.teams]]"
+            actions="[[actions]]"
+            user-filter="[[model.sections.teams.q]]"
+            filter-method="[[_isMemberOfFilter()]]"
+            filtered-items-length="{{filteredItemsLength}}"
+          ></mist-list>
+        </team-actions>
+      </template>
+      <team-page
+        id="teamPage"
+        model="[[model]]"
+        team="[[_getTeam(data.team, model.teams)]]"
+        resource-id="[[data.team]]"
+        section="[[model.sections.teams]]"
+        hidden$="[[!_isDetailsPageActive(route.path)]]"
+        rbac="[[rbac]]"
+        billing="[[billing]]"
+        cta="[[cta]]"
+        email="[[email]]"
+        docs="[[docs]]"
+      ></team-page>
+      <members-add
+        model="[[model]]"
+        params="[[data]]"
+        section="[[model.sections.teams]]"
+        hidden$="[[!_isAddMembersPageActive(route.path)]]"
+      ></members-add>
+      <member-add-in-teams
+        model="[[model]]"
+        params="[[data]]"
+        section="[[model.sections.teams]]"
+        hidden$="[[!_isAddMemberPageActive(route.path)]]"
+      ></member-add-in-teams>
+      <team-add
+        id="isTeamsPage"
+        organization="[[model.org]]"
+        rbac="[[rbac]]"
+      ></team-add>
+      <div
+        class="absolute-bottom-right"
+        hidden$="[[!_showAddTeam(route.path,model.user)]]"
       >
-        <mist-list
-          selectable
-          resizable
-          column-menu
-          multi-sort
-          apiurl="/api/v1/teams"
-          id="teamsList"
-          name="Teams"
-          primary-field-name="id"
-          frozen="[[_getFrozenColumn()]]"
-          visible="[[_getVisibleColumns()]]"
-          selected-items="{{selectedItems}}"
-          sort-order="[[sortOrder]]"
-          renderers="[[_getRenderers()]]"
-          route="{{route}}"
-          item-map="[[model.teams]]"
-          actions="[[actions]]"
-          user-filter="[[model.sections.teams.q]]"
-          filter-method="[[_isMemberOfFilter()]]"
-          filtered-items-length="{{filteredItemsLength}}"
-        ></mist-list>
-      </team-actions>
-    </template>
-    <team-page
-      id="teamPage"
-      model="[[model]]"
-      team="[[_getTeam(data.team, model.teams)]]"
-      resource-id="[[data.team]]"
-      section="[[model.sections.teams]]"
-      hidden$="[[!_isDetailsPageActive(route.path)]]"
-      rbac="[[rbac]]"
-      billing="[[billing]]"
-      cta="[[cta]]"
-      email="[[email]]"
-      docs="[[docs]]"
-    ></team-page>
-    <members-add
-      model="[[model]]"
-      params="[[data]]"
-      section="[[model.sections.teams]]"
-      hidden$="[[!_isAddMembersPageActive(route.path)]]"
-    ></members-add>
-    <member-add-in-teams
-      model="[[model]]"
-      params="[[data]]"
-      section="[[model.sections.teams]]"
-      hidden$="[[!_isAddMemberPageActive(route.path)]]"
-    ></member-add-in-teams>
-    <team-add
-      id="isTeamsPage"
-      organization="[[model.org]]"
-      rbac="[[rbac]]"
-    ></team-add>
-    <div
-      class="absolute-bottom-right"
-      hidden$="[[!_showAddTeam(route.path,model.user)]]"
-    >
-      <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
-    </div>
-  `,
-  is: 'page-teams',
-  behaviors: [mistListsBehavior, window.rbac],
+        <paper-fab id="isTeams" icon="add" on-tap="_addTeam"></paper-fab>
+      </div>
+    `;
+  }
 
-  properties: {
-    model: {
-      type: Object,
-    },
-    ownership: {
-      type: Boolean,
-    },
-    route: {
-      type: Object,
-    },
-    actions: {
-      type: Array,
-      notify: true,
-    },
-    selectedItems: {
-      type: Array,
-      value() {
-        return [];
+  static get is() {
+    return 'page-teams';
+  }
+
+  static get properties() {
+    return {
+      model: {
+        type: Object,
       },
-    },
-    rbac: {
-      type: Boolean,
-      value: false,
-    },
-    docs: {
-      type: Boolean,
-      value: false,
-    },
-  },
+      ownership: {
+        type: Boolean,
+      },
+      route: {
+        type: Object,
+      },
+      actions: {
+        type: Array,
+        notify: true,
+      },
+      selectedItems: {
+        type: Array,
+        value() {
+          return [];
+        },
+      },
+      rbac: {
+        type: Boolean,
+        value: false,
+      },
+      docs: {
+        type: Boolean,
+        value: false,
+      },
+    };
+  }
 
-  listeners: {},
   _isDetailsPageActive(path) {
     if (path && path !== '/+add' && this.$.teamPage)
       this.$.teamPage.updateState();
     return path && !path.endsWith('+add');
-  },
-  _isAddMembersPageActive(path) {
-    return path !== '/+add' && path.endsWith('+add');
-  },
-  _isAddMemberPageActive(path) {
-    return path === '/+add';
-  },
-  _isListActive(path) {
-    return !path;
-  },
+  }
+
+  _isAddMembersPageActive(_path) {
+    return this.route.path !== '/+add' && this.route.path.endsWith('+add');
+  }
+
+  _isAddMemberPageActive(_path) {
+    return this.route.path === '/+add';
+  }
+
+  _isListActive(_path) {
+    return !this.route.path;
+  }
+
   _isMemberOfFilter() {
     const _this = this;
     return {
@@ -177,22 +191,24 @@ Polymer({
         return query;
       },
     };
-  },
+  }
+
   _hasNoSelectedItems() {
     return !(this.selectedItems && this.selectedItems.length);
-  },
+  }
+
   _getTeam(id) {
     if (this.model.teams && id) return this.model.teams[id];
     return '';
-  },
+  }
 
   _getFrozenColumn() {
     return ['name'];
-  },
+  }
 
   _getVisibleColumns() {
     return ['description', 'members'];
-  },
+  }
 
   _getRenderers(_teams, _members) {
     const _this = this;
@@ -240,12 +256,12 @@ Polymer({
         },
       },
     };
-  },
+  }
 
   _addTeam(_e) {
     const dialog = this.shadowRoot.querySelector('team-add#isTeamsPage');
     dialog.openDialog();
-  },
+  }
 
   selectAction(e) {
     e.stopImmediatePropagation();
@@ -255,7 +271,7 @@ Polymer({
         .shadowRoot.querySelector('#actions')
         .selectAction(e);
     }
-  },
+  }
 
   _showAddTeam(path, _user) {
     return (
@@ -263,5 +279,7 @@ Polymer({
       this._isListActive(path) &&
       this.checkPerm('key', 'add', null, this.model.org, this.model.user)
     );
-  },
-});
+  }
+}
+
+customElements.define('page-teams', PageTeams);
