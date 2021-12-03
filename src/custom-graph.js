@@ -5,9 +5,10 @@ import '@polymer/iron-icons/iron-icons.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/iron-ajax/iron-ajax.js';
-import { CSRFToken } from './helpers/utils.js';
+import '@mistio/mist-list/code-viewer.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from './helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -47,6 +48,7 @@ Polymer({
 
       #juicyScript {
         font-family: monospace;
+        height: 400px;
       }
 
       paper-progress#progresserror {
@@ -92,15 +94,19 @@ Polymer({
       </div>
       <div>
         <h2 class$="sshKey-[[sshKeyExists]] textarea-h2">Python script</h2>
-        <paper-textarea
-          id="juicyScript"
-          value="{{metric.script}}"
-          no-label-float=""
-          hidden$="[[!sshKeyExists]]"
-        ></paper-textarea>
+        <template is="dom-if" if="[[sshKeyExists]]" restamp="">
+          <code-viewer
+            id="juicyScript"
+            script-name="custom-metric-script"
+            language="python"
+            value="{{metric.script}}"
+            on-editor-value-changed="_codeEditorValueChanged"
+            show-language
+            show-download
+          ></code-viewer>
+        </template>
       </div>
       <div>
-        <h2 class$="sshKey-[[sshKeyExists]]">Advance settings</h2>
         <paper-checkbox id="derivative" disabled$="[[!sshKeyExists]]"
           >Calculate derivative</paper-checkbox
         >
@@ -220,12 +226,24 @@ Polymer({
           if (lines[lines.length - 1].startsWith('print')) {
             lines.pop();
           }
-          lines[lines.length] = `print "${this.metric.name} value=%s" % read()`;
+          lines[
+            lines.length
+          ] = `print( "${this.metric.name} value=%s" % read())`;
           this.set('metric.script', lines.join('\n'));
         },
         500
       );
     }
+  },
+
+  _codeEditorValueChanged(e) {
+    this.debounce(
+      'codeEditorValueChanged',
+      () => {
+        this.metric.script = e.detail.value;
+      },
+      500
+    );
   },
 
   _computeUrl(machineId, pluginId) {
@@ -235,7 +253,6 @@ Polymer({
   _generateCustomgraphrequest() {
     this.set('formError', false);
     this._computeUrl(this.machine.id, this.metric.pluginId);
-    this.metric.script = this.shadowRoot.querySelector('#juicyScript').value;
     if (this.$.derivative.checked) {
       this.metric.type = 'derive';
     } else {

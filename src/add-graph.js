@@ -107,7 +107,7 @@ Polymer({
       }
 
       #customOptions {
-        max-width: 500px;
+        max-width: 900px;
       }
     </style>
     <paper-button on-tap="openDialog" class="add-button">
@@ -139,7 +139,7 @@ Polymer({
         </div>
       </template>
     </vaadin-dialog>
-    <vaadin-dialog id="customOptions" theme="mist-dialog" with-backdrop="">
+    <vaadin-dialog id="customOptions" theme="mist-form-dialog" with-backdrop="">
       <template>
         <custom-graph
           ssh-key-exists="[[sshKeyExists]]"
@@ -214,7 +214,7 @@ Polymer({
           unit: null,
           type: 'gauge',
           script:
-            '#!/usr/bin/env python\nimport random \n \ndef read(): \n    # return random value \n    return random.random() \n',
+            '#!/usr/bin/env python3\nimport random \n \ndef read(): \n    # return random value \n    return random.random() \n',
           pluginId: null,
         };
       },
