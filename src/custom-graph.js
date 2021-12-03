@@ -48,6 +48,7 @@ Polymer({
 
       #juicyScript {
         font-family: monospace;
+        height: 400px;
       }
 
       paper-progress#progresserror {
