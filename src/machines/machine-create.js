@@ -1113,10 +1113,7 @@ Polymer({
               }
             }
             // Remove new volume name field for now since it's not used by OpenStack
-            if (
-              provider === 'openstack' ||
-              provider === 'vexxhost'
-              ) {
+            if (provider === 'openstack' || provider === 'vexxhost') {
               const nameIndex = options.findIndex(
                 entry => entry.name === 'name'
               );
