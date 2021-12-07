@@ -92,14 +92,14 @@ const MACHINE_CREATE_FORM_DATA = data => ({
               location =>
                 // Find correct imageName
                 location.available_images &&
-                location.available_images.includes(image)
+                Object.values(location.available_images).includes(image)
             );
           }
           if (size) {
             locationsFromSize = locationsFromCloud.filter(
               location =>
                 location.available_sizes &&
-                location.available_sizes.includes(id)
+                Object.values(location.available_sizes).includes(id)
             );
           }
 
@@ -141,7 +141,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
           );
 
           if (location && location.available_images) {
-            imagesFromLocation = location.available_images;
+            imagesFromLocation = Object.values(location.available_images);
           }
 
           if (size) {
@@ -199,7 +199,7 @@ const MACHINE_CREATE_FORM_DATA = data => ({
             sizesFromLocation = {
               ...sizesFromCloud,
               options: sizesFromCloud.options.filter(size =>
-                location.available_sizes.includes(size.name)
+                Object.values(location.available_sizes).includes(size.name)
               ),
             };
           }
