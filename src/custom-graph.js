@@ -228,7 +228,7 @@ Polymer({
           }
           lines[
             lines.length
-          ] = `print( "${this.metric.name} value=%s" % read())`;
+          ] = `print("${this.metric.name} value=%s" % read())`;
           this.set('metric.script', lines.join('\n'));
         },
         500
