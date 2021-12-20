@@ -301,7 +301,6 @@ Polymer({
       value: false,
     },
   },
-  observers: ['_machineProviderChanged(isProviderWithSnapshots)'],
   listeners: {
     'rename-machine': 'renameAction',
     'transfer-ownership': 'transferOwnership',
