@@ -239,10 +239,10 @@ Polymer({
     // exclude bare metals and not allowed clouds from provider dropdown list
     const clouds = this._toArray(this.model.clouds).filter(
       c =>
+        c.enabled &&
         ['bare_metal'].indexOf(c.provider) === -1 &&
         this.checkPerm('cloud', 'create_resources', c.id)
     );
-
     if (clouds.length) {
       this._getClouds.resolve(() =>
         this.clouds.map(cloud => ({
