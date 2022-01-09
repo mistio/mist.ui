@@ -1051,7 +1051,7 @@ Polymer({
 
         // for volumes options
         if (f.name === 'volumes') {
-          const { provider } = this.model.clouds[cloudId];
+          const provider = this.model.clouds[cloudId].provider;
           const fieldset = this.volumeFields.find(
             fieldSet => fieldSet.provider === provider
           );
