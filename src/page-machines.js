@@ -2,7 +2,6 @@ import '@polymer/app-route/app-route.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@mistio/mist-list/mist-list.js';
 import '@polymer/paper-fab/paper-fab.js';
-import './machines/machine-create-new.js';
 import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
@@ -310,6 +309,9 @@ Polymer({
   },
   // DELETE THIS WHEN NEW MACHINE FORM IS FINISHED
   _isNewAddPageActive(path) {
+    this.async(async () => {
+      await import('./machines/machine-create-new.js');
+    }, 0);
     return path === '/+create-new';
   },
   _isDetailsPageActive(path) {
