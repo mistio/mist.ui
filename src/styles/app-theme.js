@@ -163,6 +163,7 @@ html {
     --teams-section-color: #607D8B;
     --account-section-color: #2F2F3E;
     --clouds-section-color: #424242;
+    --clusters-section-color: #aa646c;
     --members-section-color: #607D8B;
     --insights-section-color: #2F2F3E;
 
@@ -185,6 +186,7 @@ html {
     --teams-sidebar-link-color: #607D8B;
     --account-sidebar-link-color: #2F2F3E;
     --clouds-sidebar-link-color: #424242;
+    --clusters-sidebar-link-color: #aa646c;
     --members-sidebar-link-color: #607D8B;
     --insights-sidebar-link-color: #2F2F3E;
 
@@ -295,6 +297,11 @@ html {
     /* clouds/cloud-page.html */
     --cloud-page-head-mixin: {
         background-color: var(--clouds-section-color);
+        color: var(--text-on-dark-bg);
+    }
+
+    --cluster-page-head-mixin: {
+        background-color: var(--clusters-section-color);
         color: var(--text-on-dark-bg);
     }
 

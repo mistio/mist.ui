@@ -192,6 +192,13 @@ Polymer({
         );
       }
 
+      :host([color='clusters-section-color']) {
+        background-color: var(
+          --clusters-section-color,
+          var(--base-section-color)
+        );
+      }
+
       :host([color='machines-section-color']) {
         background-color: var(
           --machines-section-color,

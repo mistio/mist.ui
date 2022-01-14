@@ -75,6 +75,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
 
         page-dashboard,
         page-clouds,
+        page-clusters,
         page-incidents,
         page-insights,
         page-keys,
@@ -188,6 +189,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                 <page-dashboard name="dashboard" model="[[model]]" q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen="[[xsmallscreen]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-dashboard>
                 <template is="dom-if" restamp="" if="[[model.sections]]">
                     <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
+                    <page-clusters name="clusters" route="{{subroute}}" model="[[model]]"></page-clusters>
                     <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]" currency="[[config.features.currency]]"></page-machines>
                     <page-images name="images" route="{{subroute}}" model="[[model]]" portal-name="[[config.portal_name]]"></page-images>
                     <page-keys name="keys" route="{{subroute}}" model="[[model]]" config="[[config]]"></page-keys>
@@ -716,6 +718,8 @@ Polymer({
       machines: {},
       clouds: {},
       cloudsArray: [],
+      clusters: {},
+      clustersArray: [],
       imagesArray: [],
       keysArray: [],
       networks: {},
@@ -909,6 +913,9 @@ Polymer({
     const cloudsCount = this.model.clouds
       ? Object.keys(this.model.clouds).length
       : 0;
+    const clustersCount = this.model.clusters
+      ? Object.keys(this.model.clusters).length
+      : 0;
     const stacksCount = this.model.stacks
       ? Object.keys(this.model.stacks).length
       : 0;
@@ -977,7 +984,7 @@ Polymer({
         sidebar: true,
         tile: false,
         count: cloudsCount,
-        hr: !orchestration,
+        hr: false,
       },
       {
         id: 'stacks',
@@ -989,6 +996,16 @@ Polymer({
         hr: true,
         hideZero: true,
         hideTileIfZero: true,
+      },
+      {
+        id: 'clusters',
+        color: '#aa646c',
+        icon: 'icons:group-work',
+        add: '',
+        sidebar: true,
+        tile: false,
+        count: clustersCount,
+        hr: !orchestration,
       },
       {
         id: 'machines',
