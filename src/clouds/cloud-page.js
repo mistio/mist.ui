@@ -478,6 +478,21 @@ Polymer({
                       >Object Storage disabled</span
                     >
                   </paper-toggle-button>
+                  <paper-toggle-button
+                    id="k8s-enable-disable"
+                    class="small"
+                    checked$="[[cloud.container_enabled]]"
+                    on-tap="_changeK8sEnabled"
+                    disabled="[[k8sloading]]"
+                    hidden$="[[!_isSupportedK8sProvider(cloud.provider)]]"
+                  >
+                    <span hidden$="[[!cloud.container_enabled]]"
+                      >K8s support enabled</span
+                    >
+                    <span hidden$="[[cloud.container_enabled]]"
+                      >K8s support disabled</span
+                    >
+                  </paper-toggle-button>
                   <br
                     hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
                   />
@@ -493,21 +508,6 @@ Polymer({
                     >
                     <span hidden$="[[cloud.observation_logs_enabled]]"
                       >Observation logs disabled</span
-                    >
-                  </paper-toggle-button>
-                  <paper-toggle-button
-                    id="container-enable-disable"
-                    class="small"
-                    checked$="[[cloud.container_enabled]]"
-                    on-tap="_changeContainerEnabled"
-                    disabled="[[containerloading]]"
-                    hidden$="[[!_isSupportedContainerProvider(cloud.provider)]]"
-                  >
-                    <span hidden$="[[!cloud.container_enabled]]"
-                      >Container enabled</span
-                    >
-                    <span hidden$="[[cloud.container_enabled]]"
-                      >Container disabled</span
                     >
                   </paper-toggle-button>
                   <br />
@@ -620,13 +620,13 @@ Polymer({
       loading="{{objectstorageloading}}"
     ></iron-ajax>
     <iron-ajax
-      id="cloudEditContainerAjaxRequest"
+      id="cloudEditK8sAjaxRequest"
       url="/api/v1/clouds/[[cloud.id]]"
       handle-as="xml"
       method="POST"
-      on-response="_handleCloudEditContainerAjaxResponse"
-      on-error="_handleCloudEditContainerAjaxError"
-      loading="{{containerloading}}"
+      on-response="_handleCloudEditK8sAjaxResponse"
+      on-error="_handleCloudEditK8sAjaxError"
+      loading="{{k8sloading}}"
     ></iron-ajax>
   `,
 
@@ -867,7 +867,7 @@ Polymer({
     return ['ec2', 'openstack', 'vexxhost'].indexOf(provider) > -1;
   },
 
-  _isSupportedContainerProvider(provider) {
+  _isSupportedK8sProvider(provider) {
     // FIXME: Same as above. This should come from backend.
     return ['ec2', 'gce'].indexOf(provider) > -1;
   },
@@ -1027,21 +1027,18 @@ Polymer({
       })
     );
   },
-  _changeContainerEnabled() {
+  _changeK8sEnabled() {
     const containerEnabled = this.cloud.container_enabled ? 0 : 1;
-    this.$.cloudEditContainerAjaxRequest.headers['Content-Type'] =
-      'application/json';
-    this.$.cloudEditContainerAjaxRequest.headers['Csrf-Token'] =
-      CSRFToken.value;
-    this.$.cloudEditContainerAjaxRequest.body = {
+    this.$.cloudEditK8sAjaxRequest.headers['Content-Type'] = 'application/json';
+    this.$.cloudEditK8sAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.cloudEditK8sAjaxRequest.body = {
       container_enabled: containerEnabled,
     };
-    this.$.cloudEditContainerAjaxRequest.generateRequest();
+    this.$.cloudEditK8sAjaxRequest.generateRequest();
   },
 
-  _handleCloudEditContainerAjaxResponse() {
-    const message = this.shadowRoot.querySelector('#Container-enable-disable')
-      .checked
+  _handleCloudEditK8sAjaxResponse() {
+    const message = this.shadowRoot.querySelector('#k8s-enable-disable').checked
       ? `Container support for ${this.cloud.title} enabled!`
       : `Container support for ${this.cloud.title} disabled!`;
     this.dispatchEvent(
@@ -1053,9 +1050,9 @@ Polymer({
     );
   },
 
-  _handleCloudEditContainerAjaxError(e) {
+  _handleCloudEditK8sAjaxError(e) {
     this.shadowRoot.querySelector(
-      '#Container-enable-disable'
+      '#k8s-enable-disable'
     ).checked = this.cloud.container_enabled;
     this.dispatchEvent(
       new CustomEvent('toast', {
