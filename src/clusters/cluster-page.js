@@ -236,6 +236,24 @@ export default class ClusterPage extends mixinBehaviors(
         </paper-material>
         <br />
         <paper-material class="no-pad">
+            <mist-list
+              id="clusterResources"
+              item-map="[[resources]]"
+              frozen="[[_getFrozenResourcesColumn()]]"
+              visible="[[_getVisibleResourcesColumns()]]"
+              renderers="[[_getRenderers()]]"
+              auto-hide=""
+              column-menu=""
+              toolbar=""
+              resizable=""
+              name="cluster nodes"
+              primary-field-name="id"
+              item-has-children="[[resourceHasChildren]]"
+              base-filter="[[cluster.id]]"
+            ></mist-list>
+        </paper-material>
+        </br>
+        <paper-material class="no-pad">
           <h2 class="cluster-page-head">More Info</h2>
           <div class="info-table">
             <div class="info-body info-group">
@@ -286,6 +304,10 @@ export default class ClusterPage extends mixinBehaviors(
       itemArray: {
         type: Array,
       },
+      resources: {
+        type: Object,
+        computed: '_computeClusterMachines(cluster)',
+      },
     };
   }
 
@@ -293,8 +315,34 @@ export default class ClusterPage extends mixinBehaviors(
     return ['_changed(cluster)'];
   }
 
+  ready() {
+    super.ready();
+    this.addEventListener('active-item-changed', this._goToMachine);
+  }
+
   _changed(cluster) {
-    if (cluster) this.set('itemArray', [this.cluster]);
+    if (cluster) {
+      this.set('itemArray', [this.cluster]);
+    }
+  }
+
+  _computeClusterMachines() {
+    let ret = {};
+    if (this.cluster && this.model.machines) {
+      const clusterMachines = Object.entries(this.model.machines).filter(
+        ([_machineId, machine]) => machine.cluster === this.cluster.id
+      );
+      ret = Object.fromEntries(clusterMachines);
+    }
+    return ret;
+  }
+
+  _getFrozenResourcesColumn() {
+    return ['name'];
+  }
+
+  _getVisibleResourcesColumns() {
+    return ['state', 'public_ips', 'private_ips', 'cost'];
   }
 
   _getVisibleColumns() {
@@ -338,7 +386,14 @@ export default class ClusterPage extends mixinBehaviors(
           return item || '';
         },
       },
+      cost: {
+        body: item => item.monthly.toFixed(2) || 0,
+      },
     };
+  }
+
+  _goToMachine(e) {
+    window.location.assign(`/machines/${e.detail.id}`);
   }
 
   _displayUser(id, _members) {
