@@ -487,10 +487,10 @@ Polymer({
                     hidden$="[[!_isSupportedK8sProvider(cloud.provider)]]"
                   >
                     <span hidden$="[[!cloud.container_enabled]]"
-                      >K8s support enabled</span
+                      >Container support enabled</span
                     >
                     <span hidden$="[[cloud.container_enabled]]"
-                      >K8s support disabled</span
+                      >Container support disabled</span
                     >
                   </paper-toggle-button>
                   <br

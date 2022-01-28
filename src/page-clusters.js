@@ -78,6 +78,9 @@ export default class PageClusters extends PolymerElement {
             sensitivity: 'base',
           }),
       },
+      cloud: {
+        body: (item, _row) => item.title,
+      },
     };
   }
 
@@ -86,7 +89,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getVisibleColumns() {
-    return ['clouds', 'id', 'tags'];
+    return ['cloud', 'id', 'tags'];
   }
 
   _isListActive(path) {

@@ -89,7 +89,7 @@ PROVIDERS.push({
     },
     {
       name: 'container_enabled',
-      label: 'Enable Kubernetes support',
+      label: 'Enable container support',
       type: 'toggle',
       value: false,
       defaultValue: false,

@@ -6,7 +6,10 @@ import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
+import '@polymer/iron-icons/iron-icons.js';
+import '@polymer/iron-icon/iron-icon.js';
 import '@mistio/mist-list/mist-list.js';
+import '../machines/machine-actions.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import './cluster-actions.js';
@@ -22,16 +25,6 @@ export default class ClusterPage extends mixinBehaviors(
         paper-material {
           display: block;
           padding: 20px;
-        }
-
-        paper-material > h2 {
-          line-height: initial !important;
-          margin-bottom: 0;
-          cursor: pointer;
-        }
-
-        paper-menu-button paper-button {
-          display: block;
         }
 
         .flex-horizontal-with-ratios {
@@ -128,12 +121,32 @@ export default class ClusterPage extends mixinBehaviors(
           @apply --cluster-page-head-mixin;
         }
 
-        .cluster-page-head {
-          @apply --cluster-page-head-mixin;
-        }
 
         cluster-actions {
           width: 50%;
+        }
+
+        paper-material.info-card {
+          padding: 0;
+        }
+
+        .cluster-page-head {
+          line-height: initial !important;
+          margin-bottom: 0;
+          margin-top: 0;
+          width: 100%;
+          cursor: pointer;
+          @apply --cluster-page-head-mixin;
+        }
+
+        paper-button.arrow {
+          text-transform: none;
+          margin: 0;
+          width: 100%;
+          justify-content: left;
+          background-color: transparent !important;
+          color: inherit !important;
+          padding: 12px !important;
         }
       </style>
       <div id="content">
@@ -236,32 +249,50 @@ export default class ClusterPage extends mixinBehaviors(
         </paper-material>
         <br />
         <paper-material class="no-pad">
-            <mist-list
-              id="clusterResources"
-              item-map="[[resources]]"
-              frozen="[[_getFrozenResourcesColumn()]]"
-              visible="[[_getVisibleResourcesColumns()]]"
-              renderers="[[_getRenderers()]]"
-              auto-hide=""
-              column-menu=""
-              toolbar=""
-              resizable=""
-              name="cluster nodes"
-              primary-field-name="id"
-              item-has-children="[[resourceHasChildren]]"
-              base-filter="[[cluster.id]]"
-            ></mist-list>
-        </paper-material>
-        </br>
-        <paper-material class="no-pad">
-          <h2 class="cluster-page-head">More Info</h2>
-          <div class="info-table">
+          <div class="horizontal layout hide-button">
+            <h2 class="cluster-page-head">
+              <paper-button class="arrow" on-tap="arrowButtonClick">
+                <iron-icon icon="icons:expand-more"
+                style="margin-right: 8px; transform: rotate(270deg);">
+                </iron-icon>
+                More Info
+              </paper-button>
+            </h2>
+          </div>
+          <div class="info-table" hidden>
             <div class="info-body info-group">
               <element-for-in content="[[cluster.extra]]"></element-for-in>
             </div>
           </div>
         </paper-material>
         <br />
+        <paper-material class="no-pad">
+          <machine-actions
+            actions="{{resourceActions}}"
+            items="[[selectedResources]]"
+            model="[[model]]"
+          >
+            <mist-list
+              id="clusterResources"
+              item-map="[[resources]]"
+              frozen="[[_getFrozenResourcesColumn()]]"
+              visible="[[_getVisibleResourcesColumns()]]"
+              renderers="[[_getRenderers()]]"
+              actions="[[resourceActions]]"
+              selected-items="{{selectedResources}}"
+              selectable=""
+              auto-hide=""
+              column-menu=""
+              toolbar=""
+              resizable=""
+              name="nodes"
+              primary-field-name="id"
+              item-has-children="[[resourceHasChildren]]"
+              base-filter="[[cluster.id]]"
+            ></mist-list>
+          </paper-material>
+        </machine-actions>
+        </br>
         <paper-material class="no-pad">
           <template is="dom-if" if="[[cluster]]" restamp="">
             <mist-list
@@ -308,6 +339,12 @@ export default class ClusterPage extends mixinBehaviors(
         type: Object,
         computed: '_computeClusterMachines(cluster)',
       },
+      resourceActions: {
+        type: Array,
+      },
+      selectedResources: {
+        type: Array,
+      },
     };
   }
 
@@ -342,7 +379,7 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _getVisibleResourcesColumns() {
-    return ['state', 'public_ips', 'private_ips', 'cost'];
+    return ['state', 'location', 'public_ips', 'private_ips', 'cost'];
   }
 
   _getVisibleColumns() {
@@ -389,6 +426,19 @@ export default class ClusterPage extends mixinBehaviors(
       cost: {
         body: item => item.monthly.toFixed(2) || 0,
       },
+      public_ips: {
+        body: item => item.join(', '),
+      },
+      private_ips: {
+        body: item => item.join(', '),
+      },
+      location: {
+        body: (item, row) => {
+          if (_this.model && _this.model.clouds)
+            return _this.model.clouds[row.cloud].locations[item].name;
+          return '';
+        },
+      },
     };
   }
 
@@ -409,6 +459,20 @@ export default class ClusterPage extends mixinBehaviors(
       !tags ||
       (Array.isArray(tags) ? tags.length === 0 : Object.keys(tags).length === 0)
     );
+  }
+
+  arrowButtonClick(e) {
+    e.stopPropagation();
+    const arrowIcon = e.currentTarget.children[0];
+    const dataDiv =
+      e.currentTarget.parentElement.parentElement.nextElementSibling;
+    if (arrowIcon.style.transform.indexOf('270') > -1) {
+      arrowIcon.style.transform = 'rotate(0deg)';
+      dataDiv.removeAttribute('hidden');
+    } else {
+      arrowIcon.style.transform = 'rotate(270deg)';
+      dataDiv.setAttribute('hidden', '');
+    }
   }
 }
 
