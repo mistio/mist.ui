@@ -274,7 +274,7 @@ Polymer({
     const ips = []
       .concat(this.target.public_ips)
       .concat(this.target.private_ips);
-    if (ips[0]) this.term.write(`Connecting to ${ips[0]}...\r\n`);
+    this.term.write(`Connecting to container...`);
 
     const { socket } = this;
     this.attachAddon = new AttachAddon.AttachAddon(socket);
@@ -304,16 +304,17 @@ Polymer({
 
     if (
       this.target.provider === 'docker' &&
-      this.target.key_associations === false
+      Object.keys(this.target.key_associations).length === 0
     ) {
       payload.provider = 'docker';
-      payload.host = '';
+      payload.host = this.cloud.host;
+      payload.machine_id = this.target.machine_id;
     } else if (this.target.provider === 'kubevirt') {
       payload.provider = 'kubevirt';
       payload.host = 'kubevirt'; // otherwise an error is thrown in the api
     } else if (this.target.provider === 'lxd') {
       payload.provider = 'lxd';
-      [payload.host] = ips;
+      payload.host = this.cloud.host;
     } else {
       payload.cloud_id = this.target.cloud;
       payload.machine_id = this.target.id;

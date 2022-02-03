@@ -646,6 +646,7 @@ Polymer({
           if (!xterm) {
             xterm = document.createElement('xterm-dialog');
             xterm.target = item;
+            xterm.cloud = this.model.clouds[item.cloud];
             const app = document.querySelector('mist-app');
             app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
           }
