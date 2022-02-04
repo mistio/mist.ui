@@ -274,7 +274,7 @@ Polymer({
     const ips = []
       .concat(this.target.public_ips)
       .concat(this.target.private_ips);
-    this.term.write(`Connecting to container...`);
+    this.term.write(`Connecting to container...\r\n`);
 
     const { socket } = this;
     this.attachAddon = new AttachAddon.AttachAddon(socket);
