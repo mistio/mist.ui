@@ -88,6 +88,16 @@ PROVIDERS.push({
       helptext: '',
     },
     {
+      name: 'container_enabled',
+      label: 'Enable container support',
+      type: 'toggle',
+      value: false,
+      defaultValue: false,
+      show: true,
+      required: false,
+      helptext: '',
+    },
+    {
       name: 'object_storage_enabled',
       label: 'Enable Object Storage support',
       type: 'toggle',
@@ -255,6 +265,16 @@ PROVIDERS.push({
     {
       name: 'dns_enabled',
       label: 'Enable DNS support',
+      type: 'toggle',
+      value: false,
+      defaultValue: false,
+      show: true,
+      required: false,
+      helptext: '',
+    },
+    {
+      name: 'container_enabled',
+      label: 'Enable Container support',
       type: 'toggle',
       value: false,
       defaultValue: false,

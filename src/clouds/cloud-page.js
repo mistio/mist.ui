@@ -478,6 +478,21 @@ Polymer({
                       >Object Storage disabled</span
                     >
                   </paper-toggle-button>
+                  <paper-toggle-button
+                    id="container-enable-disable"
+                    class="small"
+                    checked$="[[cloud.container_enabled]]"
+                    on-tap="_changeContainerEnabled"
+                    disabled="[[containerLoading]]"
+                    hidden$="[[!_isSupportedContainerProvider(cloud.provider)]]"
+                  >
+                    <span hidden$="[[!cloud.container_enabled]]"
+                      >Container support enabled</span
+                    >
+                    <span hidden$="[[cloud.container_enabled]]"
+                      >Container support disabled</span
+                    >
+                  </paper-toggle-button>
                   <br
                     hidden$="[[!_isSupportedObjectStorageProvider(cloud.provider)]]"
                   />
@@ -603,6 +618,15 @@ Polymer({
       on-response="_handleCloudEditObjectStorageAjaxResponse"
       on-error="_handleCloudEditObjectStorageAjaxError"
       loading="{{objectstorageloading}}"
+    ></iron-ajax>
+    <iron-ajax
+      id="cloudEditContainerAjaxRequest"
+      url="/api/v1/clouds/[[cloud.id]]"
+      handle-as="xml"
+      method="POST"
+      on-response="_handleContainerAjaxResponse"
+      on-error="_handleContainerAjaxError"
+      loading="{{containerLoading}}"
     ></iron-ajax>
   `,
 
@@ -843,6 +867,11 @@ Polymer({
     return ['ec2', 'openstack', 'vexxhost'].indexOf(provider) > -1;
   },
 
+  _isSupportedContainerProvider(provider) {
+    // FIXME: Same as above. This should come from backend.
+    return ['ec2', 'gce'].indexOf(provider) > -1;
+  },
+
   _isBareMetal(provider) {
     return provider === 'bare_metal';
   },
@@ -990,6 +1019,44 @@ Polymer({
     this.shadowRoot.querySelector(
       '#ObjectStorage-enable-disable'
     ).checked = this.cloud.object_storage_enabled;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: e.detail.request.xhr.response, duration: 10000 },
+      })
+    );
+  },
+  _changeContainerEnabled() {
+    const containerEnabled = this.cloud.container_enabled ? 0 : 1;
+    this.$.cloudEditContainerAjaxRequest.headers['Content-Type'] =
+      'application/json';
+    this.$.cloudEditContainerAjaxRequest.headers['Csrf-Token'] =
+      CSRFToken.value;
+    this.$.cloudEditContainerAjaxRequest.body = {
+      container_enabled: containerEnabled,
+    };
+    this.$.cloudEditContainerAjaxRequest.generateRequest();
+  },
+
+  _handleContainerAjaxResponse() {
+    const message = this.shadowRoot.querySelector('#container-enable-disable')
+      .checked
+      ? `Container support for ${this.cloud.title} enabled!`
+      : `Container support for ${this.cloud.title} disabled!`;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: message, duration: 5000 },
+      })
+    );
+  },
+
+  _handleContainerAjaxError(e) {
+    this.shadowRoot.querySelector(
+      '#container-enable-disable'
+    ).checked = this.cloud.container_enabled;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,

@@ -292,6 +292,10 @@ Polymer({
         color: var(--clouds-sidebar-link-color);
       }
 
+      a#clusters {
+        color: var(--clusters-sidebar-link-color);
+      }
+
       a#teams {
         color: var(--teams-sidebar-link-color);
       }
@@ -318,10 +322,10 @@ Polymer({
                 class="section"
                 on-tap="clearSearch"
                 id$="[[item.id]]"
-                href$="/[[item.id]]"
+                href="/[[item.id]]"
                 hidden$="[[_isHidden(item,sectionsArray)]]"
                 active$="[[_isEqual(current, item.id)]]"
-                tabindex="1"
+                tabindex="0"
               >
                 <div class="flex-1 layout horizontal center">
                   <section-symbol
@@ -461,17 +465,17 @@ Polymer({
         if (this.model.sections[sect].id === 'dashboard') return true;
         if (
           this.model.sections[sect].id === 'teams' &&
-          this.checkPerm('team', 'read', "*")
+          this.checkPerm('team', 'read', '*')
         )
           return true;
         if (
           this.model.sections[sect].id === 'insights' &&
-          this.checkPerm('cloud', 'read_cost', "*")
+          this.checkPerm('cloud', 'read_cost', '*')
         )
           return true;
         if (
           this.model.sections[sect].id === 'rules' &&
-          this.checkPerm('machine', 'edit_rules', "*")
+          this.checkPerm('machine', 'edit_rules', '*')
         )
           return true;
         if (
@@ -484,7 +488,7 @@ Polymer({
           this.checkPerm(
             this.model.sections[sect].id,
             'read',
-            "*",
+            '*',
             this.model.org,
             this.model.user
           )

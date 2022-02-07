@@ -259,7 +259,7 @@ Polymer({
     let word;
     for (let i = 0, len = words.length; i < len; i++) {
       gap = i === 0 ? '' : ' ';
-      word = this.toTitleCase(words[i]);
+      word = words[i]; // this.toTitleCase(words[i]);
       result += gap.concat(word);
     }
     return result;
