@@ -308,7 +308,7 @@ Polymer({
     ) {
       payload.provider = 'docker';
       payload.host = this.cloud.host;
-      payload.machine_id = this.target.machine_id;
+      payload.machine_id = this.target.id;
     } else if (this.target.provider === 'kubevirt') {
       payload.provider = 'kubevirt';
       payload.host = 'kubevirt'; // otherwise an error is thrown in the api
