@@ -1,9 +1,9 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
 import '../app-form/app-form.js';
-import PROVIDERS from '../helpers/providers.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import PROVIDERS from '../helpers/providers.js';
 
 Polymer({
   _template: html`
@@ -53,11 +53,14 @@ Polymer({
     // don't allow title and region in the fields
     let fields = [];
     if (providerFields[0] && providerFields[0].options) {
-      fields = providerFields[0].options.filter(f => {
-        return (
-          f.name !== 'title' && f.name !== 'region' && f.name !== 'dns_enabled' && f.name !== 'object_storage_enabled'
-        );
-      });
+      fields = providerFields[0].options.filter(
+        f =>
+          f.name !== 'title' &&
+          f.name !== 'region' &&
+          f.name !== 'dns_enabled' &&
+          f.name !== 'object_storage_enabled' &&
+          f.name !== 'container_enabled'
+      );
 
       for (let i = 0; i < fields.length; i++) {
         const { name } = fields[i];
