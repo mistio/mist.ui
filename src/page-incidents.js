@@ -1,59 +1,78 @@
 import '@polymer/app-route/app-route.js';
 import '@mistio/mist-list/mist-list.js';
 import dayjs from 'dayjs/esm/index.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
+// import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 import { getResourceFromIncidentBehavior } from './helpers/get-resource-from-incident-behavior.js';
 
-Polymer({
-  _template: html`
-    <style include="shared-styles">
-      .error {
-        color: #d96557;
-      }
+/* eslint-disable class-methods-use-this */
+export default class PageIncidents extends mixinBehaviors(
+  [mistListsBehavior, getResourceFromIncidentBehavior],
+  PolymerElement
+) {
+  static get template() {
+    return html`
+      <style include="shared-styles">
+        .error {
+          color: #d96557;
+        }
 
-      h2[slot='header'] {
-        margin: 8px;
-      }
-    </style>
-    <app-route route="{{route}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <mist-list
-        id="incidentsList"
-        expands
-        resizable
-        column-menu
-        multi-sort
-        apiurl="/api/v1/incidents"
-        items="[[model.incidentsArray]]"
-        name="Incidents"
-        selected-items="{{selectedItems}}"
-        filtered-items-length="{{filteredItemsLength}}"
-        combined-filter="{{combinedFilter}}"
-        frozen="[[_getFrozenLogColumn()]]"
-        visible="[[_getVisibleColumns()]]"
-        renderers="[[_getRenderers()]]"
-        user-filter="[[model.sections.incidents.q]]"
-      >
-        <h2 slot="header">
-          [[filteredItemsLength]] [[combinedFilter]] Incidents
-        </h2>
-        <p slot="no-items-found">Hooray! No Incidents found.</p>
-      </mist-list>
-    </template>
-  `,
-  is: 'page-incidents',
-  behaviors: [mistListsBehavior, getResourceFromIncidentBehavior],
-  properties: {
-    model: {
-      type: Object,
-    },
-  },
-  listeners: {
-    click: 'resizeList',
-  },
-  observers: ['incidentsChanged(model.incidents.*)'],
+        h2[slot='header'] {
+          margin: 8px;
+        }
+      </style>
+      <app-route route="{{route}}"></app-route>
+      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <mist-list
+          id="incidentsList"
+          expands
+          resizable
+          column-menu
+          multi-sort
+          apiurl="/api/v1/incidents"
+          items="[[model.incidentsArray]]"
+          name="Incidents"
+          selected-items="{{selectedItems}}"
+          filtered-items-length="{{filteredItemsLength}}"
+          combined-filter="{{combinedFilter}}"
+          frozen="[[_getFrozenLogColumn()]]"
+          visible="[[_getVisibleColumns()]]"
+          renderers="[[_getRenderers()]]"
+          user-filter="[[model.sections.incidents.q]]"
+        >
+          <h2 slot="header">
+            [[filteredItemsLength]] [[combinedFilter]] Incidents
+          </h2>
+          <p slot="no-items-found">Hooray! No Incidents found.</p>
+        </mist-list>
+      </template>
+    `;
+  }
+
+  static get is() {
+    return 'page-incidents';
+  }
+
+  static get properties() {
+    return {
+      model: {
+        type: Object,
+      },
+    };
+  }
+
+  ready() {
+    super.ready();
+    this.addEventListener('click', this.resizeList);
+  }
+
+  static get observers() {
+    return ['incidentsChanged(model.incidents.*)'];
+  }
+
   incidentsChanged(incidents) {
     if (
       incidents.path === 'model.incidents' &&
@@ -61,25 +80,26 @@ Polymer({
     ) {
       this.shadowRoot.querySelector('mist-list').fire('resize');
     }
-  },
-  _isListActive(path) {
-    return !path;
-  },
+  }
+
+  _isListActive(_path) {
+    return !this.route.path;
+  }
+
   _getFrozenLogColumn() {
     return ['started_at'];
-  },
+  }
 
   _getVisibleColumns() {
     return ['resource_id', 'cloud_id', 'incident_id', 'error'];
-  },
+  }
+
   // TODO compute columns for all resources' incidents
   _getRenderers() {
     const _this = this;
     return {
       started_at: {
-        title: item => {
-          return item ? item.replace(/_/g, ' ') : 'started at';
-        },
+        title: item => (item ? item.replace(/_/g, ' ') : 'started at'),
         body: (item, row) => {
           let active = '';
           if (!row.finished_at) {
@@ -100,9 +120,7 @@ Polymer({
         },
       },
       resource_id: {
-        title: _item => {
-          return 'resource';
-        },
+        title: _item => 'resource',
         body: (_item, row) => {
           const resource = _this._getResource(row, _this.model);
           console.log('RESOURCE ===', resource);
@@ -118,14 +136,11 @@ Polymer({
         },
       },
       cloud_id: {
-        title: item => {
-          return item ? item.replace(/_/g, ' ') : 'cloud';
-        },
-        body: (item, _row) => {
-          return _this.model.clouds && _this.model.clouds[item]
+        title: item => (item ? item.replace(/_/g, ' ') : 'cloud'),
+        body: (item, _row) =>
+          _this.model.clouds && _this.model.clouds[item]
             ? _this.model.clouds[item].title
-            : item || '';
-        },
+            : item || '',
       },
       error: {
         body: (item, _row) => {
@@ -134,9 +149,12 @@ Polymer({
         },
       },
     };
-  },
+  }
+
   resizeList(e) {
     if (e.path.indexOf(this.shadowRoot.querySelector('mist-list')))
       this.shadowRoot.querySelector('mist-list').fire('resize');
-  },
-});
+  }
+}
+
+customElements.define('page-incidents', PageIncidents);

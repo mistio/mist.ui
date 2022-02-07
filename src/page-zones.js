@@ -4,99 +4,109 @@ import '@polymer/paper-fab/paper-fab.js';
 import './zones/zone-add.js';
 import './zones/zone-actions.js';
 import './zones/zone-page.js';
-import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
+import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
 
-Polymer({
-  _template: html`
-    <style include="shared-styles">
-      [hidden] {
-        display: none !important;
-      }
-    </style>
-    <!-- <app-location route="{{route}}"></app-location> -->
-    <app-route route="{{route}}" pattern="/:zone" data="{{data}}"></app-route>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <zone-actions
-        id="actions"
-        items="[[selectedItems]]"
-        actions="{{actions}}"
-        user="[[model.user.id]]"
-        members="[[model.membersArray]]"
-        org="[[model.org]]"
-      >
-        <mist-list
-          selectable
-          resizable
-          column-menu
-          multi-sort
-          id="zonesList"
-          apiurl="/api/v1/zones"
-          item-map="[[model.zones]]"
-          name="Zones"
-          selected-items="{{selectedItems}}"
-          filtered-items-length="{{filteredItemsLength}}"
-          combined-filter="{{combinedFilter}}"
-          frozen="[[_getFrozenColumn()]]"
-          visible="[[_getVisibleColumns()]]"
-          renderers="[[_getRenderers()]]"
-          route="{{route}}"
-          user-filter="[[model.sections.zones.q]]"
-          primary-field-name="id"
-          filter-method="[[_ownerFilter()]]"
-          actions="[[actions]]"
+/* eslint-disable class-methods-use-this */
+export default class PageZones extends mixinBehaviors(
+  [mistListsBehavior, ownerFilterBehavior, window.rbac],
+  PolymerElement
+) {
+  static get template() {
+    return html`
+      <style include="shared-styles">
+        [hidden] {
+          display: none !important;
+        }
+      </style>
+      <!-- <app-location route="{{route}}"></app-location> -->
+      <app-route route="{{route}}" pattern="/:zone" data="{{data}}"></app-route>
+      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <zone-actions
+          id="actions"
+          items="[[selectedItems]]"
+          actions="{{actions}}"
+          user="[[model.user.id]]"
+          members="[[model.membersArray]]"
+          org="[[model.org]]"
         >
-          <p slot="no-items-found">No zones found.</p>
-        </mist-list>
-      </zone-actions>
+          <mist-list
+            selectable
+            resizable
+            column-menu
+            multi-sort
+            id="zonesList"
+            apiurl="/api/v1/zones"
+            item-map="[[model.zones]]"
+            name="Zones"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            combined-filter="{{combinedFilter}}"
+            frozen="[[_getFrozenColumn()]]"
+            visible="[[_getVisibleColumns()]]"
+            renderers="[[_getRenderers()]]"
+            route="{{route}}"
+            user-filter="[[model.sections.zones.q]]"
+            primary-field-name="id"
+            filter-method="[[_ownerFilter()]]"
+            actions="[[actions]]"
+          >
+            <p slot="no-items-found">No zones found.</p>
+          </mist-list>
+        </zone-actions>
 
-      <div
-        class="absolute-bottom-right"
-        hidden$="[[!checkPerm('zone', 'add', null, model.org, model.user)]]"
-      >
-        <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
-      </div>
-    </template>
-    <zone-add
-      model="[[model]]"
-      section="[[model.sections.zones]]"
-      hidden$="[[!_isAddPageActive(route.path)]]"
-    ></zone-add>
-    <zone-page
-      model="[[model]]"
-      zone="[[_getZone(data.zone, model.zones, model.zones.*)]]"
-      resource-id="[[data.zone]]"
-      section="[[model.sections.zones]]"
-      hidden$="[[!_isDetailsPageActive(route.path)]]"
-    ></zone-page>
-  `,
-  is: 'page-zones',
-  behaviors: [mistListsBehavior, ownerFilterBehavior, window.rbac],
+        <div
+          class="absolute-bottom-right"
+          hidden$="[[!checkPerm('zone', 'add', null, model.org, model.user)]]"
+        >
+          <paper-fab id="zoneAdd" icon="add" on-tap="_addResource"></paper-fab>
+        </div>
+      </template>
+      <zone-add
+        model="[[model]]"
+        section="[[model.sections.zones]]"
+        hidden$="[[!_isAddPageActive(route.path)]]"
+      ></zone-add>
+      <zone-page
+        model="[[model]]"
+        zone="[[_getZone(data.zone, model.zones, model.zones.*)]]"
+        resource-id="[[data.zone]]"
+        section="[[model.sections.zones]]"
+        hidden$="[[!_isDetailsPageActive(route.path)]]"
+      ></zone-page>
+    `;
+  }
 
-  properties: {
-    model: {
-      type: Object,
-    },
-    ownership: {
-      type: Boolean,
-    },
-    actions: {
-      type: Array,
-      notify: true,
-    },
-    selectedItems: {
-      type: Array,
-      notify: true,
-    },
-  },
+  static get is() {
+    return 'page-zones';
+  }
 
-  listeners: {},
+  static get properties() {
+    return {
+      model: {
+        type: Object,
+      },
+      ownership: {
+        type: Boolean,
+      },
+      actions: {
+        type: Array,
+        notify: true,
+      },
+      selectedItems: {
+        type: Array,
+        notify: true,
+      },
+    };
+  }
 
-  _isAddPageActive(path) {
-    return path === '/+add';
-  },
+  _isAddPageActive(_path) {
+    return this.route.path === '/+add';
+  }
+
   _isDetailsPageActive(path) {
     if (
       path &&
@@ -106,14 +116,17 @@ Polymer({
     )
       this.shadowRoot.querySelector('zone-page').updateState();
     return path && path !== '/+add';
-  },
-  _isListActive(path) {
-    return !path;
-  },
+  }
+
+  _isListActive(_path) {
+    return !this.route.path;
+  }
+
   _getZone(id) {
     if (this.model.zones) return this.model.zones[id];
     return '';
-  },
+  }
+
   _addResource(_e) {
     this.dispatchEvent(
       new CustomEvent('go-to', {
@@ -124,10 +137,11 @@ Polymer({
         },
       })
     );
-  },
+  }
+
   _getFrozenColumn() {
     return ['domain'];
-  },
+  }
 
   _getVisibleColumns() {
     const ret = [
@@ -142,7 +156,7 @@ Polymer({
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
-  },
+  }
 
   _getRenderers(_zones) {
     const _this = this;
@@ -156,9 +170,7 @@ Polymer({
     };
     return {
       domain: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
       },
       icon: {
         body: (_item, row) => {
@@ -178,15 +190,15 @@ Polymer({
           }
           return '';
         },
-        cmp: (row1, row2) =>{
+        cmp: (row1, row2) => {
           const providers = [];
-          for (let row of [row1, row2]){
+          for (const row of [row1, row2]) {
             providers.push(this.model.clouds[row.cloud]);
           }
           const item1 = providerMap[providers[0]] || providers[0];
           const item2 = providerMap[providers[1]] || providers[1];
 
-          return item1.localeCompare(item2, 'en', {sensivity: 'base'});
+          return item1.localeCompare(item2, 'en', { sensivity: 'base' });
         },
       },
       records: {
@@ -197,89 +209,83 @@ Polymer({
         cmp: (row1, row2) => {
           const item1 = row1.records ? Object.keys(row1.recodrds).length : 0;
           const item2 = row2.records ? Object.keys(row2.recodrds).length : 0;
-          if(item1 < item2)
-            return -1
-          if (item2 < item1)
-            return 1
-          return ;
-        }
+          if (item1 < item2) return -1;
+          if (item2 < item1) return 1;
+          return 0;
+        },
       },
       owned_by: {
-        title: (_item, _row) => {
-          return 'owner';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'owner',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.owned_by] ? 
-            this.model.members[row1.owned_by].name ||
-            this.model.members[row1.owned_by].email ||
-            this.model.members[row1.owned_by].username
+          const item1 = this.model.members[row1.owned_by]
+            ? this.model.members[row1.owned_by].name ||
+              this.model.members[row1.owned_by].email ||
+              this.model.members[row1.owned_by].username
             : '';
-          const item2 = this.model.members[row2.owned_by] ? 
-            this.model.members[row2.owned_by].name ||
-            this.model.members[row2.owned_by].email ||
-            this.model.members[row2.owned_by].username
+          const item2 = this.model.members[row2.owned_by]
+            ? this.model.members[row2.owned_by].name ||
+              this.model.members[row2.owned_by].email ||
+              this.model.members[row2.owned_by].username
             : '';
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       created_by: {
-        title: (_item, _row) => {
-          return 'created by';
-        },
-        body: (item, _row) => {
-          return _this.model.members[item]
+        title: (_item, _row) => 'created by',
+        body: (item, _row) =>
+          _this.model.members[item]
             ? _this.model.members[item].name ||
-                _this.model.members[item].email ||
-                _this.model.members[item].username
-            : '';
-        },
+              _this.model.members[item].email ||
+              _this.model.members[item].username
+            : '',
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.created_by] ? 
-            this.model.members[row1.owned_by].name ||
-            this.model.members[row1.owned_by].email ||
-            this.model.members[row1.owned_by].username
+          const item1 = this.model.members[row1.created_by]
+            ? this.model.members[row1.owned_by].name ||
+              this.model.members[row1.owned_by].email ||
+              this.model.members[row1.owned_by].username
             : '';
-          const item2 = this.model.members[row2.created_by] ? 
-            this.model.members[row2.owned_by].name ||
-            this.model.members[row2.owned_by].email ||
-            this.model.members[row2.owned_by].username
+          const item2 = this.model.members[row2.created_by]
+            ? this.model.members[row2.owned_by].name ||
+              this.model.members[row2.owned_by].email ||
+              this.model.members[row2.owned_by].username
             : '';
-          return item1.localeCompare(item2, 'en', {sensitivity: "base"});
-        }
+          return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
+        },
       },
       tags: {
         body: (item, _row) => {
           const tags = item;
           let display = '';
-          Object.keys(tags || {}).sort().forEach(key => {
-            display += `<span class='tag'>${key}`;
-            if (tags[key] != null && tags[key] !== '')
-              display += `=${tags[key]}`;
-            display += '</span>';
-          });
+          Object.keys(tags || {})
+            .sort()
+            .forEach(key => {
+              display += `<span class='tag'>${key}`;
+              if (tags[key] != null && tags[key] !== '')
+                display += `=${tags[key]}`;
+              display += '</span>';
+            });
           return display;
         },
         // sort by number of tags, resources with more tags come first
         // if two resources have the same number of tags show them in alphabetic order
-        cmp: (row1, row2) =>{
+        cmp: (row1, row2) => {
           const keys1 = Object.keys(row1.tags).sort();
           const keys2 = Object.keys(row2.tags).sort();
-          if( keys1.length > keys2.length)
-            return -1;
-          if (keys1.length < keys2.length)
-            return 1;
-          const item1 = keys1.length > 0 ? keys1[0] : "";
-          const item2 = keys2.length > 0 ? keys2[0] : "";
+          if (keys1.length > keys2.length) return -1;
+          if (keys1.length < keys2.length) return 1;
+          const item1 = keys1.length > 0 ? keys1[0] : '';
+          const item2 = keys2.length > 0 ? keys2[0] : '';
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
-        }
+        },
       },
     };
-  },
-});
+  }
+}
+
+customElements.define('page-zones', PageZones);

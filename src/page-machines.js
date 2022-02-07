@@ -6,289 +6,308 @@ import './machines/machine-create.js';
 import './machines/machine-page.js';
 import './machines/machine-actions.js';
 import moment from 'moment/src/moment.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { ratedCost } from './helpers/utils.js';
 import treeViewDataProvider from './helpers/tree-view-data-provider.js';
 
-Polymer({
-  _template: html`
-    <style include="shared-styles">
-      [hidden] {
-        display: none !important;
-      }
+/* eslint-disable class-methods-use-this */
+export default class PageMachines extends mixinBehaviors(
+  [ownerFilterBehavior, window.rbac],
+  PolymerElement
+) {
+  static get template() {
+    return html`
+      <style include="shared-styles">
+        [hidden] {
+          display: none !important;
+        }
 
-      .logs {
-        max-width: 1450px;
-        margin: 8px auto;
-        padding: 0 8px;
-        line-height: 28px;
-        font-family: monospace;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 0 8px;
-        background-color: rgba(255, 255, 255, 0.34);
-        display: flex;
-        align-items: center;
-      }
+        .logs {
+          max-width: 1450px;
+          margin: 8px auto;
+          padding: 0 8px;
+          line-height: 28px;
+          font-family: monospace;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 0 8px;
+          background-color: rgba(255, 255, 255, 0.34);
+          display: flex;
+          align-items: center;
+        }
 
-      paper-spinner {
-        margin: 4px 8px;
-      }
+        paper-spinner {
+          margin: 4px 8px;
+        }
 
-      .logs > * {
-        font-size: 14px;
-      }
+        .logs > * {
+          font-size: 14px;
+        }
 
-      .logs p {
-        flex: 1;
-      }
+        .logs p {
+          flex: 1;
+        }
 
-      .error iron-icon {
-        opacity: 0.32;
-        cursor: pointer;
-      }
+        .error iron-icon {
+          opacity: 0.32;
+          cursor: pointer;
+        }
 
-      .error {
-        color: var(--red-color);
-      }
+        .error {
+          color: var(--red-color);
+        }
 
-      h2[slot='header'] {
-        margin: 8px;
-      }
+        h2[slot='header'] {
+          margin: 8px;
+        }
 
-      iron-icon.close {
-        float: right;
-        padding: 5px;
-      }
+        iron-icon.close {
+          float: right;
+          padding: 5px;
+        }
 
-      mist-list#machinesList {
-        max-width: 95%;
-        --mist-check-header-margin: 8px;
-      }
-    </style>
-    <app-route
-      route="{{route}}"
-      pattern="/:machine"
-      data="{{data}}"
-    ></app-route>
-    <div class="logs" hidden$="[[!showLogs]]">
-      <paper-spinner
-        active$="[[!logItem.error]]"
-        hidden$="[[logItem.error]]"
-      ></paper-spinner>
-      <p>
-        Creating machine: {{removeUnderscore(logItem.action)}}
-        <span class="error" hidden$="[[!logItem.error]]"
-          >[[logItem.error]]</span
-        >
-      </p>
-      <iron-icon icon="close" on-tap="clearLog"></iron-icon>
-    </div>
-    <div class="logs" hidden$="[[!performingAction]]">
-      <paper-spinner active></paper-spinner>
-      <p id="actionLogs"></p>
-      <iron-icon
-        class="close"
-        icon="close"
-        on-tap="hidePerformingLogs"
-      ></iron-icon>
-    </div>
-    <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
-      <machine-actions
-        actions="{{actions}}"
-        items="[[selectedItems]]"
-        model="[[model]]"
-      >
-        <mist-list
-          id="machinesList"
-          selectable
-          resizable
-          column-menu
-          multi-sort
-          tree-view="[[_getTreeView()]]"
-          sorters="[[sorters]]"
-          item-map="[[model.machines]]"
-          name="Machines"
-          selected-items="{{selectedItems}}"
-          filtered-items-length="{{filteredItemsLength}}"
-          frozen="[[_getFrozenLogColumn()]]"
-          visible="[[_getVisibleColumns()]]"
-          renderers="[[_getRenderers()]]"
-          route="{{route}}"
-          user-filter="[[model.sections.machines.q]]"
-          primary-field-name="id"
-          actions="[[actions]]"
-          check-permissions="[[_checkPermissions()]]"
-          filter-method="[[_ownerFilter()]]"
-          apiurl="/api/v1/machines"
-          csrfToken="[[CSRFToken.value]]"
-          data-provider="[[dataProvider]]"
-          item-has-children="[[machineHasChildren]]"
-        >
-          <p slot="no-items-found">
-            <span hidden$="[[loadingMachines]]">No machines found.</span>
-            <span hidden$="[[!loadingMachines]]">Loading machines...</span>
-          </p>
-        </mist-list>
-      </machine-actions>
-      <div
-        class="absolute-bottom-right"
-        hidden$="[[!checkPerm('machine', 'create', null, model.org, model.user)]]"
-      >
-        <paper-fab
-          id="machinesAdd"
-          icon="add"
-          on-tap="_addResource"
-        ></paper-fab>
+        mist-list#machinesList {
+          max-width: 95%;
+          --mist-check-header-margin: 8px;
+        }
+      </style>
+      <app-route
+        route="{{route}}"
+        pattern="/:machine"
+        data="{{data}}"
+      ></app-route>
+      <div class="logs" hidden$="[[!showLogs]]">
+        <paper-spinner
+          active$="[[!logItem.error]]"
+          hidden$="[[logItem.error]]"
+        ></paper-spinner>
+        <p>
+          Creating machine: {{removeUnderscore(logItem.action)}}
+          <span class="error" hidden$="[[!logItem.error]]"
+            >[[logItem.error]]</span
+          >
+        </p>
+        <iron-icon icon="close" on-tap="clearLog"></iron-icon>
       </div>
-    </template>
-    <machine-create
-      model="[[model]]"
-      hidden$="[[!_isAddPageActive(route.path)]]"
-      monitoring="[[monitoring]]"
-      docs="[[docs]]"
-    ></machine-create>
-    <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
-      <machine-page
-        path="[[route.path]]"
+      <div class="logs" hidden$="[[!performingAction]]">
+        <paper-spinner active></paper-spinner>
+        <p id="actionLogs"></p>
+        <iron-icon
+          class="close"
+          icon="close"
+          on-tap="hidePerformingLogs"
+        ></iron-icon>
+      </div>
+      <template is="dom-if" if="[[_isListActive(route.path)]]" restamp>
+        <machine-actions
+          actions="{{actions}}"
+          items="[[selectedItems]]"
+          model="[[model]]"
+        >
+          <mist-list
+            id="machinesList"
+            selectable
+            resizable
+            column-menu
+            multi-sort
+            tree-view="[[_getTreeView()]]"
+            sorters="[[sorters]]"
+            item-map="[[model.machines]]"
+            name="Machines"
+            selected-items="{{selectedItems}}"
+            filtered-items-length="{{filteredItemsLength}}"
+            frozen="[[_getFrozenLogColumn()]]"
+            visible="[[_getVisibleColumns()]]"
+            renderers="[[_getRenderers()]]"
+            route="{{route}}"
+            user-filter="[[model.sections.machines.q]]"
+            primary-field-name="id"
+            actions="[[actions]]"
+            check-permissions="[[_checkPermissions()]]"
+            filter-method="[[_ownerFilter()]]"
+            apiurl="/api/v1/machines"
+            csrfToken="[[CSRFToken.value]]"
+            data-provider="[[dataProvider]]"
+            item-has-children="[[machineHasChildren]]"
+          >
+            <p slot="no-items-found">
+              <span hidden$="[[loadingMachines]]">No machines found.</span>
+              <span hidden$="[[!loadingMachines]]">Loading machines...</span>
+            </p>
+          </mist-list>
+        </machine-actions>
+        <div
+          class="absolute-bottom-right"
+          hidden$="[[!checkPerm('machine', 'create', null, model.org, model.user)]]"
+        >
+          <paper-fab
+            id="machinesAdd"
+            icon="add"
+            on-tap="_addResource"
+          ></paper-fab>
+        </div>
+      </template>
+      <machine-create
         model="[[model]]"
-        machine="[[currentMachine]]"
-        section="[[model.sections.machines]]"
+        hidden$="[[!_isAddPageActive(route.path)]]"
         monitoring="[[monitoring]]"
-        user="[[model.user.id]]"
-        hidden$="[[!_isDetailsPageActive(route.path)]]"
-        portal-name="[[portalName]]"
-        resource-id="[[data.machine]]"
-        currency="[[currency]]"
-      ></machine-page>
-    </template>
-    <iron-ajax
-      id="getJobLog"
-      method="GET"
-      url="/api/v1/jobs/[[jobId]]"
-      handle-as="json"
-      on-response="handleGetJobLog"
-      on-error="handleGetJobLogError"
-    ></iron-ajax>
-  `,
-  is: 'page-machines',
-  behaviors: [ownerFilterBehavior, window.rbac],
+        docs="[[docs]]"
+      ></machine-create>
+      <template is="dom-if" if="[[_isDetailsPageActive(route.path)]]" restamp>
+        <machine-page
+          path="[[route.path]]"
+          model="[[model]]"
+          machine="[[currentMachine]]"
+          section="[[model.sections.machines]]"
+          monitoring="[[monitoring]]"
+          user="[[model.user.id]]"
+          hidden$="[[!_isDetailsPageActive(route.path)]]"
+          portal-name="[[portalName]]"
+          resource-id="[[data.machine]]"
+          currency="[[currency]]"
+        ></machine-page>
+      </template>
+      <iron-ajax
+        id="getJobLog"
+        method="GET"
+        url="/api/v1/jobs/[[jobId]]"
+        handle-as="json"
+        on-response="handleGetJobLog"
+        on-error="handleGetJobLogError"
+      ></iron-ajax>
+    `;
+  }
 
-  properties: {
-    model: {
-      type: Object,
-    },
-    data: {
-      type: Object,
-    },
-    ownership: {
-      type: Boolean,
-    },
-    itemOfRecommendation: {
-      type: Object,
-    },
-    selectedItems: {
-      type: Array,
-    },
-    jobId: {
-      type: String,
-    },
-    logItem: {
-      type: Object,
-      value: false,
-    },
-    intervalID: {
-      type: String,
-    },
-    performingAction: {
-      type: Boolean,
-      value: false,
-    },
-    monitoring: {
-      type: Boolean,
-      value: false,
-    },
-    actions: {
-      type: Array,
-    },
-    sorters: {
-      type: Array,
-      value() {
-        return [['state', 'asc']];
-      },
-    },
-    currentMachine: {
-      type: Object,
-      computed: '_getMachine(data.machine, model.machines, model.machines.*)',
-    },
-    loadingMachines: {
-      type: Boolean,
-      computed: '_getMachinesLoading(model.onboarding.isLoadingMachines)',
-    },
-    portalName: {
-      type: String,
-      value: 'Mist.io',
-    },
-    currency: {
-      type: Object,
-    },
-    showLogs: {
-      type: Boolean,
-      value: false,
-    },
-    renderers: {
-      type: Object,
-      computed: '_getRenderers(model.schedules)',
-    },
-    itemMap: {
-      type: Object,
-      value() {
-        return {};
-      },
-    },
-    dataProvider: {
-      type: Object,
-      value() {
-        return treeViewDataProvider.bind(this);
-      },
-    },
-    machineHasChildren: {
-      type: Object,
-      value() {
-        return item => {
-          if (
-            item.machine_type === 'hypervisor' ||
-            item.machine_type === 'container-host' ||
-            item.machine_type === 'node' ||
-            item.machine_type === 'pod'
-          )
-            return true;
-          return false;
-        };
-      },
-    },
-  },
+  static get is() {
+    return 'page-machines';
+  }
 
-  listeners: {
-    'open-recommendation-dialog': 'openRecommendationsDialog',
-    'performing-action': 'updateActionLogs',
-    'action-finished': 'stopActionLogs',
-    recommendation: 'openRecommendationsDialog',
-    'set-job-id': 'setJobId',
-  },
+  static get properties() {
+    return {
+      model: {
+        type: Object,
+      },
+      data: {
+        type: Object,
+      },
+      ownership: {
+        type: Boolean,
+      },
+      itemOfRecommendation: {
+        type: Object,
+      },
+      selectedItems: {
+        type: Array,
+      },
+      jobId: {
+        type: String,
+      },
+      logItem: {
+        type: Object,
+        value: false,
+      },
+      intervalID: {
+        type: String,
+      },
+      performingAction: {
+        type: Boolean,
+        value: false,
+      },
+      monitoring: {
+        type: Boolean,
+        value: false,
+      },
+      actions: {
+        type: Array,
+      },
+      sorters: {
+        type: Array,
+        value() {
+          return [['state', 'asc']];
+        },
+      },
+      currentMachine: {
+        type: Object,
+        computed: '_getMachine(data.machine, model.machines, model.machines.*)',
+      },
+      loadingMachines: {
+        type: Boolean,
+        computed: '_getMachinesLoading(model.onboarding.isLoadingMachines)',
+      },
+      portalName: {
+        type: String,
+        value: 'Mist.io',
+      },
+      currency: {
+        type: Object,
+      },
+      showLogs: {
+        type: Boolean,
+        value: false,
+      },
+      renderers: {
+        type: Object,
+        computed: '_getRenderers(model.schedules)',
+      },
+      itemMap: {
+        type: Object,
+        value() {
+          return {};
+        },
+      },
+      dataProvider: {
+        type: Object,
+        value() {
+          return treeViewDataProvider.bind(this);
+        },
+      },
+      machineHasChildren: {
+        type: Object,
+        value() {
+          return item => {
+            if (
+              item.machine_type === 'hypervisor' ||
+              item.machine_type === 'container-host' ||
+              item.machine_type === 'node' ||
+              item.machine_type === 'pod'
+            )
+              return true;
+            return false;
+          };
+        },
+      },
+    };
+  }
 
-  observers: ['_jobIdChanged(jobId)', '_logItemChanged(logItem.*)'],
+  ready() {
+    super.ready();
+    this.addEventListener(
+      'open-recommendation-dialog',
+      this.openRecommendationsDialog
+    );
+    this.addEventListener('performing-action', this.updateActionLogs);
+    this.addEventListener('action-finished', this.stopActionLogs);
+    this.addEventListener('recommendation', this.openRecommendationsDialog);
+    this.addEventListener('set-job-id', this.setJobId);
+  }
+
+  static get observers() {
+    return ['_jobIdChanged(jobId)', '_logItemChanged(logItem.*)'];
+  }
 
   _getMachine(id, _machines) {
     if (id && this.model && this.model.machines && this.model.machines[id])
       return this.model.machines[id];
     return '';
-  },
+  }
+
   _getMachinesLoading() {
     return this.model && this.model.onboarding.isLoadingMachines;
-  },
+  }
+
   setJobId(e) {
     // console.log('setJobId',e.detail)
     if (e.detail.jobId) {
@@ -296,11 +315,11 @@ Polymer({
     } else if (e.detail.job_id) {
       this.set('jobId', e.detail.job_id);
     }
-  },
+  }
 
-  _isAddPageActive(path) {
-    return path === '/+create';
-  },
+  _isAddPageActive(_path) {
+    return this.route.path === '/+create';
+  }
 
   _isDetailsPageActive(path) {
     // console.log('load _isDetailsPageActive', path);
@@ -311,11 +330,11 @@ Polymer({
       return true;
     }
     return false;
-  },
+  }
 
-  _isListActive(path) {
-    return !path;
-  },
+  _isListActive(_path) {
+    return !this.route.path;
+  }
 
   _shell(_event) {
     const action = {
@@ -331,7 +350,7 @@ Polymer({
     } else {
       this.$.actions.performMachineAction(action, [this.itemOfRecommendation]);
     }
-  },
+  }
 
   _jobIdChanged(jobid) {
     // console.log('_jobIdChanged', jobid);
@@ -341,11 +360,11 @@ Polymer({
     } else if (jobid && jobid.length) {
       this.startPolling(jobid);
     }
-  },
+  }
 
   _showLogs(val) {
     this.set('showLogs', val);
-  },
+  }
 
   startPolling(jobid) {
     if (jobid) {
@@ -355,7 +374,7 @@ Polymer({
       }, 1000);
     }
     // console.log('startPolling');
-  },
+  }
 
   stopPolling() {
     // console.log('stopPolling');
@@ -364,7 +383,7 @@ Polymer({
       window.clearInterval(this.intervalID);
       this.set('intervalID', false);
     }
-  },
+  }
 
   _logItemChanged(_logItem) {
     // If a log's action mentions `finished`, then stop polling.
@@ -380,7 +399,7 @@ Polymer({
         this._showLogs(false);
       }
     }
-  },
+  }
 
   handleGetJobLog(e) {
     // console.log('handleGetJobLog');
@@ -389,7 +408,7 @@ Polymer({
       'logItem',
       e.detail.response.logs[e.detail.response.logs.length - 1]
     );
-  },
+  }
 
   handleGetJobLogError(e) {
     // console.log('handleGetJobLogError', e.detail);
@@ -398,37 +417,38 @@ Polymer({
       error: `${e.detail.error.message} (request: /api/v1/jobs/${this.jobId})`,
     });
     this.stopPolling();
-  },
+  }
 
-  removeUnderscore(action) {
-    if (action) return action.replace(/_/g, ' ');
+  removeUnderscore(_action) {
+    if (this.logItem.action) return this.logItem.action.replace(/_/g, ' ');
     return '';
-  },
+  }
 
   clearLog(_e) {
     this.stopPolling();
     this._showLogs(false);
     this.set('logItem', {});
-  },
+  }
 
   updateActionLogs(e) {
     this.set('performingAction', true);
     this.$.actionLogs.textContent = e.detail.log;
-  },
+  }
+
   stopActionLogs(e) {
     const { success } = e.detail;
     this.$.actionLogs.textContent = '';
     this.set('performingAction', false);
     if (success) this.clearListSelection();
-  },
+  }
 
   hidePerformingLogs(_e) {
     this.set('performingAction', false);
-  },
+  }
 
   clearListSelection() {
     this.set('selectedItems', []);
-  },
+  }
 
   _addResource(_e) {
     this.dispatchEvent(
@@ -440,11 +460,11 @@ Polymer({
         },
       })
     );
-  },
+  }
 
   _getFrozenLogColumn() {
     return ['name'];
-  },
+  }
 
   _getVisibleColumns() {
     const ret = [
@@ -465,7 +485,7 @@ Polymer({
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
-  },
+  }
 
   _getRenderers() {
     const _this = this;
@@ -818,11 +838,11 @@ Polymer({
         body: hostname => hostname || '',
       },
     };
-  },
+  }
 
   _ratedCost(cost, rate) {
     return ratedCost(cost, rate);
-  },
+  }
 
   _computeImage(row, item) {
     // FIXME This needs to be standarized in the backend to remove the cruft below
@@ -852,7 +872,7 @@ Polymer({
     }
 
     return imageID || '';
-  },
+  }
 
   computeSize(row, item) {
     // FIXME This needs to be standarized in the backend to remove the cruft below
@@ -904,7 +924,7 @@ Polymer({
     }
 
     return sizeID || '';
-  },
+  }
 
   _getMachineWeight(machine, _model) {
     let weight = 0;
@@ -923,7 +943,7 @@ Polymer({
       machineHasProbe +
       machineState;
     return !Number.isNaN(weight) ? weight : 0;
-  },
+  }
 
   _machineHasIncidents(machine, incidents) {
     const machineIncidents = incidents
@@ -935,17 +955,17 @@ Polymer({
         )
       : [];
     return machineIncidents ? machineIncidents.length * 1000 : 0;
-  },
+  }
 
   _machineHasMonitoring(machine) {
     return machine.monitoring && machine.monitoring.hasmonitoring ? 100 : 0;
-  },
+  }
 
   _machineHasrecommendations(machine, _probes) {
     return machine.probe && machine.probe.ssh && machine.probe.ssh.dirty_cow
       ? 10
       : 0;
-  },
+  }
 
   _machineHasProbe(machine) {
     return machine.probe && machine.probe.ssh && machine.probe.ssh.loadloadavg
@@ -953,7 +973,7 @@ Polymer({
           machine.probe.ssh.loadloadavg[1] +
           machine.probe.ssh.loadloadavg[2]
       : 1;
-  },
+  }
 
   _machineState(machine) {
     if (machine.state === 'running') return 5;
@@ -962,7 +982,7 @@ Polymer({
     if (machine.state === 'terminated') return 1;
     if (machine.state === 'unknown') return 0;
     return 0;
-  },
+  }
 
   itemRecommendation(item) {
     if (this.probes === {} || !item || !item.id) {
@@ -971,7 +991,7 @@ Polymer({
     if (!this.model.probes[item.id] || !this.model.probes[item.id].dirty_cow)
       return false;
     return true;
-  },
+  }
 
   itemProbeClasses(item) {
     if (this.probes === {}) {
@@ -992,7 +1012,7 @@ Polymer({
     if (classes !== '') classes += 'hasprobe ';
 
     return classes;
-  },
+  }
 
   loadToColor(load, prefix) {
     if (load > 1.2) return `${prefix}high `;
@@ -1000,18 +1020,22 @@ Polymer({
     if (load > 0.6) return `${prefix}eco `;
     if (load > 0.2) return `${prefix}low `;
     return `${prefix}low `;
-  },
+  }
+
   // wrapper of checkPerm for mist-list with machine set as resource type
   _checkPermissions() {
     return {
       apply: (action, rid) => this.checkPerm('machine', action, rid),
     };
-  },
+  }
+
   _getTreeView() {
     const isTreeView = JSON.parse(
       localStorage.getItem(`mist-list#machinesList/treeView`)
     );
     if (typeof isTreeView === 'boolean') return isTreeView;
     return true;
-  },
-});
+  }
+}
+
+customElements.define('page-machines', PageMachines);
