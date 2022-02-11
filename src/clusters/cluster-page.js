@@ -3,6 +3,7 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
+import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -279,6 +280,8 @@ export default class ClusterPage extends mixinBehaviors(
               visible="[[_getVisibleResourcesColumns()]]"
               renderers="[[_getRenderers()]]"
               actions="[[resourceActions]]"
+              tree-view
+              data-provider="[[dataProvider]]"
               selected-items="{{selectedResources}}"
               selectable=""
               auto-hide=""
@@ -344,6 +347,12 @@ export default class ClusterPage extends mixinBehaviors(
       },
       selectedResources: {
         type: Array,
+      },
+      dataProvider: {
+        type: Object,
+        value() {
+          return treeViewDataProvider.bind(this);
+        },
       },
     };
   }
@@ -434,7 +443,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       location: {
         body: (item, row) => {
-          if (_this.model && _this.model.clouds)
+          if (item && _this.model && _this.model.clouds)
             return _this.model.clouds[row.cloud].locations[item].name;
           return '';
         },
@@ -473,6 +482,10 @@ export default class ClusterPage extends mixinBehaviors(
       arrowIcon.style.transform = 'rotate(270deg)';
       dataDiv.setAttribute('hidden', '');
     }
+  }
+
+  resourceHasChildren(item) {
+    return item.machine_type === 'node';
   }
 }
 
