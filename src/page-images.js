@@ -8,12 +8,14 @@ import './images/image-provider-search.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
+import { connect } from 'pwa-helpers/connect-mixin.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { store } from './redux/redux-store.js';
+import reduxDataProvider from './redux/redux-data-provider.js';
 
 /* eslint-disable class-methods-use-this */
-export default class PageImages extends mixinBehaviors(
-  [mistListsBehavior],
-  PolymerElement
+export default class PageImages extends connect(store)(
+  mixinBehaviors([mistListsBehavior], PolymerElement)
 ) {
   static get template() {
     return html`
@@ -40,7 +42,7 @@ export default class PageImages extends mixinBehaviors(
             resizable
             column-menu
             multi-sort
-            apiurl="/api/v1/images"
+            apiurl="/api/v2/images"
             id="imagesList"
             name="Images"
             primary-field-name="id"
@@ -49,8 +51,9 @@ export default class PageImages extends mixinBehaviors(
             selected-items="{{selectedItems}}"
             renderers="[[_getRenderers()]]"
             route="{{route}}"
-            item-map="[[model.images]]"
             actions="[[actions]]"
+            store="[[store]]"
+            data-provider="[[dataProvider]]"
             user-filter="[[model.sections.images.q]]"
             filtered-items-length="[[filteredItemsLength]]"
             filter-method="[[_ownerFilter()]]"
@@ -115,6 +118,18 @@ export default class PageImages extends mixinBehaviors(
       renderers: {
         type: Object,
         computed: '_getRenderers(model.scripts)',
+      },
+      dataProvider: {
+        type: Object,
+        value() {
+          return reduxDataProvider.bind(this);
+        },
+      },
+      store: {
+        type: Object,
+        value() {
+          return store;
+        },
       },
     };
   }
