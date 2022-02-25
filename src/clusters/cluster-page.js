@@ -157,9 +157,9 @@ export default class ClusterPage extends mixinBehaviors(
           ></span>
           <div class="title flex">
             <h2>[[cluster.name]]</h2>
-            <div class="subtitle">on [[cluster.cloud.title]]</div>
+            <div class="subtitle">on [[cloud.title]]</div>
             <div class="subtitle">
-              <span>[[cluster.state]]</span>
+              <span>[[clusterState]]</span>
             </div>
           </div>
           <cluster-actions
@@ -188,7 +188,7 @@ export default class ClusterPage extends mixinBehaviors(
                   <h4>Cloud:</h4>
                 </div>
                 <div class="cell">
-                  <span>[[cluster.cloud.title]] </span>
+                  <span>[[cloud.title]] </span>
                 </div>
               </div>
               <div class="row">
@@ -348,6 +348,16 @@ export default class ClusterPage extends mixinBehaviors(
       selectedResources: {
         type: Array,
       },
+      cloud: {
+        type: Object,
+        value() {
+          return {};
+        },
+      },
+      clusterState: {
+        type: String,
+        computed: '_computeClusterState(cluster.state, model.clusters.*)',
+      },
       dataProvider: {
         type: Object,
         value() {
@@ -358,7 +368,10 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   static get observers() {
-    return ['_changed(cluster)'];
+    return [
+      '_changed(cluster)',
+      '_setClusterCloud(model.clouds.*, machine.cloud, cluster)',
+    ];
   }
 
   ready() {
@@ -468,6 +481,16 @@ export default class ClusterPage extends mixinBehaviors(
       !tags ||
       (Array.isArray(tags) ? tags.length === 0 : Object.keys(tags).length === 0)
     );
+  }
+
+  _setClusterCloud() {
+    if (this.model && this.model.clouds && this.cluster)
+      this.set('cloud', this.model.clouds[this.cluster.cloud]);
+    return {};
+  }
+
+  _computeClusterState() {
+    return (this.cluster && this.cluster.state) || '';
   }
 
   arrowButtonClick(e) {
