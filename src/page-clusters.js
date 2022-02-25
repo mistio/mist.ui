@@ -70,6 +70,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getRenderers() {
+    const _this = this;
     return {
       name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
@@ -79,7 +80,13 @@ export default class PageClusters extends PolymerElement {
           }),
       },
       cloud: {
-        body: (item, _row) => item.title,
+        body: (item, _row) => {
+          if (_this.model && _this.model.clouds)
+            return _this.model.clouds[item].title
+              ? _this.model.clouds[item].title
+              : '';
+          return '';
+        },
       },
     };
   }

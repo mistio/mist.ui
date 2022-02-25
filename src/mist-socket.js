@@ -337,9 +337,14 @@ Polymer({
 
             // We're patching cloud resources, let's figure out the resource type and keep aside the cloud resource ids before the patch
             if (
-              ['machines', 'networks', 'volumes', 'zones', 'buckets'].indexOf(
-                path[1]
-              ) > -1
+              [
+                'clusters',
+                'machines',
+                'networks',
+                'volumes',
+                'zones',
+                'buckets',
+              ].indexOf(path[1]) > -1
             ) {
               [, resourceType] = path;
               path = operation.path.split(`/${resourceType}/`)[1].split('/');
@@ -795,35 +800,8 @@ Polymer({
     return true;
   },
   _updateClusters(data) {
-    const changed = this._updateModel(
-      `clouds.${data.cloud_id}.clusters`,
-      data.clusters
-    );
-    if (!changed) return false;
-    let allClusters = [];
-    const that = this;
-    if (this.model != null) {
-      this.model.cloudsArray.forEach(cloud => {
-        if (cloud.clustersArray != null && cloud.enabled) {
-          cloud.clustersArray.forEach(cluster => {
-            cluster.cloud = {
-              id: cloud.id,
-              title: cloud.title,
-              provider: cloud.provider,
-            };
-            that.model.clustersArray.push(cluster);
-          });
-        }
-        allClusters = allClusters.concat(
-          cloud.clustersArray != null ? cloud.clustersArray : []
-        );
-      });
-    }
-    this.set('model.clustersArray', allClusters);
-    this.set('model.clusters', _generateMap(allClusters));
-    // update section count, necessary for propagating changes to sidebar & dashboard counters
-    this.set('model.sections.clusters.count', allClusters.length);
-    return true;
+    this.set('model.onboarding.isLoadingClusters', false);
+    this._updateCloudResources(data, 'clusters', 'external_id');
   },
   _updateMachines(data) {
     data.machines.forEach(machine => {
