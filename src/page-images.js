@@ -4,7 +4,6 @@ import '@polymer/paper-fab/paper-fab.js';
 import './images/image-page.js';
 import './images/image-actions.js';
 import './images/image-provider-search.js';
-// import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
@@ -81,7 +80,6 @@ export default class PageImages extends connect(store)(
       <image-page
         id="imagePage"
         model="[[model]]"
-        image$="[[_getImage(route, model.images)]]"
         resource-id="[[_getImageId(route)]]"
         section="[[model.sections.images]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
@@ -135,7 +133,7 @@ export default class PageImages extends connect(store)(
   }
 
   _isDetailsPageActive(path) {
-    if (path && this.$.imagePage) this.$.imagePage.updateState();
+    // if (path && this.$.imagePage) this.$.imagePage.updateState();
     return path;
   }
 
@@ -143,22 +141,34 @@ export default class PageImages extends connect(store)(
     return !this.route.path;
   }
 
-  _getImage(route) {
+  async _setImage(id) {
     // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
-    if (this.model.images)
-      return this.model.images[route.path.slice(1, route.path.length)];
-    return '';
+    if (id) {
+      let image = this.store.getState().mainReducer.images[id];
+      if (!image) {
+        const response = await (await fetch(`/api/v2/images/${id}`)).json();
+        image = response.data;
+        this.store.dispatch({ type: 'Update-Images', payload: image });
+      }
+      this.$.imagePage.image = image;
+      const [cloud] = Object.values(
+        this.store.getState().mainReducer.clouds
+      ).filter(cloud_ => cloud_.name === image.cloud);
+      this.$.imagePage.cloudId = cloud.id;
+    }
   }
 
   _getImageId(route) {
-    if (
-      route.path.slice(1, route.path.length) &&
-      this.shadowRoot &&
-      this.shadowRoot.querySelector('image-page')
-    ) {
-      this.shadowRoot.querySelector('image-page').updateState();
-    }
-    return route.path.slice(1, route.path.length);
+    // if (
+    //   route.path.slice(1, route.path.length) &&
+    //   this.shadowRoot &&
+    //   this.shadowRoot.querySelector('image-page')
+    // ) {
+    //   this.shadowRoot.querySelector('image-page').updateState();
+    // }
+    const id = route.path.slice(1, route.path.length);
+    if (id) this._setImage(id);
+    return id;
   }
 
   _addResource(_e) {
@@ -174,7 +184,6 @@ export default class PageImages extends connect(store)(
   }
 
   _getRenderers(_keys) {
-    const _this = this;
     return {
       name: {
         body: (item, row) => {
@@ -188,7 +197,7 @@ export default class PageImages extends connect(store)(
           }),
       },
       cloud: {
-        body: (_item, row) => (row && row.cloud ? row.cloud.title : ''),
+        body: (_item, row) => (row && row.cloud ? row.cloud : ''),
         cmp: (row1, row2) => {
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);
@@ -203,12 +212,7 @@ export default class PageImages extends connect(store)(
       },
       owned_by: {
         title: (_item, _row) => 'owner',
-        body: (item, _row) =>
-          _this.model.members[item]
-            ? _this.model.members[item].name ||
-              _this.model.members[item].email ||
-              _this.model.members[item].username
-            : '',
+        body: (_item, row) => (row ? row.owned_by : ''),
         cmp: (row1, row2) => {
           const item1 = this.renderers.owned_by.body(row1.owned_by);
           const item2 = this.renderers.owned_by.body(row2.owned_by);
@@ -217,12 +221,7 @@ export default class PageImages extends connect(store)(
       },
       created_by: {
         title: (_item, _row) => 'created by',
-        body: (item, _row) =>
-          _this.model.members[item]
-            ? _this.model.members[item].name ||
-              _this.model.members[item].email ||
-              _this.model.members[item].username
-            : '',
+        body: (_item, row) => (row ? row.created_by : ''),
         cmp: (row1, row2) => {
           const item1 = this.renderers.created_by.body(row1.created_by);
           const item2 = this.renderers.created_by.body(row2.created_by);

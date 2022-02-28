@@ -1,16 +1,16 @@
 import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
-import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import '../mist-rules/mist-rules.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import './image-actions.js';
 import { CSRFToken, itemUid } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
+/* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
     <style include="shared-styles single-page">
@@ -148,7 +148,7 @@ Polymer({
             [[_computeImageName(image.name)]]
             <iron-icon icon="star" hidden$="{{!image.starred}}"></iron-icon>
           </h2>
-          <div class="subtitle">on [[image.cloud.title]]</div>
+          <div class="subtitle">on [[image.cloud]]</div>
         </div>
         <image-actions
           actions="{{actions}}"
@@ -161,14 +161,12 @@ Polymer({
         <span class="id">[[image.id]]</span>
         <h4 class="id" hidden$="[[!image.owned_by.length]]">Owner:</h4>
         <span class="id"
-          ><a href$="/members/[[image.owned_by]]"
-            >[[_displayUser(image.owned_by,model.members)]]</a
-          ></span
+          ><a href$="/members/[[image.owned_by]]">[[image.owned_by]]</a></span
         >
         <h4 class="id" hidden$="[[!image.created_by.length]]">Created by:</h4>
         <span class="id"
           ><a href$="/members/[[image.created_by]]"
-            >[[_displayUser(image.created_by,model.members)]]</a
+            >[[image.created_by]]</a
           ></span
         >
         <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:</h4>
@@ -195,7 +193,7 @@ Polymer({
             id="imageLogs"
             frozen="[[_getFrozenLogColumn()]]"
             visible="[[_getVisibleColumns()]]"
-            renderers="[[_getRenderers(model.members)]]"
+            renderers="[[_getRenderers()]]"
             auto-hide=""
             timeseries=""
             expands=""
@@ -239,7 +237,7 @@ Polymer({
 
   is: 'image-page',
 
-  behaviors: [mistLoadingBehavior, mistLogsBehavior],
+  behaviors: [mistLogsBehavior],
 
   properties: {
     sections: {
@@ -266,6 +264,14 @@ Polymer({
       type: Boolean,
       computed: '_computeIsloading(image)',
       value: true,
+    },
+    isMissing: {
+      type: Boolean,
+      value: false,
+    },
+    cloudId: {
+      type: Object,
+      value: '',
     },
   },
 

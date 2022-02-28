@@ -7,17 +7,17 @@ import '@polymer/iron-ajax/iron-ajax.js';
 import '@mistio/mist-list/mist-list-actions.js';
 import '@mistio/mist-list/mist-list-actions-behavior.js';
 import '../tags/tags-form.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 const IMAGE_ACTIONS = {
-  /* 'tag': {
-    'name': 'tag',
-    'icon': 'label',
-    'confirm': true,
-    'multi': true
-  }, */
+  tag: {
+    name: 'tag',
+    icon: 'label',
+    confirm: true,
+    multi: true,
+  },
   create_machine: {
     name: 'create machine',
     icon: 'hardware:computer',
@@ -51,6 +51,12 @@ Polymer({
     <slot>
       <mist-list-actions actions="[[actions]]"></mist-list-actions>
     </slot>
+    <tags-form
+      id="tagsdialog"
+      model="[[model]]"
+      items="[[items]]"
+      type="image"
+    ></tags-form>
     <iron-ajax
       id="request"
       handle-as="xml"
@@ -117,7 +123,7 @@ Polymer({
     }
     if (image) {
       arr.push('create_machine');
-      // arr.push('tag');
+      arr.push('tag');
     }
     return arr;
   },
