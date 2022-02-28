@@ -428,12 +428,14 @@ export default class MistSidebar extends connect(store)(
 
   async updateSectionsCount(id) {
     if (id) {
-      const data = await (await fetch(`/api/v2/orgs/${id}`)).json();
+      const data = await (
+        await fetch(`/api/v2/orgs/${id}?summary=true`)
+      ).json();
       store.dispatch({
         type: 'Set-Sections-Count',
-        payload: data.resources_count,
+        payload: data.data.resources_count,
       });
-      this.set('sectionsCount', data.resources_count);
+      this.set('sectionsCount', data.data.resources_count);
     }
   }
 
@@ -540,8 +542,13 @@ export default class MistSidebar extends connect(store)(
 
   _getSectionCount(name, _sections) {
     // temporary, every count should be get like this
-    if (['images'].indexOf(name) > -1) return this.sectionsCount[name];
-    return this.model.sections[name].count;
+    if (['stacks'].indexOf(name) > -1) return this.model.sections[name].count;
+    if (
+      ['dashboard', 'insights'].indexOf(name) > -1 ||
+      Object.keys(this.sectionsCount).length <= 0
+    )
+      return '';
+    return this.sectionsCount[name].total;
   }
 }
 
