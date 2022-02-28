@@ -38,6 +38,7 @@ import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js'
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { _generateMap } from './helpers/utils.js';
+import { store } from './redux/redux-store.js';
 import PROVIDERS from './helpers/providers.js';
 
 const documentContainer = document.createElement('template');
@@ -403,8 +404,13 @@ Polymer({
     if (!CONFIG.theme) {
       import('./styles/app-theme.js').then(console.log('Loaded default theme'));
     }
+    this.fetchClouds();
   },
 
+  async fetchClouds() {
+    const response = await (await fetch('/api/v2/clouds')).json();
+    store.dispatch({ type: 'Update-Clouds', payload: response.data });
+  },
   _observeKeys(_keysSplices) {
     this.fire('update-keys');
   },
