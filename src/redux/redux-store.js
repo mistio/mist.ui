@@ -40,13 +40,13 @@ const reducer = (state, action) => {
       return updateResource('images', state, action.payload);
     }
     case 'Update-Sections-Count': {
-      // action.payload should be {resource: int}
+      // action.payload should be {resource: {total: int}}
       const newSectionsCount = Object.assign(
         {},
         state.sectionsCount,
         action.payload
       );
-      return Object.assign({}, state, newSectionsCount);
+      return Object.assign({}, state, { sectionsCount: newSectionsCount });
     }
     case 'Set-Sections-Count':
       return Object.assign({}, state, { sectionsCount: action.payload });

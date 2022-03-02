@@ -164,6 +164,7 @@ Polymer({
         <image-actions
           actions="{{actions}}"
           items="[[itemArray]]"
+          cloud-id="[[cloudId]]"
         ></image-actions>
       </paper-material>
       <paper-material>
@@ -416,9 +417,9 @@ Polymer({
   _isEmpty(tags) {
     if(Array.isArray(tags))
       return !tags || tags.length === 0;
-    else
-      return !tags || Object.keys(tags).length === 0;
+    return !tags || Object.keys(tags).length === 0;
   },
+
   _getImgTags(tags) {
     if(Array.isArray(tags))
       return tags
