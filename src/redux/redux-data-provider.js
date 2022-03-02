@@ -39,7 +39,7 @@ export default function reduxDataProvider(opts, callback) {
       const resources = data.data;
       mistList.count = data.meta.total;
       const resourceCount = {};
-      resourceCount[resource] = data.meta.total;
+      resourceCount[resource] = { total: data.meta.total };
       store.dispatch({ type: 'Update-Sections-Count', payload: resourceCount });
       if (resources && resources.length < opts.pageSize)
         mistList.finished = true;

@@ -13,7 +13,7 @@ import { CSRFToken, itemUid } from '../helpers/utils.js';
 /* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
-    <style include="shared-styles single-page">
+    <style include="shared-styles tags-and-labels single-page">
       paper-material {
         display: block;
         padding: 20px;
@@ -153,6 +153,7 @@ Polymer({
         <image-actions
           actions="{{actions}}"
           items="[[itemArray]]"
+          cloud-id="[[cloudId]]"
         ></image-actions>
       </paper-material>
       <paper-material>
@@ -171,10 +172,14 @@ Polymer({
         >
         <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:</h4>
         <template is="dom-if" if="[[image.tags]]">
-          <template is="dom-repeat" items="[[image.tags]]">
-            <span class="id tag"
-              >[[item.key]]
-              <span hidden="[[!item.value]]">= [[item.value]]</span></span
+          <template
+            id="tag-repeater"
+            is="dom-repeat"
+            items="[[_tagsToArr(image.tags)]]"
+          >
+            <span class="tag"
+              >[[item.key]]<span hidden$="[[!item.value]]">=</span
+              >[[item.value]]</span
             >
           </template>
         </template>
@@ -350,7 +355,10 @@ Polymer({
     return !this.image;
   },
 
-  _isEmpty(arr) {
-    return !arr || arr.length === 0;
+  _isEmpty(tags) {
+    return !tags || Object.keys(tags).length === 0;
+  },
+  _tagsToArr(tags) {
+    return Object.entries(tags).map(([key, value]) => ({ key, value }));
   },
 });
