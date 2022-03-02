@@ -60,6 +60,7 @@ Polymer({
     <tags-form
       id="tagsdialog"
       model="[[model]]"
+      cloud-id="[[cloudId]]"
       items="[[items]]"
       type="image"
     ></tags-form>
@@ -86,6 +87,10 @@ Polymer({
     type: {
       type: String,
       value: 'image',
+    },
+    cloudId: {
+      type: String,
+      value: '',
     },
   },
 

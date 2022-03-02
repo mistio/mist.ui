@@ -458,7 +458,6 @@ Polymer({
       return newItem;
     }, this);
     // console.log('payload',payload);
-
     this.$.tagsAjaxRequest.body = payload;
     this.$.tagsAjaxRequest.headers['Content-Type'] = 'application/json';
     this.$.tagsAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
