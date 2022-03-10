@@ -423,7 +423,9 @@ Polymer({
 
   _cloudLocationsUpdated(locations) {
     if (!this.cloud || !this.cloud.locations || !locations) return;
-    const locArray = Object.values(this.cloud.locations).filter(loc => loc.location_type === 'zone');
+    const locArray = Object.values(this.cloud.locations).filter(
+      loc => loc.location_type === 'zone'
+    );
     debugger;
     if (locArray.length === 1) {
       // If there's a single location preselect it
