@@ -698,13 +698,7 @@ Polymer({
     else if (this.fieldIndexByName('availability_zone') > -1)
       fieldName = 'availability_zone';
     else if (this.fieldIndexByName('location') > -1) fieldName = 'location';
-    // ) {
-    //   fieldName = this.fieldIndexByName('region') > -1
-    //       ? 'region'
-    //       : this.fieldIndexByName('availability_zone') > -1
-    //       ? 'availability_zone'
-    //       : 'location';
-    // }
+
     if (
       cloudName === 'ec2' ||
       cloudName === 'aliyun_ecs' ||
