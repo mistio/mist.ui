@@ -700,29 +700,39 @@ Polymer({
       this.fieldIndexByName('location') > -1
     ) {
       fieldName =
-        this.fieldIndexByName('region') > -1 ? 'region' : this.fieldIndexByName('availability_zone') > -1 ? 'availability_zone' : 'location';
+        this.fieldIndexByName('region') > -1
+          ? 'region'
+          : this.fieldIndexByName('availability_zone') > -1
+          ? 'availability_zone'
+          : 'location';
     }
     if (cloudName === 'ec2' || cloudName === 'aliyun_ecs')
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
+        this.model.clouds[selectedCloud].locationsArray.filter(loc =>
+          loc.location_type === 'zone'
+        )
       );
     if (cloudName === 'gce') {
       const regionsArr = [];
-      const regions = [];
+      let regions = [];
       if (this.model.clouds[selectedCloud].locationsArray)
-        this.model.clouds[selectedCloud].locationsArray.forEach(l => {
-          if (!regionsArr.includes(l.extra.region)) {
-            regionsArr.push(l.extra.region);
-            regions.push({ name: l.extra.region, id: l.extra.region });
-          }
-        });
+        // this.model.clouds[selectedCloud].locationsArray.forEach(l => {
+        //   if (!regionsArr.includes(l.extra.region)) {
+        //     regionsArr.push(l.extra.region);
+        //     regions.push({ name: l.extra.region, id: l.extra.region });
+        //   }
+        // });
+        regions = this.model.clouds[selectedCloud].locationsArray.filter(loc => 
+          loc.location_type === 'region'
+        );
+
       this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, regions);
     }
     if (cloudName === 'vultr') {
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
+        this.model.clouds[selectedCloud].locationsArray.filter(loc => loc.location_type === 'zone')
       );
     }
   },
