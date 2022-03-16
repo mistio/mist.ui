@@ -695,9 +695,10 @@ Polymer({
         .filter(cloud => providersWithRegions.indexOf(cloud.provider) > -1);
     const rulesToChange = []; // {ruleIndex, cloudId, locationId}
     policy.rules.forEach((rule, index) => {
-      if(rule.rtype === 'location') {
+      if(rule.rtype === 'location' && rule.rid) {
         cloudsWithRegions.forEach(cloud => {
-          if(Object.keys(cloud.locations).indexOf(rule.rid)) {
+          if(Object.keys(cloud.locations).indexOf(rule.rid) > -1 &&
+            cloud.locations[rule.rid].location_type === 'region') {
             const toPush = {};
             toPush.ruleIndex = index;
             toPush.cloudId = cloud.id;
