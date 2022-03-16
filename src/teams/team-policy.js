@@ -617,9 +617,8 @@ Polymer({
   _submitForm() {
     const policy = {};
     policy.rules = this.rules;
-
+    this._regionToZonesPolicy(policy)
     console.log('_submitForm', this.rules);
-
     policy.operator = this.defaultOperator;
     this.$.postPolicy.headers['Content-Type'] = 'application/json';
     this.$.postPolicy.headers['Csrf-Token'] = CSRFToken.value;
@@ -689,4 +688,40 @@ Polymer({
       this.$.ruleslist.style.height = 'auto';
     }
   },
+  _regionToZonesPolicy(policy) {
+    // this should not be hardcoded here
+    const providersWithRegions = ['ec2', 'gce'];
+    const cloudsWithRegions = this.model.cloudsArray
+        .filter(cloud => providersWithRegions.indexOf(cloud.provider) > -1);
+    const rulesToChange = []; // {ruleIndex, cloudId, locationId}
+    policy.rules.forEach((rule, index) => {
+      if(rule.rtype === 'location') {
+        cloudsWithRegions.forEach(cloud => {
+          if(Object.keys(cloud.locations).indexOf(rule.rid)) {
+            const toPush = {};
+            toPush.ruleIndex = index;
+            toPush.cloudId = cloud.id;
+            toPush.locationId = rule.rid;
+            rulesToChange.push(toPush);
+          }            
+        });
+      }
+    });
+    if(rulesToChange.length === 0)
+      return;
+    rulesToChange.forEach(item => {
+      const rule = policy.rules[item.ruleIndex];
+      // remove rule from policy
+      policy.rules.splice(item.ruleIndex, 1);
+      // find the zones of the region
+      const zones = this.model.clouds[item.cloudId].locationsArray.filter(loc =>
+        loc.location_type === 'zone' && loc.parent === item.locationId
+      );
+      zones.forEach(zone => {
+        policy.rules.push({action: rule.action, constraints: rule.contraints,
+                             operator: rule.operator, rtype:'location', rtags: {},
+                             rid: zone.id})
+      }); 
+    });
+  }
 });
