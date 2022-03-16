@@ -684,10 +684,12 @@ Polymer({
     // clear to reset
     this.set('machineFields', []);
     let networkFields = [];
-    let cloudName = '';
+    let cloudProvider = '';
     if (this.selectedCloud) {
-      cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => c.provider === cloudName);
+      cloudProvider = this.model.clouds[selectedCloud].provider;
+      networkFields = this.networksFields.find(
+        c => c.provider === cloudProvider
+      );
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
@@ -700,9 +702,9 @@ Polymer({
     else if (this.fieldIndexByName('location') > -1) fieldName = 'location';
 
     if (
-      cloudName === 'ec2' ||
-      cloudName === 'aliyun_ecs' ||
-      cloudName === 'vultr'
+      cloudProvider === 'ec2' ||
+      cloudProvider === 'aliyun_ecs' ||
+      cloudProvider === 'vultr'
     )
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
@@ -710,7 +712,7 @@ Polymer({
           loc => loc.location_type === 'zone'
         )
       );
-    if (cloudName === 'gce') {
+    if (cloudProvider === 'gce') {
       let regions = [];
       if (this.model.clouds[selectedCloud].locationsArray)
         regions = this.model.clouds[selectedCloud].locationsArray
