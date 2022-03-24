@@ -268,11 +268,12 @@ export default class PageMachines extends mixinBehaviors(
         type: Object,
         value() {
           return item => {
-            if (
-              item.machine_type === 'hypervisor' ||
-              item.machine_type === 'container-host' ||
-              item.machine_type === 'node' ||
-              item.machine_type === 'pod'
+            if (item && (
+                item.machine_type === 'hypervisor' ||
+                item.machine_type === 'container-host' ||
+                item.machine_type === 'node' ||
+                item.machine_type === 'pod'
+              )
             )
               return true;
             return false;
