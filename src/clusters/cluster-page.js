@@ -90,10 +90,33 @@ export default class ClusterPage extends mixinBehaviors(
           vertical-align: middle;
         }
 
-        paper-material.info {
+        .columns {
           display: flex;
+          flex: 1 100%;
+          margin-bottom: 16px;
           flex-direction: row;
-          flex-wrap: wrap;
+        }
+
+        .columns paper-material > .break {
+          word-break: break-all;
+        }
+
+        .left {
+          line-height: 1.6em;
+        }
+
+        .left,
+        .right {
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          flex: 1 50%;
+          font-size: 0.9em;
+        }
+
+        .left h3,
+        .right h3 {
+          margin-bottom: 0;
         }
 
         .is-loading {
@@ -172,82 +195,106 @@ export default class ClusterPage extends mixinBehaviors(
         <paper-material>
           <div class="missing" hidden$="[[!isMissing]]">Cluster not found.</div>
         </paper-material>
-        <paper-material class="info">
-          <div class="resource-info">
-            <div class="table">
-              <div class="row">
-                <div class="cell">
-                  <h4>ID:</h4>
+        <div class="columns">
+          <paper-material class="left info">
+            <div class="resource-info">
+              <div class="table">
+                <div class="row">
+                  <div class="cell">
+                    <h4>ID:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.id]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cluster.id]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Cloud:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cloud.title]] </span>
+                  </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Cloud:</h4>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Provider:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.provider]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cloud.title]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Nodes:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_nodes]] </span>
+                  </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Provider:</h4>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total CPUs:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_cpus]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cluster.provider]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total Nodes:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_nodes]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total CPUs:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_cpus]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total Mem:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_memory]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Mem:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_memory]] </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <span class="id"
-            ><a href="/members/[[cluster.owned_by]]"
-              >[[_displayUser(cluster.owned_by,model.members)]]</a
-            ></span
-          >
-          <h4 class="id" hidden$="[[!cluster.created_by.length]]">
-            Created by:
-          </h4>
-          <span class="id"
-            ><a href="/members/[[cluster.created_by]]"
-              >[[_displayUser(cluster.created_by,model.members)]]</a
-            ></span
-          >
-          <h4 class="id tags" hidden$="[[_isEmpty(cluster.tags)]]">Tags:</h4>
-          <template is="dom-if" if="[[!_isEmpty(cluster.tags)]]">
-            <template is="dom-repeat" items="[[cluster.tags]]">
-              <span class="id tag"
-                >[[item.key]]
-                <span hidden="[[!item.value]]">[[item.value]]</span></span
-              >
-            </template>
-          </template>
-        </paper-material>
+            <span class="id"
+              ><a href="/members/[[cluster.owned_by]]"
+                >[[_displayUser(cluster.owned_by,model.members)]]</a
+              ></span
+            >
+            <h4 class="id" hidden$="[[!cluster.created_by.length]]">
+              Created by:
+            </h4>
+            <span class="id"
+              ><a href="/members/[[cluster.created_by]]"
+                >[[_displayUser(cluster.created_by,model.members)]]</a
+              ></span
+            >
+          </paper-material>
+          <paper-material class="right info">
+            <div class="resource-info">
+              <div class="table">
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Cost</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.cost.monthly]]</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="cell">
+                    <h4>CPlane Cost</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.cost.control_plane_monthly]]</span>
+                  </div>
+                </div>
+              </div>
+              <h4 class="id tags" hidden$="[[_isEmpty(cluster.tags)]]">Tags:</h4>
+              <template is="dom-if" if="[[!_isEmpty(cluster.tags)]]">
+                <template is="dom-repeat" items="[[cluster.tags]]">
+                  <span class="id tag"
+                    >[[item.key]]
+                    <span hidden="[[!item.value]]">[[item.value]]</span></span
+                    >
+                </template>
+              </template>
+            </div>
+          </paper-material>
+        </div>
         <br />
         <paper-material class="no-pad">
           <div class="horizontal layout hide-button">

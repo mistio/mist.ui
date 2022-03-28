@@ -88,7 +88,8 @@ export default class PageClusters extends PolymerElement {
           return '';
         },
       },
-      cost: {
+      "cost": {
+        title: () => 'total cost',
         body: (item, _row) => item.monthly.toFixed(2) || 0
       }
     };
