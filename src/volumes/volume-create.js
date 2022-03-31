@@ -269,7 +269,7 @@ Polymer({
         if (f.name.endsWith('location')) {
           let locations = this.model.clouds[cloudId].locationsArray
             ? this.model.clouds[cloudId].locationsArray.filter(
-                loc => loc.location_type === 'zone'
+                loc => loc.location_type !== 'region'
               )
             : [];
           if (locations.length === 1 && locations[0].name === '') {
