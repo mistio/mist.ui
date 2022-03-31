@@ -53,6 +53,7 @@ Polymer({
         renderers="[[_getRenderers()]]"
         filter-method="[[_ownerFilter()]]"
         actions="[[actions]]"
+        item-has-children="[[secretHasChildren]]"
       >
         <p slot="no-items-found">No secrets found.</p>
       </mist-list>
@@ -119,15 +120,21 @@ Polymer({
       type: Array,
       value: [],
     },
+    secretHasChildren: {
+      type: Object,
+      value() {
+        return item => item && item.name.slice(-1) === '/';
+      },
+    },
   },
-
+  /* eslint-disable func-names */
   ready() {
     this.dataProvider = function (params, callback) {
       const parentName = params.parentItem ? params.parentItem.name : null;
       const xhr = new XMLHttpRequest();
       let url = '/api/v2/secrets';
       if (!parentName) {
-        url += `?search=${encodeURIComponent('name=r"^[^/]*/{0,1}$"')}`;
+        // url += `?search=${encodeURIComponent('name=r"^*/{0,1}$"')}`;
       } else {
         url += `?search=${encodeURIComponent(
           `name=r"^${parentName}[^/]+/{0,1}$"`
@@ -156,7 +163,7 @@ Polymer({
       xhr.send();
     }.bind(this);
   },
-
+  /* eslint-enable func-names */
   _getFrozenColumn() {
     return ['name'];
   },
