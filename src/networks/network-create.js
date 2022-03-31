@@ -709,7 +709,7 @@ Polymer({
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
         this.model.clouds[selectedCloud].locationsArray.filter(
-          loc => loc.location_type === 'zone'
+          loc => loc.location_type !== 'region'
         )
       );
     if (cloudProvider === 'gce') {
