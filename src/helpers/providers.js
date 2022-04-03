@@ -485,14 +485,14 @@ PROVIDERS.push({
   className: 'provider-kubernetes',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Kubernetes',
       defaultValue: 'Kubernetes',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cluster',
     },
     {
       name: 'host',
