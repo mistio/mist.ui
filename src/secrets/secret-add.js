@@ -82,7 +82,7 @@ export class SecretAdd extends PolymerElement {
                 language="json"
                 theme="vs-dark"
                 read-only$="[[!show]]"
-                value="[[JSON.stringify({'':''}, undefined, 2)]]"
+                value=""
                 on-editor-value-changed="_codeEditorValueChanged"
               ></code-viewer>
             </template>

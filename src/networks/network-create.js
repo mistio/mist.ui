@@ -662,7 +662,7 @@ Polymer({
             cloud.provider
           ) > -1
       );
-    this.set('providers', networkClouds);
+    this.set('clouds', networkClouds);
     this.set(
       'hasCloudsWithNetworks',
       !!(networkClouds && networkClouds.length > 0)
