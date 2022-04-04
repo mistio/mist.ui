@@ -55,8 +55,8 @@ Polymer({
       </paper-material>
       <paper-material hidden$="[[hasCloudsWithVolumes]]">
         <p>
-          Creating volumes is available in OpenStack, GCE, AWS, Azure ARM,
-          LXD, Aliyun, Kubevirt, Linode, Vexxhost, Vultr and DigitalOcean clouds
+          Creating volumes is available in OpenStack, GCE, AWS, Azure ARM, LXD,
+          Aliyun, Kubevirt, Linode, Vexxhost, Vultr and DigitalOcean clouds
           <br />
           <span hidden$="[[!checkPerm('cloud', 'add')]]">
             Add a cloud using the
@@ -268,7 +268,9 @@ Polymer({
       this.fields.forEach(f => {
         if (f.name.endsWith('location')) {
           let locations = this.model.clouds[cloudId].locationsArray
-            ? this.model.clouds[cloudId].locationsArray.slice()
+            ? this.model.clouds[cloudId].locationsArray.filter(
+                loc => loc.location_type !== 'region'
+              )
             : [];
           if (locations.length === 1 && locations[0].name === '') {
             // If there's a single location preselect it and hide the field

@@ -423,7 +423,10 @@ Polymer({
 
   _cloudLocationsUpdated(locations) {
     if (!this.cloud || !this.cloud.locations || !locations) return;
-    const locArray = Object.values(this.cloud.locations);
+    const locArray = Object.values(this.cloud.locations).filter(
+      loc => loc.location_type !== 'region'
+    );
+
     if (locArray.length === 1) {
       // If there's a single location preselect it
       const lid = locArray[0].id;
@@ -851,7 +854,7 @@ Polymer({
               'create_resources',
               l.id
             );
-            return checkPerm !== false;
+            return checkPerm !== false && l.location_type !== 'region';
           });
           // disable maxihost locations that support no sizes
           if (this.model.clouds[cloudId].provider === 'maxihost') {

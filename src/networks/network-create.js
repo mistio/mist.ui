@@ -684,46 +684,41 @@ Polymer({
     // clear to reset
     this.set('machineFields', []);
     let networkFields = [];
-    let cloudName = '';
+    let cloudProvider = '';
     if (this.selectedCloud) {
-      cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => c.provider === cloudName);
+      cloudProvider = this.model.clouds[selectedCloud].provider;
+      networkFields = this.networksFields.find(
+        c => c.provider === cloudProvider
+      );
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
 
     // add locations fields
     let fieldName;
+    if (this.fieldIndexByName('region') > -1) fieldName = 'region';
+    else if (this.fieldIndexByName('availability_zone') > -1)
+      fieldName = 'availability_zone';
+    else if (this.fieldIndexByName('location') > -1) fieldName = 'location';
+
     if (
-      this.fieldIndexByName('region') > -1 ||
-      this.fieldIndexByName('availability_zone') > -1 ||
-      this.fieldIndexByName('location') > -1
-    ) {
-      fieldName =
-        this.fieldIndexByName('region') > -1 ? 'region' : this.fieldIndexByName('availability_zone') > -1 ? 'availability_zone' : 'location';
-    }
-    if (cloudName === 'ec2' || cloudName === 'aliyun_ecs')
+      cloudProvider === 'ec2' ||
+      cloudProvider === 'aliyun_ecs' ||
+      cloudProvider === 'vultr'
+    )
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
+        this.model.clouds[selectedCloud].locationsArray.filter(
+          loc => loc.location_type !== 'region'
+        )
       );
-    if (cloudName === 'gce') {
-      const regionsArr = [];
-      const regions = [];
+    if (cloudProvider === 'gce') {
+      let regions = [];
       if (this.model.clouds[selectedCloud].locationsArray)
-        this.model.clouds[selectedCloud].locationsArray.forEach(l => {
-          if (!regionsArr.includes(l.extra.region)) {
-            regionsArr.push(l.extra.region);
-            regions.push({ name: l.extra.region, id: l.extra.region });
-          }
-        });
+        regions = this.model.clouds[selectedCloud].locationsArray
+          .filter(loc => loc.location_type === 'region')
+          .map(region => ({ name: region.name, id: region.name }));
       this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, regions);
-    }
-    if (cloudName === 'vultr') {
-      this.set(
-        `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
-      );
     }
   },
 

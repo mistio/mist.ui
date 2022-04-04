@@ -88,6 +88,10 @@ export default class PageClusters extends PolymerElement {
           return '';
         },
       },
+      "cost": {
+        title: () => 'total cost',
+        body: (item, _row) => item.monthly.toFixed(2) || 0
+      }
     };
   }
 
@@ -96,7 +100,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getVisibleColumns() {
-    return ['cloud', 'id', 'tags'];
+    return ['cloud', 'id', 'cost', 'tags'];
   }
 
   _isListActive(path) {
