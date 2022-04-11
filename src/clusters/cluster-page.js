@@ -182,7 +182,7 @@ export default class ClusterPage extends mixinBehaviors(
           ></span>
           <div class="title flex">
             <h2>[[cluster.name]]</h2>
-            <div class="subtitle">on [[cloud.title]]</div>
+            <div class="subtitle">on [[cloud.name]]</div>
             <div class="subtitle">
               <span>[[clusterState]]</span>
             </div>
@@ -219,7 +219,7 @@ export default class ClusterPage extends mixinBehaviors(
                         class="cloud icon"
                         src$="[[_computeCloudIcon(cloud.provider)]]"
                       ></iron-icon>
-                      <span>[[cloud.title]]</span>
+                      <span>[[cloud.name]]</span>
                     </a>
                   </div>
                 </div>
@@ -423,10 +423,10 @@ export default class ClusterPage extends mixinBehaviors(
       },
       currency: {
         type: Object,
-        value () {
-          return {sign: '$', rate: 1}
-        }
-      }
+        value() {
+          return { sign: '$', rate: 1 };
+        },
+      },
     };
   }
 
@@ -557,7 +557,12 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _getLocationName() {
-    if (!this.cluster || !this.cloud || !this.cloud.locations || !this.cluster.location)
+    if (
+      !this.cluster ||
+      !this.cloud ||
+      !this.cloud.locations ||
+      !this.cluster.location
+    )
       return '';
     return this.cloud.locations[this.cluster.location].name;
   }
