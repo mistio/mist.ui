@@ -38,6 +38,7 @@ export default class PageClusters extends PolymerElement {
             actions="[[actions]]"
             route="{{route}}"
             item-map="[[model.clusters]]"
+            user-filter="[[model.sections.clusters.q]]"
           >
           </mist-list>
         </cluster-actions>
