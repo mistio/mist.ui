@@ -67,6 +67,9 @@ export default class PageClusters extends PolymerElement {
       renderers: {
         type: Object,
       },
+      currency: {
+        type: Object
+      }
     };
   }
 
@@ -91,7 +94,7 @@ export default class PageClusters extends PolymerElement {
       },
       "cost": {
         title: () => 'total cost',
-        body: (item, _row) => item.monthly.toFixed(2) || 0
+        body: (item, _row) => `${_this.currency.sign}${item.monthly.toFixed(2)}` || 0
       }
     };
   }

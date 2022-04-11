@@ -417,7 +417,7 @@ export default class ClusterPage extends mixinBehaviors(
       currency: {
         type: Object,
         value () {
-          return {sign: '$'}
+          return {sign: '$', rate: 1}
         }
       }
     };
