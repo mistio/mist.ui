@@ -4,6 +4,7 @@ import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
+import { ratedCost } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -84,6 +85,7 @@ export default class ClusterPage extends mixinBehaviors(
           width: 90px;
           opacity: 0.54;
           margin: 0;
+          line-height: 95%;
         }
 
         .cell paper-toggle-button {
@@ -212,15 +214,21 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Cloud:</h4>
                   </div>
                   <div class="cell">
-                    <span>[[cloud.title]] </span>
+                    <a href="/clouds/[[cloud.id]]">
+                      <iron-icon
+                        class="cloud icon"
+                        src$="[[_computeCloudIcon(cloud.provider)]]"
+                      ></iron-icon>
+                      <span>[[cloud.title]]</span>
+                    </a>
                   </div>
                 </div>
                 <div class="row">
                   <div class="cell">
-                    <h4>Provider:</h4>
+                    <h4>Location:</h4>
                   </div>
                   <div class="cell">
-                    <span>[[cluster.provider]] </span>
+                  <span>[[_getLocationName(cloud, cluster)]] </span>
                   </div>
                 </div>
                 <div class="row">
@@ -271,15 +279,17 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Total Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[cluster.cost.monthly]]</span>
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly,
+                          currency.rate)]]</span>
                   </div>
                 </div>
                 <div class="row">
                   <div class="cell">
-                    <h4>CPlane Cost</h4>
+                    <h4>Control Plane Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[cluster.cost.control_plane_monthly]]</span>
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.control_plane_monthly, 
+                          currency.rate)]]</span>
                   </div>
                 </div>
               </div>
@@ -411,6 +421,12 @@ export default class ClusterPage extends mixinBehaviors(
           return treeViewDataProvider.bind(this);
         },
       },
+      currency: {
+        type: Object,
+        value () {
+          return {sign: '$', rate: 1}
+        }
+      }
     };
   }
 
@@ -538,6 +554,23 @@ export default class ClusterPage extends mixinBehaviors(
 
   _computeClusterState() {
     return (this.cluster && this.cluster.state) || '';
+  }
+
+  _getLocationName() {
+    if (!this.cluster || !this.cloud || !this.cloud.locations || !this.cluster.location)
+      return '';
+    return this.cloud.locations[this.cluster.location].name;
+  }
+
+  _computeCloudIcon(cloud) {
+    if (!cloud) {
+      return '';
+    }
+    return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
+  }
+
+  _ratedCost(cost, rate) {
+    return ratedCost(cost, rate);
   }
 
   arrowButtonClick(e) {
