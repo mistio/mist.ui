@@ -608,17 +608,7 @@ Polymer({
                   <h4>Location</h4>
                 </div>
                 <div class="cell">
-                  <span hidden$="[[_canLinkToNetwork(machine.network)]]"
-                    >[[machine.network]]</span
-                  >
-                  <span hidden$="[[!_canLinkToNetwork(machine.network)]]">
-                    <a
-                      class="blue-link regular"
-                      href$="/networks/[[machine.network]]"
-                    >
-                      [[_getNetworkName(machine)]]
-                    </a>
-                  </span>
+                  <span>[[_getLocationName(machine,cloud)]]</span>
                 </div>
               </div>
               <br hidden$="[[!_getNetworkName(machine)]]" />
