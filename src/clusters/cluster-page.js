@@ -214,7 +214,11 @@ export default class ClusterPage extends mixinBehaviors(
                   </div>
                   <div class="cell">
                     <a href="/clouds/[[cloud.id]]">
-                      <span>[[cloud.title]] </span>
+                      <iron-icon
+                        class="cloud icon"
+                        src$="[[_computeCloudIcon(cloud.provider)]]"
+                      ></iron-icon>
+                      <span>[[cloud.title]]</span>
                     </a>
                   </div>
                 </div>
@@ -553,6 +557,13 @@ export default class ClusterPage extends mixinBehaviors(
     if (!this.cluster || !this.cloud || !this.cloud.locations || !this.cluster.location)
       return '';
     return this.cloud.locations[this.cluster.location].name;
+  }
+
+  _computeCloudIcon(cloud) {
+    if (!cloud) {
+      return '';
+    }
+    return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
   }
 
   arrowButtonClick(e) {
