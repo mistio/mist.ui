@@ -1,14 +1,14 @@
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@mistio/mist-list/mist-list.js';
+import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import '../helpers/dialog-element.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import '../tags/tags-list.js';
 import { itemUid, CSRFToken } from '../helpers/utils.js';
-import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
-import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
@@ -458,9 +458,7 @@ Polymer({
     if (!key || !selectors) return false;
     const bool =
       selectors
-        .filter(t => {
-          return t.type === 'tags';
-        })
+        .filter(t => t.type === 'tags')
         .map(x => x.tags)
         .findIndex(s => {
           for (const p of Object.keys(s)) {
@@ -549,7 +547,7 @@ Polymer({
   getCloudTitle(keymachine) {
     const cloud = this.model.clouds[keymachine[0]];
     if (!cloud) return '';
-    return cloud.title;
+    return cloud.name;
   },
 
   getMachineName(keymachine, _machines) {

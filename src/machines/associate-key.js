@@ -290,7 +290,6 @@ Polymer({
         },
       })
     );
-    location.reload();
   },
 
   _associateKeyError(e) {
@@ -336,7 +335,7 @@ Polymer({
         [, , itemId] = this.items[i].split(':');
       } else {
         itemCloud = this.items[i].cloud.id;
-        itemId = this.items[i].machine_id;
+        itemId = this.items[i].external_id;
       }
       for (let j = 0; j < model.keys[key].machines.length; j++) {
         if (

@@ -173,7 +173,7 @@ export default class PageImages extends mixinBehaviors(
           }),
       },
       cloud: {
-        body: (_item, row) => (row && row.cloud ? row.cloud.title : ''),
+        body: (_item, row) => (row && row.cloud ? row.cloud.name : ''),
         cmp: (row1, row2) => {
           const item1 = this.renderers.cloud.body(row1.cloud);
           const item2 = this.renderers.cloud.body(row2.cloud);

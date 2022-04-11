@@ -197,6 +197,7 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                     <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
                     <page-buckets name="buckets" route="{{subroute}}" model="[[model]]"></page-buckets>
                     <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+                    <page-secrets name="secrets" route="{{subroute}}" model="[[model]]"></page-secrets>
                     <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
                     <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
                     <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-schedules>
@@ -534,7 +535,7 @@ Polymer({
     for (let i = 0; i < images.length; i++) {
       images[i].cloud = {
         id: e.detail.cloud.id,
-        title: e.detail.cloud.title,
+        name: e.detail.cloud.name,
         provider: e.detail.cloud.provider,
       };
       this.push('model.imagesArray', images[i]);
@@ -736,6 +737,7 @@ Polymer({
       incidents: {},
       incidentsArray: [],
       jobs: {},
+      secrets: {},
       shells: {},
       sessions: {},
       notificationsArray: [],
@@ -882,6 +884,13 @@ Polymer({
           //     'read_logs',
         ],
         bucket: ['read'],
+        secret: [
+          'read',
+          'delete',
+          'edit',
+          'create',
+          'read_value'
+        ]
       },
     };
 
@@ -959,7 +968,9 @@ Polymer({
     const membersCount = this.model.members
       ? Object.keys(this.model.members).length
       : 0;
-
+    const secretsCount = this.model.secrets ?
+      Object.keys(this.model.secrets).length
+      : 0;
     const sectionsArray = [
       {
         id: 'dashboard',
@@ -1096,6 +1107,17 @@ Polymer({
         hr: true,
         count: templatesCount,
         hideTileIfZero: true,
+      },
+      {
+        id: 'secrets',
+        color: '#1D1C1A',
+        icon: 'icons:lock',
+        add: '/secrets/+add',
+        sidebar: true,
+        tile: true,
+        count: "",
+        hideZero: false,
+        hideTileIfZero: true
       },
       {
         id: 'tunnels',
@@ -1313,7 +1335,98 @@ Polymer({
     script.onload = e.detail.cb;
     document.body.appendChild(script);
   },
+  _qChanged(q) {
+    if (this._isPage('dashboard')) {
+      if (!q || !q.trim || !q.trim()) {
+        // restore section counts
+        this._restoreSectionsCounts();
+      } else {
+        // update section counts according to q
+        this._updateSectionsCounts(q);
+      }
+    } else {
+      // update section counts according to stored default
+      // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
+    }
+  },
+  _restoreSectionsCounts() {
+    Object.keys(this.model || {}).forEach(prop => {
+      if (this.model.sections[prop] && this.model[prop]) {
+        // set counts to full model resources length
+        this.set(
+          `model.sections.${prop}.count`,
+          Object.values(this.model[prop]).length
+        );
+      }
+    });
+  },
+  _updateSectionsCounts(q) {
+    const that = this;
+    Object.keys(this.model || {}).forEach(prop => {
+      if (this.model.sections[prop] && this.model[prop]) {
+        // set counts to filtered model resources length
+        this.set(
+          `model.sections.${prop}.count`,
+          Object.values(this.model[prop]).filter(r => that._filterModel(r, q))
+            .length
+        );
+      }
+    });
+  },
+  /* eslint-disable no-param-reassign */
+  _filterModel(item, q) {
+    q = q || '';
+    const filterOwner = q.indexOf('owner:') > -1;
+    const ownerRegex = /owner:(\S*)\s?/;
+    const owner = ownerRegex.exec(q) && ownerRegex.exec(q)[1];
+    let str;
 
+    if (filterOwner && owner && owner.length) {
+      q = q.replace('owner:', '').replace(`${owner}`, '');
+
+      if (owner === '$me') {
+        if (!item.owned_by || item.owned_by !== this.model.user.id)
+          return false;
+      } else {
+        const ownerObj =
+          this.model &&
+          this.model.membersArray &&
+          this.model.membersArray.find(
+            m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+          );
+        if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
+          return false;
+      }
+    }
+
+    const queryTerms = q.split(' ');
+    str = JSON.stringify(item);
+    if (
+      this.model &&
+      this.model.clouds &&
+      item &&
+      item.cloud &&
+      this.model.clouds[item.cloud]
+    ) {
+      str += `${this.model.clouds[item.cloud].provider}${
+        this.model.clouds[item.cloud].name
+      }`;
+    }
+
+    if (q && q.trim().length > 0) {
+      // Check if all terms exist in stringified item
+      for (let i = 0; i < queryTerms.length; i++) {
+        if (
+          queryTerms[i] &&
+          queryTerms[i].length &&
+          str.toLowerCase().indexOf(queryTerms[i].toLowerCase()) < 0
+        ) {
+          return false;
+        }
+      }
+    }
+    return true;
+  },
   /* eslint-enable no-param-reassign */
   _stopPropagation(e) {
     e.stopPropagation();

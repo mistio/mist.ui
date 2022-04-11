@@ -46,14 +46,14 @@ PROVIDERS.push({
       ],
     },
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'EC2',
       defaultValue: 'EC2',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'apikey',
@@ -118,14 +118,14 @@ PROVIDERS.push({
   className: 'provider-azure',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Azure',
       defaultValue: 'Azure',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'subscription_id',
@@ -162,14 +162,14 @@ PROVIDERS.push({
   className: 'provider-azure',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Azure ARM',
       defaultValue: 'Azure ARM',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'tenant_id',
@@ -229,14 +229,14 @@ PROVIDERS.push({
   className: 'provider-gce',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'GCE',
       defaultValue: 'GCE',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'project_id',
@@ -322,14 +322,14 @@ PROVIDERS.push({
       ],
     },
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Aliyun ECS',
       defaultValue: 'Aliyun ECS',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'apikey',
@@ -361,14 +361,14 @@ PROVIDERS.push({
   className: 'provider-softlayer',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'IBM Cloud',
       defaultValue: 'IBM Cloud',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'username',
@@ -413,14 +413,14 @@ PROVIDERS.push({
   className: 'provider-digitalocean',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'DigitalOcean',
       defaultValue: 'DigitalOcean',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'token',
@@ -454,14 +454,14 @@ PROVIDERS.push({
   className: 'provider-equinixmetal',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Equinix Metal',
       defaultValue: 'Equinix Metal',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'apikey',
@@ -485,14 +485,14 @@ PROVIDERS.push({
   className: 'provider-kubernetes',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Kubernetes',
       defaultValue: 'Kubernetes',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cluster',
     },
     {
       name: 'host',
@@ -628,14 +628,14 @@ PROVIDERS.push({
   className: 'provider-linode',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Linode',
       defaultValue: 'Linode',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'apikey',
@@ -713,14 +713,14 @@ PROVIDERS.push({
       ],
     },
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Rackspace',
       defaultValue: 'Rackspace',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'username',
@@ -765,14 +765,14 @@ PROVIDERS.push({
   className: 'provider-vultr',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Vultr',
       defaultValue: 'Vultr',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'apikey',
@@ -806,14 +806,14 @@ PROVIDERS.push({
   className: 'provider-docker',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Docker',
       defaultValue: 'Docker',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
       helptext: '',
       helpHref: 'http://docs.mist.io/article/20-adding-docker',
     },
@@ -946,14 +946,14 @@ PROVIDERS.push({
   className: 'provider-maxihost',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'Maxihost',
       defaultValue: 'Maxihost',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'token',
@@ -976,14 +976,14 @@ PROVIDERS.push({
   className: 'provider-libvirt',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'KVM',
       defaultValue: 'KVM',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'hosts',
@@ -1071,14 +1071,14 @@ PROVIDERS.push({
   className: 'provider-openstack',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'OpenStack',
       defaultValue: 'OpenStack',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'username',
@@ -1349,14 +1349,14 @@ PROVIDERS.push({
   className: 'provider-onapp',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'OnApp',
       defaultValue: 'OnApp',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'username',
@@ -1412,14 +1412,14 @@ PROVIDERS.push({
   className: 'provider-vsphere',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'VMware vSphere',
       defaultValue: 'VMware vSphere',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'host',
@@ -1469,18 +1469,18 @@ PROVIDERS.push({
 // OTHER SERVER
 PROVIDERS.push({
   title: 'Other Server',
-  val: 'bare_metal',
-  className: 'provider-baremetal',
+  val: 'other',
+  className: 'provider-other',
   options: [
     {
-      name: 'title',
-      label: 'Cloud Title *',
+      name: 'name',
+      label: 'Cloud Name *',
       type: 'text',
       value: '',
       defaultValue: '',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
       helpHref: 'http://docs.mist.io/article/28-adding-other-servers',
     },
     {
@@ -1611,14 +1611,14 @@ PROVIDERS.push({
   className: 'provider-kubevirt',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'KubeVirt',
       defaultValue: 'KubeVirt',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'host',
@@ -1754,14 +1754,14 @@ PROVIDERS.push({
   className: 'provider-lxd',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'LXD',
       defaultValue: 'LXD',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
       helptext: '',
       helpHref: 'https://docs.mist.io/article/174-lxd',
     },
@@ -1824,14 +1824,14 @@ PROVIDERS.push({
   className: 'provider-cloudsigma',
   options: [
     {
-      name: 'title',
-      label: 'Title *',
+      name: 'name',
+      label: 'Name *',
       type: 'text',
       value: 'CloudSigma',
       defaultValue: 'CloudSigma',
       show: true,
       required: true,
-      errorMessage: 'Please enter title',
+      errorMessage: 'Please enter a name for the cloud',
     },
     {
       name: 'username',

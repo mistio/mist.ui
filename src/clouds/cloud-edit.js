@@ -55,7 +55,7 @@ Polymer({
     if (providerFields[0] && providerFields[0].options) {
       fields = providerFields[0].options.filter(
         f =>
-          f.name !== 'title' &&
+          f.name !== 'name' &&
           f.name !== 'region' &&
           f.name !== 'dns_enabled' &&
           f.name !== 'object_storage_enabled' &&
@@ -129,7 +129,7 @@ Polymer({
         this._fillIn('url', 'url');
       }
 
-      if (this.cloud.provider === 'bare_metal' && this.cloud.machines) {
+      if (this.cloud.provider === 'other' && this.cloud.machines) {
         this.async(() => {
           this._fillInHosts(Object.values(this.cloud.machines));
         }, 200);

@@ -17,6 +17,7 @@ import './cloud-actions.js';
 import './other-cloud-machines.js';
 import './other-cloud-add-machine.js';
 import { CSRFToken } from '../helpers/utils.js';
+/* eslint-disable lit-a11y/anchor-is-valid */
 
 Polymer({
   _template: html`
@@ -278,7 +279,7 @@ Polymer({
         </span>
         <div class="title flex">
           <h2>
-            [[cloudTitle]]
+            [[cloudName]]
             <span class="capitalize" hidden$="[[!cloud.enabled]]"
               >[[cloud.state]]</span
             >
@@ -644,9 +645,9 @@ Polymer({
     cloud: {
       type: Object,
     },
-    cloudTitle: {
+    cloudName: {
       type: String,
-      computed: '_computeCloudTitle(cloud)',
+      computed: '_computeCloudName(cloud)',
     },
     cloudTags: {
       type: String,
@@ -782,7 +783,7 @@ Polymer({
         composed: true,
         detail: {
           url: `/${page}`,
-          search: this.cloud.title + search,
+          search: this.cloud.name + search,
         },
       })
     );
@@ -811,8 +812,8 @@ Polymer({
       : 0;
   },
 
-  _computeCloudTitle(cloud) {
-    return cloud && cloud.title;
+  _computeCloudName(cloud) {
+    return cloud && cloud.name;
   },
 
   _computeCloudTags() {
@@ -873,7 +874,7 @@ Polymer({
   },
 
   _isBareMetal(provider) {
-    return provider === 'bare_metal';
+    return provider === 'other';
   },
 
   _changeState() {
@@ -888,7 +889,7 @@ Polymer({
   },
 
   _handleCloudStateAjaxResponse() {
-    const message = `Cloud ${this.cloud.title} was ${this.expectedState}!`;
+    const message = `Cloud ${this.cloud.name} was ${this.expectedState}!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -928,8 +929,8 @@ Polymer({
 
   _handleCloudEditOBSLOGSAjaxResponse() {
     const message = this.shadowRoot.querySelector('#OBS-enable-disable').checked
-      ? `Observation logs for ${this.cloud.title} enabled!`
-      : `Observation logs for ${this.cloud.title} disabled!`;
+      ? `Observation logs for ${this.cloud.name} enabled!`
+      : `Observation logs for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -964,8 +965,8 @@ Polymer({
 
   _handleCloudEditDNSAjaxResponse() {
     const message = this.shadowRoot.querySelector('#DNS-enable-disable').checked
-      ? `DNS support for ${this.cloud.title} enabled!`
-      : `DNS support for ${this.cloud.title} disabled!`;
+      ? `DNS support for ${this.cloud.name} enabled!`
+      : `DNS support for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -1004,8 +1005,8 @@ Polymer({
     const message = this.shadowRoot.querySelector(
       '#ObjectStorage-enable-disable'
     ).checked
-      ? `Object Storage support for ${this.cloud.title} enabled!`
-      : `Object Storage support for ${this.cloud.title} disabled!`;
+      ? `Object Storage support for ${this.cloud.name} enabled!`
+      : `Object Storage support for ${this.cloud.name} disabled!`;
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,

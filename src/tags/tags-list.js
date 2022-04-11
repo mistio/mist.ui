@@ -6,9 +6,9 @@ import '@polymer/neon-animation/animations/fade-out-animation.js';
 import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -249,17 +249,11 @@ Polymer({
 
         if (i === 0) {
           // console.log('itemObj.tags',itemObj.tags);
-          tagset = new Set(
-            itemObj.tags.map(tag => {
-              return `${tag.key}=${tag.value}`;
-            })
-          );
+          tagset = new Set(itemObj.tags.map(tag => `${tag.key}=${tag.value}`));
         } else {
           isection = intersection(
             tagset,
-            itemObj.tags.map(tag => {
-              return `${tag.key}=${tag.value}`;
-            }) || []
+            itemObj.tags.map(tag => `${tag.key}=${tag.value}`) || []
           );
           tagset = new Set(isection);
         }
@@ -267,9 +261,10 @@ Polymer({
     }
 
     return (
-      Array.from(tagset).map(item => {
-        return { key: item.split('=')[0], value: item.split('=')[1] };
-      }) || []
+      Array.from(tagset).map(item => ({
+        key: item.split('=')[0],
+        value: item.split('=')[1],
+      })) || []
     );
   },
 
@@ -310,25 +305,19 @@ Polymer({
   },
 
   _inArray(tag, _tagstodelete) {
-    const tin = this.tagsToDelete.find(t => {
-      return t.key === tag.key;
-    });
+    const tin = this.tagsToDelete.find(t => t.key === tag.key);
     // console.log('tin', tin);
     return !!tin;
   },
 
   _saveTags() {
     // console.log('_saveTags', this.items);
-    const newTags = this.tags.filter(tag => {
-      return tag.key;
-    });
+    const newTags = this.tags.filter(tag => tag.key);
     let payload = [];
     let deltags = [];
 
     if (this.tagsToDelete.length > 0) {
-      deltags = this.tagsToDelete.filter(tag => {
-        return tag.key !== '';
-      });
+      deltags = this.tagsToDelete.filter(tag => tag.key !== '');
     }
 
     payload = this.items.map(item => {
@@ -341,7 +330,7 @@ Polymer({
       if (itemType === 'machine') {
         newItem.resource = {
           type: itemType,
-          item_id: this.model.machines[itemId].machine_id,
+          item_id: this.model.machines[itemId].external_id,
           cloud_id: this.model.machines[itemId].cloud.id,
         };
       } else {

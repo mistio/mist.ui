@@ -431,14 +431,14 @@ Polymer({
   },
   _computeVolumeSubtitle() {
     if (!this.volume) return '';
-    const { title } = this.volumeCloud;
+    const { name } = this.volumeCloud;
     const locationName = this._computeLocationsName(
       this.model,
       this.volumeCloud,
       this.volume,
       this.volume.location
     );
-    return locationName ? `${title}, ${locationName}` : title;
+    return locationName ? `${name}, ${locationName}` : name;
   },
   _editVolume(e) {
     console.log(e);
