@@ -4,6 +4,7 @@ import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
+import { ratedCost } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -278,7 +279,8 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Total Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[cluster.cost.monthly]]</span>
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly,
+                          currency.rate)]]</span>
                   </div>
                 </div>
                 <div class="row">
@@ -286,7 +288,8 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Control Plane Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[cluster.cost.control_plane_monthly]]</span>
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.control_plane_monthly, 
+                          currency.rate)]]</span>
                   </div>
                 </div>
               </div>
@@ -564,6 +567,10 @@ export default class ClusterPage extends mixinBehaviors(
       return '';
     }
     return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
+  }
+
+  _ratedCost(cost, rate) {
+    return ratedCost(cost, rate);
   }
 
   arrowButtonClick(e) {
