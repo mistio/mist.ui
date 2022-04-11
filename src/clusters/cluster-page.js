@@ -84,7 +84,6 @@ export default class ClusterPage extends mixinBehaviors(
           width: 90px;
           opacity: 0.54;
           margin: 0;
-          line-height: 95%;
         }
 
         .cell paper-toggle-button {
@@ -213,17 +212,15 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Cloud:</h4>
                   </div>
                   <div class="cell">
-                    <a href="/clouds/[[cloud.id]]">
-                      <span>[[cloud.title]] </span>
-                    </a>
+                    <span>[[cloud.title]] </span>
                   </div>
                 </div>
                 <div class="row">
                   <div class="cell">
-                    <h4>Location:</h4>
+                    <h4>Provider:</h4>
                   </div>
                   <div class="cell">
-                      <span>[[_getLocationName(cloud, cluster)]] </span>
+                    <span>[[cluster.provider]] </span>
                   </div>
                 </div>
                 <div class="row">
@@ -274,12 +271,12 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Total Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[cluster.cost.monthly]]</span>
+                    <span>[[cluster.cost.monthly]]</span>
                   </div>
                 </div>
                 <div class="row">
                   <div class="cell">
-                    <h4>Control Plane Cost</h4>
+                    <h4>CPlane Cost</h4>
                   </div>
                   <div class="cell">
                     <span>[[cluster.cost.control_plane_monthly]]</span>
@@ -414,12 +411,6 @@ export default class ClusterPage extends mixinBehaviors(
           return treeViewDataProvider.bind(this);
         },
       },
-      currency: {
-        type: Object,
-        value () {
-          return {sign: '$'}
-        }
-      }
     };
   }
 
@@ -547,12 +538,6 @@ export default class ClusterPage extends mixinBehaviors(
 
   _computeClusterState() {
     return (this.cluster && this.cluster.state) || '';
-  }
-
-  _getLocationName() {
-    if (!this.cluster || !this.cloud || !this.cloud.locations || !this.cluster.location)
-      return '';
-    return this.cloud.locations[this.cluster.location].name;
   }
 
   arrowButtonClick(e) {
