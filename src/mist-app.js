@@ -1014,7 +1014,7 @@ Polymer({
         icon: 'icons:group-work',
         add: '',
         sidebar: true,
-        tile: false,
+        tile: true,
         count: clustersCount,
         hr: !orchestration,
       },
