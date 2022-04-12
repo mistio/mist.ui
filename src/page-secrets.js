@@ -42,6 +42,7 @@ Polymer({
         column-menu
         multi-sort
         id="secretsList"
+        item-map="[[secretsMap]]"
         apiurl="/api/v2/secrets"
         data-provider="[[dataProvider]]"
         name="Secrets"
@@ -53,6 +54,7 @@ Polymer({
         renderers="[[_getRenderers()]]"
         filter-method="[[_ownerFilter()]]"
         actions="[[actions]]"
+        user-filter="[[model.sections.secrets.q]]"
         item-has-children="[[secretHasChildren]]"
       >
         <p slot="no-items-found">No secrets found.</p>
@@ -120,47 +122,50 @@ Polymer({
       type: Array,
       value: [],
     },
+    secretsMap: {
+      type: Object,
+      value() {
+        return {};
+      },
+    },
     secretHasChildren: {
       type: Object,
       value() {
-        return item => item && item.name.slice(-1) === '/';
+        return item => item && item.isLeaf !== true;
       },
     },
   },
   /* eslint-disable func-names */
   ready() {
+    this._fetchSecrets();
     this.dataProvider = function (params, callback) {
-      const parentName = params.parentItem ? params.parentItem.name : null;
-      const xhr = new XMLHttpRequest();
-      let url = '/api/v2/secrets';
-      if (!parentName) {
-        // url += `?search=${encodeURIComponent('name=r"^*/{0,1}$"')}`;
-      } else {
-        url += `?search=${encodeURIComponent(
-          `name=r"^${parentName}[^/]+/{0,1}$"`
-        )}`;
+      if (Object.keys(this.secretsMap).length === 0) return;
+      const mistList = this.shadowRoot.querySelector('mist-list');
+      let items = Object.values(this.secretsMap);
+      let parentName = params.parentItem ? params.parentItem.name : null;
+      if (mistList.userFilter.length > 0 && mistList.filteredItems.length > 0) {
+        items = mistList.filteredItems.slice(0);
+        // include parents
+        let parentsArray = [];
+        mistList.filteredItems.forEach(secret => {
+          const parentNames = secret.name.split('/');
+          parentNames.pop();
+          const parents = parentNames.map(name => this.secretsMap[name]);
+          parentsArray = parentsArray.concat(parents);
+        });
+        items = parentsArray.concat(items);
+        // remove duplicates
+        items = [...new Set(items)];
       }
-      xhr.open('GET', url);
-      xhr.onreadystatechange = function () {
-        let items = [];
-        let count = 0;
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          const response = JSON.parse(xhr.responseText);
-          items = response.data;
-          items.forEach(i => {
-            // eslint-disable-next-line no-param-reassign
-            i.is_dir = i.name.endsWith('/');
-            this.itemMap[i.id] = i;
-          });
-          count = response.meta.total_returned;
-          callback(items, count);
-          window.dispatchEvent(new Event('resize'));
-          this.async(() => {
-            window.dispatchEvent(new Event('resize'));
-          }, 500);
-        }
-      }.bind(this);
-      xhr.send();
+
+      if (!parentName) {
+        // get only secrets with no parent
+        items = items.filter(secret => secret.parent === '');
+      } else {
+        if (parentName.slice(-1) === '/') parentName = parentName.slice(0, -1);
+        items = items.filter(secret => secret.parent === parentName);
+      }
+      callback(items, items.length);
     }.bind(this);
   },
   /* eslint-enable func-names */
@@ -262,4 +267,27 @@ Polymer({
       },
     };
   },
+  /* eslint-disable no-param-reassign */
+  async _fetchSecrets() {
+    const response = await (await fetch('/api/v2/secrets')).json();
+    const secrets = response.data;
+    const secretsMap = {};
+    secrets.forEach(secret => {
+      const dirs = secret.name.split('/');
+      while (dirs.length > 0) {
+        const secretName = dirs.join('/');
+        const singleName = dirs.pop();
+        const parentName = dirs.join('/');
+        if (secretName === secret.name) {
+          secret.parent = parentName;
+          secret.isLeaf = true;
+          secretsMap[singleName] = secret;
+        } else {
+          secretsMap[singleName] = { name: secretName, parent: parentName };
+        }
+      }
+    });
+    this.secretsMap = secretsMap;
+  },
+  /* eslint-enable no-param-reassign */
 });
