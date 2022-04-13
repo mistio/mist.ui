@@ -48,9 +48,7 @@ export class SecretAdd extends PolymerElement {
           </div>
         </paper-material>
         <paper-material>
-          <custom-validator
-            validator-name="isUniqueValidator"
-          ></custom-validator>
+          <custom-validator id="validator"></custom-validator>
           <div class="grid-row">
             <paper-input
               id="name"
@@ -58,9 +56,9 @@ export class SecretAdd extends PolymerElement {
               label="Name"
               required=""
               allowed-pattern="[A-Za-z0-9/]"
-              validator="isUniqueValidator"
+              validator="custom-validator"
               auto-validate=""
-              error-message="Please enter a unique secret's name"
+              error-message="Please enter a unique secret's name that doesn't end in a /"
               value="{{secret.name}}"
             ></paper-input>
             <paper-progress
@@ -144,6 +142,11 @@ export class SecretAdd extends PolymerElement {
     };
   }
 
+  ready() {
+    super.ready();
+    this.$.validator.validate = this._isValidName;
+  }
+
   _codeEditorValueChanged(e) {
     this.secret.secret = JSON.parse(e.detail.value);
   }
@@ -172,6 +175,13 @@ export class SecretAdd extends PolymerElement {
     this.set('formError', true);
     this.$.errormsg.textContent = e.detail.request.xhr.responseText;
   }
+
+  /* eslint-disable class-methods-use-this */
+  _isValidName(name) {
+    // to-do check for uniqueness when redux is implemented
+    return /[A-Za-z0-9/][A-Za-z0-9]$/g.test(name);
+  }
+  /* eslint-enable class-methods-use-this */
 }
 
 customElements.define(SecretAdd.is, SecretAdd);
