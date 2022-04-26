@@ -8,7 +8,7 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import './image-actions.js';
-import { CSRFToken, itemUid } from '../helpers/utils.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 /* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
@@ -237,7 +237,6 @@ Polymer({
       on-response="_handleImageStarAjaxResponse"
       on-error="_handleImageStarAjaxError"
     ></iron-ajax>
-    <tags-list model="[[model]]"></tags-list>
   `,
 
   is: 'image-page',
@@ -284,13 +283,13 @@ Polymer({
 
   ready() {},
 
-  _displayUser(id, _members) {
-    return this.model && id && this.model.members && this.model.members[id]
-      ? this.model.members[id].name ||
-          this.model.members[id].email ||
-          this.model.members[id].username
-      : '';
-  },
+  // _displayUser(id, _members) {
+  //   return this.model && id && this.model.members && this.model.members[id]
+  //     ? this.model.members[id].name ||
+  //         this.model.members[id].email ||
+  //         this.model.members[id].username
+  //     : '';
+  // },
 
   _changed(image) {
     if (image) this.set('itemArray', [this.image]);
@@ -302,14 +301,6 @@ Polymer({
 
   _computeImageName(name) {
     return name === '<none>:<none>' ? this.image.id : name;
-  },
-
-  _editTags() {
-    const el = this.shadowRoot.querySelector('tags-list');
-    const items = [];
-    items.push(itemUid(this.image, this.section));
-    el.items = items;
-    el._openDialog();
   },
 
   _starImage(_e) {

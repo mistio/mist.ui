@@ -261,18 +261,18 @@ export default class PageImages extends connect(store)(
     return clouds.filter(c => ['ec2', 'docker'].indexOf(c.provider) > -1);
   }
 
-  sortedImages(_images) {
-    return this.model.imagesArray.sort((a, b) => {
-      // if both properties exist
-      if (a.star > b.star) {
-        return -1;
-      }
-      if (a.star < b.star) {
-        return 1;
-      }
-      return 0;
-    });
-  }
+  // sortedImages(_images) {
+  //   return this.model.imagesArray.sort((a, b) => {
+  //     // if both properties exist
+  //     if (a.star > b.star) {
+  //       return -1;
+  //     }
+  //     if (a.star < b.star) {
+  //       return 1;
+  //     }
+  //     return 0;
+  //   });
+  // }
 
   searchOnProviders() {
     if (this.$.imageprovidersearch) {

@@ -120,8 +120,8 @@ Polymer({
         list_rules(data) {
           that._updateRules(data);
         },
-        list_images(data) {
-          that._updateImages(data);
+        list_images(_data) {
+          // that._updateImages(data);
         },
         list_sizes(data) {
           that._updateSizes(data);
