@@ -571,7 +571,7 @@ Polymer({
                     class="cloud icon"
                     src$="[[_computeCloudIcon(cloud.provider)]]"
                   ></iron-icon>
-                  <span>[[cloud.title]]</span>
+                  <span>[[cloud.name]]</span>
                 </div>
               </div>
               <div class="row" hidden$="[[!cloud.tenant]]">
@@ -608,17 +608,7 @@ Polymer({
                   <h4>Location</h4>
                 </div>
                 <div class="cell">
-                  <span hidden$="[[_canLinkToNetwork(machine.network)]]"
-                    >[[machine.network]]</span
-                  >
-                  <span hidden$="[[!_canLinkToNetwork(machine.network)]]">
-                    <a
-                      class="blue-link regular"
-                      href$="/networks/[[machine.network]]"
-                    >
-                      [[_getNetworkName(machine)]]
-                    </a>
-                  </span>
+                  <span>[[_getLocationName(machine,cloud)]]</span>
                 </div>
               </div>
               <br hidden$="[[!_getNetworkName(machine)]]" />
@@ -908,7 +898,7 @@ Polymer({
               </tr>
               <tr>
                 <td>Machine ID given by the provider</td>
-                <td>[[machine.machine_id]]</td>
+                <td>[[machine.external_id]]</td>
               </tr>
               <tr>
                 <td>Public IPs</td>
@@ -1991,7 +1981,7 @@ Polymer({
     if (machine)
       return {
         cloud_id: machine.cloud,
-        machine_id: machine.machine_id,
+        external_id: machine.external_id,
       };
     return {};
   },

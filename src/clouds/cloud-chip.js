@@ -130,7 +130,7 @@ Polymer({
             <slot name="icon"></slot>
           </div>
           <div id="label">
-            <slot name="cloud-title"></slot>
+            <slot name="cloud-name"></slot>
           </div>
         </div>
       </div>

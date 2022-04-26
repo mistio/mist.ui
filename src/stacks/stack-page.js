@@ -29,6 +29,7 @@ import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 
+/* eslint-disable lit-a11y/anchor-is-valid */
 Polymer({
   _template: html`
     <style include="lists forms tags-and-labels single-page shared-styles">
@@ -1059,10 +1060,7 @@ Polymer({
   },
 
   _sortByTimestamp(items) {
-    if (items)
-      return items.sort((a, b) => {
-        return a.timestamp < b.timestamp;
-      });
+    if (items) return items.sort((a, b) => a.timestamp < b.timestamp);
     return items;
   },
 
@@ -1091,12 +1089,8 @@ Polymer({
         },
       },
       name: {
-        title: (_item, _row) => {
-          return 'workflow';
-        },
-        body: (item, _row) => {
-          return item;
-        },
+        title: (_item, _row) => 'workflow',
+        body: (item, _row) => item,
       },
     };
   },
@@ -1106,20 +1100,15 @@ Polymer({
   },
 
   _computeOutputsAreEmpty(stack) {
-    if (stack && stack.outputs)
-      Object.keys(stack.outputs).forEach(() => {
-        return false;
-      });
+    if (stack && stack.outputs) Object.keys(stack.outputs).forEach(() => false);
     return true;
   },
 
   _computeOutputs(outputs) {
-    return Object.keys(outputs).map(key => {
-      return {
-        name: key,
-        value: outputs[key],
-      };
-    });
+    return Object.keys(outputs).map(key => ({
+      name: key,
+      value: outputs[key],
+    }));
   },
 
   _computeStackTags(_stack, _stackTags) {
@@ -1231,14 +1220,13 @@ Polymer({
     if (nodeInstances && nodeInstances.base) {
       nodeInstances.base.forEach(rtpy => {
         if (rtpy.runtime_properties.mist_type === 'machine') {
-          const mac = Object.values(this.model.machines).find(mach => {
-            return (
+          const mac = Object.values(this.model.machines).find(
+            mach =>
               rtpy.runtime_properties &&
               rtpy.runtime_properties.info !== null &&
               mach &&
               mach.id === rtpy.runtime_properties.info.id
-            );
-          });
+          );
 
           if (mac) {
             machines.push(mac);
@@ -1247,7 +1235,7 @@ Polymer({
               name: rtpy.runtime_properties.info.name,
               state: 'missing',
               cloud: {
-                provider: `Machine id: ${rtpy.runtime_properties.info.machine_id} Cloud id: ${rtpy.runtime_properties.info.cloud}`,
+                provider: `Machine id: ${rtpy.runtime_properties.info.external_id} Cloud id: ${rtpy.runtime_properties.info.cloud}`,
               },
               isDead: true,
             };
@@ -1279,9 +1267,10 @@ Polymer({
     if (nodeInstances && nodeInstances.base) {
       nodeInstances.base.forEach(rtpy => {
         if (rtpy.runtime_properties.mist_type === 'zone') {
-          const zone_ = this.model.zonesArray.find(zone => {
-            return zone.id === rtpy.runtime_properties.info.id;
-          }, this);
+          const zone_ = this.model.zonesArray.find(
+            zone => zone.id === rtpy.runtime_properties.info.id,
+            this
+          );
           if (zone_) zones.push(zone_);
         }
       }, this);
@@ -1320,9 +1309,7 @@ Polymer({
     let workflows = [];
     if (this.template && this.template.workflows) {
       workflows = this.template.workflows
-        .filter(wf => {
-          return wf.name !== 'scale' && wf.name !== 'execute_operation';
-        })
+        .filter(wf => wf.name !== 'scale' && wf.name !== 'execute_operation')
         .slice(0);
     }
     let yamlInputs = '';
@@ -1366,9 +1353,7 @@ Polymer({
     };
     for (let i = 0; i < workflows.length; i++) {
       const wf = workflows[i];
-      const radioField = wf.params.findIndex(p => {
-        return p.name === 'yaml_or_form';
-      });
+      const radioField = wf.params.findIndex(p => p.name === 'yaml_or_form');
       if (wf.params && wf.params.length > 0 && radioField === -1) {
         for (let j = 0; j < wf.params.length; j++) {
           const workflowField = wf.params[j];

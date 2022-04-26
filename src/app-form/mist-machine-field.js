@@ -168,7 +168,7 @@ Polymer({
               as="option"
             >
               <paper-item
-                value="[[option.machine_id]]"
+                value="[[option.external_id]]"
                 disabled$="[[option.disabled]]"
               >
                 <span class="flex">[[_showOption(option)]]</span>
@@ -303,7 +303,12 @@ Polymer({
               id$="[[option.id]]"
             >
               <template is="dom-if" if="[[option.img]]">
-                <img class="item-img" src="[[option.img]]" width="24px" />
+                <img
+                  class="item-img"
+                  src="[[option.img]]"
+                  width="24px"
+                  alt="[[option.name]]"
+                />
               </template>
               <span
                 class$="item-desc noimg-[[!option.img]]"
@@ -537,16 +542,14 @@ Polymer({
         ['onapp', 'vsphere', 'libvirt'].indexOf(selectedCloud.provider) > -1
       ) {
         const { provider } = selectedCloud;
-        const { fields } = MACHINE_CREATE_FIELDS.find(p => {
-          return p.provider === provider;
-        });
+        const { fields } = MACHINE_CREATE_FIELDS.find(
+          p => p.provider === provider
+        );
         this.set('fieldSize.custom', true);
         this.set('fieldSize.value', 'custom');
         this.set(
           'fieldSize.customSizeFields',
-          fields.find(f => {
-            return f.type === 'mist_size';
-          }).customSizeFields
+          fields.find(f => f.type === 'mist_size').customSizeFields
         );
       } else {
         this.set('fieldSize.custom', false);
@@ -616,14 +619,15 @@ Polymer({
       if (this.multi) {
         this.set(
           'field.value',
-          this.field.machinesList.map(f => {
-            return { cloud_id: this.field.cloud, machine_id: f.value };
-          })
+          this.field.machinesList.map(f => ({
+            cloud_id: this.field.cloud,
+            external_id: f.value,
+          }))
         );
       } else {
         this.set('field.value', {
           cloud_id: this.field.cloud,
-          machine_id: this.field.machine,
+          external_id: this.field.machine,
         });
       }
     } else if (this.multi) {
@@ -678,7 +682,7 @@ Polymer({
           }
           return false;
         }
-        if (!this.field.value.machine_id) {
+        if (!this.field.value.external_id) {
           if (DEBUG_FORM) {
             console.log('useExistingMachine machine');
           }
@@ -777,9 +781,9 @@ Polymer({
   },
 
   _filter(options, search) {
-    return options.filter(op => {
-      return op.name.toLowerCase().indexOf(search.toLowerCase()) > -1;
-    });
+    return options.filter(
+      op => op.name.toLowerCase().indexOf(search.toLowerCase()) > -1
+    );
   },
 
   _objectToArray(obj) {
@@ -808,17 +812,12 @@ Polymer({
   _computeMachinesNames(machinesList, machines) {
     return !machinesList
       ? 'select'
-      : machinesList.map(m => {
-          return this._getName(m.value, machines);
-        });
+      : machinesList.map(m => this._getName(m.value, machines));
   },
 
   _getName(m, _machines) {
     const machine =
-      this.machines &&
-      this.machines.find(item => {
-        return item.machine_id === m;
-      });
+      this.machines && this.machines.find(item => item.external_id === m);
     return machine ? machine.name : 'not found';
   },
 });

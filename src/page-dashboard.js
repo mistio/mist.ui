@@ -345,8 +345,8 @@ export default class PageDashboard extends mixinBehaviors(
                     id$="[[item.id]]"
                   >
                     <div class="icon" slot="icon"></div>
-                    <div class="cloud-title" slot="cloud-title">
-                      [[item.title]]
+                    <div class="cloud-name" slot="cloud-name">
+                      [[item.name]]
                     </div>
                   </cloud-chip>
                 </a>
@@ -690,7 +690,7 @@ export default class PageDashboard extends mixinBehaviors(
 
   _computeName(item) {
     if (this.model && this.model.clouds && this.model.clouds[item])
-      return this.model.clouds[item].title;
+      return this.model.clouds[item].name;
     return item;
   }
 

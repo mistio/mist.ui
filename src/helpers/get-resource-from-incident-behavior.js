@@ -32,16 +32,14 @@ export const getResourceFromIncidentBehavior = {
       if (type) {
         let resource = {};
         if (type === 'subnet') {
-          if (this.model.clouds[incident.network_id])
+          if (this.model.clouds[incident.cloud_id])
             resource = this.model.networks[incident.network_id][
-              incident[`${type}_id`]
+              incident.external_id
             ];
           if (resource) resource.uri = `/networks/${incident.network_id}`;
         } else if (type === 'record') {
-          if (this.model.clouds[incident.zone_id])
-            resource = this.model.networks[incident.zone_id][
-              incident[`${type}_id`]
-            ];
+          if (this.model.zones[incident.zone_id])
+            resource = this.model.zones[incident.zone_id][incident.external_id];
           if (resource) {
             resource.uri = `/zones/${incident.zone_id}`;
           }
@@ -50,7 +48,6 @@ export const getResourceFromIncidentBehavior = {
             resource = this.model.clouds[incident.cloud_id];
           if (resource) {
             resource.uri = `/clouds/${incident.cloud_id}`;
-            resource.name = resource.title;
           }
         } else if (type === 'organization') {
           resource = {

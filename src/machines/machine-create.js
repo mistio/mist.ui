@@ -182,8 +182,8 @@ Polymer({
                   <img
                     src="[[_computeProviderLogo(cloud.provider)]]"
                     width="24px"
-                    alt="[[cloud.title]]"
-                  />[[cloud.title]]</paper-item
+                    alt="[[cloud.name]]"
+                  />[[cloud.name]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -423,7 +423,10 @@ Polymer({
 
   _cloudLocationsUpdated(locations) {
     if (!this.cloud || !this.cloud.locations || !locations) return;
-    const locArray = Object.values(this.cloud.locations);
+    const locArray = Object.values(this.cloud.locations).filter(
+      loc => loc.location_type !== 'region'
+    );
+
     if (locArray.length === 1) {
       // If there's a single location preselect it
       const lid = locArray[0].id;
@@ -851,7 +854,7 @@ Polymer({
               'create_resources',
               l.id
             );
-            return checkPerm !== false;
+            return checkPerm !== false && l.location_type !== 'region';
           });
           // disable maxihost locations that support no sizes
           if (this.model.clouds[cloudId].provider === 'maxihost') {
@@ -975,10 +978,10 @@ Polymer({
 
         if (f.name.endsWith('zone')) {
           f.options = this._toArray(this.model.zones);
-          // If zones share same domain but have differnt zone_id then display zone_id as suffix
+          // If zones share same domain but have differnt external_id then display external_id as suffix
           f.options.forEach(zone => {
-            if (zone.domain !== `${zone.zone_id}.`) {
-              zone.suffix = zone.zone_id;
+            if (zone.domain !== `${zone.external_id}.`) {
+              zone.suffix = zone.external_id;
             }
           });
         }
@@ -990,8 +993,8 @@ Polymer({
             if (sf.name && sf.name.endsWith('zone')) {
               sf.options = this._toArray(this.model.zones);
               sf.options.forEach(zone => {
-                if (`${zone.zone_id}.` !== zone.domain) {
-                  zone.suffix = zone.zone_id;
+                if (`${zone.external_id}.` !== zone.domain) {
+                  zone.suffix = zone.external_id;
                 }
               });
               if (sf.options.length)
@@ -2970,7 +2973,7 @@ Polymer({
       }
       // if the provider is Docker or onapp, the key should not be required
       if (
-        ['docker', 'lxd', 'onapp', 'libvirt', 'vshere', 'kubevirt'].indexOf(
+        ['docker', 'lxd', 'onapp', 'libvirt', 'vsphere', 'kubevirt'].indexOf(
           this.model.clouds[this.selectedCloud].provider
         ) < 0
       )
@@ -3020,7 +3023,7 @@ Polymer({
     // exclude bare metals and not allowed clouds from provider dropdown list
     return this._toArray(this.model.clouds).filter(
       c =>
-        ['bare_metal'].indexOf(c.provider) === -1 &&
+        ['other'].indexOf(c.provider) === -1 &&
         this.checkPerm('cloud', 'create_resources', c.id)
     );
   },

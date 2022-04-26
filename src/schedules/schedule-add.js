@@ -255,7 +255,7 @@ Polymer({
           ],
         },
         {
-          name: 'machines_uuids',
+          name: 'machine_ids',
           label: 'Machines',
           // type: "mist_dropdown",
           type: 'checkboxes',
@@ -573,7 +573,7 @@ Polymer({
           f.options = this.model.scriptsArray || [];
         }
 
-        if (f.name === 'machines_uuids') {
+        if (f.name === 'machine_ids') {
           f.options =
             (this.model &&
               this.model.machines &&
@@ -604,12 +604,12 @@ Polymer({
   _updateCheckboxes() {
     // check if any checkboxes are selected
     const checkedMachines = this.get(
-      `fields.${this._fieldIndexByName('machines_uuids')}.value`
+      `fields.${this._fieldIndexByName('machine_ids')}.value`
     );
     // if there are selected checkboxes, keep selection on update
     if (checkedMachines && checkedMachines.length) {
       const checkboxes = this.$.scheduleAddForm.shadowRoot.querySelectorAll(
-        'paper-checkbox[name="machines_uuids"]'
+        'paper-checkbox[name="machine_ids"]'
       );
       [].forEach.call(checkboxes, el => {
         if (checkedMachines.indexOf(el.id) > -1) el.checked = true;
@@ -642,7 +642,7 @@ Polymer({
       if (
         this.get(changeRecord.path.replace('.value', '')).name === 'ids_or_tags'
       ) {
-        const uuidsInd = this._fieldIndexByName('machines_uuids');
+        const uuidsInd = this._fieldIndexByName('machine_ids');
 
         if (changeRecord.value === 'ids') {
           this._removeObjectFromSelectors('tags');
@@ -663,7 +663,7 @@ Polymer({
       // changing uuids
       if (
         this.get(changeRecord.path.replace('.value', '')).name.startsWith(
-          'machines_uuids'
+          'machine_ids'
         )
       ) {
         // console.log('changeRecord.value', changeRecord.value);

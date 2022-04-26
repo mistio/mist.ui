@@ -386,9 +386,9 @@ Polymer({
         const ownerObj =
           this.model &&
           this.model.membersArray &&
-          this.model.membersArray.find(m => {
-            return [m.name, m.email, m.username, m.id].indexOf(owner) > -1;
-          });
+          this.model.membersArray.find(
+            m => [m.name, m.email, m.username, m.id].indexOf(owner) > -1
+          );
         if (!ownerObj || !item.owned_by || item.owned_by !== ownerObj.id)
           return false;
       }
@@ -404,7 +404,7 @@ Polymer({
       this.model.clouds[item.cloud]
     ) {
       str += `${this.model.clouds[item.cloud].provider}${
-        this.model.clouds[item.cloud].title
+        this.model.clouds[item.cloud].name
       }`;
     }
 

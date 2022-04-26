@@ -268,11 +268,12 @@ export default class PageMachines extends mixinBehaviors(
         type: Object,
         value() {
           return item => {
-            if (
-              item.machine_type === 'hypervisor' ||
-              item.machine_type === 'container-host' ||
-              item.machine_type === 'node' ||
-              item.machine_type === 'pod'
+            if (item && (
+                item.machine_type === 'hypervisor' ||
+                item.machine_type === 'container-host' ||
+                item.machine_type === 'node' ||
+                item.machine_type === 'pod'
+              )
             )
               return true;
             return false;
@@ -594,7 +595,7 @@ export default class PageMachines extends mixinBehaviors(
         body: (item, _row) => {
           if (_this.model && _this.model.clouds)
             return _this.model.clouds[item]
-              ? _this.model.clouds[item].title
+              ? _this.model.clouds[item].name
               : '';
           return '';
         },
@@ -762,7 +763,7 @@ export default class PageMachines extends mixinBehaviors(
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
-      machine_id: {
+      external_id: {
         title: 'id (external)',
         body: i => i,
       },
@@ -949,7 +950,7 @@ export default class PageMachines extends mixinBehaviors(
     const machineIncidents = incidents
       ? incidents.filter(
           inc =>
-            inc.machine_id === machine.machine_id &&
+            inc.external_id === machine.external_id &&
             inc.cloud_id === machine.cloud &&
             !inc.finished_at
         )

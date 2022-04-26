@@ -1,4 +1,5 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { ratedCost } from './helpers/utils.js';
 import '@polymer/app-route/app-route.js';
 import '@mistio/mist-list/mist-list.js';
 import './clusters/cluster-actions.js';
@@ -38,6 +39,7 @@ export default class PageClusters extends PolymerElement {
             actions="[[actions]]"
             route="{{route}}"
             item-map="[[model.clusters]]"
+            user-filter="[[model.sections.clusters.q]]"
           >
           </mist-list>
         </cluster-actions>
@@ -66,10 +68,14 @@ export default class PageClusters extends PolymerElement {
       renderers: {
         type: Object,
       },
+      currency: {
+        type: Object
+      }
     };
   }
 
   _getRenderers() {
+    const _this = this;
     return {
       name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
@@ -79,9 +85,24 @@ export default class PageClusters extends PolymerElement {
           }),
       },
       cloud: {
-        body: (item, _row) => item.title,
+        body: (item, _row) => {
+          if (_this.model && _this.model.clouds)
+            return _this.model.clouds[item].title
+              ? _this.model.clouds[item].title
+              : '';
+          return '';
+        },
       },
+      "cost": {
+        title: () => 'total cost',
+        body: (item, _row) => `${_this.currency.sign}${
+            _this._ratedCost(item.monthly.toFixed(2), _this.currency.rate)}` || 0
+      }
     };
+  }
+
+  _ratedCost(cost, rate) {
+    return ratedCost(cost, rate);
   }
 
   _getFrozenColumn() {
@@ -89,7 +110,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getVisibleColumns() {
-    return ['cloud', 'id', 'tags'];
+    return ['cloud', 'id', 'cost', 'tags'];
   }
 
   _isListActive(path) {

@@ -3,6 +3,8 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
+import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
+import { ratedCost } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -83,16 +85,40 @@ export default class ClusterPage extends mixinBehaviors(
           width: 90px;
           opacity: 0.54;
           margin: 0;
+          line-height: 95%;
         }
 
         .cell paper-toggle-button {
           vertical-align: middle;
         }
 
-        paper-material.info {
+        .columns {
           display: flex;
+          flex: 1 100%;
+          margin-bottom: 16px;
           flex-direction: row;
-          flex-wrap: wrap;
+        }
+
+        .columns paper-material > .break {
+          word-break: break-all;
+        }
+
+        .left {
+          line-height: 1.6em;
+        }
+
+        .left,
+        .right {
+          display: flex;
+          align-items: flex-start;
+          flex-direction: column;
+          flex: 1 50%;
+          font-size: 0.9em;
+        }
+
+        .left h3,
+        .right h3 {
+          margin-bottom: 0;
         }
 
         .is-loading {
@@ -156,9 +182,9 @@ export default class ClusterPage extends mixinBehaviors(
           ></span>
           <div class="title flex">
             <h2>[[cluster.name]]</h2>
-            <div class="subtitle">on [[cluster.cloud.title]]</div>
+            <div class="subtitle">on [[cloud.name]]</div>
             <div class="subtitle">
-              <span>[[cluster.state]]</span>
+              <span>[[clusterState]]</span>
             </div>
           </div>
           <cluster-actions
@@ -171,82 +197,114 @@ export default class ClusterPage extends mixinBehaviors(
         <paper-material>
           <div class="missing" hidden$="[[!isMissing]]">Cluster not found.</div>
         </paper-material>
-        <paper-material class="info">
-          <div class="resource-info">
-            <div class="table">
-              <div class="row">
-                <div class="cell">
-                  <h4>ID:</h4>
+        <div class="columns">
+          <paper-material class="left info">
+            <div class="resource-info">
+              <div class="table">
+                <div class="row">
+                  <div class="cell">
+                    <h4>ID:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.id]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cluster.id]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Cloud:</h4>
+                  </div>
+                  <div class="cell">
+                    <a href="/clouds/[[cloud.id]]">
+                      <iron-icon
+                        class="cloud icon"
+                        src$="[[_computeCloudIcon(cloud.provider)]]"
+                      ></iron-icon>
+                      <span>[[cloud.name]]</span>
+                    </a>
+                  </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Cloud:</h4>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Location:</h4>
+                  </div>
+                  <div class="cell">
+                  <span>[[_getLocationName(cloud, cluster)]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cluster.cloud.title]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Nodes:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_nodes]] </span>
+                  </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Provider:</h4>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total CPUs:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_cpus]] </span>
+                  </div>
                 </div>
-                <div class="cell">
-                  <span>[[cluster.provider]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total Nodes:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_nodes]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total CPUs:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_cpus]] </span>
-                </div>
-              </div>
-              <div class="row">
-                <div class="cell">
-                  <h4>Total Mem:</h4>
-                </div>
-                <div class="cell">
-                  <span>[[cluster.total_memory]] </span>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Mem:</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[cluster.total_memory]] </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <span class="id"
-            ><a href="/members/[[cluster.owned_by]]"
-              >[[_displayUser(cluster.owned_by,model.members)]]</a
-            ></span
-          >
-          <h4 class="id" hidden$="[[!cluster.created_by.length]]">
-            Created by:
-          </h4>
-          <span class="id"
-            ><a href="/members/[[cluster.created_by]]"
-              >[[_displayUser(cluster.created_by,model.members)]]</a
-            ></span
-          >
-          <h4 class="id tags" hidden$="[[_isEmpty(cluster.tags)]]">Tags:</h4>
-          <template is="dom-if" if="[[!_isEmpty(cluster.tags)]]">
-            <template is="dom-repeat" items="[[cluster.tags]]">
-              <span class="id tag"
-                >[[item.key]]
-                <span hidden="[[!item.value]]">[[item.value]]</span></span
-              >
-            </template>
-          </template>
-        </paper-material>
+            <span class="id"
+              ><a href="/members/[[cluster.owned_by]]"
+                >[[_displayUser(cluster.owned_by,model.members)]]</a
+              ></span
+            >
+            <h4 class="id" hidden$="[[!cluster.created_by.length]]">
+              Created by:
+            </h4>
+            <span class="id"
+              ><a href="/members/[[cluster.created_by]]"
+                >[[_displayUser(cluster.created_by,model.members)]]</a
+              ></span
+            >
+          </paper-material>
+          <paper-material class="right info">
+            <div class="resource-info">
+              <div class="table">
+                <div class="row">
+                  <div class="cell">
+                    <h4>Total Cost</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly,
+                          currency.rate)]]</span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Control Plane Cost</h4>
+                  </div>
+                  <div class="cell">
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.control_plane_monthly, 
+                          currency.rate)]]</span>
+                  </div>
+                </div>
+              </div>
+              <h4 class="id tags" hidden$="[[_isEmpty(cluster.tags)]]">Tags:</h4>
+              <template is="dom-if" if="[[!_isEmpty(cluster.tags)]]">
+                <template is="dom-repeat" items="[[cluster.tags]]">
+                  <span class="id tag"
+                    >[[item.key]]
+                    <span hidden="[[!item.value]]">[[item.value]]</span></span
+                    >
+                </template>
+              </template>
+            </div>
+          </paper-material>
+        </div>
         <br />
         <paper-material class="no-pad">
           <div class="horizontal layout hide-button">
@@ -279,6 +337,8 @@ export default class ClusterPage extends mixinBehaviors(
               visible="[[_getVisibleResourcesColumns()]]"
               renderers="[[_getRenderers()]]"
               actions="[[resourceActions]]"
+              tree-view
+              data-provider="[[dataProvider]]"
               selected-items="{{selectedResources}}"
               selectable=""
               auto-hide=""
@@ -345,11 +405,36 @@ export default class ClusterPage extends mixinBehaviors(
       selectedResources: {
         type: Array,
       },
+      cloud: {
+        type: Object,
+        value() {
+          return {};
+        },
+      },
+      clusterState: {
+        type: String,
+        computed: '_computeClusterState(cluster.state, model.clusters.*)',
+      },
+      dataProvider: {
+        type: Object,
+        value() {
+          return treeViewDataProvider.bind(this);
+        },
+      },
+      currency: {
+        type: Object,
+        value() {
+          return { sign: '$', rate: 1 };
+        },
+      },
     };
   }
 
   static get observers() {
-    return ['_changed(cluster)'];
+    return [
+      '_changed(cluster)',
+      '_setClusterCloud(model.clouds.*, machine.cloud, cluster)',
+    ];
   }
 
   ready() {
@@ -434,7 +519,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       location: {
         body: (item, row) => {
-          if (_this.model && _this.model.clouds)
+          if (item && _this.model && _this.model.clouds)
             return _this.model.clouds[row.cloud].locations[item].name;
           return '';
         },
@@ -461,6 +546,38 @@ export default class ClusterPage extends mixinBehaviors(
     );
   }
 
+  _setClusterCloud() {
+    if (this.model && this.model.clouds && this.cluster)
+      this.set('cloud', this.model.clouds[this.cluster.cloud]);
+    return {};
+  }
+
+  _computeClusterState() {
+    return (this.cluster && this.cluster.state) || '';
+  }
+
+  _getLocationName() {
+    if (
+      !this.cluster ||
+      !this.cloud ||
+      !this.cloud.locations ||
+      !this.cluster.location
+    )
+      return '';
+    return this.cloud.locations[this.cluster.location].name;
+  }
+
+  _computeCloudIcon(cloud) {
+    if (!cloud) {
+      return '';
+    }
+    return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
+  }
+
+  _ratedCost(cost, rate) {
+    return ratedCost(cost, rate);
+  }
+
   arrowButtonClick(e) {
     e.stopPropagation();
     const arrowIcon = e.currentTarget.children[0];
@@ -473,6 +590,10 @@ export default class ClusterPage extends mixinBehaviors(
       arrowIcon.style.transform = 'rotate(270deg)';
       dataDiv.setAttribute('hidden', '');
     }
+  }
+
+  resourceHasChildren(item) {
+    return item.machine_type === 'node';
   }
 }
 

@@ -575,16 +575,16 @@ Polymer({
               selected="{{selectedCloud::iron-select}}"
               class="dropdown-content"
             >
-              <template is="dom-repeat" items="[[providers]]" as="provider">
+              <template is="dom-repeat" items="[[clouds]]" as="cloud">
                 <paper-item
-                  value="[[provider.id]]"
-                  disabled$="[[!_isOnline(provider.id, provider.state, model.clouds)]]"
+                  value="[[cloud.id]]"
+                  disabled$="[[!_isOnline(cloud.id, cloud.state, model.clouds)]]"
                 >
                   <img
-                    src="[[_computeProviderLogo(provider.provider)]]"
-                    alt="[[provider.provider]]"
+                    src="[[_computeProviderLogo(cloud.provider)]]"
+                    alt="[[cloud.provider]]"
                     width="24px"
-                  />[[provider.title]]</paper-item
+                  />[[cloud.name]]</paper-item
                 >
               </template>
             </paper-listbox>
@@ -616,7 +616,7 @@ Polymer({
     model: {
       type: Object,
     },
-    providers: {
+    clouds: {
       type: Array,
     },
     form: {
@@ -662,7 +662,7 @@ Polymer({
             cloud.provider
           ) > -1
       );
-    this.set('providers', networkClouds);
+    this.set('clouds', networkClouds);
     this.set(
       'hasCloudsWithNetworks',
       !!(networkClouds && networkClouds.length > 0)
@@ -684,53 +684,48 @@ Polymer({
     // clear to reset
     this.set('machineFields', []);
     let networkFields = [];
-    let cloudName = '';
+    let cloudProvider = '';
     if (this.selectedCloud) {
-      cloudName = this.model.clouds[selectedCloud].provider;
-      networkFields = this.networksFields.find(c => c.provider === cloudName);
+      cloudProvider = this.model.clouds[selectedCloud].provider;
+      networkFields = this.networksFields.find(
+        c => c.provider === cloudProvider
+      );
     }
     // add cloud fields
     if (networkFields.fields) this.set('fields', networkFields.fields);
 
     // add locations fields
     let fieldName;
+    if (this.fieldIndexByName('region') > -1) fieldName = 'region';
+    else if (this.fieldIndexByName('availability_zone') > -1)
+      fieldName = 'availability_zone';
+    else if (this.fieldIndexByName('location') > -1) fieldName = 'location';
+
     if (
-      this.fieldIndexByName('region') > -1 ||
-      this.fieldIndexByName('availability_zone') > -1 ||
-      this.fieldIndexByName('location') > -1
-    ) {
-      fieldName =
-        this.fieldIndexByName('region') > -1 ? 'region' : this.fieldIndexByName('availability_zone') > -1 ? 'availability_zone' : 'location';
-    }
-    if (cloudName === 'ec2' || cloudName === 'aliyun_ecs')
+      cloudProvider === 'ec2' ||
+      cloudProvider === 'aliyun_ecs' ||
+      cloudProvider === 'vultr'
+    )
       this.set(
         `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
+        this.model.clouds[selectedCloud].locationsArray.filter(
+          loc => loc.location_type !== 'region'
+        )
       );
-    if (cloudName === 'gce') {
-      const regionsArr = [];
-      const regions = [];
+    if (cloudProvider === 'gce') {
+      let regions = [];
       if (this.model.clouds[selectedCloud].locationsArray)
-        this.model.clouds[selectedCloud].locationsArray.forEach(l => {
-          if (!regionsArr.includes(l.extra.region)) {
-            regionsArr.push(l.extra.region);
-            regions.push({ name: l.extra.region, id: l.extra.region });
-          }
-        });
+        regions = this.model.clouds[selectedCloud].locationsArray
+          .filter(loc => loc.location_type === 'region')
+          .map(region => ({ name: region.name, id: region.name }));
       this.set(`fields.${this.fieldIndexByName(fieldName)}.options`, regions);
-    }
-    if (cloudName === 'vultr') {
-      this.set(
-        `fields.${this.fieldIndexByName(fieldName)}.options`,
-        this.model.clouds[selectedCloud].locationsArray
-      );
     }
   },
 
   updatePayload() {
     if (this.fields.length) {
       const payload = {};
-      const { provider } = this.model.clouds[this.selectedCloud];
+      const { provider } = this.model.clouds[this.selectedCloud].provider;
       payload.network = {};
       // create network
       for (let i = 0; i < this.fields.length; i++) {

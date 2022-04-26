@@ -82,14 +82,12 @@ Polymer({
     return false;
   },
   _getVisibleColumns() {
-    return ['name', 'region', 'cloud_title', 'creation_date'];
+    return ['name', 'region', 'cloud_name', 'creation_date'];
   },
   _getRenderers(_keys) {
     return {
       name: {
-        body: (item, _row) => {
-          return `<strong class="name">${item}</strong>`;
-        },
+        body: (item, _row) => `<strong class="name">${item}</strong>`,
       },
       icon: {
         body: (_item, row) => {
@@ -99,8 +97,8 @@ Polymer({
             .replace(' ', '')}.png`;
         },
       },
-      cloud_title: {
-        title: () => 'cloud title',
+      cloud_name: {
+        title: () => 'cloud name',
         body: item => item,
       },
       creation_date: {

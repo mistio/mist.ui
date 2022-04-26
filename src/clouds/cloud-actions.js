@@ -13,9 +13,9 @@ import './other-cloud-add-machine.js';
 import '../tags/tags-form.js';
 import '../helpers/xterm-dialog.js';
 import '../helpers/dialog-element.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 const CLOUD_ACTIONS = {
   tag: {
@@ -94,9 +94,8 @@ Polymer({
         <h3>Rename Cloud</h3>
         <div style="margin-bottom: 16px;">
           <paper-input
-            label="Title"
-            value="{{newCloud.title}}"
-            autofocus=""
+            label="Name"
+            value="{{newCloud.name}}"
             tabindex="0"
           ></paper-input>
           <div class="buttons">
@@ -105,9 +104,9 @@ Polymer({
               id="rename-cloud"
               dialog-confirm=""
               disabled$="[[!formReady]]"
-              on-tap="_changeTitle"
+              on-tap="_changeName"
               class="blue"
-              >Save Title</paper-button
+              >Save</paper-button
             >
           </div>
           <div></div></div
@@ -212,7 +211,7 @@ Polymer({
     },
     formReady: {
       type: Boolean,
-      computed: '_computeFormReady(cloud.title, newCloud.title, sendingData)',
+      computed: '_computeFormReady(cloud.name, newCloud.name, sendingData)',
     },
     providers: {
       type: Array,
@@ -255,7 +254,7 @@ Polymer({
   },
 
   _isBareMetal(provider) {
-    return provider === 'bare_metal';
+    return provider === 'other';
   },
 
   _isKvmLibvirt(provider) {
@@ -291,7 +290,7 @@ Polymer({
           subscript: removeExplanation,
           danger: true,
           action: 'REMOVE',
-          list: this._makeList(this.items, 'title'),
+          list: this._makeList(this.items, 'name'),
           reason: 'cloud.remove',
         });
       } else if (action.confirm && action.name !== 'tag') {
@@ -304,7 +303,7 @@ Polymer({
           subscript: `${
             this.action.name === 'remove' ? removeExplanation : null
           }`,
-          list: this._makeList(this.items, 'title'),
+          list: this._makeList(this.items, 'name'),
           action: action.name,
           danger: true,
           reason: `${this.resourceType}.${this.action.name}`,
@@ -400,8 +399,8 @@ Polymer({
   },
 
   _handleCloudRemovalAjaxResponse() {
-    let title = '';
-    if (this.cloud && this.cloud.title) title = this.cloud.title;
+    let name = '';
+    if (this.cloud && this.cloud.name) name = this.cloud.name;
 
     if (this.__dataHost.tagName === 'CLOUD-PAGE')
       this.dispatchEvent(
@@ -419,7 +418,7 @@ Polymer({
         bubbles: true,
         composed: true,
         detail: {
-          msg: `Cloud ${title} was removed`,
+          msg: `Cloud ${name} was removed`,
           duration: 3000,
         },
       })
@@ -432,7 +431,7 @@ Polymer({
         bubbles: true,
         composed: true,
         detail: {
-          msg: `There was an error removing ${this.cloud.title}.`,
+          msg: `There was an error removing ${this.cloud.name}.`,
           duration: 3000,
         },
       })
@@ -464,7 +463,7 @@ Polymer({
   _computeNewCloud(cloud) {
     return cloud
       ? {
-          title: this.cloud.title,
+          name: this.cloud.name,
         }
       : false;
   },
@@ -473,9 +472,9 @@ Polymer({
     return enabled;
   },
 
-  _computeFormReady(title, newTitle, sendingData) {
+  _computeFormReady(name, newName, sendingData) {
     let formReady = false;
-    if (newTitle && newTitle !== title) {
+    if (newName && newName !== name) {
       formReady = true;
     }
 
@@ -485,11 +484,11 @@ Polymer({
     return formReady;
   },
 
-  _changeTitle() {
+  _changeName() {
     this.$.cloudEditAjaxRequest.headers['Content-Type'] = 'application/json';
     this.$.cloudEditAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.cloudEditAjaxRequest.body = {
-      new_name: this.newCloud.title,
+      new_name: this.newCloud.name,
     };
     this.$.cloudEditAjaxRequest.generateRequest();
     this.set('sendingData', true);
