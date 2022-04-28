@@ -890,13 +890,7 @@ Polymer({
           //     'read_logs',
         ],
         bucket: ['read'],
-        secret: [
-          'read',
-          'delete',
-          'edit',
-          'create',
-          'read_value'
-        ]
+        secret: ['read', 'delete', 'edit', 'create', 'read_value'],
       },
     };
 
@@ -974,8 +968,8 @@ Polymer({
     const membersCount = this.model.members
       ? Object.keys(this.model.members).length
       : 0;
-    const secretsCount = this.model.secrets ?
-      Object.keys(this.model.secrets).length
+    const secretsCount = this.model.secrets
+      ? Object.keys(this.model.secrets).length
       : 0;
     const sectionsArray = [
       {
@@ -1123,9 +1117,9 @@ Polymer({
         add: '/secrets/+add',
         sidebar: true,
         tile: true,
-        count: "",
+        count: secretsCount,
         hideZero: false,
-        hideTileIfZero: true
+        hideTileIfZero: true,
       },
       {
         id: 'tunnels',
