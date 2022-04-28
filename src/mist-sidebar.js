@@ -540,6 +540,7 @@ export default class MistSidebar extends connect(store)(
     // temporary, every count should be get like this
     if (['stacks'].indexOf(name) > -1) return this.model.sections[name].count;
     if (
+      !this.sectionsCount ||
       ['dashboard', 'insights'].indexOf(name) > -1 ||
       Object.keys(this.sectionsCount).length <= 0
     )
