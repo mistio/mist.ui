@@ -325,6 +325,25 @@ export default class ClusterPage extends mixinBehaviors(
         </paper-material>
         <br />
         <paper-material class="no-pad">
+          <mist-list
+            id="nodepools"
+            items="[[cluster.nodepools]]"
+            frozen="[[_getFrozenNodepoolsColums()]]"
+            visible="[[_getVisibleNodepoolsColumns()]]"
+            renderers="[[_getNodepoolRenderers()]]"
+            actions="[[nodepoolActions]]"
+            selected-items="[[selectedNodepools]]"
+            selectable=""
+            auto-hide=""
+            column-menu=""
+            toolbar=""
+            resizable=""
+            name="nodepools"
+            primary-field-name="name"
+            ></mist-list>
+        </paper-material>
+        </br>
+        <paper-material class="no-pad">
           <machine-actions
             actions="{{resourceActions}}"
             items="[[selectedResources]]"
@@ -427,6 +446,13 @@ export default class ClusterPage extends mixinBehaviors(
           return { sign: '$', rate: 1 };
         },
       },
+      nodepoolActions: {
+        type: Array,
+        notify: true
+      },
+      selectedNodepools: {
+        type: Array
+      }
     };
   }
 
@@ -473,6 +499,28 @@ export default class ClusterPage extends mixinBehaviors(
 
   _getFrozenLogColumn() {
     return ['time'];
+  }
+
+  _getFrozenNodepoolsColums() {
+    return ['name'];
+  }
+
+  _getVisibleNodepoolsColumns() {
+    return ['node_count', 'state', 'min_nodes', 'max_nodes', 'locations']
+  }
+
+  _getNodepoolRenderers() {
+    const _this = this;
+    return {
+      locations: {
+        body: (item, row) => {
+          if (item) {
+            return item.join(', ');
+          }
+          return "";
+        }
+      }
+    }
   }
 
   _getRenderers() {
