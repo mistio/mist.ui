@@ -257,9 +257,6 @@ Polymer({
     params: {
       type: Object,
     },
-    model: {
-      type: Object,
-    },
     image: {
       type: Object,
       notify: true,
@@ -282,14 +279,6 @@ Polymer({
   observers: ['_changed(image)'],
 
   ready() {},
-
-  // _displayUser(id, _members) {
-  //   return this.model && id && this.model.members && this.model.members[id]
-  //     ? this.model.members[id].name ||
-  //         this.model.members[id].email ||
-  //         this.model.members[id].username
-  //     : '';
-  // },
 
   _changed(image) {
     if (image) this.set('itemArray', [this.image]);
