@@ -9,6 +9,7 @@ import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import '../tags/tags-list.js';
 import { itemUid, CSRFToken } from '../helpers/utils.js';
+import { store } from '../redux/redux-store.js';
 
 Polymer({
   _template: html`
@@ -219,9 +220,9 @@ Polymer({
           <h4 class="id">Key ID:</h4>
           <span class="id">[[key.id]]</span>
           <h4 class="id" hidden$="[[!key.owned_by.length]]">Owner:</h4>
-          <span class="id">[[_displayUser(key.owned_by,model.members)]]</span>
+          <span class="id">[[key.owned_by]]</span>
           <h4 class="id" hidden$="[[!key.created_by.length]]">Created by:</h4>
-          <span class="id">[[_displayUser(key.created_by,model.members)]]</span>
+          <span class="id">[[key.created_by]]</span>
           <template is="dom-if" if="[[keyTags.length]]">
             <h4 class="id tags">Tags</h4>
             <template is="dom-repeat" items="[[keyTags]]">
@@ -301,14 +302,14 @@ Polymer({
                 <span class="machine-info">
                   <span hidden$="[[!item.3]]">[[item.3]] @</span>
                   <a
-                    hidden$="[[!getMachineUrl(item,model.machines.*)]]"
-                    href="[[getMachineUrl(item,model.machines.*)]]"
+                    hidden$="[[!getMachineUrl(item)]]"
+                    href="[[getMachineUrl(item)]]"
                     class="machine"
-                    >[[getMachineName(item, model.machines.*)]]</a
+                    >[[getMachineName(item)]]</a
                   >
                   <template
                     is="dom-if"
-                    if="[[!getMachineName(item,model.machines.*)]]"
+                    if="[[!getMachineName(item)]]"
                     restamp=""
                     ><abbr title$="[[item.1]]">missing machine</abbr></template
                   >
@@ -394,6 +395,12 @@ Polymer({
     model: {
       type: Object,
     },
+    store: {
+      type: Object,
+      value() {
+        return store;
+      },
+    },
     color: {
       type: String,
       computed: '_getHeaderStyle(section)',
@@ -403,7 +410,7 @@ Polymer({
     },
     isDefault: {
       type: String,
-      computed: '_computeIsDefault(key.isDefault)',
+      computed: '_computeIsDefault(key.default)',
     },
     publicKey: {
       type: String,
@@ -415,7 +422,7 @@ Polymer({
     },
     keyMachines: {
       type: Array,
-      computed: '_computeKeyMachines(key, model.machines.*)',
+      computed: '_computeKeyMachines(key)',
     },
     keyHasMachines: {
       type: Boolean,
@@ -490,14 +497,6 @@ Polymer({
     this.set('visiblePrivateKey', false);
   },
 
-  _displayUser(id, _members) {
-    return this.model && id && this.model.members && this.model.members[id]
-      ? this.model.members[id].name ||
-          this.model.members[id].email ||
-          this.model.members[id].username
-      : '';
-  },
-
   _getHeaderStyle(section) {
     return `background-color: ${section.color}; color: #fff;`;
   },
@@ -523,7 +522,8 @@ Polymer({
   },
 
   _computeKeyMachines(key) {
-    if (key) return key.machines;
+    if (key && key.associations.length > 0)
+      return key.associations.map(assoc => assoc.machine);
     return [];
   },
 
@@ -537,24 +537,19 @@ Polymer({
     return false;
   },
 
-  getMachineUrl(keymachine) {
-    const cloud = this.model.clouds[keymachine[0]];
-    if (!cloud) return false;
-    const machine = cloud.machines && cloud.machines[keymachine[1]];
-    return machine && `/machines/${machine.id}`;
+  getMachineUrl(item) {
+    return item && `/machines/${item}`;
   },
 
-  getCloudTitle(keymachine) {
-    const cloud = this.model.clouds[keymachine[0]];
-    if (!cloud) return '';
-    return cloud.name;
+  getCloudTitle(machineId) {
+    const machine = this.store.getState().mainReducer.machines[machineId];
+    if (!machine || !machine.cloud) return '';
+    return machine.cloud;
   },
 
-  getMachineName(keymachine, _machines) {
-    const cloud = this.model.clouds[keymachine[0]];
-    if (!cloud) return '';
-    const machine = cloud.machines && cloud.machines[keymachine[1]];
-    return machine && machine.name;
+  getMachineName(machineId) {
+    const machine = this.store.getState().mainReducer.machines[machineId];
+    return machine ? machine.name : machineId;
   },
 
   _computeIsDefault(isDefault) {

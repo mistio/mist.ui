@@ -9,6 +9,8 @@ import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
+import { store } from './redux/redux-store.js';
+import reduxDataProvider from './redux/redux-data-provider.js';
 
 /* eslint-disable class-methods-use-this */
 export default class PageKeys extends mixinBehaviors(
@@ -31,7 +33,6 @@ export default class PageKeys extends mixinBehaviors(
         <key-actions
           actions="{{actions}}"
           items="[[selectedItems]]"
-          model="[[model]]"
           user="[[model.user.id]]"
           members="[[model.membersArray]]"
           org="[[model.org]]"
@@ -41,16 +42,17 @@ export default class PageKeys extends mixinBehaviors(
             resizable
             column-menu
             multi-sort
-            apiurl="/api/v1/keys"
+            apiurl="/api/v2/keys"
             id="keysList"
             name="Keys"
+            data-provider="[[dataProvider]]"
+            store="[[store]]"
             primary-field-name="id"
             frozen="[[_getFrozenColumn()]]"
             visible="[[_getVisibleColumns()]]"
             selected-items="{{selectedItems}}"
             renderers="[[_getRenderers()]]"
             route="{{route}}"
-            item-map="[[model.keys]]"
             user-filter="[[model.sections.keys.q]]"
             actions="[[actions]]"
             filter-method="[[_ownerFilter()]]"
@@ -67,14 +69,15 @@ export default class PageKeys extends mixinBehaviors(
         </div>
       </template>
       <key-add
-        model="[[model]]"
+        store="[[store]]"
         section="[[model.sections.keys]]"
         hidden$="[[!_isAddPageActive(route.path)]]"
         docs="[[config.features.docs]]"
       ></key-add>
       <key-page
+        id="keyPage"
         model="[[model]]"
-        key="[[_getKeyPair(data.key, model.keys)]]"
+        key="[[_getKeyPair(data.key)]]"
         resource-id="[[data.key]]"
         section="[[model.sections.keys]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
@@ -100,9 +103,17 @@ export default class PageKeys extends mixinBehaviors(
       selectedItems: {
         type: Array,
       },
-      renderers: {
+      dataProvider: {
         type: Object,
-        computed: '_getRenderers(model.keys)',
+        value() {
+          return reduxDataProvider.bind(this);
+        },
+      },
+      store: {
+        type: Object,
+        value() {
+          return store;
+        },
       },
     };
   }
@@ -123,8 +134,12 @@ export default class PageKeys extends mixinBehaviors(
   }
 
   _getKeyPair(id) {
-    if (this.model.keys) return this.model.keys[id];
-    return '';
+    if (!id) return '';
+    const key = this.store.getState().mainReducer.keys[id];
+    if (!key) {
+      this._setOneKey(id);
+    }
+    return key || '';
   }
 
   _addResource(_e) {
@@ -144,11 +159,10 @@ export default class PageKeys extends mixinBehaviors(
   }
 
   _getVisibleColumns() {
-    return ['machines', 'isDefault', 'created_by', 'id', 'tags'];
+    return ['machines', 'default', 'created_by', 'id', 'tags'];
   }
 
   _getRenderers(_keys) {
-    const _this = this;
     return {
       name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
@@ -159,17 +173,17 @@ export default class PageKeys extends mixinBehaviors(
       },
       // sort by number of machines
       machines: {
-        body: (item, _row) => item.length,
+        body: (_item, row) => row.associations.length,
         cmp: (row1, row2) => {
-          const item1 = row1.machines.length;
-          const item2 = row2.machines.length;
+          const item1 = row1.associations.length;
+          const item2 = row2.associations.length;
 
           if (item1 < item2) return -1;
           if (item2 < item1) return 1;
           return 0;
         },
       },
-      isDefault: {
+      default: {
         title: (_item, _row) => 'Default',
         body: (item, _row) =>
           item
@@ -178,45 +192,19 @@ export default class PageKeys extends mixinBehaviors(
       },
       owned_by: {
         title: (_item, _row) => 'owner',
-        body: (item, _row) =>
-          _this.model.members[item]
-            ? _this.model.members[item].name ||
-              _this.model.members[item].email ||
-              _this.model.members[item].username
-            : '',
+        body: (item, _row) => item,
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.owned_by]
-            ? this.model.members[row1.owned_by].name ||
-              this.model.members[row1.owned_by].email ||
-              this.model.members[row1.owned_by].username
-            : '';
-          const item2 = this.model.members[row2.owned_by]
-            ? this.model.members[row2.owned_by].name ||
-              this.model.members[row2.owned_by].email ||
-              this.model.members[row2.owned_by].username
-            : '';
+          const item1 = row1.owner;
+          const item2 = row2.owner;
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
       created_by: {
         title: (_item, _row) => 'created by',
-        body: (item, _row) =>
-          _this.model.members[item]
-            ? _this.model.members[item].name ||
-              _this.model.members[item].email ||
-              _this.model.members[item].username
-            : '',
+        body: (item, _row) => item,
         cmp: (row1, row2) => {
-          const item1 = this.model.members[row1.created_by]
-            ? this.model.members[row1.owned_by].name ||
-              this.model.members[row1.owned_by].email ||
-              this.model.members[row1.owned_by].username
-            : '';
-          const item2 = this.model.members[row2.created_by]
-            ? this.model.members[row2.owned_by].name ||
-              this.model.members[row2.owned_by].email ||
-              this.model.members[row2.owned_by].username
-            : '';
+          const item1 = row1.created_by;
+          const item2 = row2.created_by;
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
@@ -247,6 +235,11 @@ export default class PageKeys extends mixinBehaviors(
         },
       },
     };
+  }
+
+  async _setOneKey(id) {
+    const response = await (await fetch(`/api/v2/keys/${id}`)).json();
+    this.$.keyPage.key = response.data;
   }
 }
 

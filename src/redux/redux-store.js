@@ -5,6 +5,7 @@ const initialState = {
   clouds: {},
   machines: {},
   images: {},
+  keys: {},
   sectionsCount: {
     images: 0,
   },
@@ -38,6 +39,9 @@ const reducer = (state, action) => {
     }
     case 'Update-Images': {
       return updateResource('images', state, action.payload);
+    }
+    case 'Update-Keys': {
+      return updateResource('keys', state, action.payload);
     }
     case 'Update-Sections-Count': {
       // action.payload should be {resource: {total: int}}
