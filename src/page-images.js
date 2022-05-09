@@ -79,14 +79,13 @@ export default class PageImages extends connect(store)(
       </template>
       <image-page
         id="imagePage"
-        model="[[model]]"
         resource-id="[[_getImageId(route)]]"
         section="[[model.sections.images]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
       ></image-page>
       <image-provider-search
         id="imageprovidersearch"
-        clouds="[[searchableClouds(model.cloudsArray)]]"
+        clouds="[[searchableClouds()]]"
         query-term="[[model.sections.images.q]]"
       ></image-provider-search>
     `;
@@ -159,13 +158,6 @@ export default class PageImages extends connect(store)(
   }
 
   _getImageId(route) {
-    // if (
-    //   route.path.slice(1, route.path.length) &&
-    //   this.shadowRoot &&
-    //   this.shadowRoot.querySelector('image-page')
-    // ) {
-    //   this.shadowRoot.querySelector('image-page').updateState();
-    // }
     const id = route.path.slice(1, route.path.length);
     if (id) this._setImage(id);
     return id;
@@ -180,7 +172,7 @@ export default class PageImages extends connect(store)(
   }
 
   _getVisibleColumns() {
-    return ['starred', 'cloud', 'created_by', 'id' /* , 'tags' */];
+    return ['starred', 'cloud', 'created_by', 'id', 'tags'];
   }
 
   _getRenderers(_keys) {
@@ -257,7 +249,8 @@ export default class PageImages extends connect(store)(
     };
   }
 
-  searchableClouds(clouds) {
+  searchableClouds() {
+    const clouds = this.store.getState().mainReducer.clouds;
     return clouds.filter(c => ['ec2', 'docker'].indexOf(c.provider) > -1);
   }
 
