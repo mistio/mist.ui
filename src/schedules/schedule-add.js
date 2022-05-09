@@ -98,14 +98,12 @@ Polymer({
         </div>
       </paper-material>
       <paper-material>
-        <app-form
+        <mist-form
           id="scheduleAddForm"
           fields="{{fields}}"
           form="[[schedule]]"
-          url="/api/v1/schedules"
-          on-response="_handleAddScheduleResponse"
-          on-error="_handleError"
-        ></app-form>
+          url="/api/v2/schedules"
+        ></mist-form>
       </paper-material>
     </div>
   `,
