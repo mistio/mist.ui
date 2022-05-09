@@ -9,9 +9,9 @@ import { MistListActionsBehavior } from '@mistio/mist-list/mist-list-actions-beh
 import '../helpers/transfer-ownership.js';
 import '../tags/tags-form.js';
 import './key-edit.js';
-import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 const KEY_ACTIONS = {
   rename: {
@@ -55,12 +55,7 @@ Polymer({
     </style>
 
     <dialog-element id="confirm"></dialog-element>
-    <tags-form
-      id="tagsdialog"
-      model="[[model]]"
-      items="[[items]]"
-      type="[[type]]"
-    ></tags-form>
+    <tags-form id="tagsdialog" items="[[items]]" type="[[type]]"></tags-form>
     <transfer-ownership
       id="ownershipdialog"
       user="[[user]]"
@@ -85,9 +80,6 @@ Polymer({
   behaviors: [MistListActionsBehavior],
 
   properties: {
-    model: {
-      type: Object,
-    },
     user: {
       type: String,
     },
@@ -153,7 +145,7 @@ Polymer({
 
   computeItemActions(key) {
     const arr = [];
-    if (key && !key.isDefault && this.org.is_owner) {
+    if (key && !key.default && this.org.is_owner) {
       arr.push('make_default');
     }
     if (key) {

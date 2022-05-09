@@ -218,7 +218,7 @@ Polymer({
       },
       notify: true,
     },
-    model: {
+    store: {
       type: Object,
     },
     section: {
@@ -296,7 +296,9 @@ Polymer({
   },
 
   isUniqueValidator(value) {
-    const isUnique = this.model.keysArray.every(key => key.name !== value);
+    const isUnique = Object.values(
+      this.store.getState().mainReducers.keys
+    ).every(key => key.name !== value);
     return isUnique;
   },
 
