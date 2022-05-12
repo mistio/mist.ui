@@ -449,17 +449,17 @@ export default class ClusterPage extends mixinBehaviors(
       },
       currency: {
         type: Object,
-        value () {
-          return {sign: '$', rate: 1}
-        }
+        value() {
+          return { sign: '$', rate: 1 };
+        },
       },
       nodepoolActions: {
         type: Array,
-        notify: true
+        notify: true,
       },
       selectedNodepools: {
-        type: Array
-      }
+        type: Array,
+      },
     };
   }
 
@@ -514,21 +514,20 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _getVisibleNodepoolsColumns() {
-    return ['node_count', 'state', 'min_nodes', 'max_nodes', 'locations']
+    return ['node_count', 'state', 'min_nodes', 'max_nodes', 'locations'];
   }
 
   _getNodepoolRenderers() {
-    const _this = this;
     return {
       locations: {
-        body: (item, row) => {
+        body: (item, _row) => {
           if (item) {
             return item.join(', ');
           }
-          return "";
-        }
-      }
-    }
+          return '';
+        },
+      },
+    };
   }
 
   _getRenderers() {
@@ -618,7 +617,12 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _getLocationName() {
-    if (!this.cluster || !this.cloud || !this.cloud.locations || !this.cluster.location)
+    if (
+      !this.cluster ||
+      !this.cloud ||
+      !this.cloud.locations ||
+      !this.cluster.location
+    )
       return '';
     return this.cloud.locations[this.cluster.location].name;
   }

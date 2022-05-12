@@ -69,8 +69,8 @@ export default class PageClusters extends PolymerElement {
         type: Object,
       },
       currency: {
-        type: Object
-      }
+        type: Object,
+      },
     };
   }
 
@@ -93,11 +93,14 @@ export default class PageClusters extends PolymerElement {
           return '';
         },
       },
-      "cost": {
+      cost: {
         title: () => 'total cost',
-        body: (item, _row) => `${_this.currency.sign}${
-            _this._ratedCost(item.monthly.toFixed(2), _this.currency.rate)}` || 0
-      }
+        body: (item, _row) =>
+          `${_this.currency.sign}${_this._ratedCost(
+            item.monthly.toFixed(2),
+            _this.currency.rate
+          )}` || 0,
+      },
     };
   }
 
