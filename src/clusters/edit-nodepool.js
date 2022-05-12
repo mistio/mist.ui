@@ -1,0 +1,231 @@
+import '@polymer/iron-ajax/iron-ajax.js';
+import '@polymer/paper-styles/typography.js';
+import '@polymer/paper-button/paper-button.js';
+import '@polymer/paper-input/paper-input.js';
+import '@polymer/paper-input/paper-textarea.js';
+import '@polymer/paper-progress/paper-progress.js';
+import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
+import '@polymer/paper-toggle-button/paper-toggle-button.js';
+import '@polymer/neon-animation/animations/scale-up-animation.js';
+import '@polymer/neon-animation/animations/fade-out-animation.js';
+import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import { CSRFToken } from '../helpers/utils.js';
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+
+
+export default class EditNodepool extends PolymerElement {
+
+    static get properties() {
+        return {
+            nodepool: {
+                type: Object
+            },
+            clusterId: {
+                type: String
+            },
+            payload: {
+                type: Object,
+                value() {
+                    return {};
+                }
+            },
+            formError: {
+                type: Boolean,
+                value: false
+            },
+            errormsg: {
+                type: String
+            }
+        }
+    }
+
+    static get template() {
+        return html`
+        <style include="shared-styles dialogs">
+        :host {
+            width: 100%;
+        }
+
+        vaadin-dialog {
+            min-width: 360px;
+        }
+
+        iron-icon {
+            color: inherit;
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #errormsg {
+            color: #ff392e;
+            text-align: center;
+        }
+
+        paper-input {
+            text-align: center;
+        }
+        paper-button{
+            background-color: var(--mist-blue);
+            color: #fff;
+        }
+        vaadin-dialog::slotted(app-form paper-button) {
+            font-size: 0.9em;
+            padding: 1rem;
+        }
+        </style>
+        <vaadin-dialog id="editNodepoolDialog" with-backdrop="">
+            <template>  
+            <div id="content">
+                <h2>Edit Nodepool</h2>
+                <br/>
+                <div class="layout horizontal">
+                    <paper-toggle-button
+                        id="autoscale"
+                        checked="[[payload.autoscaling]]"
+                        on-tap="_changeAutoscaling"
+                    >
+                    </paper-toggle-button>
+                    <span> Autoscale </span>
+                </div>
+                <template is="dom-if" if="[[payload.autoscaling]]" restamp="">
+                    <paper-input id="min_nodes" label="Min Nodes" on-change="_valueChanged" value="[[nodepool.min_nodes]]">
+                    </paper-input>
+                    <paper-input id="max_nodes" label="Max Nodes" on-change="_valueChanged" value="[[nodepool.max_nodes]]">
+                    </paper-input>
+                </template>
+                <paper-input id="desired_nodes" label="Desired Nodes" on-change="_valueChanged" value="[[nodepool.node_count]]">
+                </paper-input>
+                <paper-button disabled="[[formError]]" on-tap="submit">Submit</paper-button>
+                <br/>
+                <template is="dom-if" if="[[formError]]" restamp="">
+                    <span id="errormsg">[[errormsg]]</span>
+                </template>
+            </div>
+            </template>
+        </vaadin-dialog>
+        <iron-ajax
+        id="editNodepoolsRequest"
+        method="POST"
+        on-response="_editNodepoolResponse"
+        on-error="_editNodepoolError"
+        handle-as="xml"
+        ></iron-ajax>
+        `;
+    }
+
+    _openDialog(_e) {
+        this._clearSelection();
+        this._validateForm();
+        this.$.editNodepoolDialog.opened = true;
+    }
+
+    _closeDialog(_e) {
+        this._clearSelection();
+        this.$.editNodepoolDialog.opened = false;
+    }
+
+    _clearSelection(){
+        if(this.nodepool){
+            this.payload['min_nodes'] = this.nodepool.min_nodes;
+            this.payload['max_nodes'] = this.nodepool.max_nodes;
+            this.payload['desired_nodes'] = this.nodepool.node_count;
+            this.set('payload.autoscaling', this.nodepool.autoscaling);
+        }
+        this.errormsg = "";
+        this.set('formError', false);
+
+    }
+
+    _changeAutoscaling(_e) {
+        this.set('payload.autoscaling', !this.payload.autoscaling);
+        this._validateForm();
+    }
+
+    _validateForm() {
+        let msg = "";
+        if(this.payload.autoscaling){
+            if(!this.payload['min_nodes'] || !this.payload['max_nodes']){
+                msg = "min_nodes and max_nodes need to be set with autoscale";
+            }
+            if(!(this.payload['min_nodes'] <= this.payload['desired_nodes']) || !(this.payload['desired_nodes'] <= this.payload['max_nodes'])){
+                msg = "This should be true:\n min_nodes <= desired_nodes <= max_nodes";
+            }
+        }
+        if(!this.payload.desired_nodes) {
+            msg = 'desired_nodes should be set in any instace'
+        }
+        if(msg) {
+            this.errormsg = msg;
+            this.set('formError', true);
+        }else
+            this.set('formError', false);
+
+    }
+
+    _valueChanged(e) {
+        const input = e.target;
+        this.payload[input.id] = e.target.value;
+        this._validateForm();      
+    }
+
+    submit() {   
+        if(this.formError)
+            return;
+        if(!this.payload.autoscaling) {
+            delete this.payload.min_nodes;
+            delete this.payload.max_nodes;
+        }
+        else {
+            this.payload.min_nodes = parseInt(this.payload.min_nodes);
+            this.payload.max_nodes = parseInt(this.payload.max_nodes);
+        }
+        debugger;
+        const request = this.$.editNodepoolsRequest;
+        request.headers['Content-Type'] = 'application/json';
+        request.headers['Csrf-Token'] = CSRFToken.value;
+        request.url = `/api/v2/clusters/${this.clusterId}/nodepools/${this.nodepool.name}`;
+        request.body = this.payload;
+        request.generateRequest();        
+    }
+
+    _editNodepoolResponse(e) {
+        console.log(e, e.detail);
+        this._closeDialog();
+        this.dispatchEvent(
+            new CustomEvent('action-finished', {
+              bubbles: true,
+              composed: true,
+              detail: { success: true },
+            })
+          );
+      
+        this.dispatchEvent(
+            new CustomEvent('toast', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                msg: 'Edit Nodepool requst sent successfully.',
+                duration: 5000,
+                },
+            })
+        );
+    }
+
+    _editNodepoolError(e) {
+        console.log(e, e.detail);
+        const message = e.detail.request.xhr.response || e.detail.error.message;
+        this.$.errormsg = message;
+        this.dispatchEvent(
+            new CustomEvent('action-finished', {
+              bubbles: true,
+              composed: true,
+              detail: { success: false },
+            })
+          );
+    }
+}
+
+customElements.define('edit-nodepool', EditNodepool);
