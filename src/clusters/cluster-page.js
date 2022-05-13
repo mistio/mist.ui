@@ -279,8 +279,8 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Total Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly,
-                          currency.rate)]]</span>
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.total_cost_hourly,
+                          currency.rate, true)]]</span>
                   </div>
                 </div>
                 <div class="row">
@@ -288,7 +288,7 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Control Plane Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[_ratedCost(cluster.cost.control_plane_monthly, 
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly, 
                           currency.rate)]]</span>
                   </div>
                 </div>
@@ -569,7 +569,9 @@ export default class ClusterPage extends mixinBehaviors(
     return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
   }
 
-  _ratedCost(cost, rate) {
+  _ratedCost(cost, rate, monthly) {
+      if(monthly)
+        cost = cost * 24 * 30;
     return ratedCost(cost, rate);
   }
 
