@@ -93,21 +93,18 @@ export default class PageClusters extends PolymerElement {
           return '';
         },
       },
-      total_cost_hourly: {
+      total_cost: {
         title: () => 'total cost',
         body: (item, _row) =>
           `${_this.currency.sign}${_this._ratedCost(
-            item.toFixed(2),
-            _this.currency.rate,
-            true
+            item.monthly.toFixed(2),
+            _this.currency.rate
           )}` || 0,
       },
     };
   }
 
-  _ratedCost(cost, rate, monthly) {
-    if(monthly)
-      cost = cost * 24 * 30;
+  _ratedCost(cost, rate) {
     return ratedCost(cost, rate);
   }
 
@@ -116,7 +113,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getVisibleColumns() {
-    return ['cloud', 'id', 'total_cost_hourly', 'tags'];
+    return ['cloud', 'id', 'total_cost', 'tags'];
   }
 
   _isListActive(path) {
