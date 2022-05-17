@@ -15,6 +15,7 @@ import '../machines/machine-actions.js';
 import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import './cluster-actions.js';
+import './nodepool-actions.js';
 
 /* eslint-disable class-methods-use-this */
 export default class ClusterPage extends mixinBehaviors(
@@ -354,6 +355,31 @@ export default class ClusterPage extends mixinBehaviors(
         </machine-actions>
         </br>
         <paper-material class="no-pad">
+          <nodepool-actions
+            items="[[selectedNodepools]]"
+            actions="{{nodepoolActions}}"
+            cluster-id="[[cluster.id]]"
+          >
+            <mist-list
+              id="nodepoolResources"
+              items="[[cluster.nodepools]]"
+              frozen="[[_getFrozenNodepoolsColums()]]"
+              visible="[[_getVisibleNodepoolsColumns()]]"
+              renderers="[[_getNodepoolRenderers()]]"
+              actions="[[nodepoolActions]]"
+              selected-items="{{selectedNodepools}}"
+              selectable=""
+              auto-hide=""
+              column-menu=""
+              toolbar=""
+              resizable=""
+              name="nodepools"
+              primary-field-name="name"
+              ></mist-list>
+          </nodepool-actions>
+        </paper-material>
+        </br>
+        <paper-material class="no-pad">
           <template is="dom-if" if="[[cluster]]" restamp="">
             <mist-list
               id="clusterLogs"
@@ -427,6 +453,13 @@ export default class ClusterPage extends mixinBehaviors(
           return { sign: '$', rate: 1 };
         },
       },
+      nodepoolActions: {
+        type: Array,
+        notify: true,
+      },
+      selectedNodepools: {
+        type: Array,
+      },
     };
   }
 
@@ -440,6 +473,7 @@ export default class ClusterPage extends mixinBehaviors(
   ready() {
     super.ready();
     this.addEventListener('active-item-changed', this._goToMachine);
+    this.addEventListener('action-finished', this._clearListSelections);
   }
 
   _changed(cluster) {
@@ -473,6 +507,27 @@ export default class ClusterPage extends mixinBehaviors(
 
   _getFrozenLogColumn() {
     return ['time'];
+  }
+
+  _getFrozenNodepoolsColums() {
+    return ['name'];
+  }
+
+  _getVisibleNodepoolsColumns() {
+    return ['node_count', 'state', 'min_nodes', 'max_nodes', 'locations'];
+  }
+
+  _getNodepoolRenderers() {
+    return {
+      locations: {
+        body: (item, _row) => {
+          if (item) {
+            return item.join(', ');
+          }
+          return '';
+        },
+      },
+    };
   }
 
   _getRenderers() {
@@ -537,6 +592,11 @@ export default class ClusterPage extends mixinBehaviors(
           this.model.members[id].email ||
           this.model.members[id].username
       : '';
+  }
+
+  _clearListSelections() {
+    this.set('selectedNodepools', []);
+    this.set('selectedResources', []);
   }
 
   _isEmpty(tags) {
