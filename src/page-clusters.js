@@ -93,7 +93,7 @@ export default class PageClusters extends PolymerElement {
           return '';
         },
       },
-      cost: {
+      total_cost: {
         title: () => 'total cost',
         body: (item, _row) =>
           `${_this.currency.sign}${_this._ratedCost(
@@ -113,7 +113,7 @@ export default class PageClusters extends PolymerElement {
   }
 
   _getVisibleColumns() {
-    return ['cloud', 'id', 'cost', 'tags'];
+    return ['cloud', 'id', 'total_cost', 'tags'];
   }
 
   _isListActive(path) {
