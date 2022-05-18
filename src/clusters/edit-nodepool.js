@@ -34,6 +34,9 @@ export default class EditNodepool extends PolymerElement {
       errormsg: {
         type: String,
       },
+      provider: {
+        type: String,
+      },
     };
   }
 
@@ -80,15 +83,25 @@ export default class EditNodepool extends PolymerElement {
             <h2>Edit Nodepool</h2>
             <br />
             <div class="layout horizontal">
-              <paper-toggle-button
-                id="autoscale"
-                checked="[[payload.autoscaling]]"
-                on-tap="_changeAutoscaling"
+              <template
+                is="dom-if"
+                if="[[_showAutoscalingToggle()]]"
+                restamp=""
               >
-              </paper-toggle-button>
-              <span> Autoscale </span>
+                <paper-toggle-button
+                  id="autoscale"
+                  checked="[[payload.autoscaling]]"
+                  on-tap="_changeAutoscaling"
+                >
+                </paper-toggle-button>
+                <span> Autoscale </span>
+              </template>
             </div>
-            <template is="dom-if" if="[[payload.autoscaling]]" restamp="">
+            <template
+              is="dom-if"
+              if="[[_showMinMaxNodes(payload.autoscaling)]]"
+              restamp=""
+            >
               <paper-input
                 id="min_nodes"
                 label="Min Nodes"
@@ -104,7 +117,11 @@ export default class EditNodepool extends PolymerElement {
               >
               </paper-input>
             </template>
-            <template is="dom-if" if="[[!payload.autoscaling]]" restamp="">
+            <template
+              is="dom-if"
+              if="[[_showDesiredNodes(payload.autoscaling)]]"
+              restamp=""
+            >
               <paper-input
                 id="desired_nodes"
                 label="Desired Nodes"
@@ -162,10 +179,17 @@ export default class EditNodepool extends PolymerElement {
 
   _validateForm() {
     let msg = '';
-    if (this.payload.autoscaling) {
-      if (!this.payload.min_nodes || !this.payload.max_nodes) {
-        msg = 'min_nodes and max_nodes need to be set with autoscale';
-      }
+    if (
+      this.provider === 'amazon' &&
+      (!(this.payload.min_nodes <= this.payload.desired_nodes) ||
+        !(this.payload.max_nodes >= this.payload.desired_nodes))
+    ) {
+      msg = 'EKS requires min nodes <= desired nodes <= max nodes';
+    } else if (
+      this.payload.autoscaling &&
+      (!this.payload.min_nodes || !this.payload.max_nodes)
+    ) {
+      msg = 'min_nodes and max_nodes need to be set with autoscale';
     } else {
       // setting autoscaling to false should have no params
       if (this.nodepool.autoscaling && this.payload.desired_nodes)
@@ -241,6 +265,20 @@ export default class EditNodepool extends PolymerElement {
         detail: { success: false },
       })
     );
+  }
+
+  _showAutoscalingToggle() {
+    return this.provider === 'google';
+  }
+
+  _showMinMaxNodes() {
+    // eks needs them every time, gke only with autoscaling enabled
+    return this.provider === 'amazon' || this.payload.autoscaling;
+  }
+
+  _showDesiredNodes() {
+    // eks needs it every time, gke only with autoscaling disabled
+    return this.provider === 'amazon' || !this.payload.autoscaling;
   }
 }
 

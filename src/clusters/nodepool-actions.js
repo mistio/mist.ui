@@ -35,6 +35,9 @@ export default class NodepoolActions extends mixinBehaviors(
       clusterId: {
         type: String,
       },
+      provider: {
+        type: String
+      }
     };
   }
 

@@ -359,6 +359,7 @@ export default class ClusterPage extends mixinBehaviors(
             items="[[selectedNodepools]]"
             actions="{{nodepoolActions}}"
             cluster-id="[[cluster.id]]"
+            provider="[[cluster.provider]]"
           >
             <mist-list
               id="nodepoolResources"
