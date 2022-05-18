@@ -93,24 +93,26 @@ export default class EditNodepool extends PolymerElement {
                 id="min_nodes"
                 label="Min Nodes"
                 on-change="_valueChanged"
-                value="[[nodepool.min_nodes]]"
+                value="[[payload.min_nodes]]"
               >
               </paper-input>
               <paper-input
                 id="max_nodes"
                 label="Max Nodes"
                 on-change="_valueChanged"
-                value="[[nodepool.max_nodes]]"
+                value="[[payload.max_nodes]]"
               >
               </paper-input>
             </template>
-            <paper-input
-              id="desired_nodes"
-              label="Desired Nodes"
-              on-change="_valueChanged"
-              value="[[nodepool.node_count]]"
-            >
-            </paper-input>
+            <template is="dom-if" if="[[!payload.autoscaling]]" restamp="">
+              <paper-input
+                id="desired_nodes"
+                label="Desired Nodes"
+                on-change="_valueChanged"
+                value="[[nodepool.node_count]]"
+              >
+              </paper-input>
+            </template>
             <paper-button disabled="[[formError]]" on-tap="submit"
               >Submit</paper-button
             >
@@ -164,15 +166,15 @@ export default class EditNodepool extends PolymerElement {
       if (!this.payload.min_nodes || !this.payload.max_nodes) {
         msg = 'min_nodes and max_nodes need to be set with autoscale';
       }
-      if (
-        !(this.payload.min_nodes <= this.payload.desired_nodes) ||
-        !(this.payload.desired_nodes <= this.payload.max_nodes)
-      ) {
-        msg = 'This should be true:\n min_nodes <= desired_nodes <= max_nodes';
+    } else {
+      // setting autoscaling to false should have no params
+      if (this.nodepool.autoscaling && this.payload.desired_nodes)
+        msg =
+          'Leave desired_nodes empty to set autoscaling to false.\nAfter the autoscaling request succeeds you may come back and set desired_nodes.';
+
+      if (!this.nodepool.autoscaling && !this.payload.desired_nodes) {
+        msg = 'Choose the desired nodes number to scale the nodepool to.';
       }
-    }
-    if (!this.payload.desired_nodes) {
-      msg = 'desired_nodes should be set in any instace';
     }
     if (msg) {
       this.errormsg = msg;
@@ -195,6 +197,8 @@ export default class EditNodepool extends PolymerElement {
       this.payload.min_nodes = parseInt(this.payload.min_nodes, 10);
       this.payload.max_nodes = parseInt(this.payload.max_nodes, 10);
     }
+    if (!this.payload.autoscaling && this.nodepool.autoscaling)
+      delete this.payload.desired_nodes; // setting autoscaling to false should have no other params
     const request = this.$.editNodepoolsRequest;
     request.headers['Content-Type'] = 'application/json';
     request.headers['Csrf-Token'] = CSRFToken.value;
