@@ -93,7 +93,7 @@ export default class EditNodepool extends PolymerElement {
                   on-tap="_changeAutoscaling"
                 >
                 </paper-toggle-button>
-                <span> Autoscale </span>
+                <span> Enable Autoscaling </span>
               </template>
             </div>
             <template
@@ -103,14 +103,14 @@ export default class EditNodepool extends PolymerElement {
             >
               <paper-input
                 id="min_nodes"
-                label="Min Nodes"
+                label="Minimum number of nodes"
                 on-change="_valueChanged"
                 value="[[payload.min_nodes]]"
               >
               </paper-input>
               <paper-input
                 id="max_nodes"
-                label="Max Nodes"
+                label="Maximum number of nodes"
                 on-change="_valueChanged"
                 value="[[payload.max_nodes]]"
               >
@@ -123,7 +123,7 @@ export default class EditNodepool extends PolymerElement {
             >
               <paper-input
                 id="desired_nodes"
-                label="Desired Nodes"
+                label="Number of nodes"
                 on-change="_valueChanged"
                 value="[[nodepool.node_count]]"
               >
