@@ -502,7 +502,7 @@ Polymer({
   },
 
   _computeKeyTags(_key, _tags) {
-    if (this.key) {
+    if (this.key && this.key.tags) {
       return Object.entries(this.key.tags).map(([key, value]) => ({
         key,
         value,
@@ -522,7 +522,7 @@ Polymer({
   },
 
   _computeKeyMachines(key) {
-    if (key && key.associations.length > 0)
+    if (key && key.associations && key.associations.length > 0)
       return key.associations.map(assoc => assoc.machine);
     return [];
   },

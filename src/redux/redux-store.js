@@ -6,6 +6,7 @@ const initialState = {
   machines: {},
   images: {},
   keys: {},
+  netowrks: {},
   sectionsCount: {
     images: 0,
   },
@@ -42,6 +43,9 @@ const reducer = (state, action) => {
     }
     case 'Update-Keys': {
       return updateResource('keys', state, action.payload);
+    }
+    case 'Update-Networks': {
+      return updateResource('networks', state, action.payload);
     }
     case 'Update-Sections-Count': {
       // action.payload should be {resource: {total: int}}

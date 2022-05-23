@@ -9,6 +9,8 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
+import { store } from './redux/redux-store.js';
+import reduxDataProvider from './redux/redux-data-provider.js';
 
 /* eslint-disable class-methods-use-this */
 export default class PageNetworks extends mixinBehaviors(
@@ -42,8 +44,9 @@ export default class PageNetworks extends mixinBehaviors(
             column-menu
             multi-sort
             id="networksList"
-            apiurl="/api/v1/networks"
-            item-map="[[model.networks]]"
+            apiurl="/api/v2/networks"
+            data-provider="[[dataProvider]]"
+            store="[[store]]"
             name="Networks"
             selected-items="{{selectedItems}}"
             filtered-items-length="{{filteredItemsLength}}"
@@ -107,6 +110,18 @@ export default class PageNetworks extends mixinBehaviors(
         type: Object,
         computed: '_getRenderers(model.networks)',
       },
+      dataProvider: {
+        type: Object,
+        value() {
+          return reduxDataProvider.bind(this);
+        },
+      },
+      store: {
+        type: Object,
+        value() {
+          return store;
+        },
+      },
     };
   }
 
@@ -150,7 +165,7 @@ export default class PageNetworks extends mixinBehaviors(
   }
 
   _getVisibleColumns() {
-    const ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
+    const ret = ['cloud', 'machines', 'created_by', 'subnets', 'tags'];
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
@@ -176,15 +191,11 @@ export default class PageNetworks extends mixinBehaviors(
             .replace(' ', '')}.png`;
         },
       },
-      provider: {
-        title: 'cloud',
-        body: (item, row) =>
-          _this.model && _this.model.clouds && _this.model.clouds[row.cloud]
-            ? _this.model.clouds[row.cloud].title
-            : item,
+      cloud: {
+        body: (item, _row) => item,
         cmp: (row1, row2) => {
-          const item1 = this.renderers.provider.body(row1.cloud, row1);
-          const item2 = this.renderers.provider.body(row2.cloud, row2);
+          const item1 = row1.cloud;
+          const item2 = row2.cloud;
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
