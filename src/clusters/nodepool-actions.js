@@ -52,6 +52,7 @@ export default class NodepoolActions extends mixinBehaviors(
         id="editNodepoolDialog"
         nodepool="[[_getNodepool(items.*)]]"
         cluster-id="[[clusterId]]"
+        provider="[[provider]]"
       ></edit-nodepool>
       <slot>
         <mist-list-actions id="acts" actions="[[actions]]"></mist-list-actions>

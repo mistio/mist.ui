@@ -58,7 +58,6 @@ export default class EditNodepool extends PolymerElement {
         #content {
           display: flex;
           flex-direction: column;
-          align-items: center;
         }
         #errormsg {
           color: #ff392e;
@@ -66,7 +65,7 @@ export default class EditNodepool extends PolymerElement {
         }
 
         paper-input {
-          text-align: center;
+          text-align: left;
         }
         paper-button {
           background-color: var(--mist-blue);
@@ -184,13 +183,18 @@ export default class EditNodepool extends PolymerElement {
       (!(this.payload.min_nodes <= this.payload.desired_nodes) ||
         !(this.payload.max_nodes >= this.payload.desired_nodes))
     ) {
-      msg = 'EKS requires min nodes <= desired nodes <= max nodes';
+      msg = 'EKS requires Min Nodes <= Desired Nodes <= Max Nodes';
     } else if (
       this.payload.autoscaling &&
       (!this.payload.min_nodes || !this.payload.max_nodes)
     ) {
-      msg = 'min_nodes and max_nodes need to be set with autoscale';
-    } else {
+      msg = 'Min Nodes and Max Nodes need to be set with autoscale';
+    } else if (
+      this.payload.autoscaling &&
+      this.payload.min_nodes > this.payload.max_nodes
+    )
+      msg = 'Min Nodes should be less than the Max Nodes';
+    else {
       // setting autoscaling to false should have no params
       if (this.nodepool.autoscaling && this.payload.desired_nodes)
         msg =
