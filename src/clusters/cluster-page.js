@@ -175,6 +175,9 @@ export default class ClusterPage extends mixinBehaviors(
           color: inherit !important;
           padding: 12px !important;
         }
+        mist-list {
+          min-height: 185px
+        }
       </style>
       <div id="content">
         <paper-material class="single-head layout horizontal">

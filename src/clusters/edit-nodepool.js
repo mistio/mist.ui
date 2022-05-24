@@ -81,19 +81,34 @@ export default class EditNodepool extends PolymerElement {
           <div id="content">
             <h2>Edit Nodepool</h2>
             <br />
-            <div class="layout horizontal">
+            <div>
+              <template
+                is="dom-if"
+                if="[[_showDesiredNodes(payload.autoscaling)]]"
+                restamp=""
+              >
+                <paper-input
+                  id="desired_nodes"
+                  label="Number of nodes"
+                  on-change="_valueChanged"
+                  value="[[nodepool.node_count]]"
+                >
+                </paper-input>
+              </template>
               <template
                 is="dom-if"
                 if="[[_showAutoscalingToggle()]]"
                 restamp=""
               >
-                <paper-toggle-button
-                  id="autoscale"
-                  checked="[[payload.autoscaling]]"
-                  on-tap="_changeAutoscaling"
-                >
-                </paper-toggle-button>
-                <span> Enable Autoscaling </span>
+                <div class="layout horizontal">
+                  <paper-toggle-button
+                    id="autoscale"
+                    checked="[[payload.autoscaling]]"
+                    on-tap="_changeAutoscaling"
+                  >
+                  </paper-toggle-button>
+                  <span> Enable Autoscaling </span>
+                </div>
               </template>
             </div>
             <template
@@ -116,19 +131,7 @@ export default class EditNodepool extends PolymerElement {
               >
               </paper-input>
             </template>
-            <template
-              is="dom-if"
-              if="[[_showDesiredNodes(payload.autoscaling)]]"
-              restamp=""
-            >
-              <paper-input
-                id="desired_nodes"
-                label="Number of nodes"
-                on-change="_valueChanged"
-                value="[[nodepool.node_count]]"
-              >
-              </paper-input>
-            </template>
+            <br />
             <paper-button disabled="[[formError]]" on-tap="submit"
               >Submit</paper-button
             >
@@ -162,8 +165,10 @@ export default class EditNodepool extends PolymerElement {
 
   _clearSelection() {
     if (this.nodepool) {
-      this.payload.min_nodes = this.nodepool.min_nodes;
-      this.payload.max_nodes = this.nodepool.max_nodes;
+      this.payload.min_nodes =
+        this.nodepool.min_nodes || this.nodepool.node_count;
+      this.payload.max_nodes =
+        this.nodepool.max_nodes || this.nodepool.node_count;
       this.payload.desired_nodes = this.nodepool.node_count;
       this.set('payload.autoscaling', this.nodepool.autoscaling);
     }
@@ -183,7 +188,7 @@ export default class EditNodepool extends PolymerElement {
       (!(this.payload.min_nodes <= this.payload.desired_nodes) ||
         !(this.payload.max_nodes >= this.payload.desired_nodes))
     ) {
-      msg = 'EKS requires Min Nodes <= Desired Nodes <= Max Nodes';
+      msg = 'EKS requires Minimum Nodes <= Nodes <= Maximum Nodes';
     } else if (
       this.payload.autoscaling &&
       (!this.payload.min_nodes || !this.payload.max_nodes)
