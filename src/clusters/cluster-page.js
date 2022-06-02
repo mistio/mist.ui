@@ -283,7 +283,7 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Total Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly,
+                    <span>[[currency.sign]][[_ratedCost(cluster.total_cost.monthly,
                           currency.rate)]]</span>
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default class ClusterPage extends mixinBehaviors(
                     <h4>Control Plane Cost</h4>
                   </div>
                   <div class="cell">
-                    <span>[[currency.sign]][[_ratedCost(cluster.cost.control_plane_monthly, 
+                    <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly, 
                           currency.rate)]]</span>
                   </div>
                 </div>
