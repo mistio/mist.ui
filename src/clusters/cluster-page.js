@@ -4,7 +4,7 @@ import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
-import { ratedCost } from '../helpers/utils.js';
+import { ratedCost, _generateMap } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -495,6 +495,21 @@ export default class ClusterPage extends mixinBehaviors(
       ret = Object.fromEntries(clusterMachines);
     }
     return ret;
+  }
+
+  _computeClusterResources() {
+    const resourceMap = {}
+    const nodepools = _generateMap(this.cluster.nodepools, 'name');
+    let nodepoolNameExp = '';
+    let nodes = [];
+    if (this.cluster && this.model.machines) {
+      nodepoolNameExp = RegExp(`${this.cluster.name}-pool-[0-9]{1}`);
+      const clusterMachines = Object.entries(this.model.machines).filter(
+        ([_machineId, machine]) => machine.cluster === this.cluster.id
+      );
+      nodes = Object.fromEntries(clusterMachines);
+    }
+    return Object.assign({}, nodepools, nodes);
   }
 
   _getFrozenResourcesColumn() {
