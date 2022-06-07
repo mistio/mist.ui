@@ -71,7 +71,8 @@ export default class NodepoolActions extends mixinBehaviors(
   }
 
   /* eslint-disable class-methods-use-this */
-  computeItemActions(_nodepool) {
+  computeItemActions(nodepool) {
+    if (nodepool.id) return '';
     return ['edit'];
   }
 
@@ -90,8 +91,13 @@ export default class NodepoolActions extends mixinBehaviors(
   }
 
   _getNodepool() {
-    if (this.items.length === 1) return this.items[0];
-    return {};
+    let nodepools = [];
+    if (this.items.length === 1)
+      nodepools = this.items.filter(item => !item.id);
+    if (nodepools.length === 1) {
+      return nodepools[0];
+    }
+    return [];
   }
 }
 
