@@ -6,32 +6,8 @@ export default function nodepoolsDataProvider(opts, callback) {
   const { grid } = mistList.$;
   if (!grid) return [];
   items = Object.values(mistList.itemMap || {});
-  // items = (Array.isArray(grid.items) ? grid.items : []).slice(0);
-  // if (
-  //   mistList.filteredItems &&
-  //   mistList.combinedFilter &&
-  //   mistList.combinedFilter.trim().length > 0
-  // ) {
-  //   const filterMap = {};
-  //   mistList.filteredItems.forEach(item => {
-  //     filterMap[item.id] = item;
-  //   });
-  //   // add parents
-  //   Object.values(filterMap).forEach(item => {
-  //     if (item.parent) filterMap[item.parent] = mistList.itemMap[item.parent];
-  //   });
-  //   items = Object.values(filterMap);
-  // }
-
-  // if (grid._filters && grid._checkPaths(grid._filters, 'filtering', items))
-  //   items = grid._filter(items);
 
   grid.size = items.length;
-  // if (
-  //   opts.sortOrders.length &&
-  //   grid._checkPaths(grid._sorters, 'sorting', items)
-  // )
-  //   items = items.sort(grid._multiSort.bind(grid));
 
   let data = [];
   if (!mistList.treeView) {
