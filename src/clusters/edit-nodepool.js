@@ -101,13 +101,13 @@ export default class EditNodepool extends PolymerElement {
                 restamp=""
               >
                 <div class="layout horizontal">
-                <paper-toggle-button
-                  id="autoscale"
-                  checked="[[payload.autoscaling]]"
-                  on-tap="_changeAutoscaling"
-                >
-                </paper-toggle-button>
-                <span> Enable Autoscaling </span>
+                  <paper-toggle-button
+                    id="autoscale"
+                    checked="[[payload.autoscaling]]"
+                    on-tap="_changeAutoscaling"
+                  >
+                  </paper-toggle-button>
+                  <span> Enable Autoscaling </span>
                 </div>
               </template>
             </div>
@@ -131,7 +131,7 @@ export default class EditNodepool extends PolymerElement {
               >
               </paper-input>
             </template>
-            <br>
+            <br />
             <paper-button disabled="[[formError]]" on-tap="submit"
               >Submit</paper-button
             >
@@ -165,8 +165,10 @@ export default class EditNodepool extends PolymerElement {
 
   _clearSelection() {
     if (this.nodepool) {
-      this.payload.min_nodes = this.nodepool.min_nodes || this.nodepool.node_count;
-      this.payload.max_nodes = this.nodepool.max_nodes || this.nodepool.node_count;
+      this.payload.min_nodes =
+        this.nodepool.min_nodes || this.nodepool.node_count;
+      this.payload.max_nodes =
+        this.nodepool.max_nodes || this.nodepool.node_count;
       this.payload.desired_nodes = this.nodepool.node_count;
       this.set('payload.autoscaling', this.nodepool.autoscaling);
     }
@@ -186,20 +188,26 @@ export default class EditNodepool extends PolymerElement {
       (!(this.payload.min_nodes <= this.payload.desired_nodes) ||
         !(this.payload.max_nodes >= this.payload.desired_nodes))
     ) {
-      msg = 'EKS requires Minimum Nodes <= Desired Nodes <= Maximum Nodes';
+      msg = 'EKS requires Minimum Nodes <= Nodes <= Maximum Nodes';
     } else if (
+      this.provider === 'google' &&
       this.payload.autoscaling &&
       (!this.payload.min_nodes || !this.payload.max_nodes)
     ) {
       msg = 'Min Nodes and Max Nodes need to be set with autoscale';
     } else if (
+      this.provider === 'google' &&
       this.payload.autoscaling &&
       this.payload.min_nodes > this.payload.max_nodes
     )
       msg = 'Min Nodes should be less than the Max Nodes';
     else {
       // setting autoscaling to false should have no params
-      if (this.nodepool.autoscaling && this.payload.desired_nodes)
+      if (
+        this.provider === 'google' &&
+        this.nodepool.autoscaling &&
+        this.payload.desired_nodes
+      )
         msg =
           'Leave desired_nodes empty to set autoscaling to false.\nAfter the autoscaling request succeeds you may come back and set desired_nodes.';
 

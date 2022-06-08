@@ -3,8 +3,8 @@ import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
-import treeViewDataProvider from '../helpers/tree-view-data-provider.js';
-import { ratedCost } from '../helpers/utils.js';
+import nodepoolDataProvider from './nodepools-data-provider.js';
+import { ratedCost, _generateMap } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -327,12 +327,13 @@ export default class ClusterPage extends mixinBehaviors(
             </div>
           </div>
         </paper-material>
-        <br/>
+        <br />
         <paper-material class="no-pad">
-          <machine-actions
-            actions="{{resourceActions}}"
+          <nodepool-actions
             items="[[selectedResources]]"
-            model="[[model]]"
+            actions="{{resourceActions}}"
+            cluster-id="[[cluster.id]]"
+            provider="[[cluster.provider]]"
           >
             <mist-list
               id="clusterResources"
@@ -349,37 +350,11 @@ export default class ClusterPage extends mixinBehaviors(
               column-menu=""
               toolbar=""
               resizable=""
-              name="nodes"
+              name="resources"
               primary-field-name="id"
               item-has-children="[[resourceHasChildren]]"
               base-filter="[[cluster.id]]"
             ></mist-list>
-          </paper-material>
-        </machine-actions>
-        </br>
-        <paper-material class="no-pad">
-          <nodepool-actions
-            items="[[selectedNodepools]]"
-            actions="{{nodepoolActions}}"
-            cluster-id="[[cluster.id]]"
-            provider="[[cluster.provider]]"
-          >
-            <mist-list
-              id="nodepoolResources"
-              items="[[cluster.nodepools]]"
-              frozen="[[_getFrozenNodepoolsColums()]]"
-              visible="[[_getVisibleNodepoolsColumns()]]"
-              renderers="[[_getNodepoolRenderers()]]"
-              actions="[[nodepoolActions]]"
-              selected-items="{{selectedNodepools}}"
-              selectable=""
-              auto-hide=""
-              column-menu=""
-              toolbar=""
-              resizable=""
-              name="nodepools"
-              primary-field-name="name"
-              ></mist-list>
           </nodepool-actions>
         </paper-material>
         </br>
@@ -427,7 +402,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       resources: {
         type: Object,
-        computed: '_computeClusterMachines(cluster)',
+        computed: '_computeClusterResources(cluster)',
       },
       resourceActions: {
         type: Array,
@@ -448,7 +423,7 @@ export default class ClusterPage extends mixinBehaviors(
       dataProvider: {
         type: Object,
         value() {
-          return treeViewDataProvider.bind(this);
+          return nodepoolDataProvider.bind(this);
         },
       },
       currency: {
@@ -456,13 +431,6 @@ export default class ClusterPage extends mixinBehaviors(
         value() {
           return { sign: '$', rate: 1 };
         },
-      },
-      nodepoolActions: {
-        type: Array,
-        notify: true,
-      },
-      selectedNodepools: {
-        type: Array,
       },
     };
   }
@@ -497,12 +465,33 @@ export default class ClusterPage extends mixinBehaviors(
     return ret;
   }
 
+  _computeClusterResources() {
+    const nodepools = _generateMap(this.cluster.nodepools || [], 'name');
+    let nodes = [];
+    if (this.cluster && this.model.machines) {
+      const clusterMachines = Object.entries(this.model.machines).filter(
+        ([_machineId, machine]) => machine.cluster === this.cluster.id
+      );
+      nodes = Object.fromEntries(clusterMachines);
+    }
+    return { ...nodepools, ...nodes };
+  }
+
   _getFrozenResourcesColumn() {
     return ['name'];
   }
 
   _getVisibleResourcesColumns() {
-    return ['state', 'location', 'public_ips', 'private_ips', 'cost'];
+    return [
+      'state',
+      'location',
+      'node_count',
+      'min_nodes',
+      'max_nodes',
+      'public_ips',
+      'private_ips',
+      'cost',
+    ];
   }
 
   _getVisibleColumns() {
@@ -511,27 +500,6 @@ export default class ClusterPage extends mixinBehaviors(
 
   _getFrozenLogColumn() {
     return ['time'];
-  }
-
-  _getFrozenNodepoolsColums() {
-    return ['name'];
-  }
-
-  _getVisibleNodepoolsColumns() {
-    return ['node_count', 'state', 'min_nodes', 'max_nodes', 'locations'];
-  }
-
-  _getNodepoolRenderers() {
-    return {
-      locations: {
-        body: (item, _row) => {
-          if (item) {
-            return item.join(', ');
-          }
-          return '';
-        },
-      },
-    };
   }
 
   _getRenderers() {
@@ -568,26 +536,37 @@ export default class ClusterPage extends mixinBehaviors(
         },
       },
       cost: {
-        body: item => item.monthly.toFixed(2) || 0,
+        body: item => (item && item.monthly.toFixed(2)) || '',
       },
       public_ips: {
-        body: item => item.join(', '),
+        body: item => (item && item.join(', ')) || '',
       },
       private_ips: {
-        body: item => item.join(', '),
+        body: item => (item && item.join(', ')) || '',
       },
       location: {
         body: (item, row) => {
+          if (!item && row.locations && row.locations.length > 0)
+            return row.locations.join(', ');
           if (item && _this.model && _this.model.clouds)
             return _this.model.clouds[row.cloud].locations[item].name;
           return '';
         },
       },
+      max_nodes: {
+        body: (item, _row) => item || '',
+      },
+      min_nodes: {
+        body: (item, _row) => item || '',
+      },
+      node_count: {
+        body: (item, _row) => item || '',
+      },
     };
   }
 
   _goToMachine(e) {
-    window.location.assign(`/machines/${e.detail.id}`);
+    if (e.detail.id) window.location.assign(`/machines/${e.detail.id}`);
   }
 
   _displayUser(id, _members) {
@@ -599,7 +578,6 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _clearListSelections() {
-    this.set('selectedNodepools', []);
     this.set('selectedResources', []);
   }
 
@@ -657,7 +635,11 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   resourceHasChildren(item) {
-    return item.machine_type === 'node';
+    if (!item.id)
+      // nodepools don't have id
+      return true;
+    if (item.machine_type === 'node') return true;
+    return false;
   }
 }
 
