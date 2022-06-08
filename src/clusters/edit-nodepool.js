@@ -190,18 +190,24 @@ export default class EditNodepool extends PolymerElement {
     ) {
       msg = 'EKS requires Minimum Nodes <= Nodes <= Maximum Nodes';
     } else if (
+      this.provider === 'google' &&
       this.payload.autoscaling &&
       (!this.payload.min_nodes || !this.payload.max_nodes)
     ) {
       msg = 'Min Nodes and Max Nodes need to be set with autoscale';
     } else if (
+      this.provider === 'google' &&
       this.payload.autoscaling &&
       this.payload.min_nodes > this.payload.max_nodes
     )
       msg = 'Min Nodes should be less than the Max Nodes';
     else {
       // setting autoscaling to false should have no params
-      if (this.nodepool.autoscaling && this.payload.desired_nodes)
+      if (
+        this.provider === 'google' &&
+        this.nodepool.autoscaling &&
+        this.payload.desired_nodes
+      )
         msg =
           'Leave desired_nodes empty to set autoscaling to false.\nAfter the autoscaling request succeeds you may come back and set desired_nodes.';
 
