@@ -350,10 +350,9 @@ export default class ClusterPage extends mixinBehaviors(
               column-menu=""
               toolbar=""
               resizable=""
-              name="resources"
+              name="nodepools"
               primary-field-name="id"
               item-has-children="[[resourceHasChildren]]"
-              base-filter="[[cluster.id]]"
             ></mist-list>
           </nodepool-actions>
         </paper-material>
@@ -466,7 +465,7 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _computeClusterResources() {
-    const nodepools = _generateMap(this.cluster.nodepools || [], 'name');
+    const nodepools = _generateMap(this.cluster && this.cluster.nodepools || [], 'name');
     let nodes = [];
     if (this.cluster && this.model.machines) {
       const clusterMachines = Object.entries(this.model.machines).filter(
@@ -488,8 +487,6 @@ export default class ClusterPage extends mixinBehaviors(
       'node_count',
       'min_nodes',
       'max_nodes',
-      'public_ips',
-      'private_ips',
       'cost',
     ];
   }
@@ -515,6 +512,9 @@ export default class ClusterPage extends mixinBehaviors(
           return ret;
         },
       },
+      state: {
+        body: item => item.toLowerCase()
+      },
       user_id: {
         title: () => 'user',
         body: item => {
@@ -536,19 +536,28 @@ export default class ClusterPage extends mixinBehaviors(
         },
       },
       cost: {
-        body: item => (item && item.monthly.toFixed(2)) || '',
-      },
-      public_ips: {
-        body: item => (item && item.join(', ')) || '',
-      },
-      private_ips: {
-        body: item => (item && item.join(', ')) || '',
+        body: (item, row) => {
+          if(row.id)
+            return (item && item.monthly.toFixed(2)) || ''
+          else {
+            const nodepoolName = row.name;
+            if(nodepoolName && _this.cloud && _this.model && _this.model.clouds) {
+              let cost = 0;
+              Object.values(_this.model.clouds[_this.cloud.id].machines).forEach(machine => {
+                if(machine.extra && machine.extra.nodepool && machine.extra.nodepool === nodepoolName)
+                  cost += machine.cost.monthly;
+              })
+              return cost || "";
+            }
+          }
+          return '';
+        },
       },
       location: {
         body: (item, row) => {
           if (!item && row.locations && row.locations.length > 0)
             return row.locations.join(', ');
-          if (item && _this.model && _this.model.clouds)
+          if (item && _this.model && _this.model.clouds && _this.model.clouds[row.cloud].locations)
             return _this.model.clouds[row.cloud].locations[item].name;
           return '';
         },
