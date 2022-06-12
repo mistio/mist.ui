@@ -15,12 +15,10 @@ export default function nodepoolsDataProvider(opts, callback) {
       mistList.count = data.length;
     } else if (opts.parentItem && opts.parentItem.machine_type === 'node') {
       data = items.filter(item => item.id && item.parent === opts.parentItem.id);
-      mistList.count += data.length;
     } else if (opts.parentItem && !opts.parentItem.id) {
       data = items.filter(
         item => item.extra && item.extra.nodepool === opts.parentItem.name
       );
-      mistList.count += data.length;
     } else {
       data = items.filter(item => item && !item.id);
       mistList.count = data.length;

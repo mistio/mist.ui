@@ -311,24 +311,6 @@ export default class ClusterPage extends mixinBehaviors(
         </div>
         <br />
         <paper-material class="no-pad">
-          <div class="horizontal layout hide-button">
-            <h2 class="cluster-page-head">
-              <paper-button class="arrow" on-tap="arrowButtonClick">
-                <iron-icon icon="icons:expand-more"
-                style="margin-right: 8px; transform: rotate(270deg);">
-                </iron-icon>
-                More Info
-              </paper-button>
-            </h2>
-          </div>
-          <div class="info-table" hidden>
-            <div class="info-body info-group">
-              <element-for-in content="[[cluster.extra]]"></element-for-in>
-            </div>
-          </div>
-        </paper-material>
-        <br />
-        <paper-material class="no-pad">
           <nodepool-actions
             items="[[selectedResources]]"
             actions="{{resourceActions}}"
@@ -357,6 +339,24 @@ export default class ClusterPage extends mixinBehaviors(
           </nodepool-actions>
         </paper-material>
         </br>
+        <paper-material class="no-pad">
+          <div class="horizontal layout hide-button">
+            <h2 class="cluster-page-head">
+              <paper-button class="arrow" on-tap="arrowButtonClick">
+                <iron-icon icon="icons:expand-more"
+                style="margin-right: 8px; transform: rotate(270deg);">
+                </iron-icon>
+                More Info
+              </paper-button>
+            </h2>
+          </div>
+          <div class="info-table" hidden>
+            <div class="info-body info-group">
+              <element-for-in content="[[cluster.extra]]"></element-for-in>
+            </div>
+          </div>
+        </paper-material>
+        <br />
         <paper-material class="no-pad">
           <template is="dom-if" if="[[cluster]]" restamp="">
             <mist-list
@@ -401,7 +401,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       resources: {
         type: Object,
-        computed: '_computeClusterResources(cluster)',
+        computed: '_computeClusterResources(cluster, model.clusters.*)',
       },
       resourceActions: {
         type: Array,
@@ -644,10 +644,10 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   resourceHasChildren(item) {
-    if (!item.id)
+    if (item &&!item.id)
       // nodepools don't have id
       return true;
-    if (item.machine_type === 'node') return true;
+    if (item && item.machine_type === 'node') return true;
     return false;
   }
 }
