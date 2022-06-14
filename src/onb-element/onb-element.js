@@ -1,3 +1,4 @@
+/* eslint-disable lit/attribute-value-entities */
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
@@ -133,7 +134,8 @@ Polymer({
     <div id="onboarding-area">
       <img
         class="onb-graphics top"
-        src="[[rootPath]]/assets/onboarding/clouds.svg"
+        src="./assets/onboarding/clouds.svg"
+        alt="Rule the clouds!"
       />
       <div id="org-form" hidden$="[[hasOrg]]">
         <h1>Welcome!</h1>
@@ -147,7 +149,6 @@ Polymer({
             value$="[[proposedOrgName]]"
             placeholder$="[[proposedOrgName]]"
             tabindex="0"
-            autofocus=""
             on-keyup="_orgInputKeyUp"
           ></paper-input>
           <div class="spacer"></div>
@@ -165,10 +166,23 @@ Polymer({
         <div id="cloud-or-invite-form" class="onboarding-form">
           <h1>You are ready to go!</h1>
           <!-- If user isn't allowed to see clouds -->
-          <template is="dom-if" if="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]">
-            <h2>Check out all the <a href="https://www.youtube.com/watch?v=7oYyC-FIaAM&t=285s" target="_blank">cool things</a> you can do with Mist!</h2>
+          <template
+            is="dom-if"
+            if="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]"
+          >
+            <h2>
+              Check out all the
+              <a
+                href="https://www.youtube.com/watch?v=7oYyC-FIaAM&t=285s"
+                target="_blank"
+                >cool things</a
+              >
+              you can do with Mist!
+            </h2>
           </template>
-          <p hidden$="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]">
+          <p
+            hidden$="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]"
+          >
             No clouds to manage in <strong>[[model.org.name]]</strong>. Yet.
           </p>
           <div class="onboarding-form-inputs">
@@ -181,8 +195,10 @@ Polymer({
               Add your clouds
             </paper-button>
           </div>
-          <p hidden$="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]">
-          or
+          <p
+            hidden$="[[!checkPerm('cloud', 'add', null, model.org, model.user)]]"
+          >
+            or
             <paper-button on-tap="showInviteForm" class="blue-link" noink=""
               >invite people
             </paper-button>
@@ -198,7 +214,11 @@ Polymer({
           <div class="invite-form-inputs">
             <div class="grid-row">
               <div class="xs12 m6 l6">
-                <paper-dropdown-menu no-animations=""  id="selectteam" label="Team">
+                <paper-dropdown-menu
+                  no-animations=""
+                  id="selectteam"
+                  label="Team"
+                >
                   <paper-listbox
                     slot="dropdown-content"
                     class="dropdown-content"
