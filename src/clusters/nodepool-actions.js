@@ -7,7 +7,7 @@ import './edit-nodepool.js';
 const NODEPOOL_ACTIONS = {
   edit: {
     name: 'edit',
-    icon: '',
+    icon: 'editor:mode-edit',
     confirm: 'false',
     multi: 'false',
   },
