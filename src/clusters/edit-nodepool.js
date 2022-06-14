@@ -82,19 +82,14 @@ export default class EditNodepool extends PolymerElement {
             <h2>Edit Nodepool</h2>
             <br />
             <div>
-              <template
-                is="dom-if"
-                if="[[_showDesiredNodes(payload.autoscaling)]]"
-                restamp=""
+              <paper-input
+                id="desired_nodes"
+                label="Number of nodes"
+                on-change="_valueChanged"
+                value="[[nodepool.node_count]]"
+                disabled="[[!_showDesiredNodes(payload.autoscaling)]]"
               >
-                <paper-input
-                  id="desired_nodes"
-                  label="Number of nodes"
-                  on-change="_valueChanged"
-                  value="[[nodepool.node_count]]"
-                >
-                </paper-input>
-              </template>
+              </paper-input>
               <template
                 is="dom-if"
                 if="[[_showAutoscalingToggle()]]"
