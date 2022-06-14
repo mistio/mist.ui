@@ -240,7 +240,7 @@ export default class PageDashboard extends mixinBehaviors(
         }
 
         #content.onb-true {
-          background: url('../assets/onboarding/mount.svg') center bottom #eee
+          background: url('assets/onboarding/mount.svg') center bottom #eee
             no-repeat;
           padding-bottom: 0;
           min-height: 90vh;
