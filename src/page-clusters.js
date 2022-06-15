@@ -69,8 +69,8 @@ export default class PageClusters extends PolymerElement {
         type: Object,
       },
       currency: {
-        type: Object
-      }
+        type: Object,
+      },
     };
   }
 

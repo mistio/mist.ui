@@ -1004,6 +1004,7 @@ Polymer({
         add: '',
         sidebar: true,
         tile: true,
+        hideZero: true,
         count: clustersCount,
         hr: !orchestration,
       },
@@ -1033,6 +1034,7 @@ Polymer({
         add: '/buckets/+add',
         sidebar: true,
         tile: true,
+        hideZero: true,
         count: bucketsCount,
       },
       {
