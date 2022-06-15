@@ -705,7 +705,7 @@ export default class PageDashboard extends mixinBehaviors(
   }
 
   _isHidden(item, _count) {
-    if (item.hideTileIfZero && item.count === 0) return true;
+    if (item.hideZero && item.count === 0) return true;
     return false;
   }
 
