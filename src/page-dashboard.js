@@ -240,7 +240,7 @@ export default class PageDashboard extends mixinBehaviors(
         }
 
         #content.onb-true {
-          background: url('../assets/onboarding/mount.svg') center bottom #eee
+          background: url('assets/onboarding/mount.svg') center bottom #eee
             no-repeat;
           padding-bottom: 0;
           min-height: 90vh;
@@ -705,7 +705,7 @@ export default class PageDashboard extends mixinBehaviors(
   }
 
   _isHidden(item, _count) {
-    if (item.hideTileIfZero && item.count === 0) return true;
+    if (item.hideZero && item.count === 0) return true;
     return false;
   }
 
