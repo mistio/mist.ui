@@ -632,7 +632,7 @@ Polymer({
       if (action.name === 'shell') {
         console.warn('opening shell');
 
-        if (['docker', 'kubevirt', 'lxd'].indexOf(item.provider) !== -1) {
+        if (['docker', 'kubevirt'].indexOf(item.provider) !== -1) {
           // load page import on demand.
           // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
           // remove existing terminals from DOM
