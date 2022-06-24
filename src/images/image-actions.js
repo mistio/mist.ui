@@ -12,12 +12,12 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 const IMAGE_ACTIONS = {
-  /* 'tag': {
+  'tag': {
     'name': 'tag',
     'icon': 'label',
     'confirm': true,
     'multi': true
-  }, */
+  },
   create_machine: {
     name: 'create machine',
     icon: 'hardware:computer',
@@ -48,6 +48,12 @@ Polymer({
       }
     </style>
     <dialog-element id="confirm"></dialog-element>
+    <tags-form
+      id="tagsdialog"
+      model="[[model]]"
+      items="[[items]]"
+      type="image"
+    ></tags-form>
     <slot>
       <mist-list-actions actions="[[actions]]"></mist-list-actions>
     </slot>
@@ -117,7 +123,7 @@ Polymer({
     }
     if (image) {
       arr.push('create_machine');
-      // arr.push('tag');
+      arr.push('tag');
     }
     return arr;
   },
