@@ -178,6 +178,9 @@ export default class ClusterPage extends mixinBehaviors(
         mist-list {
           min-height: 185px
         }
+        cpcost {
+          padding-top: 5px;
+        }
       </style>
       <div id="content">
         <paper-material class="single-head layout horizontal">
@@ -198,8 +201,8 @@ export default class ClusterPage extends mixinBehaviors(
             in-single-page=""
           ></cluster-actions>
         </paper-material>
-        <paper-material>
-          <div class="missing" hidden$="[[!isMissing]]">Cluster not found.</div>
+        <paper-material hidden$="[[!isMissing]]">
+          <div class="missing">Cluster not found.</div>
         </paper-material>
         <div class="columns">
           <paper-material class="left info">
@@ -289,7 +292,7 @@ export default class ClusterPage extends mixinBehaviors(
                 </div>
                 <div class="row">
                   <div class="cell">
-                    <h4>Control Plane Cost</h4>
+                    <h4 id="cpcost">Control Plane Cost</h4>
                   </div>
                   <div class="cell">
                     <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly, 
@@ -612,7 +615,8 @@ export default class ClusterPage extends mixinBehaviors(
       !this.cluster ||
       !this.cloud ||
       !this.cloud.locations ||
-      !this.cluster.location
+      !this.cluster.location ||
+      !this.cloud[locations][this.cluster.location]
     )
       return '';
     return this.cloud.locations[this.cluster.location].name;
