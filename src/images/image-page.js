@@ -13,7 +13,7 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
-    <style include="shared-styles single-page">
+    <style include="shared-styles tags-and-labels single-page">
       paper-material {
         display: block;
         padding: 20px;
@@ -134,8 +134,19 @@ Polymer({
       .single-head {
         @apply --image-page-head-mixin;
       }
+
+      .image-page-head {
+        @apply --image-page-head-mixin;
+      }
+
       image-actions {
         width: 50%;
+      }
+
+      paper-material > h2 {
+        line-height: initial !important;
+        margin-bottom: 0;
+        cursor: pointer;
       }
     </style>
     <div id="content">
@@ -172,20 +183,66 @@ Polymer({
           ></span
         >
         <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:</h4>
-        <template is="dom-if" if="[[image.tags]]">
-          <template is="dom-repeat" items="[[image.tags]]">
-            <span class="id tag"
+        <template is="dom-if" if="[[!_isEmpty(image.tags)]]">
+          <template is="dom-repeat" items="[[_getImgTags(image.tags)]]">
+            <span class="tag"
               >[[item.key]]
               <span hidden="[[!item.value]]">= [[item.value]]</span></span
             >
           </template>
         </template>
       </paper-material>
+      <br />
       <paper-material class="no-pad">
-        <div class="info-table">
-          <div class="info-body info-group">
-            <element-for-in content="[[image.extra]]"></element-for-in>
-          </div>
+        <h2 class="image-page-head">Basic Info</h2>
+        <div class="card-content">
+          <table class="info-table">
+            <tr>
+              <td>External ID</td>
+              <td>[[image.external_id]]</td>
+            </tr>
+            <tr>
+              <td>Architecture</td>
+              <td>[[image.architecture]]</td>
+            </tr>
+            <tr>
+              <td>OS Type</td>
+              <td>[[image.os_type]]</td>
+            </tr>
+            <tr>
+              <td>OS Distro</td>
+              <td>[[image.os_distro]]</td>
+            </tr>
+            <tr>
+              <td>Starred</td>
+              <td>[[image.starred]]</td>
+            </tr>
+            <tr>
+              <td>Origin</td>
+              <td>[[image.origin]]</td>
+            </tr>
+            <template is="dom-if" if="[[image.min_disk_size]]">
+              <tr>
+                <td>Min Disk Size</td>
+                <td>[[image.min_disk_size]]</td>
+              </tr>
+            </template>
+            <template is="dom-if" if="[[image.min_memory_size]]">
+              <tr>
+                <td>Min Memory Size</td>
+                <td>[[image.min_memory_size]]</td>
+              </tr>
+            </template>
+          </table>
+        </div>
+      </paper-material>
+      <br />
+      <paper-material class="no-pad" hidden$="[[!_hasExtra(image)]]">
+        <h2 class="image-page-head">More Info</h2>
+        <div class="card-content">
+          <element-for-in
+            content="[[image.extra]]"
+          ></element-for-in>
         </div>
       </paper-material>
       <br />
@@ -344,7 +401,28 @@ Polymer({
     return !this.image;
   },
 
-  _isEmpty(arr) {
-    return !arr || arr.length === 0;
+  _hasExtra(_image) {
+    if (this.image && this.image.extra)
+      return Object.keys(this.image.extra).length > 0;
+    return false;
   },
+
+  _isEmpty(tags) {
+    if(Array.isArray(tags))
+      return !tags || tags.length === 0;
+    else
+      return !tags || Object.keys(tags).length === 0;
+  },
+  _getImgTags(tags) {
+    if(Array.isArray(tags))
+      return tags
+    const ret = []
+    Object.keys(tags).forEach(key => {
+      const toAppend = {}
+      toAppend.key = key;
+      toAppend.value = tags[key];
+      ret.push(toAppend);
+    });
+    return ret;
+  }
 });

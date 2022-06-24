@@ -78,7 +78,7 @@ export default class PageImages extends mixinBehaviors(
       <image-page
         id="imagePage"
         model="[[model]]"
-        image$="[[_getImage(route, model.images)]]"
+        image="[[_getImage(route, model.images)]]"
         resource-id="[[_getImageId(route)]]"
         section="[[model.sections.images]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"

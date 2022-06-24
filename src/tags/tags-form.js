@@ -446,7 +446,7 @@ Polymer({
     }
 
     payload = this.items.map(item => {
-      const itemCloudId = item.cloud ? item.cloud || item.cloud_id : '';
+      const itemCloudId = item.cloud ? item.cloud.id || item.cloud_id : '';
       const itemId = item.id;
 
       const newItem = {};
