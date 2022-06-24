@@ -2571,6 +2571,9 @@ Polymer({
       `machineFields.${this.securityGroupsFieldIndex}.options`,
       secGroups || []
     );
+    if (secGroups && secGroups.length > 0)
+      this.set(`machineFields.${this.securityGroupsFieldIndex}.show`, true);
+
     this.shadowRoot.querySelector('app-form').dispatchEvent(
       new CustomEvent('fields-changed', {
         detail: {

@@ -574,7 +574,7 @@ MACHINE_CREATE_FIELDS.push({
       value: '',
       defaultValue: '',
       show: true,
-      required: true,
+      required: false,
       options: [],
     },
     {
