@@ -77,6 +77,15 @@ export default class PageClusters extends PolymerElement {
   _getRenderers() {
     const _this = this;
     return {
+      icon: {
+        body: (_item, row) => {
+          return `./assets/providers/provider-${_this.model.clouds[
+            row.cloud
+          ].provider
+            .replace('_', '')
+            .replace(' ', '')}.png`;
+        }
+      },
       name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
         cmp: (row1, row2) =>
