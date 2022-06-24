@@ -13,7 +13,7 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 
 Polymer({
   _template: html`
-    <style include="shared-styles single-page">
+    <style include="shared-styles tags-and-labels single-page">
       paper-material {
         display: block;
         padding: 20px;
@@ -184,8 +184,8 @@ Polymer({
         >
         <h4 class="id tags" hidden$="[[_isEmpty(image.tags)]]">Tags:</h4>
         <template is="dom-if" if="[[!_isEmpty(image.tags)]]">
-          <template is="dom-repeat" items="[[image.tags]]">
-            <span class="id tag"
+          <template is="dom-repeat" items="[[_getImgTags(image.tags)]]">
+            <span class="tag"
               >[[item.key]]
               <span hidden="[[!item.value]]">= [[item.value]]</span></span
             >
@@ -413,4 +413,16 @@ Polymer({
     else
       return !tags || Object.keys(tags).length === 0;
   },
+  _getImgTags(tags) {
+    if(Array.isArray(tags))
+      return tags
+    const ret = []
+    Object.keys(tags).forEach(key => {
+      const toAppend = {}
+      toAppend.key = key;
+      toAppend.value = tags[key];
+      ret.push(toAppend);
+    });
+    return ret;
+  }
 });
