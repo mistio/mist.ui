@@ -8,8 +8,8 @@ const NODEPOOL_ACTIONS = {
   edit: {
     name: 'edit',
     icon: 'editor:mode-edit',
-    confirm: 'false',
-    multi: 'false',
+    confirm: false,
+    multi: false,
   },
 };
 
