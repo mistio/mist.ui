@@ -615,7 +615,8 @@ export default class ClusterPage extends mixinBehaviors(
       !this.cluster ||
       !this.cloud ||
       !this.cloud.locations ||
-      !this.cluster.location
+      !this.cluster.location ||
+      !this.cloud[locations][this.cluster.location]
     )
       return '';
     return this.cloud.locations[this.cluster.location].name;
