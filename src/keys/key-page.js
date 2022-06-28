@@ -9,7 +9,7 @@ import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistRulesBehavior } from '../helpers/mist-rules-behavior.js';
 import '../tags/tags-list.js';
 import { itemUid, CSRFToken } from '../helpers/utils.js';
-import { store } from '../redux/redux-store.js';
+import { store } from '../redux/store.js';
 
 Polymer({
   _template: html`
@@ -313,7 +313,7 @@ Polymer({
                     restamp=""
                     ><abbr title$="[[item.1]]">missing machine</abbr></template
                   >
-                  <span>([[getCloudTitle(item)]])</span>
+                  <span>([[getCloud(item)]])</span>
                   <span hidden="[[!item.5]]">: [[item.5]]</span>
                 </span>
               </li>
@@ -541,14 +541,14 @@ Polymer({
     return item && `/machines/${item}`;
   },
 
-  getCloudTitle(machineId) {
-    const machine = this.store.getState().mainReducer.machines[machineId];
+  getCloud(machineId) {
+    const machine = this.store.getState().org.machines[machineId];
     if (!machine || !machine.cloud) return '';
     return machine.cloud;
   },
 
   getMachineName(machineId) {
-    const machine = this.store.getState().mainReducer.machines[machineId];
+    const machine = this.store.getState().org.machines[machineId];
     return machine ? machine.name : machineId;
   },
 

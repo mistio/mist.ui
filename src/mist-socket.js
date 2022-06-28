@@ -459,10 +459,6 @@ Polymer({
               }
             }
             _this.notifyPath(`model.${resourceType}`);
-            _this.set(
-              `model.sections.${resourceType}.count`,
-              Object.keys(_this.model[resourceType]).length
-            );
           }
         },
         {
@@ -549,19 +545,6 @@ Polymer({
         this.set(`model.${section}`, _generateMap(data, primaryField));
         this.set(`model.${section}Array`, data);
       } else if (DEBUG_SOCKET) console.debug('no need to update', section);
-
-      if (
-        this.model.sections[section] &&
-        this.model.sections[section].count !== (data.length || 0)
-      ) {
-        // update section count, necessary for propagating changes to sidebar & dashboard counters
-        this.set(`model.sections.${section}.count`, data.length || 0);
-        console.log(
-          'update model',
-          section,
-          this.model.sections[section].count
-        );
-      }
 
       if (pending) {
         this.set(`model.pending.${section}`, false);
@@ -795,8 +778,6 @@ Polymer({
 
     this.set('model.imagesArray', allImages);
     this.set('model.images', _generateMap(allImages));
-    // update section count, necessary for propagating changes to sidebar & dashboard counters
-    this.set('model.sections.images.count', allImages.length);
     return true;
   },
   _updateClusters(data) {
@@ -883,10 +864,6 @@ Polymer({
           );
         }
       }
-      this.set(
-        `model.sections.${section}.count`,
-        Object.keys(this.model[section]).length
-      );
     }
   },
 
@@ -1090,7 +1067,6 @@ Polymer({
             delete _this.model[section][resourceId];
         }
       });
-      this.set(`model.sections.${section}.count`, sectionItems.length);
     }
   },
 });

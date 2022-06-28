@@ -5,7 +5,6 @@ import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/paper-tooltip/paper-tooltip.js';
 import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-listbox/paper-listbox.js';
-import '../account/plan-purchase.js';
 import '../app-form/app-form.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
@@ -213,7 +212,6 @@ Polymer({
         </div>
       </paper-material>
     </div>
-    <plan-purchase id="ccRequired" org="[[org]]" persist=""></plan-purchase>
   `,
 
   is: 'cloud-add',
@@ -296,8 +294,6 @@ Polymer({
   listeners: {
     'iron-select': '_updateCloudTitle',
     'reset-form': '_resetProvider',
-    'open-cc-required': '_openCcRequired',
-    'close-cc-required': '_closeCcRequired',
   },
 
   ready() {},

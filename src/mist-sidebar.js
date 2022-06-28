@@ -8,7 +8,7 @@ import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
-import { store } from './redux/redux-store.js';
+import { store } from './redux/store.js';
 
 /* eslint-disable class-methods-use-this */
 export default class MistSidebar extends connect(store)(
@@ -290,7 +290,7 @@ export default class MistSidebar extends connect(store)(
           color: var(--templates-sidebar-link-color);
         }
 
-        a#secrets{
+        a#secrets {
           color: var(--secrets-sidebar-link-color);
         }
 
@@ -325,36 +325,39 @@ export default class MistSidebar extends connect(store)(
       <div class="content">
         <div id="section-list">
           <nav>
-            <template is="dom-repeat" items="[[sectionsArray]]">
-              <template is="dom-if" if="[[item.sidebar]]" restamp="">
-                <a
-                  id="[[item.id]]"
-                  class="section"
-                  on-tap="clearSearch"
-                  id$="[[item.id]]"
-                  href="/[[item.id]]"
-                  hidden$="[[_isHidden(item,sectionsArray)]]"
-                  active$="[[_isEqual(current, item.id)]]"
-                  tabindex="0"
-                >
-                  <div class="flex-1 layout horizontal center">
-                    <section-symbol
-                      aria-hidden="true"
-                      icon="[[item.icon]]"
-                    ></section-symbol>
-                    <span class="title flex-1">
-                      <span class="title-text flex-1"
-                        >[[_getSectionName(item.id)]]</span
-                      >
-                      <span class="count"
-                        >[[_getSectionCount(item.id, sectionsArray)]]</span
-                      >
-                    </span>
-                  </div>
-                </a>
-                <template is="dom-if" if="[[item.hr]]">
-                  <hr class="sidebar-sep" />
-                </template>
+            <template
+              is="dom-repeat"
+              items="{{sectionsArray}}"
+              id="sectionsRepeater"
+            >
+              <a
+                id="[[item.id]]"
+                class="section"
+                on-tap="clearSearch"
+                id$="[[item.id]]"
+                href="/[[item.id]]"
+                hidden$="[[_isHidden(item,sectionsArray)]]"
+                active$="[[_isCurrent(item.id, current)]]"
+                tabindex="0"
+              >
+                <div class="flex-1 layout horizontal center">
+                  <section-symbol
+                    aria-hidden="true"
+                    icon="[[item.icon]]"
+                  ></section-symbol>
+                  <span class="title flex-1">
+                    <span class="title-text flex-1"
+                      >[[_getSectionName(item)]]</span
+                    >
+                    <span class="count"
+                      >[[_getSectionCount(item.id, sectionCounters,
+                      sectionsArray)]]</span
+                    >
+                  </span>
+                </div>
+              </a>
+              <template is="dom-if" if="[[item.hr]]">
+                <hr class="sidebar-sep" />
               </template>
             </template>
           </nav>
@@ -394,16 +397,10 @@ export default class MistSidebar extends connect(store)(
         notify: true,
         value: false,
       },
-      hasStacks: {
-        type: Boolean,
-        computed: '_computeHasStacks(model.stacksArray)',
-      },
       sectionsArray: {
         type: Array,
-        computed:
-          '_computeSectionsArray(model.sections.*, model.teams.*, model.org, model.user)',
       },
-      sectionsCount: {
+      sectionCounters: {
         type: Object,
         value() {
           return {};
@@ -412,32 +409,57 @@ export default class MistSidebar extends connect(store)(
     };
   }
 
-  static get observers() {
-    return ['updateSectionsCount(model.org.id)'];
-  }
-
   ready() {
     super.ready();
     this.updateResize();
     this.addEventListener('iron-overlay-closed', this.closeSidebar);
+    const sections = store.getState().sections;
+    this.set(
+      'sectionsArray',
+      sections.order.map(i => sections.map[i]).filter(i => i && i.sidebar)
+    );
+  }
+
+  stateChanged(state) {
+    // debugger;
+    if (
+      !this.sectionsArray ||
+      !this.sectionsArray.length ||
+      !this.sectionCounters
+    )
+      return;
+    this.sectionsArray.forEach(s => {
+      if (!Object.keys(state.org).length) return;
+      if (
+        s &&
+        state.org[s.id] &&
+        state.org[s.id].meta &&
+        state.org[s.id].meta.total !== this.sectionCounters[s.id]
+      ) {
+        this.sectionCounters[s.id] = state.org[s.id].meta.total;
+        this.notifyPath('sectionCounters');
+        this.notifyPath('sectionsArray');
+        // this.set('sectionsArray', this.sectionsArray);
+      }
+    });
   }
 
   style(color) {
     return `color: ${color};`;
   }
 
-  async updateSectionsCount(id) {
-    if (id) {
-      const data = await (
-        await fetch(`/api/v2/orgs/${id}?summary=true`)
-      ).json();
-      store.dispatch({
-        type: 'Set-Sections-Count',
-        payload: data.data.resources_count,
-      });
-      this.set('sectionsCount', data.data.resources_count);
-    }
-  }
+  // async updateSectionsCount(id) {
+  //   if (id) {
+  //     const data = await (
+  //       await fetch(`/api/v2/orgs/${id}?summary=true`)
+  //     ).json();
+  //     store.dispatch({
+  //       type: 'Set-Sections-Count',
+  //       payload: data.data.resources_count,
+  //     });
+  //     this.set('sectionsCount', data.data.resources_count);
+  //   }
+  // }
 
   updateResize(_e) {
     console.log('updateResize');
@@ -463,20 +485,8 @@ export default class MistSidebar extends connect(store)(
     this.set('isclosed', !this.isclosed);
   }
 
-  _itemCount(item) {
-    return this.get(`this.model.${item}Array.length`);
-  }
-
-  _sectionLink(name) {
-    return `/${name}`;
-  }
-
-  _isEqual(a, b) {
-    return a === b;
-  }
-
-  _computeHasStacks(stacksArray) {
-    return stacksArray ? stacksArray.length > 0 : false;
+  _isCurrent(section) {
+    return this.current === section;
   }
 
   _isHidden(item) {
@@ -491,65 +501,13 @@ export default class MistSidebar extends connect(store)(
     });
   }
 
-  _computeSectionsArray(_model) {
-    let sects = [];
-    if (this.model && this.model.sections) {
-      sects = Object.keys(this.model.sections).filter(sect => {
-        if (this.model.sections[sect].id === 'dashboard') return true;
-        if (
-          this.model.sections[sect].id === 'teams' &&
-          this.checkPerm('team', 'read', '*')
-        )
-          return true;
-        if (
-          this.model.sections[sect].id === 'insights' &&
-          this.checkPerm('cloud', 'read_cost', '*')
-        )
-          return true;
-        if (
-          this.model.sections[sect].id === 'rules' &&
-          this.checkPerm('machine', 'edit_rules', '*')
-        )
-          return true;
-        if (
-          ['insights', 'teams', 'rules'].indexOf(
-            this.model.sections[sect].id
-          ) === -1 &&
-          this.checkPerm &&
-          this.model.org &&
-          this.model.user &&
-          this.checkPerm(
-            this.model.sections[sect].id,
-            'read',
-            '*',
-            this.model.org,
-            this.model.user
-          )
-        ) {
-          return true;
-        }
-        return false;
-      });
-      return sects.map(y => this.model.sections[y]);
-    }
-    return [];
+  _getSectionName(section) {
+    return section.name || section.id;
   }
 
-  _getSectionName(sectionId) {
-    const { name, id } = this.model.sections[sectionId];
-    return name || id;
-  }
-
-  _getSectionCount(name, _sections) {
-    // temporary, every count should be get like this
-    if (['stacks'].indexOf(name) > -1) return this.model.sections[name].count;
-    if (
-      !this.sectionsCount ||
-      ['dashboard', 'insights'].indexOf(name) > -1 ||
-      Object.keys(this.sectionsCount).length <= 0
-    )
-      return '';
-    return this.sectionsCount[name].total;
+  _getSectionCount(name) {
+    // if (name === 'clouds') debugger;
+    return this.sectionCounters[name] || 0;
   }
 }
 
