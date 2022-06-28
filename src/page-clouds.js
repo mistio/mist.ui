@@ -50,7 +50,7 @@ export default class PageClouds extends mixinBehaviors(
             frozen="[[_getFrozenLogColumn()]]"
             visible="[[_getVisibleColumns()]]"
             route="{{route}}"
-            user-filter="[[model.sections.clouds.q]]"
+            user-filter="[[userFilter]]"
             primary-field-name="id"
             filter-method="[[_ownerFilter()]]"
             hidden$="[[!_isListActive(route.path)]]"

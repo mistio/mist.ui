@@ -9,8 +9,8 @@ import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { connect } from 'pwa-helpers/connect-mixin.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { store } from './redux/redux-store.js';
-import reduxDataProvider from './redux/redux-data-provider.js';
+import { store } from './redux/store.js';
+import reduxDataProvider from './redux/data-provider.js';
 
 /* eslint-disable class-methods-use-this */
 export default class PageImages extends connect(store)(
@@ -143,16 +143,16 @@ export default class PageImages extends connect(store)(
   async _setImage(id) {
     // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
     if (id) {
-      let image = this.store.getState().mainReducer.images[id];
+      let image = this.store.getState().org.images[id];
       if (!image) {
         const response = await (await fetch(`/api/v2/images/${id}`)).json();
         image = response.data;
         this.store.dispatch({ type: 'Update-Images', payload: image });
       }
       this.$.imagePage.image = image;
-      const [cloud] = Object.values(
-        this.store.getState().mainReducer.clouds
-      ).filter(cloud_ => cloud_.name === image.cloud);
+      const [cloud] = Object.values(this.store.getState().org.clouds).filter(
+        cloud_ => cloud_.name === image.cloud
+      );
       this.$.imagePage.cloudId = cloud.id;
     }
   }
@@ -250,8 +250,10 @@ export default class PageImages extends connect(store)(
   }
 
   searchableClouds() {
-    const clouds = this.store.getState().mainReducer.clouds;
-    return clouds.filter(c => ['ec2', 'docker'].indexOf(c.provider) > -1);
+    const clouds = this.store.getState().org.clouds;
+    return Object.values(clouds).filter(
+      c => ['ec2', 'docker'].indexOf(c.provider) > -1
+    );
   }
 
   // sortedImages(_images) {

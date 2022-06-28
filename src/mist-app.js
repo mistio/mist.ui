@@ -33,13 +33,12 @@ import './mist-socket.js';
 import './mist-notice.js';
 import './mist-icons.js';
 import './organizations/organization-add.js';
-import './account/plan-purchase.js';
 import { setPassiveTouchGestures } from '@polymer/polymer/lib/utils/settings.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
-import { _generateMap } from './helpers/utils.js';
-import { store } from './redux/redux-store.js';
-import PROVIDERS from './helpers/providers.js';
+import { store } from './redux/store.js';
+import { configUpdated } from './redux/slices/config.js';
+import { orgUpdated, sectionUpdated } from './redux/slices/org.js';
 
 const documentContainer = document.createElement('template');
 documentContainer.innerHTML = `<dom-module id="mist-app">
@@ -187,29 +186,27 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
                 <paper-spinner active="[[loading]]"></paper-spinner>
             </div>
             <iron-pages id="iron-pages" role="main" selected="[[page]]" attr-for-selected="name" fallback-selection="not-found">
-                <page-dashboard name="dashboard" model="[[model]]" q="[[model.sections.dashboard.q]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen="[[xsmallscreen]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-dashboard>
-                <template is="dom-if" restamp="" if="[[model.sections]]">
-                    <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
-                    <page-clusters name="clusters" route="{{subroute}}" model="[[model]]" currency="[[config.features.currency]]"></page-clusters>
-                    <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]" currency="[[config.features.currency]]"></page-machines>
-                    <page-images name="images" route="{{subroute}}" model="[[model]]" portal-name="[[config.portal_name]]"></page-images>
-                    <page-keys name="keys" route="{{subroute}}" model="[[model]]" config="[[config]]"></page-keys>
-                    <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
-                    <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
-                    <page-buckets name="buckets" route="{{subroute}}" model="[[model]]"></page-buckets>
-                    <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
-                    <page-secrets name="secrets" route="{{subroute}}" model="[[model]]"></page-secrets>
-                    <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
-                    <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
-                    <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" currency="[[config.features.currency]]"></page-schedules>
-                    <page-rules name="rules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" features="[[config.features]]"></page-rules>
-                    <page-templates name="templates" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-templates>
-                    <page-stacks name="stacks" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-stacks>
-                    <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac="[[config.features.rbac]]" billing="[[config.features.billing]]" cta="[[config.cta.rbac]]" email="[[config.email]]" docs="[[config.features.docs]]"></page-teams>
-                    <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
-                    <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
-                    <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" currency="[[config.features.currency]]" insights-enabled="[[model.org.insights_enabled]]" hidden$="[[!config.features.insights]]"></page-insights>
-                </template>
+                <page-dashboard name="dashboard" model="[[model]]" viewing-dashboard="[[_isPage('dashboard', page)]]" xsmallscreen="[[xsmallscreen]]" docs="[[config.features.docs]]"></page-dashboard>
+                <page-clouds name="clouds" route="{{subroute}}" model="[[model]]" enable-monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]" enable-billing="[[config.features.billing]]"></page-clouds>
+                <page-clusters name="clusters" route="{{subroute}}" model="[[model]]"></page-clusters>
+                <page-machines name="machines" route="{{subroute}}" model="[[model]]" monitoring="[[config.features.monitoring]]" docs="[[config.features.docs]]" portal-name="[[config.portal_name]]"></page-machines>
+                <page-images name="images" route="{{subroute}}" model="[[model]]" portal-name="[[config.portal_name]]"></page-images>
+                <page-keys name="keys" route="{{subroute}}" model="[[model]]" config="[[config]]"></page-keys>
+                <page-networks name="networks" route="{{subroute}}" model="[[model]]"></page-networks>
+                <page-volumes name="volumes" route="{{subroute}}" model="[[model]]"></page-volumes>
+                <page-buckets name="buckets" route="{{subroute}}" model="[[model]]"></page-buckets>
+                <page-zones name="zones" route="{{subroute}}" model="[[model]]"></page-zones>
+                <page-secrets name="secrets" route="{{subroute}}" model="[[model]]"></page-secrets>
+                <page-tunnels name="tunnels" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.tunnels]]"></page-tunnels>
+                <page-scripts name="scripts" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-scripts>
+                <page-schedules name="schedules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]"></page-schedules>
+                <page-rules name="rules" route="{{subroute}}" model="[[model]]" docs="[[config.features.docs]]" features="[[config.features]]"></page-rules>
+                <page-templates name="templates" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-templates>
+                <page-stacks name="stacks" route="{{subroute}}" model="[[model]]" hidden$="[[!config.features.orchestration]]"></page-stacks>
+                <page-teams name="teams" route="{{subroute}}" model="[[model]]" rbac="[[config.features.rbac]]" billing="[[config.features.billing]]" cta="[[config.cta.rbac]]" email="[[config.email]]" docs="[[config.features.docs]]"></page-teams>
+                <page-members name="members" route="{{subroute}}" model="[[model]]"></page-members>
+                <page-incidents name="incidents" route="{{subroute}}" model="[[model]]"></page-incidents>
+                <page-insights name="insights" route="{{subroute}}" model="[[model]]" email="[[config.email]]" insights-enabled="[[model.org.insights_enabled]]" hidden$="[[!config.features.insights]]"></page-insights>
                 <page-my-account name="my-account" route="{{subroute}}" user="[[model.user]]" org="[[model.org]]" machines="[[model.machines]]" tokens="[[model.tokens]]" sessions="[[model.sessions]]" config="[[config]]"></page-my-account>
                 <page-not-found name="not-found" route="{{subroute}}"></page-not-found>
             </iron-pages>
@@ -218,7 +215,6 @@ documentContainer.innerHTML = `<dom-module id="mist-app">
         <mist-socket model="{{model}}"></mist-socket>
         <!--app-notifications id="desktop-notifier" on-click="handleDesktopNotificationClick"></app-notifications-->
         <organization-add id="organizationAdd" current-org="[[model.org]]"></organization-add>
-        <plan-purchase id="mistAppCcRequired" org="[[model.org]]" button-text="Enable"></plan-purchase>
     </template>
 
 </dom-module>`;
@@ -231,6 +227,7 @@ document.head.appendChild(documentContainer.content);
   then delete this comment!
 */
 setPassiveTouchGestures(true);
+
 Polymer({
   is: 'mist-app',
   behaviors: [
@@ -305,12 +302,6 @@ Polymer({
     userMenuOpened: {
       type: Boolean,
     },
-    ccRequired: {
-      type: Boolean,
-      value: false,
-      computed:
-        '_computeCcRequired(config.features.*, model.org.*, model.cloudsArray.length)',
-    },
     visibleSuggestions: {
       type: Boolean,
       value: false,
@@ -362,8 +353,12 @@ Polymer({
     '_routePageChanged(routeData.page, subroute.path)',
     '_sizeChanged(smallscreen)',
     '_configUpdated(config)',
-    '_ccRequiredChanged(ccRequired)',
+    '_fetchOrg(mode.org.id)',
   ],
+
+  get state() {
+    return store.getState();
+  },
 
   _cleanUpModelFromCloudResources(e) {
     if (this.shadowRoot.querySelector('mist-socket') && e.detail.cloud)
@@ -372,34 +367,32 @@ Polymer({
         .cleanUpResources(e.detail.cloud);
   },
 
-  _listAttached(e) {
-    if (e.detail && e.detail.id) {
-      const section = e.detail.id.replace('List', '');
-      if (this.model.sections[section]) {
-        let userFilter = localStorage.getItem(
-          `mist-filter#topFilter/all-${section}/userFilter`
-        );
-        if (!userFilter) {
-          userFilter = localStorage.getItem(
-            'mist-filter#topFilter/all-resources/userFilter'
-          );
-        }
-        if (!userFilter) {
-          userFilter = this.model.sections[section].q;
-        }
-        if (!userFilter) {
-          userFilter = '';
-        }
-        this.set(`model.sections.${section}.q`, userFilter);
-        this.set('searchQuery', userFilter);
-      }
-    }
+  _listAttached() {
+    // TODO make it work without model
+    // if (e.detail && e.detail.id) {
+    //   const section = e.detail.id.replace('List', '');
+    //   if (this.model.sections[section]) {
+    //     let userFilter = localStorage.getItem(
+    //       `mist-filter#topFilter/all-${section}/userFilter`
+    //     );
+    //     if (!userFilter) {
+    //       userFilter = localStorage.getItem(
+    //         'mist-filter#topFilter/all-resources/userFilter'
+    //       );
+    //     }
+    //     if (!userFilter) {
+    //       userFilter = this.model.sections[section].q;
+    //     }
+    //     if (!userFilter) {
+    //       userFilter = '';
+    //     }
+    //     this.set(`model.sections.${section}.q`, userFilter);
+    //     this.set('searchQuery', userFilter);
+    //   }
+    // }
   },
 
   attached() {
-    if (this.ccRequired) {
-      this._ccDismissed();
-    }
     // eslint-disable-next-line
     if (!CONFIG.theme) {
       import('./styles/app-theme.js').then(console.log('Loaded default theme'));
@@ -409,8 +402,18 @@ Polymer({
 
   async fetchClouds() {
     const response = await (await fetch('/api/v2/clouds')).json();
-    store.dispatch({ type: 'Update-Clouds', payload: response.data });
+    store.dispatch(sectionUpdated(response));
   },
+
+  async fetchOrg(id) {
+    if (id) {
+      const data = await (
+        await fetch(`/api/v2/orgs/${id}?summary=true`)
+      ).json();
+      store.dispatch(orgUpdated(data));
+    }
+  },
+
   _observeKeys(_keysSplices) {
     this.fire('update-keys');
   },
@@ -433,30 +436,6 @@ Polymer({
     }
   },
 
-  _computeCcRequired(_org, _clouds) {
-    if (
-      !this.config ||
-      !this.config.features ||
-      !this.config.features.billing ||
-      !this.model.org ||
-      this.model.org.card ||
-      this.model.org.current_plan
-    )
-      return false;
-    return !!this.model.cloudsArray.length;
-  },
-
-  _ccRequiredChanged(required) {
-    if (required) this.$.mistAppCcRequired.open();
-  },
-
-  _ccDismissed() {
-    if (this.ccRequired)
-      this.async(() => {
-        if (this.ccRequired) this.$.mistAppCcRequired.open();
-      }, 1000 * 60);
-  },
-
   _sizeChanged(_smallscreen) {
     if (this.$.sidebar) {
       if (this.smallscreen) {
@@ -469,19 +448,6 @@ Polymer({
 
   _computeCenterContent(_sidebarIsClosed, _smallscreen) {
     return this.sidebarIsClosed || this.smallscreen;
-  },
-
-  setHeaderCount(e) {
-    if (
-      !this._isPage('dashboard') &&
-      !this._isPage('my-account') &&
-      !this._isPage('insights')
-    ) {
-      this.set('count', e.detail.length);
-    } else {
-      this.set('count', '');
-    }
-    this.set(`model.sections.${this.page}.count`, e.detail.length);
   },
 
   setLocationPath(e) {
@@ -713,9 +679,10 @@ Polymer({
   updateSearchQuery(e) {
     if (e.detail !== undefined && e.detail.q !== undefined) {
       console.log('search: update Search Query', e.detail);
-      if (e.detail.page && this.page === e.detail.page) {
-        this.set(`model.sections.${this.page}.q`, e.detail.q || '');
-      }
+      // TODO make this work without model
+      // if (e.detail.page && this.page === e.detail.page) {
+      //   this.set(`model.sections.${this.page}.q`, e.detail.q || '');
+      // }
       this.set('searchQuery', e.detail.q);
     }
   },
@@ -755,12 +722,12 @@ Polymer({
       monitoring: {},
       sections: {},
       onboarding: {
-        isLoadingClouds: true,
-        isLoadingMachines: true,
-        isLoadingImages: true,
-        isLoadingKeys: true,
-        isLoadingNetworks: true,
-        isLoadingZones: true,
+        isLoadingClouds: false,
+        isLoadingMachines: false,
+        isLoadingImages: false,
+        isLoadingKeys: false,
+        isLoadingNetworks: false,
+        isLoadingZones: false,
         isLoadingTunnels: true,
         isLoadingScripts: true,
         isLoadingSchedules: true,
@@ -902,293 +869,8 @@ Polymer({
 
   _configUpdated(config) {
     if (!Object.keys(config).length) return;
-    const orchestration =
-      this.config && this.config.features && this.config.features.orchestration
-        ? this.config.features.orchestration
-        : false;
-    const tunnels =
-      this.config && this.config.features && this.config.features.tunnels
-        ? this.config.features.tunnels
-        : false;
-    const insights =
-      this.config && this.config.features && this.config.features.insights
-        ? this.config.features.insights
-        : false;
-    const currency =
-      this.config && this.config.features && this.config.features.currency
-        ? this.config.features.currency
-        : { sign: '$', rate: 1 };
-
-    const cloudsCount = this.model.clouds
-      ? Object.keys(this.model.clouds).length
-      : 0;
-    const clustersCount = this.model.clusters
-      ? Object.keys(this.model.clusters).length
-      : 0;
-    const stacksCount = this.model.stacks
-      ? Object.keys(this.model.stacks).length
-      : 0;
-    const machinesCount = this.model.machines
-      ? Object.keys(this.model.machines).length
-      : 0;
-    const volumesCount = this.model.volumes
-      ? Object.keys(this.model.volumes).length
-      : 0;
-    const bucketsCount = this.model.buckets
-      ? Object.keys(this.model.buckets).length
-      : 0;
-    const networksCount = this.model.networks
-      ? Object.keys(this.model.networks).length
-      : 0;
-    const zonesCount = this.model.zones
-      ? Object.keys(this.model.zones).length
-      : 0;
-    const keysCount = this.model.keys ? Object.keys(this.model.keys).length : 0;
-    const imagesCount = this.model.images
-      ? Object.keys(this.model.images).length
-      : 0;
-    const scriptsCount = this.model.scripts
-      ? Object.keys(this.model.scripts).length
-      : 0;
-    const templatesCount = this.model.templates
-      ? Object.keys(this.model.templates).length
-      : 0;
-    const tunnelsCount = this.model.tunnels
-      ? Object.keys(this.model.tunnels).length
-      : 0;
-    const schedulesCount = this.model.schedules
-      ? Object.keys(this.model.schedules).length
-      : 0;
-    const rulesCount = this.model.rules
-      ? Object.keys(this.model.rules).length
-      : 0;
-    const teamsCount = this.model.teams
-      ? Object.keys(this.model.teams).length
-      : 0;
-    const membersCount = this.model.members
-      ? Object.keys(this.model.members).length
-      : 0;
-    const secretsCount = this.model.secrets
-      ? Object.keys(this.model.secrets).length
-      : 0;
-    const sectionsArray = [
-      {
-        id: 'dashboard',
-        icon: 'icons:dashboard',
-        color: '#424242',
-        sidebar: true,
-        tile: false,
-        hr: true,
-      },
-      {
-        id: 'incidents',
-        color: '#d96557',
-        sidebar: false,
-        tile: false,
-        count: 0,
-      },
-      {
-        id: 'clouds',
-        color: '#424242',
-        icon: 'cloud',
-        add: '/clouds/+add',
-        sidebar: true,
-        tile: false,
-        count: cloudsCount,
-        hr: false,
-      },
-      {
-        id: 'stacks',
-        color: '#0277BD',
-        icon: 'maps:layers',
-        sidebar: orchestration,
-        tile: orchestration,
-        count: stacksCount,
-        hr: true,
-        hideZero: true,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'clusters',
-        color: '#aa646c',
-        icon: 'icons:group-work',
-        add: '',
-        sidebar: true,
-        tile: true,
-        hideZero: true,
-        count: clustersCount,
-        hr: !orchestration,
-      },
-      {
-        id: 'machines',
-        color: '#8c76d1',
-        icon: 'hardware:computer',
-        add: '/machines/+create',
-        sidebar: true,
-        tile: true,
-        count: machinesCount,
-      },
-      {
-        id: 'volumes',
-        color: '#795548',
-        icon: 'device:storage',
-        add: '/volumes/+add',
-        sidebar: true,
-        tile: true,
-        count: volumesCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'buckets',
-        color: '#ff590b',
-        icon: 'icons:folder',
-        add: '/buckets/+add',
-        sidebar: true,
-        tile: true,
-        hideZero: true,
-        count: bucketsCount,
-      },
-      {
-        id: 'networks',
-        color: '#795548',
-        icon: 'hardware:device-hub',
-        add: '/networks/+add',
-        sidebar: true,
-        tile: true,
-        count: networksCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'zones',
-        color: '#3F51B5',
-        icon: 'icons:dns',
-        add: '/zones/+add',
-        sidebar: true,
-        tile: true,
-        count: zonesCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'images',
-        color: '#0099cc',
-        icon: 'image:collections',
-        sidebar: true,
-        tile: true,
-        count: imagesCount,
-        q: '',
-        hr: true,
-      },
-      {
-        id: 'keys',
-        color: '#009688',
-        icon: 'communication:vpn-key',
-        add: '/keys/+add',
-        sidebar: true,
-        tile: false,
-        count: keysCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'scripts',
-        color: '#D48900',
-        icon: 'icons:code',
-        add: '/scripts/+add',
-        sidebar: true,
-        tile: true,
-        hr: !orchestration,
-        count: scriptsCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'templates',
-        color: '#0097A7',
-        icon: 'icons:extension',
-        add: '/templates/+add',
-        sidebar: orchestration,
-        tile: orchestration,
-        hr: true,
-        count: templatesCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'secrets',
-        color: '#1D1C1A',
-        icon: 'icons:lock',
-        add: '/secrets/+add',
-        sidebar: true,
-        tile: true,
-        count: secretsCount,
-        hideZero: false,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'tunnels',
-        color: '#795548',
-        icon: 'editor:merge-type',
-        add: '/tunnels/+add',
-        sidebar: tunnels,
-        tile: false,
-        count: tunnelsCount,
-        hideTileIfZero: true,
-      },
-      {
-        id: 'schedules',
-        color: '#43A047',
-        icon: 'event',
-        add: '/schedules/+add',
-        sidebar: true,
-        tile: true,
-        count: schedulesCount,
-      },
-      {
-        id: 'rules',
-        color: '#42424242',
-        icon: 'vaadin:scale-unbalance',
-        add: '/rules/+add',
-        sidebar: true,
-        tile: true,
-        count: rulesCount,
-      },
-      {
-        id: 'teams',
-        color: '#607D8B',
-        icon: 'social:people',
-        sidebar: true,
-        tile: true,
-        count: teamsCount,
-        hr: insights,
-      },
-      {
-        id: 'my-account',
-        color: '#2F2F3E',
-        icon: 'account-circle',
-        count: null,
-      },
-      {
-        id: 'members',
-        color: '#607D8B',
-        icon: 'social:people',
-        count: membersCount,
-      },
-      {
-        id: 'insights',
-        color: '#2F2F3E',
-        icon: 'icons:trending-up',
-        sidebar: insights,
-        tile: false,
-      },
-    ];
-
-    this.set('config.features.currency', currency);
-    this.set('model.sections', _generateMap(sectionsArray));
-    console.log('config updated', this.model.sections);
-    if (!this.config || !this.config.features || !this.config.features.docs) {
-      for (let i = 0; i < PROVIDERS.length; i++) {
-        for (let j = 0; j < PROVIDERS[i].options.length; j++) {
-          PROVIDERS[i].options[j].helpHref = '';
-        }
-      }
-    }
+    store.dispatch(configUpdated(config));
+    console.log('config updated');
   },
 
   _onUserAction(event) {
@@ -1336,44 +1018,6 @@ Polymer({
     script.onreadystatechange = e.detail.cb;
     script.onload = e.detail.cb;
     document.body.appendChild(script);
-  },
-  _qChanged(q) {
-    if (this._isPage('dashboard')) {
-      if (!q || !q.trim || !q.trim()) {
-        // restore section counts
-        this._restoreSectionsCounts();
-      } else {
-        // update section counts according to q
-        this._updateSectionsCounts(q);
-      }
-    } else {
-      // update section counts according to stored default
-      // this._updateSectionsCounts(localStorage.getItem('mist-filter#topFilter/all-resources/userFilter'));
-    }
-  },
-  _restoreSectionsCounts() {
-    Object.keys(this.model || {}).forEach(prop => {
-      if (this.model.sections[prop] && this.model[prop]) {
-        // set counts to full model resources length
-        this.set(
-          `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).length
-        );
-      }
-    });
-  },
-  _updateSectionsCounts(q) {
-    const that = this;
-    Object.keys(this.model || {}).forEach(prop => {
-      if (this.model.sections[prop] && this.model[prop]) {
-        // set counts to filtered model resources length
-        this.set(
-          `model.sections.${prop}.count`,
-          Object.values(this.model[prop]).filter(r => that._filterModel(r, q))
-            .length
-        );
-      }
-    });
   },
   /* eslint-disable no-param-reassign */
   _filterModel(item, q) {
