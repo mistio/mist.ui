@@ -178,8 +178,8 @@ export default class ClusterPage extends mixinBehaviors(
         mist-list {
           min-height: 185px
         }
-        cpcost {
-          padding-top: 5px;
+        #cpcost {
+          padding-top: 10px;
         }
       </style>
       <div id="content">
@@ -347,13 +347,13 @@ export default class ClusterPage extends mixinBehaviors(
             <h2 class="cluster-page-head">
               <paper-button class="arrow" on-tap="arrowButtonClick">
                 <iron-icon icon="icons:expand-more"
-                style="margin-right: 8px; transform: rotate(270deg);">
+                style="margin-right: 8px; transform: rotate(0deg);">
                 </iron-icon>
                 More Info
               </paper-button>
             </h2>
           </div>
-          <div class="info-table" hidden>
+          <div class="info-table">
             <div class="info-body info-group">
               <element-for-in content="[[cluster.extra]]"></element-for-in>
             </div>
@@ -540,8 +540,10 @@ export default class ClusterPage extends mixinBehaviors(
       },
       cost: {
         body: (item, row) => {
-          if(row.id)
-            return (item && item.monthly.toFixed(2)) || ''
+          if(row.id) {
+            let itemCost = (item && item.monthly.toFixed(2)) || '';
+            return `${this.currency.sign}${itemCost}`;
+          }
           else {
             const nodepoolName = row.name;
             if(nodepoolName && _this.cloud && _this.model && _this.model.clouds) {
@@ -550,7 +552,8 @@ export default class ClusterPage extends mixinBehaviors(
                 if(machine.extra && machine.extra.nodepool && machine.extra.nodepool === nodepoolName)
                   cost += machine.cost.monthly;
               })
-              return cost || "";
+              let itemCost = cost ? `${this.currency.sign}${cost.toFixed(2)}` : '';
+              return itemCost
             }
           }
           return '';
@@ -616,7 +619,7 @@ export default class ClusterPage extends mixinBehaviors(
       !this.cloud ||
       !this.cloud.locations ||
       !this.cluster.location ||
-      !this.cloud[locations][this.cluster.location]
+      !this.cloud.locations[this.cluster.location]
     )
       return '';
     return this.cloud.locations[this.cluster.location].name;
