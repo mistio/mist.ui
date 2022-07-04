@@ -7,15 +7,16 @@ import './clouds/cloud-actions.js';
 import './helpers/mist-lists-behavior.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
-// import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { connect } from 'pwa-helpers/connect-mixin.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import PROVIDERS from './helpers/providers.js';
+import { store } from './redux/store.js';
+import reduxDataProvider from './redux/data-provider.js';
 
 /* eslint-disable class-methods-use-this */
-export default class PageClouds extends mixinBehaviors(
-  [ownerFilterBehavior, window.rbac],
-  PolymerElement
+export default class PageClouds extends connect(store)(mixinBehaviors(
+  [ownerFilterBehavior, window.rbac], PolymerElement)
 ) {
   static get template() {
     return html`
@@ -42,9 +43,10 @@ export default class PageClouds extends mixinBehaviors(
             resizable
             column-menu
             multi-sort
+            name="clouds"
             id="cloudsList"
-            apiurl="/api/v1/clouds"
-            item-map="[[model.clouds]]"
+            data-provider="[[dataProvider]]"
+            store="[[store]]"
             selected-items="{{selectedItems}}"
             renderers="[[_getRenderers()]]"
             frozen="[[_getFrozenLogColumn()]]"
@@ -68,8 +70,6 @@ export default class PageClouds extends mixinBehaviors(
       </template>
       <cloud-add
         providers="[[providers]]"
-        keys="[[model.keysArray]]"
-        section="[[model.sections.clouds]]"
         clouds="[[model.cloudsArray]]"
         enable-monitoring="[[enableMonitoring]]"
         hidden$="[[!_isAddPageActive(route.path)]]"
@@ -82,7 +82,6 @@ export default class PageClouds extends mixinBehaviors(
         model="[[model]]"
         providers="[[providers]]"
         cloud="[[cloud]]"
-        section="[[model.sections.clouds]]"
         resource-id="[[data.cloud]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
         portal-name="[[portalName]]"
@@ -130,7 +129,20 @@ export default class PageClouds extends mixinBehaviors(
       docs: {
         type: String,
       },
+      combinedFilter: {
+        type: String,
+      },
+      dataProvider: {
+        type: Object,
+        value() {
+          return reduxDataProvider.bind(this);
+        },
+      },
     };
+  }
+
+  attached() {
+
   }
 
   _getFrozenLogColumn() {
@@ -306,7 +318,7 @@ export default class PageClouds extends mixinBehaviors(
       new CustomEvent('go-to', {
         bubbles: true,
         composed: true,
-        detail: { url: this.model.sections.clouds.add },
+        detail: { url: store.getState().sections.obj.clouds.add },
       })
     );
   }
