@@ -51,7 +51,6 @@ export default class PageImages extends connect(store)(
             renderers="[[_getRenderers()]]"
             route="{{route}}"
             actions="[[actions]]"
-            store="[[store]]"
             data-provider="[[dataProvider]]"
             user-filter="[[model.sections.images.q]]"
             filtered-items-length="[[filteredItemsLength]]"
@@ -122,12 +121,6 @@ export default class PageImages extends connect(store)(
           return reduxDataProvider.bind(this);
         },
       },
-      store: {
-        type: Object,
-        value() {
-          return store;
-        },
-      },
     };
   }
 
@@ -143,14 +136,14 @@ export default class PageImages extends connect(store)(
   async _setImage(id) {
     // use route path to locate image so as to include dash containing names ex. mist/debian-wheezy
     if (id) {
-      let image = this.store.getState().org.images[id];
+      let image = store.getState().org.images[id];
       if (!image) {
         const response = await (await fetch(`/api/v2/images/${id}`)).json();
         image = response.data;
-        this.store.dispatch({ type: 'Update-Images', payload: image });
+        store.dispatch({ type: 'Update-Images', payload: image });
       }
       this.$.imagePage.image = image;
-      const [cloud] = Object.values(this.store.getState().org.clouds).filter(
+      const [cloud] = Object.values(store.getState().org.clouds).filter(
         cloud_ => cloud_.name === image.cloud
       );
       this.$.imagePage.cloudId = cloud.id;
@@ -250,7 +243,7 @@ export default class PageImages extends connect(store)(
   }
 
   searchableClouds() {
-    const clouds = this.store.getState().org.clouds;
+    const clouds = store.getState().org.clouds;
     return Object.values(clouds).filter(
       c => ['ec2', 'docker'].indexOf(c.provider) > -1
     );

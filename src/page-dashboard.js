@@ -21,14 +21,12 @@ import './clouds/cloud-chip.js';
 import moment from 'moment/src/moment.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
-import { timeOut } from '@polymer/polymer/lib/utils/async.js';
+// import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
+import { connect } from "pwa-helpers/connect-mixin.js";
+import { store } from './redux/store.js';
 
 /* eslint-disable class-methods-use-this */
-export default class PageDashboard extends mixinBehaviors(
-  [window.rbac],
-  PolymerElement
-) {
+export default class PageDashboard extends connect(store)(PolymerElement){
   static get is() {
     return 'page-dashboard';
   }
@@ -336,7 +334,7 @@ export default class PageDashboard extends mixinBehaviors(
             <div id="cloudslist">
               <template
                 is="dom-repeat"
-                items="[[_getFilteredResources(model.clouds,q)]]"
+                items="[[_getFilteredResources(cloudsArray,q,cloudsArray.length)]]"
               >
                 <a class="cloud-chip" href="/clouds/[[item.id]]">
                   <cloud-chip
@@ -508,9 +506,6 @@ export default class PageDashboard extends mixinBehaviors(
         type: Boolean,
         value: true,
       },
-      matrix: {
-        type: Array,
-      },
       xsmallscreen: {
         type: Boolean,
       },
@@ -529,12 +524,14 @@ export default class PageDashboard extends mixinBehaviors(
         type: Array,
         computed: '_computeMonitoredResources(model.machines.*)',
       },
+      cloudsArray: {
+        type: Array
+      }
     };
   }
 
   static get observers() {
     return [
-      'cloudLayoutMatrix(model.clouds.*, sidebarIsOpen)',
       '_importPolyana(monitoredResources.length)',
     ];
   }
@@ -543,11 +540,12 @@ export default class PageDashboard extends mixinBehaviors(
     super.ready();
     this.addEventListener('close-cloud-info', this._closeCloudChips);
     console.log('ready dashboard');
-    // initialise chips position matrix
-    const that = this;
-    timeOut.run(() => {
-      that.cloudLayoutMatrix(that.model.clouds, that.sidebarIsOpen);
-    }, 50);
+  }
+
+  stateChanged(state) {
+    if (state.org.clouds.data) {
+      this.set('cloudsArray', state.org.clouds.data.arr);
+    }
   }
 
   _computeMonitoredResources(_machines) {
@@ -646,33 +644,6 @@ export default class PageDashboard extends mixinBehaviors(
       content.classList.remove('center');
     }, 200);
     this.set('sidebarIsOpen', true);
-  }
-
-  cloudLayoutMatrix(_clouds, _sidebarOpen) {
-    // construct a reference matrix of the chips offsetTops
-    const chips = document.querySelectorAll('cloud-chip');
-    const matrix = [];
-    if (chips) {
-      [].forEach.call(chips, c => {
-        matrix.push(c.offsetTop);
-      });
-      this.set('matrix', matrix);
-    }
-  }
-
-  indexOfLast(index) {
-    // calculate the index of the first chip of the next row
-    const ref = this.matrix[index];
-    let targetIndex;
-    const nextInd = this.matrix.find((n, ind) => {
-      targetIndex = ind;
-      return n > ref;
-    });
-    // or if the first chip of the next row does not exist, set index to the last chip
-    if (!nextInd) {
-      targetIndex = this.matrix.length;
-    }
-    return targetIndex;
   }
 
   showLoadOnAll(machines) {

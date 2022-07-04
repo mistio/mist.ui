@@ -3,7 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const sectionsSlice = createSlice({
   name: 'sections',
   initialState: {
-    order: [
+    arr: [
       'dashboard',
       'incidents',
       'clouds',
@@ -24,12 +24,12 @@ const sectionsSlice = createSlice({
       'rules;',
       'teams',
     ],
-    map: {
+    obj: {
       dashboard: {
         id: 'dashboard',
         icon: 'icons:dashboard',
         color: '#424242',
-        sidebar: true,
+        sidebar: false,
         tile: false,
         hr: true,
       },

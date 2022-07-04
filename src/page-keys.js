@@ -9,8 +9,8 @@ import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { ownerFilterBehavior } from './helpers/owner-filter-behavior.js';
 import { mistListsBehavior } from './helpers/mist-lists-behavior.js';
-import { store } from './redux/redux-store.js';
-import reduxDataProvider from './redux/redux-data-provider.js';
+import { store } from './redux/store.js';
+import reduxDataProvider from './redux/data-provider.js';
 
 /* eslint-disable class-methods-use-this */
 export default class PageKeys extends mixinBehaviors(

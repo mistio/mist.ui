@@ -38,7 +38,7 @@ import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { dom } from '@polymer/polymer/lib/legacy/polymer.dom.js';
 import { store } from './redux/store.js';
 import { configUpdated } from './redux/slices/config.js';
-import { orgUpdated, sectionUpdated } from './redux/slices/org.js';
+import { orgUpdated } from './redux/slices/org.js';
 
 const documentContainer = document.createElement('template');
 documentContainer.innerHTML = `<dom-module id="mist-app">
@@ -353,7 +353,7 @@ Polymer({
     '_routePageChanged(routeData.page, subroute.path)',
     '_sizeChanged(smallscreen)',
     '_configUpdated(config)',
-    '_fetchOrg(mode.org.id)',
+    '_fetchOrg(model.org.id)',
   ],
 
   get state() {
@@ -397,15 +397,10 @@ Polymer({
     if (!CONFIG.theme) {
       import('./styles/app-theme.js').then(console.log('Loaded default theme'));
     }
-    this.fetchClouds();
+    // this._fetchClouds();
   },
 
-  async fetchClouds() {
-    const response = await (await fetch('/api/v2/clouds')).json();
-    store.dispatch(sectionUpdated(response));
-  },
-
-  async fetchOrg(id) {
+  async _fetchOrg(id) {
     if (id) {
       const data = await (
         await fetch(`/api/v2/orgs/${id}?summary=true`)
