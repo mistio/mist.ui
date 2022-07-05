@@ -16,6 +16,7 @@ import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import './cluster-actions.js';
 import './nodepool-actions.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 /* eslint-disable class-methods-use-this */
 export default class ClusterPage extends mixinBehaviors(
@@ -181,6 +182,9 @@ export default class ClusterPage extends mixinBehaviors(
         #cpcost {
           padding-top: 10px;
         }
+        #toggle-pods-cell {
+          padding-top: 5px;
+        }
       </style>
       <div id="content">
         <paper-material class="single-head layout horizontal">
@@ -299,6 +303,25 @@ export default class ClusterPage extends mixinBehaviors(
                           currency.rate)]]</span>
                   </div>
                 </div>
+                <div class="row">
+                  <div class="cell" id="toggle-pods-cell">
+                    <paper-toggle-button
+                      id="include-pods-toggle"
+                      class="small"
+                      checked$="[[cluster.include_pods]]"
+                      on-tap="_changeIncludePods"
+                    >
+                    </paper-toggle-button>
+                  </div>
+                  <div class="cell">
+                    <span hidden$="[[!cluster.include_pods]]"
+                      >Pods included</span
+                    >
+                    <span hidden$="[[cluster.include_pods]]"
+                      >Pods hidden</span
+                    >
+                  </div>
+                </div>
               </div>
               <h4 class="id tags" hidden$="[[_isEmpty(cluster.tags)]]">Tags:</h4>
               <template is="dom-if" if="[[!_isEmpty(cluster.tags)]]">
@@ -384,6 +407,15 @@ export default class ClusterPage extends mixinBehaviors(
           </template>
         </paper-material>
       </div>
+      <iron-ajax
+        id="includePodsAjaxRequest"
+        handle-as="xml"
+        method="PATCH"
+        on-response="_handleIncludePodsAjaxResponse"
+        on-error="_handleIncludePodsAjaxError"
+        loading="{{containerLoading}}"
+      ></iron-ajax>
+
     `;
   }
 
@@ -404,7 +436,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       resources: {
         type: Object,
-        computed: '_computeClusterResources(cluster, model.clusters.*)',
+        computed: '_computeClusterResources(cluster, model.clusters.*, model.machines.*)',
       },
       resourceActions: {
         type: Array,
@@ -472,7 +504,7 @@ export default class ClusterPage extends mixinBehaviors(
     let nodes = [];
     if (this.cluster && this.model.machines) {
       const clusterMachines = Object.entries(this.model.machines).filter(
-        ([_machineId, machine]) => machine.cluster === this.cluster.id
+        ([_machineId, machine]) => machine && machine.cluster === this.cluster.id
       );
       nodes = Object.fromEntries(clusterMachines);
     }
@@ -657,6 +689,50 @@ export default class ClusterPage extends mixinBehaviors(
     if (item && item.machine_type === 'node') return true;
     return false;
   }
+
+  _changeIncludePods() {
+    const includePods = this.cluster.include_pods ? false : true;
+    this.$.includePodsAjaxRequest.url = `/api/v1/clouds/${this.cloud.id}/clusters/${this.cluster.id}`
+    this.$.includePodsAjaxRequest.headers['Content-Type'] =
+      'application/json';
+    this.$.includePodsAjaxRequest.headers['Csrf-Token'] =
+      CSRFToken.value;
+    this.$.includePodsAjaxRequest.body = {
+      include_pods: includePods,
+    };
+    this.$.includePodsAjaxRequest.generateRequest();
+
+  }
+
+  _handleIncludePodsAjaxResponse() {
+    const message = this.shadowRoot.querySelector('#include-pods-toggle')
+      .checked
+      ? `Will include pods for ${this.cluster.name}!`
+      : `Will hide pods for ${this.cluster.name}!`;
+    this.set('cluster.include_pods', this.shadowRoot.querySelector('#include-pods-toggle')
+    .checked);
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: message, duration: 5000 },
+      })
+    );
+  }
+
+  _handleIncludePodsAjaxError(e) {
+    this.shadowRoot.querySelector(
+      '#include-pods-toggle'
+    ).checked = this.cluster.include_pods;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: e.detail.request.xhr.response, duration: 10000 },
+      })
+    );
+  }
+
 }
 
 customElements.define('cluster-page', ClusterPage);
