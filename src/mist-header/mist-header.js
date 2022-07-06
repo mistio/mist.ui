@@ -7,7 +7,7 @@ import '@polymer/iron-image/iron-image.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '../app-user-menu/app-user-menu.js';
 import '../notifications/notifications-indicator.js';
-import './top-search.js';
+// import './top-search.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 /* eslint-disable lit-a11y/anchor-is-valid */

@@ -5,8 +5,6 @@
   then delete this comment!
 */
 import '@polymer/polymer/polymer-legacy.js';
-import '@polymer/app-route/app-location.js';
-import '@polymer/app-route/app-route.js';
 import '@polymer/app-layout/app-layout.js';
 import '@polymer/app-layout/app-drawer-layout/app-drawer-layout.js';
 import '@polymer/app-layout/app-drawer/app-drawer.js';
@@ -16,14 +14,13 @@ import '@polymer/app-layout/app-header-layout/app-header-layout.js';
 import '@polymer/paper-material/paper-material.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/iron-icons/iron-icons.js';
-import '@polymer/iron-pages/iron-pages.js';
 import '@polymer/iron-selector/iron-selector.js';
 import '@polymer/iron-media-query/iron-media-query.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-toast/paper-toast.js';
 import { IronResizableBehavior } from '@polymer/iron-resizable-behavior/iron-resizable-behavior.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
-import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@vaadin/dialog';
+import '@vaadin/icons';
 import '@mistio/mist-list/mist-list.js';
 import './styles/shared-styles.js';
 import './mist-header/mist-header.js';

@@ -3,9 +3,9 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-fab/paper-fab.js';
-import './section-tile/section-tile.js';
-import './app-incidents/app-incidents.js';
-import './app-costs/app-costs.js';
+// import './section-tile/section-tile.js';
+// import './app-incidents/app-incidents.js';
+// import './app-costs/app-costs.js';
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/iron-icons/iron-icons.js';
@@ -15,16 +15,16 @@ import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-input/paper-input-behavior.js';
 import '@polymer/paper-input/paper-input-addon-behavior.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '@mistio/mist-list/mist-list.js';
-import './onb-element/onb-element.js';
-import './clouds/cloud-chip.js';
+// import '@mistio/mist-list/mist-list.js';
+// import './onb-element/onb-element.js';
+// import './clouds/cloud-chip.js';
 import moment from 'moment/src/moment.js';
 import { PolymerElement } from '@polymer/polymer/polymer-element.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 // import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import { connect } from "pwa-helpers/connect-mixin.js";
 import { store } from './redux/store.js';
-
+import { orgSelected } from './redux/slices/org.js';
 /* eslint-disable class-methods-use-this */
 export default class PageDashboard extends connect(store)(PolymerElement){
   static get is() {
@@ -380,7 +380,7 @@ export default class PageDashboard extends connect(store)(PolymerElement){
                   </template>
                 </template>
               </div>
-              <template is="dom-if" if="[[monitoredResources.length]]" restamp>
+              <!-- <template is="dom-if" if="[[monitoredResources.length]]" restamp>
                 <paper-material class="graphs">
                   <polyana-dashboard
                     id="dashboard"
@@ -389,7 +389,7 @@ export default class PageDashboard extends connect(store)(PolymerElement){
                     replace-targets="[[replaceTargets]]"
                   ></polyana-dashboard>
                 </paper-material>
-              </template>
+              </template> -->
             </div>
             <div class="left">
               <div class="costs">
@@ -474,10 +474,10 @@ export default class PageDashboard extends connect(store)(PolymerElement){
       dashboard: {
         type: Object,
       },
-      replaceTargets: {
-        type: Object,
-        computed: '_computeReplaceTargets(monitoredResources.length)',
-      },
+      // replaceTargets: {
+      //   type: Object,
+      //   computed: '_computeReplaceTargets(monitoredResources.length)',
+      // },
       openedCloud: {
         type: String,
       },
@@ -520,10 +520,10 @@ export default class PageDashboard extends connect(store)(PolymerElement){
       currency: {
         type: Object,
       },
-      monitoredResources: {
-        type: Array,
-        computed: '_computeMonitoredResources(model.machines.*)',
-      },
+      // monitoredResources: {
+      //   type: Array,
+      //   computed: '_computeMonitoredResources(model.machines.*)',
+      // },
       cloudsArray: {
         type: Array
       }
@@ -532,50 +532,65 @@ export default class PageDashboard extends connect(store)(PolymerElement){
 
   static get observers() {
     return [
-      '_importPolyana(monitoredResources.length)',
+      // '_importPolyana(monitoredResources.length)',
     ];
   }
 
   ready() {
     super.ready();
-    this.addEventListener('close-cloud-info', this._closeCloudChips);
+    // this.addEventListener('close-cloud-info', this._closeCloudChips);
     console.log('ready dashboard');
   }
 
   stateChanged(state) {
-    if (state.org.clouds.data) {
+    if (state.org.clouds && state.org.clouds.data) {
       this.set('cloudsArray', state.org.clouds.data.arr);
     }
-  }
-
-  _computeMonitoredResources(_machines) {
-    return Object.values(this.model.machines).filter(
-      m => m && m.monitoring.hasmonitoring
-    );
-  }
-
-  _importPolyana(resourceCount) {
-    if (resourceCount) {
-      import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
-        () => {
-          console.log('imported polyana-dashboard');
-        },
-        reason => {
-          console.error('Failed to import polyana-dashboard:', reason);
+    if (!state.org.name && state.orgs.meta.total) {
+      const orgNames = state.orgs.data.map(i => i.name);
+      const portal = this.parentElement.parentElement.parentElement.parentNode.host;
+      const selectedOrg = portal.router.location.params.org;
+      // const state = store.getState();
+      if (selectedOrg && !state.org.name) {
+        if (orgNames.indexOf(selectedOrg) === -1) {
+          document.location.pathname = '/portal';
+        } else {
+          store.dispatch(orgSelected(selectedOrg));
         }
-      );
-      const that = this;
-      setTimeout(() => {
-        const panel = that.shadowRoot
-          .querySelector('.graphs')
-          .querySelector('#dashboard')
-          .shadowRoot.querySelector('#panel-0');
-        if (panel.loading) {
-          panel._generateDataRequest();
-        }
-      }, 10000);
+      } else if (state.org.name !== selectedOrg ) {
+        console.error('Org already selected');
+      }  
     }
   }
+
+  // _computeMonitoredResources(_machines) {
+  //   return Object.values(this.model.machines).filter(
+  //     m => m && m.monitoring.hasmonitoring
+  //   );
+  // }
+
+  // _importPolyana(resourceCount) {
+  //   if (resourceCount) {
+  //     import('@mistio/polyana-dashboard/polyana-dashboard.js').then(
+  //       () => {
+  //         console.log('imported polyana-dashboard');
+  //       },
+  //       reason => {
+  //         console.error('Failed to import polyana-dashboard:', reason);
+  //       }
+  //     );
+  //     const that = this;
+  //     setTimeout(() => {
+  //       const panel = that.shadowRoot
+  //         .querySelector('.graphs')
+  //         .querySelector('#dashboard')
+  //         .shadowRoot.querySelector('#panel-0');
+  //       if (panel.loading) {
+  //         panel._generateDataRequest();
+  //       }
+  //     }, 10000);
+  //   }
+  // }
 
   isOnline(cloud) {
     return cloud.state === 'online' && 'online';
@@ -619,13 +634,13 @@ export default class PageDashboard extends connect(store)(PolymerElement){
     this.set('sidebarIsOpen', false);
   }
 
-  _computeReplaceTargets(_resourceCount) {
-    const ret = {};
-    for (let i = 0; i < this.monitoredResources.length; i++) {
-      ret[this.monitoredResources[i].id] = this.monitoredResources[i].name;
-    }
-    return ret;
-  }
+  // _computeReplaceTargets(_resourceCount) {
+  //   const ret = {};
+  //   for (let i = 0; i < this.monitoredResources.length; i++) {
+  //     ret[this.monitoredResources[i].id] = this.monitoredResources[i].name;
+  //   }
+  //   return ret;
+  // }
 
   _closeCloudChips() {
     const cloudChips = this.shadowRoot.querySelectorAll('cloud-chip');

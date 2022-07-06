@@ -32,6 +32,13 @@ const orgSlice = createSlice({
 
       return ret;
     },
+
+    orgSelected(state, action) {
+      return {
+        name: action.payload
+      }
+    },
+
     orgUpdated(state, action) {
       const org = action.payload.data;
       const newState = {
@@ -56,5 +63,5 @@ const orgSlice = createSlice({
   }
 });
 
-export const { orgUpdated, sectionUpdated } = orgSlice.actions;
+export const { orgSelected, orgUpdated, sectionUpdated } = orgSlice.actions;
 export default orgSlice.reducer;

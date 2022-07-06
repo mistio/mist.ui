@@ -1,5 +1,5 @@
 import '@polymer/polymer/polymer-legacy.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-checkbox/paper-checkbox.js';
 import '@polymer/paper-item/paper-item.js';

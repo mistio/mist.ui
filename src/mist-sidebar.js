@@ -377,7 +377,7 @@ export default class MistSidebar extends connect(store)(LitElement) {
                 id="${item.id}"
                 class="section"
                 on-tap="clearSearch"
-                href="/${item.id}"
+                href="/portal/${item.id}"
                 ?hidden="${item.hideZero && item.count === 0}"
                 ?active="${this.current === item.id}"
                 tabindex="0"
@@ -413,8 +413,8 @@ export default class MistSidebar extends connect(store)(LitElement) {
     // this.updateResize();
     // this.addEventListener('iron-overlay-closed', this.closeSidebar);
     const { sections } = store.getState();
-    this.sectionsArray = sections.arr
-      .map((i) => sections.obj[i])
+    this.sectionsArray = sections.order
+      .map((i) => sections.map[i])
       .filter((i) => i && i.sidebar);
   }
 

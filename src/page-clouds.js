@@ -318,7 +318,7 @@ export default class PageClouds extends connect(store)(mixinBehaviors(
       new CustomEvent('go-to', {
         bubbles: true,
         composed: true,
-        detail: { url: store.getState().sections.obj.clouds.add },
+        detail: { url: this.model.sections.clouds.add },
       })
     );
   }

@@ -1,11 +1,11 @@
 import '@polymer/polymer/polymer-legacy.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-input-error.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-icons/iron-icons.js';
-import '@vaadin/vaadin-icons/vaadin-icons.js';
+import '@vaadin/icons';
 import '@mistio/mist-list/mist-list-actions.js';
 import { MistListActionsBehavior } from '@mistio/mist-list/mist-list-actions-behavior.js';
 import './cloud-edit.js';

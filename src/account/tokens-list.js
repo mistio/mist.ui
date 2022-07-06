@@ -1,7 +1,7 @@
 import '@polymer/paper-card/paper-card.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-spinner/paper-spinner.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog';
 import '@polymer/paper-listbox/paper-listbox.js';
 import './token-item.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';

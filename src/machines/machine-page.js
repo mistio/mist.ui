@@ -6,7 +6,7 @@ import '@mistio/mist-list/mist-list.js';
 import '../helpers/dialog-element.js';
 import '../element-for-in/element-for-in.js';
 import '../mist-rules/mist-rules.js';
-import '../mist-monitoring.js';
+// import '../mist-monitoring.js';
 import './machine-expiration-edit.js';
 import './machine-actions.js';
 import './machine-r12ns.js';
