@@ -26,6 +26,29 @@ export default class ClusterPage extends mixinBehaviors(
   static get template() {
     return html`
       <style include="shared-styles single-page tags-and-labels">
+        :host {
+          --paper-toggle-button-checked-button-color: #69b46c;
+          --paper-toggle-button-checked-bar-color: #69b46c;
+          --paper-toggle-button-unchecked-button-color: #d96557;
+          --paper-toggle-button-unchecked-bar-color: #d96557;
+        }
+
+        paper-toggle-button {
+          display: inline-flex;
+          cursor: pointer;
+        }
+
+        .cell paper-toggle-button {
+          vertical-align: middle;
+        }
+
+        .small {
+          transform: scale(0.7);
+          width: 100%;
+          left: -15%;
+          position: relative;
+        }
+
         paper-material {
           display: block;
           padding: 20px;
@@ -88,10 +111,6 @@ export default class ClusterPage extends mixinBehaviors(
           opacity: 0.54;
           margin: 0;
           line-height: 95%;
-        }
-
-        .cell paper-toggle-button {
-          vertical-align: middle;
         }
 
         .columns {
@@ -268,19 +287,6 @@ export default class ClusterPage extends mixinBehaviors(
                 </div>
               </div>
             </div>
-            <span class="id"
-              ><a href="/members/[[cluster.owned_by]]"
-                >[[_displayUser(cluster.owned_by,model.members)]]</a
-              ></span
-            >
-            <h4 class="id" hidden$="[[!cluster.created_by.length]]">
-              Created by:
-            </h4>
-            <span class="id"
-              ><a href="/members/[[cluster.created_by]]"
-                >[[_displayUser(cluster.created_by,model.members)]]</a
-              ></span
-            >
           </paper-material>
           <paper-material class="right info">
             <div class="resource-info">
@@ -303,7 +309,35 @@ export default class ClusterPage extends mixinBehaviors(
                           currency.rate)]]</span>
                   </div>
                 </div>
+                <div class="row" hidden$="[[!cluster.owned_by.length]]">
+                  <div class="cell">
+                    <h4>Owner:</h4>
+                  </div>
+                  <div class="cell">
+                    <span
+                      ><a href$="/members/[[cluster.owned_by]]"
+                        >[[cluster.owned_by]]</a
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="row" hidden$="[[!cluster.created_by.length]]">
+                  <div class="cell">
+                    <h4>Created by:</h4>
+                  </div>
+                  <div class="cell">
+                    <span
+                      ><a href$="/members/[[cluster.created_by]]"
+                        >[[cluster.created_by]]</a
+                      ></span
+                    >
+                  </div>
+                </div>
                 <div class="row">
+                  <div class="cell">
+                    <h4>Features:</h4>
+                    <br />
+                  </div>
                   <div class="cell" id="toggle-pods-cell">
                     <paper-toggle-button
                       id="include-pods-toggle"
@@ -311,15 +345,13 @@ export default class ClusterPage extends mixinBehaviors(
                       checked$="[[cluster.include_pods]]"
                       on-tap="_changeIncludePods"
                     >
+                      <span hidden$="[[!cluster.include_pods]]"
+                        >Pods included</span
+                      >
+                      <span hidden$="[[cluster.include_pods]]"
+                        >Pods hidden</span
+                      >
                     </paper-toggle-button>
-                  </div>
-                  <div class="cell">
-                    <span hidden$="[[!cluster.include_pods]]"
-                      >Pods included</span
-                    >
-                    <span hidden$="[[cluster.include_pods]]"
-                      >Pods hidden</span
-                    >
                   </div>
                 </div>
               </div>
@@ -614,14 +646,6 @@ export default class ClusterPage extends mixinBehaviors(
 
   _goToMachine(e) {
     if (e.detail.id) window.location.assign(`/machines/${e.detail.id}`);
-  }
-
-  _displayUser(id, _members) {
-    return this.model && id && this.model.members && this.model.members[id]
-      ? this.model.members[id].name ||
-          this.model.members[id].email ||
-          this.model.members[id].username
-      : '';
   }
 
   _clearListSelections() {

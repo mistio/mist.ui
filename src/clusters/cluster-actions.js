@@ -8,6 +8,7 @@ import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@mistio/mist-list/mist-list-actions.js';
 import '../tags/tags-form.js';
+import '../helpers/transfer-ownership.js';
 import { CSRFToken } from '../helpers/utils.js';
 
 const CLUSTER_ACTIONS = {
@@ -21,6 +22,12 @@ const CLUSTER_ACTIONS = {
     name: 'delete',
     icon: 'delete',
     confirm: true,
+    multi: true,
+  },
+  'transfer-ownership': {
+    name: 'transfer ownership',
+    icon: 'icons:redo',
+    confirm: false,
     multi: true,
   },
 };
@@ -38,6 +45,13 @@ export default class ClusterActions extends mixinBehaviors(
         }
       </style>
       <dialog-element id="confirm"></dialog-element>
+      <transfer-ownership
+      id="ownershipdialog"
+        user="[[user]]"
+        members="[[_otherMembers(model.membersArray,items.length)]]"
+        items="[[items]]"
+        type="cluster"
+      ></transfer-ownership>
       <tags-form
         id="tagsdialog"
         model="[[model]]"
@@ -97,14 +111,23 @@ export default class ClusterActions extends mixinBehaviors(
     this.addEventListener('update', this._updateVisibleActions);
     this.addEventListener('select-action', this.selectAction);
     this.addEventListener('confirmation', this.confirmAction);
+    this.addEventListener('transfer-ownership', this.transferOwnership)
   }
 
   _updateVisibleActions() {
     if (this.$.actions) this.$.actions._updateVisibleActions();
   }
 
-  computeItemActions(_cluster) {
-    return ['delete', 'tag'];
+  computeItemActions(cluster) {
+    const arr = ['delete', 'tag'];
+    if (
+      this.model &&
+      this.model.org.ownership_enabled &&
+      (cluster.owned_by === this.model.user.id || this.model.org.is_owner)
+    ) {
+      arr.push('transfer-ownership');
+    }
+    return arr;
   }
 
   computeActionListDetails(actions) {
@@ -130,6 +153,8 @@ export default class ClusterActions extends mixinBehaviors(
         });
       } else if (action.name === 'tag') {
         this.$.tagsdialog._openDialog();
+      } else if (action.name === 'transfer ownership') {
+        this.$.ownershipdialog._openDialog();
       } else {
         this.performAction(this.action, this.items);
       }
@@ -173,6 +198,21 @@ export default class ClusterActions extends mixinBehaviors(
     }
   }
 
+  transferOwnership(e) {
+    const payload = {
+      user_id: e.detail.user_id, // new owner
+      resources: {},
+    };
+    payload.resources.cluster = this.items.map(i => i.id);
+    console.log('transferOwnership', e.detail, payload);
+    this.$.request.url = '/api/v1/ownership';
+    this.$.request.headers['Content-Type'] = 'application/json';
+    this.$.request.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.request.method = 'POST';
+    this.$.request.body = payload;
+    this.$.request.generateRequest();
+  }
+
   handleResponse(e) {
     this.dispatchEvent(
       new CustomEvent('action-finished', {
@@ -188,7 +228,7 @@ export default class ClusterActions extends mixinBehaviors(
           bubbles: true,
           composed: true,
           detail: {
-            msg: `Action: ${this.$.request.body.action} successful`,
+            msg: `Action: ${this.$.request.body.action || 'ownership transfer'} successful`,
             duration: 3000,
           },
         })
@@ -241,6 +281,19 @@ export default class ClusterActions extends mixinBehaviors(
 
   _makeList(items, property) {
     return items && items.length && items.map(item => item[property]);
+  }
+
+  _otherMembers(members) {
+    if (this.items && members) {
+      const owners = this.items
+        .map(i => i.owned_by)
+        .filter((value, index, self) => self.indexOf(value) === index);
+      // filter out pending users and the single owner of the item-set if that is the case
+      return members.filter(m =>
+        owners.length === 1 ? m.id !== owners[0] && !m.pending : !m.pending
+      );
+    }
+    return [];
   }
 }
 
