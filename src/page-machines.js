@@ -130,7 +130,6 @@ export default class PageMachines extends mixinBehaviors(
             filter-method="[[_ownerFilter()]]"
             apiurl="/api/v1/machines"
             csrfToken="[[CSRFToken.value]]"
-            data-provider="[[dataProvider]]"
             item-has-children="[[machineHasChildren]]"
           >
             <p slot="no-items-found">
@@ -1035,7 +1034,7 @@ export default class PageMachines extends mixinBehaviors(
       localStorage.getItem(`mist-list#machinesList/treeView`)
     );
     if (typeof isTreeView === 'boolean') return isTreeView;
-    return true;
+    return false;
   }
 }
 

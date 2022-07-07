@@ -1,4 +1,4 @@
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-button/paper-button.js';

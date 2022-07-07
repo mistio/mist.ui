@@ -1,6 +1,6 @@
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import './team-add-element.js';

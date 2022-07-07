@@ -1,6 +1,6 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-icon-button/paper-icon-button.js';
-import '@vaadin/vaadin-combo-box/vaadin-combo-box.js';
+import '@vaadin/combo-box/vaadin-combo-box.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
 

@@ -1,6 +1,6 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-checkbox/paper-checkbox.js';
 import '@polymer/paper-radio-group/paper-radio-group.js';

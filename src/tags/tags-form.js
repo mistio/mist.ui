@@ -3,7 +3,7 @@ import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-styles/typography.js';
 import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';

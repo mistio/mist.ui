@@ -8,7 +8,7 @@ import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/paper-input/paper-input.js';
 import '@polymer/paper-input/paper-textarea.js';
 import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
-import '@vaadin/vaadin-upload/vaadin-upload.js';
+import '@vaadin/upload/vaadin-upload.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/iron-ajax/iron-ajax.js';
 import '@polymer/iron-image/iron-image.js';

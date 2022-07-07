@@ -1,6 +1,6 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-styles/typography.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';

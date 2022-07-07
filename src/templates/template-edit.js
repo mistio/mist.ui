@@ -1,6 +1,6 @@
 import '@polymer/polymer/polymer-legacy.js';
 import '@polymer/paper-button/paper-button.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import '@polymer/paper-styles/typography.js';
 import { CSRFToken } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';

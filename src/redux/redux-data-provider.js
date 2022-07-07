@@ -1,5 +1,5 @@
 /* eslint-disable consistent-return */
-export default function reduxDataProvider(opts, callback) {
+export default async function reduxDataProvider(opts, callback) {
   const mistList = this.shadowRoot.querySelector('mist-list');
   if (!mistList) return [];
   // resource can be any mist resource

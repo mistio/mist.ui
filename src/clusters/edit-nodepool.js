@@ -8,7 +8,7 @@ import '@polymer/paper-dropdown-menu/paper-dropdown-menu.js';
 import '@polymer/paper-toggle-button/paper-toggle-button.js';
 import '@polymer/neon-animation/animations/scale-up-animation.js';
 import '@polymer/neon-animation/animations/fade-out-animation.js';
-import '@vaadin/vaadin-dialog/vaadin-dialog.js';
+import '@vaadin/dialog/vaadin-dialog.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { CSRFToken } from '../helpers/utils.js';
 
