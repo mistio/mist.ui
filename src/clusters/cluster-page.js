@@ -346,7 +346,7 @@ export default class ClusterPage extends mixinBehaviors(
                       on-tap="_changeIncludePods"
                     >
                       <span hidden$="[[!cluster.include_pods]]"
-                        >Pods included</span
+                        >Pods shown</span
                       >
                       <span hidden$="[[cluster.include_pods]]"
                         >Pods hidden</span
