@@ -519,6 +519,19 @@ Polymer({
         dialog[i] = info[i];
       });
     }
+    if(info.action === "undefine") {
+      const deleteImgField = {
+        defaultValue: false,
+        helptext: "",
+        label: "Delete image from disk",
+        name: "delete_domain_image",
+        show: true,
+        required: true,
+        type: "toggle",
+        value: false
+      }
+      dialog.fields = [deleteImgField];
+    }
     dialog._openDialog();
   },
 
@@ -596,7 +609,7 @@ Polymer({
   },
 
   confirmAction(e) {
-    if (e.detail.confirmed) this.performMachineAction(this.action, this.items);
+    if (e.detail.confirmed) this.performMachineAction(this.action, this.items, this.action.name, e.detail.fields);
   },
 
   renameAction(e) {
@@ -619,7 +632,7 @@ Polymer({
     this.$.request.generateRequest();
   },
 
-  performMachineAction(action, items, name) {
+  performMachineAction(action, items, name, fields) {
     const runitems = items.slice();
     // console.log('perform action machine',items);
     const run = el => {
@@ -684,7 +697,6 @@ Polymer({
           'stop',
           'suspend',
           'resume',
-          'undefine',
           'destroy',
           'remove',
           'power cycle',
@@ -694,6 +706,15 @@ Polymer({
         payload = {
           action: action.name.replace(' ', '_'),
         };
+      } else if (action.name === 'undefine') {
+        uri = `/api/v1/machines/${item.id}`;
+        let deleteDomainImg = false;
+        if (fields && fields.length == 1 && fields[0].name === 'delete_domain_image')
+          deleteDomainImg = fields[0].value;
+        payload = {
+          action: action.name.replace(' ', '_'),
+          delete_domain_image: deleteDomainImg
+        }
       } else if (action.name === 'rename') {
         uri = `/api/v1/machines/${item.id}`;
         payload = {
