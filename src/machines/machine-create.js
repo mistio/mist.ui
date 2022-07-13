@@ -2224,8 +2224,8 @@ Polymer({
       this.model.clouds[this.selectedCloud].locations &&
       this.model.clouds[this.selectedCloud].locations[location] &&
       this.model.clouds[this.selectedCloud].locations[location].extra
-        ? this.model.clouds[this.selectedCloud].locations[location].extra
-            .images_location
+        ? this.model.clouds[this.selectedCloud].locations[location]
+          .images_location
         : '';
     // fill in disk path using images_location and machine name
     if (machinename.trim().length && pathInd > -1)
