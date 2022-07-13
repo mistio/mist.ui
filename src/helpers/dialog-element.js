@@ -207,6 +207,7 @@ Polymer({
           response: 'confirm',
           confirmed: true,
           reason: this.reason,
+          fields: this.fields
         },
       })
     );
