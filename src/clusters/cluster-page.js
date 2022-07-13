@@ -16,6 +16,7 @@ import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import './cluster-actions.js';
 import './nodepool-actions.js';
+import { CSRFToken } from '../helpers/utils.js';
 
 /* eslint-disable class-methods-use-this */
 export default class ClusterPage extends mixinBehaviors(
@@ -25,6 +26,29 @@ export default class ClusterPage extends mixinBehaviors(
   static get template() {
     return html`
       <style include="shared-styles single-page tags-and-labels">
+        :host {
+          --paper-toggle-button-checked-button-color: #69b46c;
+          --paper-toggle-button-checked-bar-color: #69b46c;
+          --paper-toggle-button-unchecked-button-color: #d96557;
+          --paper-toggle-button-unchecked-bar-color: #d96557;
+        }
+
+        paper-toggle-button {
+          display: inline-flex;
+          cursor: pointer;
+        }
+
+        .cell paper-toggle-button {
+          vertical-align: middle;
+        }
+
+        .small {
+          transform: scale(0.7);
+          width: 100%;
+          left: -15%;
+          position: relative;
+        }
+
         paper-material {
           display: block;
           padding: 20px;
@@ -87,10 +111,6 @@ export default class ClusterPage extends mixinBehaviors(
           opacity: 0.54;
           margin: 0;
           line-height: 95%;
-        }
-
-        .cell paper-toggle-button {
-          vertical-align: middle;
         }
 
         .columns {
@@ -181,6 +201,9 @@ export default class ClusterPage extends mixinBehaviors(
         #cpcost {
           padding-top: 10px;
         }
+        #toggle-pods-cell {
+          padding-top: 5px;
+        }
       </style>
       <div id="content">
         <paper-material class="single-head layout horizontal">
@@ -264,19 +287,6 @@ export default class ClusterPage extends mixinBehaviors(
                 </div>
               </div>
             </div>
-            <span class="id"
-              ><a href="/members/[[cluster.owned_by]]"
-                >[[_displayUser(cluster.owned_by,model.members)]]</a
-              ></span
-            >
-            <h4 class="id" hidden$="[[!cluster.created_by.length]]">
-              Created by:
-            </h4>
-            <span class="id"
-              ><a href="/members/[[cluster.created_by]]"
-                >[[_displayUser(cluster.created_by,model.members)]]</a
-              ></span
-            >
           </paper-material>
           <paper-material class="right info">
             <div class="resource-info">
@@ -297,6 +307,51 @@ export default class ClusterPage extends mixinBehaviors(
                   <div class="cell">
                     <span>[[currency.sign]][[_ratedCost(cluster.cost.monthly, 
                           currency.rate)]]</span>
+                  </div>
+                </div>
+                <div class="row" hidden$="[[!cluster.owned_by.length]]">
+                  <div class="cell">
+                    <h4>Owner:</h4>
+                  </div>
+                  <div class="cell">
+                    <span
+                      ><a href$="/members/[[cluster.owned_by]]"
+                        >[[cluster.owned_by]]</a
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="row" hidden$="[[!cluster.created_by.length]]">
+                  <div class="cell">
+                    <h4>Created by:</h4>
+                  </div>
+                  <div class="cell">
+                    <span
+                      ><a href$="/members/[[cluster.created_by]]"
+                        >[[cluster.created_by]]</a
+                      ></span
+                    >
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="cell">
+                    <h4>Features:</h4>
+                    <br />
+                  </div>
+                  <div class="cell" id="toggle-pods-cell">
+                    <paper-toggle-button
+                      id="include-pods-toggle"
+                      class="small"
+                      checked$="[[cluster.include_pods]]"
+                      on-tap="_changeIncludePods"
+                    >
+                      <span hidden$="[[!cluster.include_pods]]"
+                        >Pods shown</span
+                      >
+                      <span hidden$="[[cluster.include_pods]]"
+                        >Pods hidden</span
+                      >
+                    </paper-toggle-button>
                   </div>
                 </div>
               </div>
@@ -384,6 +439,15 @@ export default class ClusterPage extends mixinBehaviors(
           </template>
         </paper-material>
       </div>
+      <iron-ajax
+        id="includePodsAjaxRequest"
+        handle-as="xml"
+        method="PATCH"
+        on-response="_handleIncludePodsAjaxResponse"
+        on-error="_handleIncludePodsAjaxError"
+        loading="{{containerLoading}}"
+      ></iron-ajax>
+
     `;
   }
 
@@ -404,7 +468,7 @@ export default class ClusterPage extends mixinBehaviors(
       },
       resources: {
         type: Object,
-        computed: '_computeClusterResources(cluster, model.clusters.*)',
+        computed: '_computeClusterResources(cluster, model.clusters.*, model.machines.*)',
       },
       resourceActions: {
         type: Array,
@@ -472,7 +536,7 @@ export default class ClusterPage extends mixinBehaviors(
     let nodes = [];
     if (this.cluster && this.model.machines) {
       const clusterMachines = Object.entries(this.model.machines).filter(
-        ([_machineId, machine]) => machine.cluster === this.cluster.id
+        ([_machineId, machine]) => machine && machine.cluster === this.cluster.id
       );
       nodes = Object.fromEntries(clusterMachines);
     }
@@ -584,14 +648,6 @@ export default class ClusterPage extends mixinBehaviors(
     if (e.detail.id) window.location.assign(`/machines/${e.detail.id}`);
   }
 
-  _displayUser(id, _members) {
-    return this.model && id && this.model.members && this.model.members[id]
-      ? this.model.members[id].name ||
-          this.model.members[id].email ||
-          this.model.members[id].username
-      : '';
-  }
-
   _clearListSelections() {
     this.set('selectedResources', []);
   }
@@ -657,6 +713,50 @@ export default class ClusterPage extends mixinBehaviors(
     if (item && item.machine_type === 'node') return true;
     return false;
   }
+
+  _changeIncludePods() {
+    const includePods = this.cluster.include_pods ? false : true;
+    this.$.includePodsAjaxRequest.url = `/api/v1/clouds/${this.cloud.id}/clusters/${this.cluster.id}`
+    this.$.includePodsAjaxRequest.headers['Content-Type'] =
+      'application/json';
+    this.$.includePodsAjaxRequest.headers['Csrf-Token'] =
+      CSRFToken.value;
+    this.$.includePodsAjaxRequest.body = {
+      include_pods: includePods,
+    };
+    this.$.includePodsAjaxRequest.generateRequest();
+
+  }
+
+  _handleIncludePodsAjaxResponse() {
+    const message = this.shadowRoot.querySelector('#include-pods-toggle')
+      .checked
+      ? `Will include pods for ${this.cluster.name}!`
+      : `Will hide pods for ${this.cluster.name}!`;
+    this.set('cluster.include_pods', this.shadowRoot.querySelector('#include-pods-toggle')
+    .checked);
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: message, duration: 5000 },
+      })
+    );
+  }
+
+  _handleIncludePodsAjaxError(e) {
+    this.shadowRoot.querySelector(
+      '#include-pods-toggle'
+    ).checked = this.cluster.include_pods;
+    this.dispatchEvent(
+      new CustomEvent('toast', {
+        bubbles: true,
+        composed: true,
+        detail: { msg: e.detail.request.xhr.response, duration: 10000 },
+      })
+    );
+  }
+
 }
 
 customElements.define('cluster-page', ClusterPage);
