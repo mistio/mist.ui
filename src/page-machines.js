@@ -113,9 +113,9 @@ export default class PageMachines extends mixinBehaviors(
             resizable
             column-menu
             multi-sort
+            item-map="[[model.machines]]"
             tree-view="[[_getTreeView()]]"
             sorters="[[sorters]]"
-            item-map="[[model.machines]]"
             name="Machines"
             selected-items="{{selectedItems}}"
             filtered-items-length="{{filteredItemsLength}}"
@@ -1032,7 +1032,7 @@ export default class PageMachines extends mixinBehaviors(
 
   _getTreeView() {
     const isTreeView = JSON.parse(
-      localStorage.getItem(`mist-list#machinesList/treeView`)
+      localStorage.getItem(`mist-list#machinesList/treeView/`)
     );
     if (typeof isTreeView === 'boolean') return isTreeView;
     return true;
