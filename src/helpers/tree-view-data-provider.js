@@ -5,7 +5,7 @@ export default function treeViewDataProvider(opts, callback) {
   if (!mistList) return [];
   const { grid } = mistList.$;
   if (!grid) return [];
-  items = (Array.isArray(grid.items) ? grid.items : []).slice(0);
+  items = Object.values(mistList.itemMap || {});
   if (
     mistList.filteredItems &&
     mistList.combinedFilter &&
