@@ -1,10 +1,11 @@
+/* eslint-disable lit-a11y/anchor-is-valid */
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { mixinBehaviors } from '@polymer/polymer/lib/legacy/class.js';
 import moment from 'moment/src/moment.js';
 import { mistLoadingBehavior } from '../helpers/mist-loading-behavior.js';
 import { mistLogsBehavior } from '../helpers/mist-logs-behavior.js';
 import nodepoolDataProvider from './nodepools-data-provider.js';
-import { ratedCost, _generateMap } from '../helpers/utils.js';
+import { ratedCost, _generateMap, CSRFToken } from '../helpers/utils.js';
 import '@polymer/paper-button/paper-button.js';
 import '@polymer/paper-spinner/paper-spinner.js';
 import '@polymer/paper-styles/typography.js';
@@ -16,7 +17,6 @@ import '../element-for-in/element-for-in.js';
 import '../tags/tags-list.js';
 import './cluster-actions.js';
 import './nodepool-actions.js';
-import { CSRFToken } from '../helpers/utils.js';
 
 /* eslint-disable class-methods-use-this */
 export default class ClusterPage extends mixinBehaviors(
@@ -315,7 +315,7 @@ export default class ClusterPage extends mixinBehaviors(
                   </div>
                   <div class="cell">
                     <span
-                      ><a href$="/members/[[cluster.owned_by]]"
+                      ><a href$="/members/[[cluster.owned_by]]" href=""
                         >[[cluster.owned_by]]</a
                       ></span
                     >
@@ -346,7 +346,7 @@ export default class ClusterPage extends mixinBehaviors(
                       on-tap="_changeIncludePods"
                     >
                       <span hidden$="[[!cluster.include_pods]]"
-                        >Pods shown</span
+                        >Pods visible</span
                       >
                       <span hidden$="[[cluster.include_pods]]"
                         >Pods hidden</span
@@ -468,7 +468,8 @@ export default class ClusterPage extends mixinBehaviors(
       },
       resources: {
         type: Object,
-        computed: '_computeClusterResources(cluster, model.clusters.*, model.machines.*)',
+        computed:
+          '_computeClusterResources(cluster, model.clusters.*, model.machines.*)',
       },
       resourceActions: {
         type: Array,
@@ -532,11 +533,15 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _computeClusterResources() {
-    const nodepools = _generateMap(this.cluster && this.cluster.nodepools || [], 'name');
+    const nodepools = _generateMap(
+      (this.cluster && this.cluster.nodepools) || [],
+      'name'
+    );
     let nodes = [];
     if (this.cluster && this.model.machines) {
       const clusterMachines = Object.entries(this.model.machines).filter(
-        ([_machineId, machine]) => machine && machine.cluster === this.cluster.id
+        ([_machineId, machine]) =>
+          machine && machine.cluster === this.cluster.id
       );
       nodes = Object.fromEntries(clusterMachines);
     }
@@ -580,7 +585,7 @@ export default class ClusterPage extends mixinBehaviors(
         },
       },
       state: {
-        body: item => item.toLowerCase()
+        body: item => item.toLowerCase(),
       },
       user_id: {
         title: () => 'user',
@@ -604,22 +609,35 @@ export default class ClusterPage extends mixinBehaviors(
       },
       cost: {
         body: (item, row) => {
-          if(row.id) {
-            let itemCost = (item && item.monthly.toFixed(2)) || '';
+          if (row.id) {
+            const itemCost = (item && item.monthly.toFixed(2)) || '';
             return `${this.currency.sign}${itemCost}`;
           }
-          else {
-            const nodepoolName = row.name;
-            if(nodepoolName && _this.cloud && _this.model && _this.model.clouds) {
-              let cost = 0;
-              Object.values(_this.model.clouds[_this.cloud.id].machines).forEach(machine => {
-                if(machine.extra && machine.extra.nodepool && machine.extra.nodepool === nodepoolName)
+
+          const nodepoolName = row.name;
+          if (
+            nodepoolName &&
+            _this.cloud &&
+            _this.model &&
+            _this.model.clouds
+          ) {
+            let cost = 0;
+            Object.values(_this.model.clouds[_this.cloud.id].machines).forEach(
+              machine => {
+                if (
+                  machine.extra &&
+                  machine.extra.nodepool &&
+                  machine.extra.nodepool === nodepoolName
+                )
                   cost += machine.cost.monthly;
-              })
-              let itemCost = cost ? `${this.currency.sign}${cost.toFixed(2)}` : '';
-              return itemCost
-            }
+              }
+            );
+            const itemCost = cost
+              ? `${this.currency.sign}${cost.toFixed(2)}`
+              : '';
+            return itemCost;
           }
+
           return '';
         },
       },
@@ -627,7 +645,12 @@ export default class ClusterPage extends mixinBehaviors(
         body: (item, row) => {
           if (!item && row.locations && row.locations.length > 0)
             return row.locations.join(', ');
-          if (item && _this.model && _this.model.clouds && _this.model.clouds[row.cloud].locations)
+          if (
+            item &&
+            _this.model &&
+            _this.model.clouds &&
+            _this.model.clouds[row.cloud].locations
+          )
             return _this.model.clouds[row.cloud].locations[item].name;
           return '';
         },
@@ -707,7 +730,7 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   resourceHasChildren(item) {
-    if (item &&!item.id)
+    if (item && !item.id)
       // nodepools don't have id
       return true;
     if (item && item.machine_type === 'node') return true;
@@ -715,17 +738,14 @@ export default class ClusterPage extends mixinBehaviors(
   }
 
   _changeIncludePods() {
-    const includePods = this.cluster.include_pods ? false : true;
-    this.$.includePodsAjaxRequest.url = `/api/v1/clouds/${this.cloud.id}/clusters/${this.cluster.id}`
-    this.$.includePodsAjaxRequest.headers['Content-Type'] =
-      'application/json';
-    this.$.includePodsAjaxRequest.headers['Csrf-Token'] =
-      CSRFToken.value;
+    const includePods = !this.cluster.include_pods;
+    this.$.includePodsAjaxRequest.url = `/api/v1/clouds/${this.cloud.id}/clusters/${this.cluster.id}`;
+    this.$.includePodsAjaxRequest.headers['Content-Type'] = 'application/json';
+    this.$.includePodsAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
     this.$.includePodsAjaxRequest.body = {
       include_pods: includePods,
     };
     this.$.includePodsAjaxRequest.generateRequest();
-
   }
 
   _handleIncludePodsAjaxResponse() {
@@ -733,8 +753,10 @@ export default class ClusterPage extends mixinBehaviors(
       .checked
       ? `Will include pods for ${this.cluster.name}!`
       : `Will hide pods for ${this.cluster.name}!`;
-    this.set('cluster.include_pods', this.shadowRoot.querySelector('#include-pods-toggle')
-    .checked);
+    this.set(
+      'cluster.include_pods',
+      this.shadowRoot.querySelector('#include-pods-toggle').checked
+    );
     this.dispatchEvent(
       new CustomEvent('toast', {
         bubbles: true,
@@ -756,7 +778,6 @@ export default class ClusterPage extends mixinBehaviors(
       })
     );
   }
-
 }
 
 customElements.define('cluster-page', ClusterPage);

@@ -371,12 +371,12 @@ Polymer({
         (this.model.clouds[machine.cloud].provider !== 'libvirt' ||
           machine.parent)
       ) {
-        if(this.model.clouds[machine.cloud].provider === 'libvirt' &&
-           !machine.extra || !machine.extra.xml_description || !machine.extra.xml_description.includes('graphics')) {
-           //do nothing we only have console with vnc atm
-        }
-        else
-          arr.push('console');
+        // if (this.model.clouds[machine.cloud].provider === 'libvirt' &&
+        //    !machine.extra || !machine.extra.xml_description || !machine.extra.xml_description.includes('graphics')) {
+        //    //do nothing we only have console with vnc atm
+        // }
+        // else
+        arr.push('console');
       }
     }
     if (machine) {
@@ -385,9 +385,11 @@ Polymer({
         machine.machine_type !== 'ilo-host' &&
         ['terminated', 'stopped'].indexOf(machine.state) === -1
       ) {
-        if (machine.key_associations &&
-          Object.keys(machine.key_associations).length > 0)
-            arr.push('shell');
+        if (
+          machine.key_associations &&
+          Object.keys(machine.key_associations).length > 0
+        )
+          arr.push('shell');
         arr.push('associate-key');
       }
       if (
@@ -473,7 +475,7 @@ Polymer({
 
   _getMachine() {
     if (this.items.length) return this.get('items.0');
-    return undefined;
+    return {};
   },
   _computeAllowedActions(actions) {
     if (actions.length > 0) {
@@ -526,17 +528,17 @@ Polymer({
         dialog[i] = info[i];
       });
     }
-    if(info.action === "undefine") {
+    if (info.action === 'undefine') {
       const deleteImgField = {
         defaultValue: false,
-        helptext: "",
-        label: "Delete image from disk",
-        name: "delete_domain_image",
+        helptext: '',
+        label: 'Delete domain image',
+        name: 'delete_domain_image',
         show: true,
         required: true,
-        type: "toggle",
-        value: false
-      }
+        type: 'toggle',
+        value: false,
+      };
       dialog.fields = [deleteImgField];
     }
     dialog._openDialog();
@@ -616,7 +618,13 @@ Polymer({
   },
 
   confirmAction(e) {
-    if (e.detail.confirmed) this.performMachineAction(this.action, this.items, this.action.name, e.detail.fields);
+    if (e.detail.confirmed)
+      this.performMachineAction(
+        this.action,
+        this.items,
+        this.action.name,
+        e.detail.fields
+      );
   },
 
   renameAction(e) {
@@ -692,15 +700,14 @@ Polymer({
                 'toolbar=yes,scrollbars=yes,resizable=yes,top=0,left=0,width=800,height=600'
               );
               newWindow.wsURL = wsURL.location;
-            }
-            else {
+            } else {
               const msg = `Error Code: ${response.status}. Error: ${response.statusText}`;
               this.dispatchEvent(
                 new CustomEvent('toast', {
                   bubbles: true,
                   composed: true,
                   detail: {
-                    msg: msg,
+                    msg,
                     duration: 5000,
                   },
                 })
@@ -729,12 +736,16 @@ Polymer({
       } else if (action.name === 'undefine') {
         uri = `/api/v1/machines/${item.id}`;
         let deleteDomainImg = false;
-        if (fields && fields.length == 1 && fields[0].name === 'delete_domain_image')
+        if (
+          fields &&
+          fields.length === 1 &&
+          fields[0].name === 'delete_domain_image'
+        )
           deleteDomainImg = fields[0].value;
         payload = {
           action: action.name.replace(' ', '_'),
-          delete_domain_image: deleteDomainImg
-        }
+          delete_domain_image: deleteDomainImg,
+        };
       } else if (action.name === 'rename') {
         uri = `/api/v1/machines/${item.id}`;
         payload = {
@@ -773,7 +784,7 @@ Polymer({
                 bubbles: true,
                 composed: true,
                 detail: {
-                  msg: msg,
+                  msg,
                   duration: 5000,
                 },
               })
