@@ -293,7 +293,11 @@ Polymer({
   },
 
   _updateShowNotification(_machine, _memory) {
-    if (this.machine && this.machine.extra.hypervisor_type) {
+    if (
+      this.machine &&
+      this.machine.extra &&
+      this.machine.extra.hypervisor_type
+    ) {
       if (
         this.machine.extra.hypervisor_type === 'kvm' &&
         this.current_memory >= this.memory
@@ -312,9 +316,7 @@ Polymer({
       if (this.showCustomSizeForm) {
         this.set('size', `Current ${this.machine.extra.size}`);
       } else {
-        const currentSize = this.sizes.find(p => {
-          return p.id === this.machine.size;
-        });
+        const currentSize = this.sizes.find(p => p.id === this.machine.size);
         const name = currentSize ? currentSize.name : '';
         this.set('size', name.length ? `Current ${name}` : '');
       }
@@ -367,13 +369,12 @@ Polymer({
         ];
         const availableLocationSizes = this.clouds[
           this.machine.cloud
-        ].sizesArray.filter(size => {
-          return (
+        ].sizesArray.filter(
+          size =>
             machineLocation.extra.available_instance_types.indexOf(
               size.external_id
             ) > -1
-          );
-        });
+        );
         sizes = availableLocationSizes || [];
         // console.log("sizes", this.clouds[this.machine.cloud].locations[machineLocationID].extra.available_instance_types.length === this.sizes.length);
       } else {
