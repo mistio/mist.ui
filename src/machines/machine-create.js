@@ -2205,8 +2205,8 @@ Polymer({
     if (location && this.model && this.model.clouds)
       return this.model.imagesArray.filter(
         im =>
-          im.extra &&
-          (!im.extra.locations || im.extra.locations.indexOf(location) > -1)
+          im.locations &&
+          (!im.locations || im.locations.indexOf(location) > -1)
       );
     return [];
   },
