@@ -371,7 +371,12 @@ Polymer({
         (this.model.clouds[machine.cloud].provider !== 'libvirt' ||
           machine.parent)
       ) {
-        arr.push('console');
+        if(this.model.clouds[machine.cloud].provider === 'libvirt' &&
+           !machine.extra || !machine.extra.xml_description || !machine.extra.xml_description.includes('graphics')) {
+           //do nothing we only have console with vnc atm
+        }
+        else
+          arr.push('console');
       }
     }
     if (machine) {
@@ -380,7 +385,9 @@ Polymer({
         machine.machine_type !== 'ilo-host' &&
         ['terminated', 'stopped'].indexOf(machine.state) === -1
       ) {
-        arr.push('shell');
+        if (machine.key_associations &&
+          Object.keys(machine.key_associations).length > 0)
+            arr.push('shell');
         arr.push('associate-key');
       }
       if (
@@ -686,6 +693,19 @@ Polymer({
               );
               newWindow.wsURL = wsURL.location;
             }
+            else {
+              const msg = `Error Code: ${response.status}. Error: ${response.statusText}`;
+              this.dispatchEvent(
+                new CustomEvent('toast', {
+                  bubbles: true,
+                  composed: true,
+                  detail: {
+                    msg: msg,
+                    duration: 5000,
+                  },
+                })
+              );
+            }
           })();
         }
         return;
@@ -734,22 +754,34 @@ Polymer({
           key: item.key_associations[0],
         };
       } else if (action.name === 'console') {
+        const uriBody = {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Csrf-Token': CSRFToken.value,
+          },
+        };
         uri = `/api/v1/machines/${item.id}/console`;
-        // window.open(uri, 'view');
-        const form = document.createElement('form');
-        form.setAttribute('method', 'post');
-        form.setAttribute('action', uri);
-        form.setAttribute('target', 'view');
-        const hiddenField = document.createElement('input');
-        hiddenField.setAttribute('type', 'hidden');
-        hiddenField.setAttribute('name', 'Csrf-Token');
-        hiddenField.setAttribute('value', CSRFToken.value);
-        form.appendChild(hiddenField);
-        document.body.appendChild(form);
-
-        window.open('', 'view');
-
-        form.submit();
+        (async () => {
+          const response = await fetch(uri, uriBody);
+          if (!response.ok) {
+            const msg = `Error Code: ${response.status}. Error: ${response.statusText}`;
+            this.dispatchEvent(
+              new CustomEvent('toast', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  msg: msg,
+                  duration: 5000,
+                },
+              })
+            );
+          } else {
+            window.open(uri, 'view');
+          }
+        })();
         return;
       } else if (
         action.name === 'transfer ownership' ||
