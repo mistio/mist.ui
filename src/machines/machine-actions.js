@@ -791,7 +791,11 @@ Polymer({
               })
             );
           } else {
-            window.open(uri, 'view');
+            window.open(
+              uri,
+              '_blank',
+              'toolbar=yes,scrollbars=yes,resizable=yes,top=0,left=0,width=800,height=600'
+            );
           }
         })();
         return;
