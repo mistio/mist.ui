@@ -4,7 +4,9 @@ import { Polymer } from '@polymer/polymer/polymer-legacy';
 import '@polymer/paper-material/paper-material.js';
 import '@mistio/mist-list/mist-list.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import bucketsDataProvider from "./buckets-data-provider.js";
 import '../teams/team-page.js';
+import '@polymer/paper-spinner/paper-spinner.js';
 
 dayjs.extend(utc);
 
@@ -62,6 +64,9 @@ Polymer({
         padding: 3px;
         box-sizing: border-box;
       }
+      paper-spinner {
+        padding: 5px;
+      }
     </style>
     <div id="content">
       <paper-material class="single-head layout horizontal buckets-page-head">
@@ -109,31 +114,28 @@ Polymer({
           </div>
         </paper-material>
       </div>
-      <paper-material>
+      <paper-material class="layout vertical">
         <mist-list
           selectable
           resizable
           apiurl="/api/v1/buckets"
           id="filesList"
           name="Files"
+          frozen="[[_getFrozenColumns()]]"
           visible="[[_getVisibleColumns()]]"
           renderers="[[_getRenderers()]]"
-          item-map="[[currentDirContent]]"
-          primary-field-name="id"
+          item-map=""
+          primary-field-name="name"
           sorters="[[sorters]]"
-          on-active-item-changed="_activeItemChanged"
+          tree-view=""
+          data-provider="[[dataProvider]]"
+          item-has-children="[[hasChildren]]"
         >
           <p slot="no-items-found">The bucket is empty</p>
         </mist-list>
+        <paper-spinner active="[[loading]]" hidden="[[!loading]]"></paper-spinner>
       </paper-material>
     </div>
-    <iron-ajax
-      auto
-      id="getBucketDataRequest"
-      url="/api/v1/buckets/[[bucket.id]]"
-      on-response="handleGetBucketDataResponse"
-      on-error="handleError"
-    ></iron-ajax>
   `,
 
   is: 'bucket-page',
@@ -146,85 +148,22 @@ Polymer({
     section: {
       type: Object,
     },
-    currentPath: {
-      type: String,
-      value: '',
-    },
-    currentDirContent: {
-      type: Object,
-      value: {},
-    },
-    data: {
-      type: Object,
-      value: {},
-    },
-    clickedItem: {
-      type: String,
-    },
     sorters: {
       type: Array,
       value() {
         return [['name', 'asc']];
       },
     },
-  },
-
-  ready() {
-    this.$.filesList.$.grid.addEventListener('active-item-changed', e =>
-      this._activeItemChanged(e)
-    );
-  },
-
-  observers: ['_currentPathChanged(currentPath, data)'],
-
-  handleGetBucketDataResponse(response) {
-    const data = response.detail.response;
-    this.set('data', data.content);
-  },
-
-  _activeItemChanged(e) {
-    const grid = e.target;
-    this.clickedItem =
-      grid && grid.activeItem ? grid.activeItem : this.clickedItem;
-
-    if (this.clickedItem.type === 'folder') {
-      if (this.clickedItem.name === '..') {
-        const path = this.currentPath.split(/(?<=\/)/); // split into array where the items have trailing slash e.g: ['aaa/', 'bbb/', 'ccc/']
-        path.pop();
-        this.currentPath = path.join('');
-      } else {
-        this.currentPath += `${this.clickedItem.name}`;
+    dataProvider: {
+      type: Object,
+      value() {
+        return bucketsDataProvider.bind(this);
       }
+    },
+    loading: {
+      type: Boolean,
+      value: true
     }
-  },
-
-  handleError(error) {
-    console.error('error while getting bucket content', error);
-  },
-
-  _currentPathChanged(newPath) {
-    const content = {};
-
-    if (newPath) {
-      content['..'] = {
-        name: '..',
-        type: 'folder',
-      };
-    }
-    for (const [path, details] of Object.entries(this.data)) {
-      if (path.startsWith(this.currentPath) && path !== this.currentPath) {
-        // delete current path from the full path and split into array where the items have trailing slash e.g: ['aaa/', 'bbb/', 'ccc/']
-        const itemPathArray = path.replace(newPath, '').split(/(?<=\/)/);
-        const name = itemPathArray[0];
-        if (!content[name]) {
-          details.name = name;
-          details.type = name.endsWith('/') ? 'folder' : 'file';
-          content[name] = details;
-        }
-      }
-    }
-
-    this.set('currentDirContent', content);
   },
 
   _computeItemImage(item) {
@@ -239,13 +178,14 @@ Polymer({
     return {
       name: {
         body: (item, _row) => {
-          return `<strong class="name">${item.split('/')[0]}</strong>`;
+          return `<strong class="name">${item}</strong>`;
         },
       },
       icon: {
         body: (_item, row) => {
-          if (!row.name) return '';
-          return `./assets/buckets/bucket-${row.type}.svg`;
+          if(row.name.slice(-1) === '/')
+            return '/ui/assets/buckets/bucket-folder.svg';
+          return '/ui/assets/buckets/bucket-file.svg'
         },
       },
       size: {
@@ -264,12 +204,19 @@ Polymer({
           }
           return '';
         },
-      },
+      }
     };
   },
 
+  _getFrozenColumns() {
+    return ['name'];
+  },
+
   _getVisibleColumns() {
-    return ['name', 'last_modified', 'size'];
+    return ['size', 'last_modified'];
+  },
+  hasChildren(item) {
+    return item.name.slice(-1) === "/";
   },
 
   _computeCloudIcon(cloud) {
@@ -277,5 +224,5 @@ Polymer({
       return '';
     }
     return `./assets/providers/provider-${cloud.replace(/_/g, '')}.png`;
-  },
+  }
 });
