@@ -296,7 +296,7 @@ Polymer({
             this.model.clouds[cloudId].provider === 'openstack' ||
             this.model.clouds[cloudId].provider === 'vexxhost'
           ) {
-            locations = locations.filter(l => l.extra.storage === true);
+            locations = locations.filter(l => l.capabilities && l.capabilities.indexOf("storage") > -1);
           } else if (this.model.clouds[cloudId].provider === 'vultr') {
             locations = locations.filter(
               l => l.extra.option.includes('block_storage') === true
