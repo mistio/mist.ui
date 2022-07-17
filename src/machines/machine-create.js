@@ -1288,17 +1288,6 @@ Polymer({
         this._includeLocationName(changeRecord.value);
       }
 
-      // if its ec2 and image changes update size to match the virtualization_type
-      if (
-        this.model.clouds[this.selectedCloud].provider === 'ec2' &&
-        changeRecord.path.endsWith('value') &&
-        this.get(changeRecord.path.replace('.value', '')).name === 'image'
-      ) {
-        this._updateEc2Sizes(
-          this.get(changeRecord.path.replace('.value', '')).value
-        );
-      }
-
       // if it's gce and network changes update subnets
       if (
         this.model.clouds[this.selectedCloud].provider === 'gce' &&
@@ -1572,18 +1561,6 @@ Polymer({
         // if is onapp controll options based on image
         if (this.get(changeRecord.path.replace('.value', '')).name === 'image')
           this._updateFieldMinsForOnapp(changeRecord.value);
-        // if is onapp controll total size
-        if (
-          this.get(changeRecord.path.replace('.value', '')).name ===
-          'size_disk_primary'
-        )
-          this._updateDiskMax('size_disk_swap', changeRecord.value);
-        // if is onapp controll total size
-        if (
-          this.get(changeRecord.path.replace('.value', '')).name ===
-          'size_disk_swap'
-        )
-          this._updateDiskMax('size_disk_primary', changeRecord.value);
       }
 
       // update scheduler fields
@@ -1850,23 +1827,6 @@ Polymer({
     }
   },
 
-  /* eslint-disable no-param-reassign */
-  _updateDiskMax(name, value, total) {
-    const sizeInd = this._fieldIndexByName(name);
-    const location = this.model.clouds[this.selectedCloud].locations[
-      this.get(`machineFields.${this._fieldIndexByName('location')}.value`)
-    ];
-
-    if (!location) return;
-    if (location && location.extra) {
-      if (!total) total = location.extra.max_disk_size;
-
-      if (total && total - value > 0 && sizeInd > -1)
-        this.set(`machineFields.${sizeInd}.max`, total - value);
-    }
-  },
-  /* eslint-enable no-param-reassign */
-
   _updateFieldsForAliyun() {
     const locationIndex = this._fieldIndexByName('location');
     if (locationIndex > -1) {
@@ -1935,12 +1895,13 @@ Polymer({
       !this.model ||
       !this.model.images ||
       !this.model.images[image] ||
-      !this.model.images[image].extra
+      !this.model.images[image].min_disk_size || 
+      !this.model.images[image].min_memory_size
     )
       return;
 
-    const minRam = this.model.images[image].extra.min_memory;
-    const minDisk = this.model.images[image].extra.min_disk_size;
+    const minRam = this.model.images[image].min_memory_size;
+    const minDisk = this.model.images[image].min_disk_size;
 
     const sizeInd = this._fieldIndexByName('size');
     if (sizeInd > -1) {
@@ -1993,12 +1954,12 @@ Polymer({
     if (sizeInd > -1 && ramInd > -1)
       this.set(
         `machineFields.${sizeInd}.customSizeFields.${ramInd}.min`,
-        imageField.extra.min_memory_size
+        imageField.min_memory_size
       );
     if (sizeInd > -1 && diskInd > -1)
       this.set(
         `machineFields.${sizeInd}.customSizeFields.${diskInd}.min`,
-        imageField.extra.min_disk_size
+        imageField.min_disk_size
       );
   },
 
@@ -2029,25 +1990,8 @@ Polymer({
           location.extra.hypervisor_group_id
         );
 
-      if (location.extra.max_disk_size) {
-        this._updateDiskMax(
-          'size_disk_primary',
-          this.get(
-            `machineFields.${this._fieldIndexByName('size_disk_swap')}.value`
-          ),
-          location.extra.max_disk_size
-        );
-        this._updateDiskMax(
-          'size_disk_swap',
-          this.get(
-            `machineFields.${this._fieldIndexByName('size_disk_primary')}.value`
-          ),
-          location.extra.max_disk_size
-        );
-      } else {
-        if (diskInd > -1) this.set(`machineFields.${diskInd}.max`, 16);
-        if (swapInd > -1) this.set(`machineFields.${swapInd}.max`, 16);
-      }
+      if (diskInd > -1) this.set(`machineFields.${diskInd}.max`, 16);
+      if (swapInd > -1) this.set(`machineFields.${swapInd}.max`, 16);
 
       const imagesInd = this._fieldIndexByName('image');
       const networksInd = this._fieldIndexByName('networks');
@@ -2264,29 +2208,6 @@ Polymer({
           .replace(/[^a-zA-Z0-9]+/g, '')
           .slice(0, 19)}disks`
       );
-  },
-
-  _updateEc2Sizes(imageid) {
-    if (
-      this.model.images[imageid] &&
-      this.model.images[imageid].extra &&
-      this.model.images[imageid].extra.virtualization_type
-    ) {
-      const { virtualizationType } = this.model.images[imageid].extra;
-
-      const sizeInd = this._fieldIndexByName('size');
-      const sizesOptions = this.model.clouds[
-        this.selectedCloud
-      ].sizesArray.filter(s => {
-        if (s.extra.virtualizationTypes) {
-          return s.extra.virtualizationTypes.indexOf(virtualizationType) > -1;
-        }
-        return 1;
-      });
-      if (sizeInd > -1)
-        this.set(`machineFields.${sizeInd}.options`, sizesOptions);
-      // console.log('_updateEc2Sizes', virtualization_type , this.model.clouds[this.selectedCloud].sizesArray.length, sizesOptions)
-    }
   },
 
   _updateMaxihostSizes(locationId) {
@@ -3262,6 +3183,7 @@ Polymer({
     }
     return newValue;
   },
+
   _cloudsChanged(clouds) {
     if (clouds.length >= 1) {
       const localStorageCloud = localStorage.getItem('createMachine#cloud');
@@ -3281,6 +3203,7 @@ Polymer({
       this.set('selectedCloud', selectedCloud);
     }
   },
+
   _checkSizeLocationOptions(event) {
     event.stopPropagation();
     if (this.selectedCloud && this.model.clouds) {
