@@ -874,7 +874,7 @@ Polymer({
             this.model.clouds[cloudId].provider === 'vexxhost'
           ) {
             locations.forEach(l => {
-              if (l.extra.compute === false) {
+              if (!l.capabilities || l.capabilities.indexOf("compute") === -1) {
                 l.disabled = true;
               }
             });
