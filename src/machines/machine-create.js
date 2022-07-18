@@ -2146,11 +2146,10 @@ Polymer({
   },
 
   _getLocationImages(location) {
-    if (location && this.model && this.model.clouds)
-      return this.model.imagesArray.filter(
+    if (location && this.model && this.model.clouds && this.selectedCloud && this.model.clouds[this.selectedCloud])
+      return this.model.clouds[this.selectedCloud].imagesArray.filter(
         im =>
-          im.locations &&
-          (!im.locations || im.locations.indexOf(location) > -1)
+          !im.locations || im.locations.indexOf(location) > -1
       );
     return [];
   },
