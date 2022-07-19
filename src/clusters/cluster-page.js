@@ -662,7 +662,23 @@ export default class ClusterPage extends mixinBehaviors(
         body: (item, _row) => item || '',
       },
       node_count: {
-        body: (item, _row) => item || '',
+        body: (_item, row) => {
+          // if this is a node return empty string
+          if (row.id)
+            return '';
+          if (
+            _this.cloud &&
+            _this.cloud.machines
+          ) {
+            let count = 0;
+            Object.values(_this.cloud.machines).forEach(machine => {
+              if (machine && machine.extra && machine.extra.nodepool === row.name)
+                count += 1;
+            });
+            return count;
+          }
+          return '';
+        },
       },
     };
   }
