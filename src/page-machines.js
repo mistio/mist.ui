@@ -252,12 +252,6 @@ export default class PageMachines extends mixinBehaviors(
         type: Object,
         computed: '_getRenderers(model.schedules)',
       },
-      itemMap: {
-        type: Object,
-        value() {
-          return {};
-        },
-      },
       dataProvider: {
         type: Object,
         value() {
@@ -268,15 +262,7 @@ export default class PageMachines extends mixinBehaviors(
         type: Object,
         value() {
           return item => {
-            if (item && (
-                item.machine_type === 'hypervisor' ||
-                item.machine_type === 'container-host' ||
-                item.machine_type === 'node' ||
-                item.machine_type === 'pod'
-              )
-            )
-              return true;
-            return false;
+            return item && item.treeNode
           };
         },
       },
