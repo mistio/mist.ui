@@ -804,16 +804,17 @@ Polymer({
     this._updateCloudResources(data, 'clusters', 'external_id');
   },
   _updateMachines(data) {
+    const parentIds = new Set();
     data.machines.forEach(machine => {
       if (
-        machine &&
-        (machine.machine_type === 'node' ||
-          machine.machine_type === 'pod' ||
-          machine.machine_type === 'hypervisor' ||
-          machine.machine_type === 'container-host')
+        machine && machine.parent
       )
-        machine.treeNode = true;
+        parentIds.add(machine.parent);
     });
+    data.machines.forEach(machine => {
+      if(parentIds.has(machine.id))
+        machine.treeNode = true;
+    })
     loadedResourceCounters.machines -= 1;
     if (loadedResourceCounters.machines <= 0) {
       this.set('model.onboarding.isLoadingMachines', false);
