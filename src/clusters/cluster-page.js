@@ -518,6 +518,7 @@ export default class ClusterPage extends mixinBehaviors(
   _changed(cluster) {
     if (cluster) {
       this.set('itemArray', [this.cluster]);
+      this._clearListSelections();
     }
   }
 
