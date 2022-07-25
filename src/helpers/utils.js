@@ -7,9 +7,18 @@ function numeral(num) {
   // eg 1234 will turn into 1.23 k, this function expects the 234 and returns the 23
   function solveRight(rightPart) {
     let res = `${rightPart.slice(0, 2)}.${rightPart.slice(2)}`;
-    res = parseFloat(res);
-    res = Math.round(res);
-    return res;
+    //check if it starts with 0
+    if (res.slice(0,1) === '0') {
+      if (parseFloat(res.slice(1,2)) >= 5 )
+        return 1;
+      else
+        return 0;
+    }
+    else {
+      res = parseFloat(res);
+      res = Math.round(res);
+      return res;
+    }
   }
   // Map the order of the number of digits to the proper metric
   const suffixes = { 3: 'K', 6: 'M', 9: 'B', 12: 'T', 15: 'Q' };
@@ -31,7 +40,11 @@ function numeral(num) {
   const comma = toFormat.length - order;
   res = `${toFormat.slice(0, comma)}.`;
   const rightP = solveRight(toFormat.slice(comma));
-  res += String(rightP);
+  // if rightP is 0 don't show it
+  if (rightP !== 0)
+    res += String(rightP);
+  else
+    res = res.slice(0,1)
   res += suffixes[order];
   return `${prefix}${res}`;
 }
