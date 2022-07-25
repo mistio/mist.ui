@@ -77,7 +77,7 @@ export default class EditNodepool extends PolymerElement {
         }
       </style>
       <vaadin-dialog id="editNodepoolDialog" with-backdrop="">
-        <template>
+        <template restamp="">
           <div id="content">
             <h2>Edit Nodepool</h2>
             <br />
@@ -92,7 +92,7 @@ export default class EditNodepool extends PolymerElement {
               </paper-input>
               <template
                 is="dom-if"
-                if="[[_showAutoscalingToggle()]]"
+                if="[[_showAutoscalingToggle(provider)]]"
                 restamp=""
               >
                 <div class="layout horizontal">
@@ -160,11 +160,11 @@ export default class EditNodepool extends PolymerElement {
 
   _clearSelection() {
     if (this.nodepool) {
-      this.payload.min_nodes =
-        this.nodepool.min_nodes || this.nodepool.node_count;
-      this.payload.max_nodes =
-        this.nodepool.max_nodes || this.nodepool.node_count;
-      this.payload.desired_nodes = this.nodepool.node_count;
+      this.set('payload.min_nodes',
+        this.nodepool.min_nodes || this.nodepool.node_count);
+      this.set('payload.max_nodes',
+          this.nodepool.max_nodes || this.nodepool.node_count);
+      this.set('payload.desired_nodes', this.nodepool.node_count);
       this.set('payload.autoscaling', this.nodepool.autoscaling);
     }
     this.errormsg = '';
