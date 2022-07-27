@@ -385,9 +385,11 @@ Polymer({
         machine.machine_type !== 'ilo-host' &&
         ['terminated', 'stopped'].indexOf(machine.state) === -1
       ) {
+        // machines with keys and docker and lxd machines should have shell action
         if (
-          machine.key_associations &&
-          Object.keys(machine.key_associations).length > 0
+          ['docker', 'lxd'].indexOf(this.model.clouds[machine.cloud].provider) > -1 ||
+          (machine.key_associations &&
+          Object.keys(machine.key_associations).length > 0)
         )
           arr.push('shell');
         arr.push('associate-key');
