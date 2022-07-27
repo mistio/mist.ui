@@ -37,7 +37,7 @@ export default function treeViewDataProvider(opts, callback) {
     data = items;
     mistList.count = data.length;
   } else if (opts.parentItem) {
-    data = items.filter(item => item.parent === opts.parentItem.id);
+    data = items.filter(item =>  item && item.parent === opts.parentItem.id);
     mistList.count += data.length;
   } else {
     data = items.filter(item => item && !item.parent);
