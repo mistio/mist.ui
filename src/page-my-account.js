@@ -59,7 +59,7 @@ export default class PageMyAccount extends PolymerElement {
             id="billing"
             name="billing"
             data-route="2"
-            hidden$="[[!_showBilling(org.is_owner, config.features.billing)]]"
+            hidden$="[[!_showBilling(org, config)]]"
             >Billing</paper-tab
           >
           <paper-tab id="sessions" name="sessions" data-route="3"
@@ -182,8 +182,8 @@ export default class PageMyAccount extends PolymerElement {
     };
   }
 
-  _showBilling(_isOwner, _hasBilling) {
-    return this.org.isOwner && this.config.features.hasBilling;
+  _showBilling() {
+    return this.org.is_owner && this.config.features.billing;
   }
 }
 
