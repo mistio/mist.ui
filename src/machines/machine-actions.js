@@ -387,9 +387,10 @@ Polymer({
       ) {
         // machines with keys and docker and lxd machines should have shell action
         if (
-          ['docker', 'lxd'].indexOf(this.model.clouds[machine.cloud].provider) > -1 ||
+          ['docker', 'lxd'].indexOf(this.model.clouds[machine.cloud].provider) >
+            -1 ||
           (machine.key_associations &&
-          Object.keys(machine.key_associations).length > 0)
+            Object.keys(machine.key_associations).length > 0)
         )
           arr.push('shell');
         arr.push('associate-key');
@@ -661,62 +662,41 @@ Polymer({
       // machines
       if (action.name === 'shell') {
         console.warn('opening shell');
-
-        if (['kubevirt'].indexOf(item.provider) !== -1) {
-          // load page import on demand.
-          // el.importHref(el.resolveUrl('/elements/helpers/xterm-dialog.html'), null, null, true);
-          // remove existing terminals from DOM
-          let xterm = document.querySelector('xterm-dialog');
-          if (xterm) {
-            xterm.remove();
-            // console.log('xterm removed', this.items);
+        const shellReqBody = {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Csrf-Token': CSRFToken.value,
+          },
+        };
+        const shellReqUri = `/api/v1/machines/${item.id}/ssh`;
+        (async () => {
+          const response = await fetch(shellReqUri, shellReqBody);
+          if (response.ok) {
+            const wsURL = await response.json();
+            const newWindow = window.open(
+              shellReqUri,
+              '_blank',
+              'toolbar=yes,scrollbars=yes,resizable=yes,top=0,left=0,width=800,height=600'
+            );
+            newWindow.wsURL = wsURL.location;
+          } else {
+            const msg = `Error Code: ${response.status}. Error: ${response.statusText}`;
+            this.dispatchEvent(
+              new CustomEvent('toast', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                  msg,
+                  duration: 5000,
+                },
+              })
+            );
           }
+        })();
 
-          xterm = el.querySelector('xterm-dialog');
-          if (!xterm) {
-            xterm = document.createElement('xterm-dialog');
-            xterm.target = item;
-            xterm.cloud = this.model.clouds[item.cloud];
-            const app = document.querySelector('mist-app');
-            app.shadowRoot.insertBefore(xterm, app.shadowRoot.firstChild);
-          }
-          // console.log('perform action shell', item);
-        } else {
-          const shellReqBody = {
-            method: 'POST',
-            credentials: 'include',
-            cache: 'no-cache',
-            headers: {
-              'Content-Type': 'application/json;charset=UTF-8',
-              'Csrf-Token': CSRFToken.value,
-            },
-          };
-          const shellReqUri = `/api/v1/machines/${item.id}/ssh`;
-          (async () => {
-            const response = await fetch(shellReqUri, shellReqBody);
-            if (response.ok) {
-              const wsURL = await response.json();
-              const newWindow = window.open(
-                shellReqUri,
-                '_blank',
-                'toolbar=yes,scrollbars=yes,resizable=yes,top=0,left=0,width=800,height=600'
-              );
-              newWindow.wsURL = wsURL.location;
-            } else {
-              const msg = `Error Code: ${response.status}. Error: ${response.statusText}`;
-              this.dispatchEvent(
-                new CustomEvent('toast', {
-                  bubbles: true,
-                  composed: true,
-                  detail: {
-                    msg,
-                    duration: 5000,
-                  },
-                })
-              );
-            }
-          })();
-        }
         return;
       }
       if (
