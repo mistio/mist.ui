@@ -368,7 +368,6 @@ Polymer({
               }
             }
           }
-
           // Apply patch operation to the model
 
           try {
@@ -416,11 +415,25 @@ Polymer({
               if (
                 _this.model[resourceType][newCloudResourceIds[i]] === undefined
               ) {
+                const newResource = _this.model.clouds[cloudId][resourceType][
+                  newCloudResourceExternalIds[i]
+                ]
+                // if resource has parent set the parent's treeNode attribute
+                // the resource may be a parent if it has no parent
+                if(
+                  newResource.parent &&
+                  _this.model[resourceType][newResource.parent]
+                ) {
+                    _this.model[resourceType][newResource.parent].treeNode = true;
+                } else if(!newResource.treeNode) {
+                  const hasChild = Object.values(_this.model[resourceType]).some(resource =>
+                      resource.parent === newResource.id
+                    )
+                  newResource.treeNode = hasChild
+                }
                 _this.set(
                   `model.${resourceType}.${newCloudResourceIds[i]}`,
-                  _this.model.clouds[cloudId][resourceType][
-                    newCloudResourceExternalIds[i]
-                  ]
+                  newResource
                 );
                 _this.linkPaths(
                   `model.${resourceType}.${newCloudResourceIds[i]}`,
