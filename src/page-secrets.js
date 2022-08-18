@@ -67,16 +67,14 @@ Polymer({
       hidden$="[[!_isAddPageActive(route.path)]]"
       path="[[pathItems]]"
     ></secret-add>
-    <template is="dom-if" if="[[!_isListActive(route.path)]]" restamp>
-      <secret-page
-        secret="[[_getSecret(data.secret, model.secrets)]]"
-        resource-id="[[data.secret]]"
-        model="[[model]]"
-        section="[[model.sections.secrets]]"
-        hidden$="[[!_isSecretPageActive(route.path)]]"
-        parent-folder-id="[[parentFolderId]]"
-      ></secret-page>
-    </template>
+    <secret-page
+      id="secretPage"
+      resource-id="[[_getSecretId(route)]]"
+      model="[[model]]"
+      section="[[model.sections.secrets]]"
+      hidden$="[[!_isSecretPageActive(route.path)]]"
+      parent-folder-id="[[parentFolderId]]"
+    ></secret-page>
   `,
   is: 'page-secrets',
   behaviors: [],
@@ -127,7 +125,7 @@ Polymer({
       },
     },
   },
-
+  /* eslint-disable func-names */
   ready() {
     this.dataProvider = function (params, callback) {
       const parentName = params.parentItem ? params.parentItem.name : null;
@@ -163,6 +161,7 @@ Polymer({
       xhr.send();
     }.bind(this);
   },
+  /* eslint-enable func-names */
 
   _getFrozenColumn() {
     return ['name'];
@@ -172,18 +171,39 @@ Polymer({
     return ['created_by', 'owned_by'];
   },
 
+  /* eslint-disable no-param-reassign */
   _isListActive(path) {
+    if (typeof path !== 'string') path = path.path;
     if (path === '' || path.endsWith('/')) return true;
     return false;
   },
 
-  _getSecret() {
+  _getSecretId(route) {
+    let id = '';
     const grid =
       this.shadowRoot &&
       this.shadowRoot.querySelector('mist-list') &&
       this.shadowRoot.querySelector('mist-list').$.grid;
-    return (grid && grid.activeItem) || {};
+    if (grid && grid.activeItem) {
+      id = grid.activeItem.id;
+      this._setSecret(grid.activeItem, null);
+    } else {
+      id = route.path.slice(1, route.path.length);
+      this._setSecret(null, id);
+    }
+    return id;
   },
+  async _setSecret(secret, id) {
+    if (!this.$.secretPage) return;
+    if (secret) {
+      this.$.secretPage.set('secret', secret);
+    } else if (id) {
+      const response = await (await fetch(`/api/v2/secrets/${id}`)).json();
+      secret = response.data;
+      this.$.secretPage.set('secret', secret);
+    }
+  },
+  /* eslint-enable no-param-reassign */
 
   _isSecretPageActive(path) {
     const itemId = path.startsWith('/') ? path.slice(1) : path;
