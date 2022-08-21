@@ -127,7 +127,7 @@ Polymer({
               id="hideSecretbtn"
               on-tap="hideSecret"
               class="right link"
-              >Hide <span class="wide">Secret</span>
+              ><span class="wide">Hide</span>
               <iron-icon icon="icons:visibility-off"></iron-icon>
             </paper-button>
           </div>
