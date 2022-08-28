@@ -36,7 +36,7 @@ Polymer({
         route="{{route}}"
         visible="[[_getVisibleColumns()]]"
         item-map="[[model.buckets]]"
-        user-filter="[[model.sections.buckets.q]]"
+        user-filter="[[userFilter]]"
         primary-field-name="id"
         renderers="[[_getRenderers()]]"
         actions="[[actions]]"
@@ -49,7 +49,6 @@ Polymer({
         route="[[route]]"
         path="[[route.path]]"
         model="[[model]]"
-        section="[[model.sections.buckets]]"
         hidden$="[[!_isDetailsPageActive(route.path)]]"
         bucket="[[_getBucket(data.buckets, model.buckets, model.buckets.*)]]"
         resource-id="[[data.bucket]]"
@@ -82,7 +81,7 @@ Polymer({
     return false;
   },
   _getVisibleColumns() {
-    return ['name', 'region', 'cloud_name', 'creation_date'];
+    return ['name', 'region', 'cloud', 'creation_date'];
   },
   _getRenderers(_keys) {
     return {
@@ -97,9 +96,9 @@ Polymer({
             .replace(' ', '')}.png`;
         },
       },
-      cloud_name: {
-        title: () => 'cloud name',
-        body: item => item,
+      cloud: {
+        title: () => 'cloud',
+        body: item => this.model.clouds[item].name,
       },
       creation_date: {
         title: () => 'creation date',
