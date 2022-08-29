@@ -150,7 +150,7 @@ Polymer({
             i.is_dir = i.name.endsWith('/');
             this.itemMap[i.id] = i;
           });
-          count = response.meta.total_returned;
+          count = response.meta.returned;
           callback(items, count);
           window.dispatchEvent(new Event('resize'));
           this.async(() => {
