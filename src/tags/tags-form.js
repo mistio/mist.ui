@@ -7,9 +7,9 @@ import '@vaadin/vaadin-dialog/vaadin-dialog.js';
 import '@polymer/paper-progress/paper-progress.js';
 import '@polymer/iron-icons/iron-icons.js';
 import './tag-item.js';
-import { CSRFToken, intersection } from '../helpers/utils.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
+import { CSRFToken, intersection } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -241,39 +241,35 @@ Polymer({
     let existingTags = [];
     if (this.model) {
       // loop in taggable resources
-      Object.keys(this.model).forEach(resources => {
-        if (
-          [
-            'machines',
-            'clouds',
-            'stacks',
-            'volumes',
-            'networks',
-            'zones',
-            'keys',
-            'images',
-            'scripts',
-            'templates',
-            'schedules',
-            'schedules',
-            'teams',
-          ].indexOf(resources) > -1
-        ) {
-          // loop in resources items
-          Object.keys(this.model[resources] || {}).forEach(id => {
-            // loop in resources items with tags
-            if (
-              this.model[resources][id] &&
-              this.model[resources][id].tags &&
-              Object.keys(this.model[resources][id].tags).length > 0
-            ) {
-              existingTags = this._addTags(
-                existingTags,
-                this.model[resources][id].tags
-              );
-            }
-          });
-        }
+      [
+        'machines',
+        'clouds',
+        'stacks',
+        'volumes',
+        'networks',
+        'zones',
+        'keys',
+        'images',
+        'scripts',
+        'templates',
+        'schedules',
+        'schedules',
+        'teams',
+      ].forEach(resources => {
+        // loop in resources items
+        Object.keys(this.model[resources] || {}).forEach(id => {
+          // loop in resources items with tags
+          if (
+            this.model[resources][id] &&
+            this.model[resources][id].tags &&
+            Object.keys(this.model[resources][id].tags).length > 0
+          ) {
+            existingTags = this._addTags(
+              existingTags,
+              this.model[resources][id].tags
+            );
+          }
+        });
       });
     }
     return existingTags;
@@ -283,9 +279,7 @@ Polymer({
     if (this.existingTags) {
       return this.existingTags
         .map(t => Object.keys(t).join())
-        .filter((v, i, s) => {
-          return s.indexOf(v) === i;
-        });
+        .filter((v, i, s) => s.indexOf(v) === i);
     }
     return [];
   },
@@ -294,9 +288,7 @@ Polymer({
     if (this.existingTags) {
       return this.existingTags
         .map(t => Object.values(t).join())
-        .filter((v, i, s) => {
-          return v && s.indexOf(v) === i;
-        });
+        .filter((v, i, s) => v && s.indexOf(v) === i);
     }
     return [];
   },
@@ -363,16 +355,12 @@ Polymer({
         if (i === 0) {
           // console.log('itemObj.tags',item.tags);
           tagset = new Set(
-            Object.keys(item.tags).map(key => {
-              return `${key}=${item.tags[key]}`;
-            })
+            Object.keys(item.tags).map(key => `${key}=${item.tags[key]}`)
           );
         } else {
           isection = intersection(
             tagset,
-            Object.keys(item.tags).map(key => {
-              return `${key}=${item.tags[key]}`;
-            }) || []
+            Object.keys(item.tags).map(key => `${key}=${item.tags[key]}`) || []
           );
           tagset = new Set(isection);
         }
@@ -380,9 +368,10 @@ Polymer({
     }
 
     return (
-      Array.from(tagset).map(item => {
-        return { key: item.split('=')[0], value: item.split('=')[1] };
-      }) || []
+      Array.from(tagset).map(item => ({
+        key: item.split('=')[0],
+        value: item.split('=').splice(1).join('='),
+      })) || []
     );
   },
 
@@ -424,25 +413,19 @@ Polymer({
   },
 
   _inArray(tag, _tagstodelete) {
-    const tin = this.tagsToDelete.find(t => {
-      return t.key === tag.key;
-    });
+    const tin = this.tagsToDelete.find(t => t.key === tag.key);
     // console.log('tin', tin);
     return !!tin;
   },
 
   _saveTags() {
     // console.log('_saveTags', this.items);
-    const newTags = this.tags.filter(tag => {
-      return tag.key;
-    });
+    const newTags = this.tags.filter(tag => tag.key);
     let payload = [];
     let deltags = [];
 
     if (this.tagsToDelete.length > 0) {
-      deltags = this.tagsToDelete.filter(tag => {
-        return tag.key !== '';
-      });
+      deltags = this.tagsToDelete.filter(tag => tag.key !== '');
     }
 
     payload = this.items.map(item => {
