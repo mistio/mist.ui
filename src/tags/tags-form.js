@@ -241,39 +241,35 @@ Polymer({
     let existingTags = [];
     if (this.model) {
       // loop in taggable resources
-      Object.keys(this.model).forEach(resources => {
-        if (
-          [
-            'machines',
-            'clouds',
-            'stacks',
-            'volumes',
-            'networks',
-            'zones',
-            'keys',
-            'images',
-            'scripts',
-            'templates',
-            'schedules',
-            'schedules',
-            'teams',
-          ].indexOf(resources) > -1
-        ) {
-          // loop in resources items
-          Object.keys(this.model[resources] || {}).forEach(id => {
-            // loop in resources items with tags
-            if (
-              this.model[resources][id] &&
-              this.model[resources][id].tags &&
-              Object.keys(this.model[resources][id].tags).length > 0
-            ) {
-              existingTags = this._addTags(
-                existingTags,
-                this.model[resources][id].tags
-              );
-            }
-          });
-        }
+      [
+        'machines',
+        'clouds',
+        'stacks',
+        'volumes',
+        'networks',
+        'zones',
+        'keys',
+        'images',
+        'scripts',
+        'templates',
+        'schedules',
+        'schedules',
+        'teams',
+      ].forEach(resources => {
+        // loop in resources items
+        Object.keys(this.model[resources] || {}).forEach(id => {
+          // loop in resources items with tags
+          if (
+            this.model[resources][id] &&
+            this.model[resources][id].tags &&
+            Object.keys(this.model[resources][id].tags).length > 0
+          ) {
+            existingTags = this._addTags(
+              existingTags,
+              this.model[resources][id].tags
+            );
+          }
+        });
       });
     }
     return existingTags;
@@ -374,7 +370,7 @@ Polymer({
     return (
       Array.from(tagset).map(item => ({
         key: item.split('=')[0],
-        value: item.split('=')[1],
+        value: item.split('=').splice(1).join('='),
       })) || []
     );
   },
