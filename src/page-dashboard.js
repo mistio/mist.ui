@@ -572,7 +572,7 @@ export default class PageDashboard extends mixinBehaviors(
           .querySelector('.graphs')
           .querySelector('#dashboard')
           .shadowRoot.querySelector('#panel-0');
-        if (panel.loading) {
+        if (panel && panel.loading) {
           panel._generateDataRequest();
         }
       }, 10000);
