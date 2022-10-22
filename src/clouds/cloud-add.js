@@ -28,7 +28,7 @@ Polymer({
 
       #content {
         max-width: 900px;
-        padding-bottom: 250px;
+        padding-bottom: 30px;
       }
 
       @media screen and (min-width: 1200px) {
