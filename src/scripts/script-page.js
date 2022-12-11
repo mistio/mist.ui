@@ -276,7 +276,7 @@ Polymer({
             visible="[[_getVisibleColumns()]]"
             renderers="[[_getRenderers()]]"
             primary-field-name="time"
-            base-filter="script_id:[[script.id]]"
+            base-filter="[[script.id]]"
           >
           </mist-list>
         </paper-material>
