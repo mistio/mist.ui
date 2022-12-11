@@ -186,7 +186,7 @@ export default class PageVolumes extends mixinBehaviors(
         title: 'cloud',
         body: (item, row) =>
           _this.model && _this.model.clouds && _this.model.clouds[row.cloud]
-            ? _this.model.clouds[row.cloud].title
+            ? _this.model.clouds[row.cloud].name
             : item,
         cmp: (row1, row2) => {
           const item1 = this.renderers.provider.body(row1.cloud, row1);
