@@ -9,7 +9,6 @@ import '../helpers/custom-validator.js';
 import '../helpers/file-upload.js';
 import { Polymer } from '@polymer/polymer/lib/legacy/polymer-fn.js';
 import { html } from '@polymer/polymer/lib/utils/html-tag.js';
-import { CSRFToken } from '../helpers/utils.js';
 
 Polymer({
   _template: html`
@@ -332,7 +331,7 @@ Polymer({
 
   _submitForm() {
     this.$.keyAddAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.keyAddAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.keyAddAjaxRequest.headers['Csrf-Token'] = this.model.user.csrf_token;
     this.$.keyAddAjaxRequest.body = {
       name: this.key.name,
       priv: this.key.privateKey,
@@ -435,7 +434,9 @@ Polymer({
 
   _generateKey(_e) {
     this.$.keyGenerateAjaxRequest.headers['Content-Type'] = 'application/json';
-    this.$.keyGenerateAjaxRequest.headers['Csrf-Token'] = CSRFToken.value;
+    this.$.keyGenerateAjaxRequest.headers[
+      'Csrf-Token'
+    ] = this.model.user.csrf_token;
     this.$.keyGenerateAjaxRequest.body = {};
     this.$.keyGenerateAjaxRequest.generateRequest();
 
