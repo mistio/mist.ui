@@ -150,7 +150,7 @@ export default class PageNetworks extends mixinBehaviors(
   }
 
   _getVisibleColumns() {
-    const ret = ['provider', 'machines', 'created_by', 'subnets', 'tags'];
+    const ret = ['cloud', 'machines', 'created_by', 'subnets', 'tags'];
     if (this.model.org && this.model.org.ownership_enabled === true)
       ret.splice(ret.indexOf('created_by'), 0, 'owned_by');
     return ret;
@@ -176,15 +176,15 @@ export default class PageNetworks extends mixinBehaviors(
             .replace(' ', '')}.png`;
         },
       },
-      provider: {
+      cloud: {
         title: 'cloud',
         body: (item, row) =>
           _this.model && _this.model.clouds && _this.model.clouds[row.cloud]
-            ? _this.model.clouds[row.cloud].title
+            ? _this.model.clouds[row.cloud].name
             : item,
         cmp: (row1, row2) => {
-          const item1 = this.renderers.provider.body(row1.cloud, row1);
-          const item2 = this.renderers.provider.body(row2.cloud, row2);
+          const item1 = this.renderers.cloud.body(row1.cloud, row1);
+          const item2 = this.renderers.cloud.body(row2.cloud, row2);
           return item1.localeCompare(item2, 'en', { sensitivity: 'base' });
         },
       },
