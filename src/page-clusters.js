@@ -78,13 +78,10 @@ export default class PageClusters extends PolymerElement {
     const _this = this;
     return {
       icon: {
-        body: (_item, row) => {
-          return `./assets/providers/provider-${_this.model.clouds[
-            row.cloud
-          ].provider
+        body: (_item, row) =>
+          `./assets/providers/provider-${_this.model.clouds[row.cloud].provider
             .replace('_', '')
-            .replace(' ', '')}.png`;
-        }
+            .replace(' ', '')}.png`,
       },
       name: {
         body: (item, _row) => `<strong class="name">${item}</strong>`,
@@ -96,9 +93,7 @@ export default class PageClusters extends PolymerElement {
       cloud: {
         body: (item, _row) => {
           if (_this.model && _this.model.clouds)
-            return _this.model.clouds[item].title
-              ? _this.model.clouds[item].title
-              : '';
+            return _this.model.clouds[item].name || '';
           return '';
         },
       },
