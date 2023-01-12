@@ -69,7 +69,7 @@ Polymer({
       a#logo-link {
         line-height: 56px;
         display: flex;
-        width: 80px;
+        width: 120px;
         margin-right: 24px;
       }
 
@@ -172,6 +172,7 @@ Polymer({
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
+        margin-top: 4px;
       }
 
       :host {
